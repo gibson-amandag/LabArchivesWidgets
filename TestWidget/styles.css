@@ -1,0 +1,19 @@
+p {
+    font-size: 20pt;
+}
+.largeText {
+    font-size: 100pt;
+}
+
+.widget {
+    width: 500px;
+}
+.container {
+    display: flex;
+    flex-wrap: wrap;
+}
+  
+.container>div {
+    flex: 0 50%;
+    margin-bottom: 20px;
+}

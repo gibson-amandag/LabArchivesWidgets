@@ -1,0 +1,281 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div class="widget">
+            <!--Start copy-->
+            <h1>Slicing</h1>
+            <div class="container">
+                <div>
+                    Date
+                </div>
+                <div>
+                    <input name="slicedate" type="date"/>
+                </div>
+
+                <div>
+                    Transgenic Line
+                </div>
+                <div>
+                    <input name="strain"/>
+                </div>
+
+                <div>
+                    Mouse ID # or Ear Tag
+                </div>
+                <div>
+                    <input name="mouseid"/>
+                </div>
+
+                <div>
+                    Cage #
+                </div>
+                <div>
+                    <input name="cagenum"/>
+                </div>
+
+                <div>
+                    Date of Birth
+                </div>
+                <div>
+                    <input name="dob" type="date"/>
+                </div>
+
+                <div>
+                    Sex
+                </div>
+                <div>
+                    <label for="sex"> Select:</label>
+                    <select id="sex" name="sex">
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                    </select>
+                </div>
+
+                <div>
+                    Zygosity
+                </div>
+                <div>
+                    <label for="zygosity"> Select:</label>
+                    <select id="zygosity" name="zygosity">
+                        <option value="homoPlus"> +/+ </option>
+                        <option value="hetero"> +/- </option>
+                        <option value="homoNeg"> -/- </option>
+                    </select>
+                </div>
+
+                <div>
+                    Body mass (g)
+                </div>
+                <div>
+                    <input name="bodymass" type="number" step="0.1"/>
+                </div>
+
+                <div>
+                    Uterine/seminal mass (mg)
+                </div>
+                <div>
+                    <input name="gonadmass" type="number" step="0.01"/>
+                </div>
+
+                <div>
+                    Blood Glucose (mg/100mL)
+                </div>
+                <div>
+                    <input name="glucose" type="number" step="0.001"/>
+                </div>
+
+                <div>
+                    Serum Tube Label
+                </div>
+                <div>
+                    <input name="tubelabel"/>
+                </div>
+
+                <div>
+                    Time of Sacrifice
+                </div>
+                <div>
+                    <input name="sactime" type="time"/>
+                </div>
+
+                <div>
+                    Nucleus/Area of Interest
+                </div>
+                <div>
+                    <input name="nucleus"/>
+                </div>
+
+                <div>
+                    Fluorescent Quality
+                </div>
+                <div>
+                    <label for="fluorqual"> Select:</label>
+                    <select id="fluorqual" name="fluorqual">
+                        <option value="good"> Good </option>
+                        <option value="fair"> Fair </option>
+                        <option value="poor"> Poor </option>
+                    </select>
+                    <label for="fluorcomment"><br>Comment:</label>
+                    <input name="fluorcomment"/>
+                </div>
+
+                <div>
+                    Pituitary
+                </div>
+                <div>
+                    <label for="pituitary"> Saved pituitary</label>
+                    <input type="checkbox" name="pituitary"/>
+                </div>
+
+            </div>
+
+            <h2>Gonadal Status</h2>
+            <div class="container">
+                <div>
+                    Intact
+                </div>
+                <div>
+                    <label for="intact"> Intact?</label>
+                    <input type="checkbox" name="intact"/>
+                </div>
+
+                <div>
+                    Cycle Stage
+                </div>
+                <div>
+                    <label for="cyclestage"> Select:</label>
+                    <select id="cyclestage" name="cyclestage">
+                        <option value="diestrus"> Diestrus </option>
+                        <option value="proestrus"> Proestrus </option>
+                        <option value="estrus"> Estrus </option>
+                    </select>
+                    <label for="stagecomment"><br>Comment:</label>
+                    <input name="stagecomment"/>
+                </div>
+
+                <div>
+                    Gonadectomized?
+                </div>
+                <div>
+                    <label for="gdx"> GDX?</label>
+                    <input type="checkbox" name="gdx"/>
+                </div>
+
+                <div>
+                    Date of surgery
+                </div>
+                <div>
+                    <input name="surgerydate" type="date"/>
+                </div>
+            </div>
+
+            <h2>Steroid Implants</h2>
+            <div class="container">
+                <div>
+                    Implant
+                </div>
+                <div>
+                    <label for="e2"> E2:</label>
+                    <input type="checkbox" name="e2"/><br>
+                    <label for="dht"> DHT:</label>
+                    <input type="checkbox" name="dht"/><br>
+                    <label for="pira"> P IRA:</label>
+                    <input type="checkbox" name="pira"/><br>
+                    <label for="otherimplant"> Other:</label>
+                    <input type="checkbox" name="otherimplant"/>
+                </div>
+                <div>
+                    Implant Comment
+                </div>
+                <div>
+                    <input name="implantcomment"/>
+                </div>
+            </div>
+
+            <h2>Slicing</h2>
+            <div class="container">
+                <div>
+                    Slicing Orientation
+                </div>
+                <div>
+                    <input name="orientation"/>
+                </div>
+                <div>
+                    Quality
+                </div>
+                <div>
+                    <label for="slicequal"> Select:</label>
+                    <select id="slicequal" name="slicequal">
+                        <option value="good"> Good </option>
+                        <option value="fair"> Fair </option>
+                        <option value="poor"> Poor </option>
+                    </select>
+                    <label for="slicecomment"><br>Comment:</label>
+                    <input name="slicecomment"/>
+                </div>
+            </div>
+
+            <h2>Solutions</h2>
+            <div class="container">
+                <div>
+                    External and addition
+                </div>
+                <div>
+                    <input name="externalsoln"/>
+                </div>
+
+                <div>
+                    Internal Solution
+                </div>
+                <div>
+                    <input name="internalsoln"/>
+                </div>
+
+                <div>
+                    Internal Date
+                </div>
+                <div>
+                    <input name="internaldate" type="date"/>
+                </div>
+
+                <div>
+                    Pipette
+                </div>
+                <div>
+                    <input name="pipette"/>
+                </div>
+
+                <div>
+                    Date of pipette solution
+                </div>
+                <div>
+                    <input name="pipettedate" type="date"/>
+                </div>
+
+                <div>
+                    Pipette Lot
+                </div>
+                <div>
+                    <input name="pipettelot"/>
+                </div>
+
+                <div>
+                    Internal Solution
+                </div>
+                <div>
+                    <input name="internalsoln">
+                </div>
+
+
+            </div>
+
+            <h2>Comments:</h2>
+            <textarea name="comments" rows="5"></textarea>
+
+
+            <!--Stop copying here-->
+        </div>
+    </body>
+</html>
