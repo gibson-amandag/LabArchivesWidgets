@@ -3,7 +3,7 @@
 <head>
     <link rel="stylesheet" href="styles.css">
     <!-- https://www.viralpatel.net/dynamically-add-remove-rows-in-html-table-using-javascript/#:~:text=For%20adding%20dynamic%20row%20in,created%20cells%20by%20using%20row. -->
-
+    <!-- These functions are added in the scriptEditor. Need to change the format within LabArchives. [function name]: function(){} -->
     <SCRIPT language="javascript">
         function addRow(tableID) {
 
@@ -107,13 +107,12 @@
 </head>
 
 <body>
-    <div class="widget"></div>
-    <!--Start copy-->
-
-    <h1>Recording Notes</h1>
-
+    <div>
+        <h1>Recording Notes</h1>
+    </div>
+    
     <div>Mouse ID:</div>
-
+    
     <div><input id="mouseid" name="mouseid" /></div>
     
     <div>Cell ID:</div>
@@ -125,87 +124,112 @@
     <div><input id="pipetteresinit" name="pipetteresinit" step="0.01" type="number" /></div>
     
     <div>Rig:</div>
+    
     <div><input id="rig" name="rig" /></div>
     
     <div>Length of Series (min):</div>
-    <div><input id="seriesLength" name="serieslength" type="number" min="0" /></div>
+    
+    <div><input id="seriesLength" min="0" name="serieslength" type="number" /></div>
     
     <div>Recording by:</div>
+    
     <div><input id="experimenter" name="experimenter" /></div>
-
-    <p>To add a new series, click "Add Row".
-        <br>To delete a row, check "select" and then press "Delete Row".
-        <br>The series value will automatically populate with 1 + the previous series number. If it cannot find the previous
-        value, it will use the row number.
-        <br>You can only select one radio input for either a stabilization series, spontaneous series, or addition series
+    
+    <p>To add a new series, click &quot;Add Row&quot;.<br />
+        To delete a row, check &quot;select&quot; and then press &quot;Delete Row&quot;.<br />
+        The series value will automatically populate with 1 + the previous series number. If it cannot find the previous
+        value, it will use the row number.<br />
+        You can only select one radio input for either a stabilization series, spontaneous series, or addition series
     </p>
+    
 
     <!-- html computer testing -->
     <button id="addRow" onclick="addRow('dataTable')" type="button">Add Row</button><button id="deleteRow"
         onclick="deleteRow('dataTable')" type="button">Delete Row</button>
 
-    <!-- lab archives -->
+    <!-- lab archives To call the function, need to use form_script before function name-->
     <!-- <p><button id="addRow" onclick="form_script.addRow('dataTable')" type="button">Add Row</button><button id="deleteRow"
         onclick="form_script.deleteRow('dataTable')" type="button">Delete Row</button></p> -->
 
-    <table border="1" id="dataTable" width="350px">
-        <tbody>
-            <tr>
-                <td>Select</td>
-                <td>Series</td>
-                <td>Resistance (MΩ)</td>
-                <td>Time</td>
-                <td>Notes</td>
-                <td>Stabilization</td>
-                <td>Spontaneous</td>
-                <td>Addition</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h3>Other comments:</h3>
-    <textarea name = "recordingcomments"></textarea>
-
-    <h3>Recording Summary:</h3>
-    
-    <div><h4>Length of Spontaneous Recording:</h4></div>
-    <div><input type = "number" id="spontLength" name="spontlength" min="0" /></div>
-
-    <div><h4>Spontaneous Activity?</h4></div>
-    <div>
-        <label for = "spontfiring">Check if events</label>
-        <input type = "checkbox" id = "spontfiring" name = "spontfiring"/> 
-        <br><textarea name = "firingdesc">Describe firing</textarea>
-    </div>
-
-    <div><h4>Noise during recording</h4></div>
-    <div>
-        <label for = "noise">Check if noise</label>
-        <input type = "checkbox" id = "noise" name = "noise"/> 
-        <br><textarea name = "noisedesc">Describe noise</textarea>
-    </div>
-
-    <div><h4>Movement during recording</h4></div>
-    <div>
-        <label for = "movement">Check if movement</label>
-        <input type = "checkbox" id = "movement" name = "movement"/> 
-        <br><textarea name = "movedesc">Describe movement</textarea>
-    </div>
-    
-    <div><h4>Added compound to ACSF:</h4></div>
-    <div>
-        <label for = "addedcompound">Check if added</label>
-        <input type = "checkbox" id = "addedcompound" name = "addedcompound"/> 
-        <br>
-        <label for = "compoundname">Name:</label>
-        <input id = "compoundname" name = "compoundname"/>
-        <br>
-        <label for = "addseries">Added during series #:</label>
-        <input type = "number" name = "addseries" id = "addseries" min = 0 step = 1/>
-        <br>
-        <label for = "whenaddseries">When during series?</label>
-        <input name = "whenaddseries" id = "whenaddseries"/>
-    </div>
+        <table border="1" id="dataTable" width="350px">
+            <tbody>
+                <tr>
+                    <td>Select</td>
+                    <td>Series</td>
+                    <td>Resistance (MΩ)</td>
+                    <td>Time</td>
+                    <td>Notes</td>
+                    <td>Stabilization</td>
+                    <td>Spontaneous</td>
+                    <td>Addition</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p>&nbsp;</p>
+        
+        <h3>Other comments:</h3>
+        
+        <p><textarea cols="50" name="recordingcomments" rows="10"></textarea></p>
+        
+        <p>&nbsp;</p>
+        
+        <h3>Recording Summary:</h3>
+        
+        <p>&nbsp;</p>
+        
+        <div>
+            <h4>Length of Spontaneous Recording:</h4>
+        </div>
+        
+        <div><input id="spontLength" min="0" name="spontlength" type="number" /></div>
+        
+        <p>&nbsp;</p>
+        
+        <div>
+            <h4>Spontaneous Activity?</h4>
+        </div>
+        
+        <div><label for="spontfiring">Check if events</label> <input id="spontfiring" name="spontfiring"
+                type="checkbox" /><br />
+            <textarea name="firingdesc">Describe firing</textarea></div>
+        
+        <p>&nbsp;</p>
+        
+        <div>
+            <h4>Noise during recording</h4>
+        </div>
+        
+        <div><label for="noise">Check if noise</label> <input id="noise" name="noise" type="checkbox" /><br />
+            <textarea name="noisedesc">Describe noise</textarea></div>
+        
+        <p>&nbsp;</p>
+        
+        <div>
+            <h4>Movement during recording</h4>
+        </div>
+        
+        <div><label for="movement">Check if movement</label> <input id="movement" name="movement" type="checkbox" /><br />
+            <textarea name="movedesc">Describe movement</textarea></div>
+        
+        <p>&nbsp;</p>
+        
+        <div>
+            <h4>Added compound to ACSF:</h4>
+        </div>
+        
+        <div><label for="addedcompound">Check if added</label> <input id="addedcompound" name="addedcompound"
+                type="checkbox" /><br />
+            <label for="compoundname">Name:</label> <input id="compoundname" name="compoundname" /><br />
+            <label for="addseries">Added during series #:</label> <input id="addseries" min="0" name="addseries" step="1"
+                type="number" /><br />
+            <label for="whenaddseries">When during series?</label> <input id="whenaddseries" name="whenaddseries" /></div>
+        
+        <p>&nbsp;</p>
+        
+        <h3>Other comments:</h3>
+        
+        <p><textarea cols="50" name="finalcomments" rows="10"></textarea></p>
 
 
   

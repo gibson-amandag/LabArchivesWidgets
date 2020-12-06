@@ -2,6 +2,7 @@
     width: 500px;
 }
 /* This can be added at the top of the html in LA, <style> ... </style> */
+/*at present, code does not use*/
 .container {
     display: flex;
     flex-wrap: wrap;
@@ -10,29 +11,4 @@
 .container>div {
     flex: 0 50%;
     margin-bottom: 5px;
-}
-
-.seriesgrid {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.seriesgrid>div{
-    flex: 0 25%;
-}
-
-.series {
-    flex: 0 20%;
-}
-
-.resistance {
-    flex: 0 20%;
-}
-
-.time {
-    flex: 0 20%;
-}
-
-.notes {
-    flex: 0 40%;
 }
