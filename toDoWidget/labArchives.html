@@ -1,0 +1,35 @@
+<div>
+    <h1>To-Do Tasks</h1>
+</div>
+
+<div>Focus:</div>
+
+<div><textarea id="focus" name="focus">Focus</textarea></div>
+
+<p>To add a new item, click &quot;Add Row&quot;.<br />
+    To delete a row, check &quot;select&quot; and then press &quot;Delete Row&quot;.<br />
+</p>
+
+<!-- lab archives To call the function, need to use form_script before function name-->
+<p><button id="addRow" onclick="form_script.addRow('dataTable')" type="button">Add Row</button><button id="deleteRow"
+    onclick="form_script.deleteRow('dataTable')" type="button">Delete Row</button></p>
+
+    <table id="dataTable" width="350px">
+        <tbody>
+            <tr>
+                <th>Select</th>
+                <th>Task</th>
+                <th>Start Date</th>
+                <th>Due Date</th>
+                <th>Description</th>
+                <th style="background-color:lightblue;">Completed</th>
+                <th>Completion Notes</th>
+            </tr>
+        </tbody>
+    </table>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Other comments:</h3>
+    
+    <p><textarea cols="50" name="othercomments" rows="10"></textarea></p>
