@@ -17,4 +17,4 @@ In the Widget Script Editor, paste the contents of the "scriptEditor.js" file
 
 The index.html and styles.css scripts can be used to test the html code locally
 
-The "RecordingWidget" has been updated with the code from LabArchives. "TestWidget" and "SlicingWidget" do not have this, yet
+The "RecordingWidget," "toDoWidget," and "BreedingFormWidget" have been updated with the code from LabArchives. "TestWidget" and "SlicingWidget" have not been updated with these files

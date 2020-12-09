@@ -1,0 +1,96 @@
+<style type="text/css">
+    .container_50 {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .container_50>div {
+        flex: 0 50%;
+        margin-bottom: 5px;
+    }
+
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 2%;
+    }
+
+    .mouseDiv {
+        flex: 0 29%;
+        margin-bottom: 5 px;
+        padding: 10px;
+        background: rgb(245, 241, 241);
+        border-radius: 25px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .mouseDiv>div {
+        flex: 0 50%;
+        margin-bottom: 5px;
+    }
+</style>
+<div>
+    <h1>Setting up Breeding Cage</h1>
+</div>
+
+<div class="container_50">
+    <div>
+        <h2>Breeding Date:</h2>
+    </div>
+
+    <div>
+        <h2><input id="breeddate" name="breeddate" type="date" /></h2>
+    </div>
+
+    <div>
+        <h2>Breeding Cage:</h2>
+    </div>
+
+    <div>
+        <h2><input id="breedcage" name="breedcage" type="number" /></h2>
+    </div>
+</div>
+
+<p><button id="add" onclick="form_script.addDam2()" type="button">Add Dam 2</button><button disabled="true" id="remove"
+        onclick="form_script.removeDam2()" type="button">Remove Dam 2</button></p>
+
+<p>&nbsp;</p>
+
+<div class="container" id="mouseInfo">
+    <div class="mouseDiv" id="dam1Div">
+        <div>Dam 1 ID:</div>
+
+        <div><input id="damid_1" name="damid_1" /></div>
+
+        <div>Dam 1 DOB:</div>
+
+        <div><input id="damdob_1" name="damdob_1" type="date" /></div>
+
+        <div>Dam 1 Strain:</div>
+
+        <div><input id="damstrain_1" name="damstrain_1" /></div>
+
+        <div>Dam 1 Mass:</div>
+
+        <div><input id="dammass_1" min="0" name="dammass_1" step="0.1" type="number" /></div>
+    </div>
+
+    <div class="mouseDiv" id="sireDiv">
+        <div>Sire ID:</div>
+
+        <div><input id="sireid" name="sireid" /></div>
+
+        <div>Sire DOB:</div>
+
+        <div><input id="siredob" name="siredob" type="date" /></div>
+
+        <div>Sire Strain:</div>
+
+        <div><input id="sirestrain" name="sirestrain" /></div>
+    </div>
+</div>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
