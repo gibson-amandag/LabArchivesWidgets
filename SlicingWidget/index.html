@@ -1,45 +1,225 @@
 <html>
-    <head>
-        <link rel="stylesheet" href="styles.css">
-    </head>
-    <body>
-        <div class="widget">
-            <!--Start copy-->
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#toggleTable").click(function () { //when the showTable button is clicked. Run this function
+                //alert("button pressed");
+                $("#outTable").toggle();
+            })
+
+        });
+
+        function calcValues() {
+            //Mouse ID
+            $("#MouseID_calc").text($("#MouseID").val());
+            //Cage number
+            $("#Cage_calc").text($("#Cage").val());
+            //treatment
+            //if want text from selected, instead of value $("#Treatment").children("option:selected").text())
+            $("#Treatment_calc").text($("#Treatment").val());
+            //generic treatment
+            if ($("#Treatment_calc").text() === "CON" || //if Treatment_calc equals CON, CON_main, or VEH,
+                $("#Treatment_calc").text() === "CON_main" ||
+                $("#Treatment_calc").text() === "VEH") {
+                $("#GenTreatment_calc").text("Control"); //GenTreatment_calc equals "Control"
+            } else {
+                $("#GenTreatment_calc").text("PNA") //else equals "PNA"
+            }
+            //cycle stage
+            $("#CycleStage_calc").text($("#CycleStage").val());
+            //body mass
+            $("#BodyMass_g_calc").text($("#BodyMass_g").val());
+
+            //uterine mass
+            if ($("#sex").val() === "female") {
+                $("#UterineMass_calc").text($("#gonadMass").val());
+            } else {
+                $("#UterineMass_calc").text("NA");
+            }
+            //uterine mass per body mass
+            if ($("#sex").val() === "female") {
+                var uterine_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
+                $("#Uterine_mg_per_g_calc").text(uterine_mg_per_g.toFixed(4));
+            } else {
+                $("#Uterine_mg_per_g_calc").text("NA");
+            }
+
+            //Date of birth
+            $("#Date_of_birth_calc").text($("#Date_of_birth").val());
+
+            //Recording date
+            $("#Recording_date_calc").text($("#Recording_date").val());
+
+            //Age in days
+            //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
+            var DOBisDay = 1; //change to 0 if want DOB to be day 0
+            var Recording_date_as_ms = new Date($("#Recording_date").val()).getTime();
+            var DOB_as_ms = new Date($("#Date_of_birth").val()).getTime();
+            var Age_in_days = (Recording_date_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
+            $("#Age_in_days_calc").text(Age_in_days);
+
+            //saved pituitary
+            if ($("#Saved_pit").is(":checked")) {
+                var Saved_pit = "Y";
+            } else {
+                var Saved_pit = "N";
+            }
+            $("#Saved_pit_calc").text(Saved_pit);
+
+            //Daylight savings
+            $("#Daylight_Savings_calc").text($("#Daylight_Savings").val());
+
+            //Time of sacrifice
+            $("#Time_sac_calc").text($("#Time_sac").val());
+
+            //Hours since lights on
+            //http://jsfiddle.net/44NCk/4/
+            var time_sac = $("#Time_sac").val().split(":");
+            if ($("#Daylight_Savings").val() === "Y") { //if daylight savings time
+                var lights_on = "04:00"; //lights on at 4am
+                var lights_on_split = lights_on.split(":");
+            } else {
+                var lights_on = "03:00" //otherwise, lights on at 3a
+                var lights_on_split = lights_on.split(":");
+            }
+            var hours_sac = parseInt(time_sac[0], 10), //get the hours component for time sac
+                hours_lights = parseInt(lights_on_split[0], 10),
+                min_sac = parseInt(time_sac[1], 10), //get the min component
+                min_lights = parseInt(lights_on_split[1], 10);
+            var hours = hours_sac - hours_lights, mins = 0; //subtract time of sac from lights on
+            if (hours < 0) hours = 24 + hours; //if a negative number, add 24
+            if (min_sac >= min_lights) { //if the min time of sac is greater than min time lights on
+                mins = min_sac - min_lights; //subtract as is
+            } else {
+                mins = (min_sac + 60) - min_lights; //otherwise add 60 min and remove an hour
+                hours--;
+            }
+
+            mins = mins / 60; //divide min by 60 to get decimal
+            hours += mins; //add min to hours
+            hours = hours.toFixed(3); //three decimal points
+            $("#Sac_hr_calc").text(hours);
+            $("#Who_calc").text($("#Who").val());
+
+            $("#outTable tr").each(function () { //for each row
+                $("td", this).each(function () { //for each cell
+                    var value = $(this).text(); //get the value of the text
+                    if (value === "" || value === "NaN") { //if blank or NaN
+                        $(this).text("NA"); //make NA
+                    }
+                })
+            })
+        }
+
+        function downloadCSV(csv, filename) {
+            var csvFile;
+            var downloadLink;
+
+            // CSV file
+            csvFile = new Blob([csv], { type: "text/csv" });
+
+            // Download link
+            downloadLink = document.createElement("a");
+
+            // File name
+            downloadLink.download = filename;
+
+            // Create a link to the file
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+
+            // Hide download link
+            downloadLink.style.display = "none";
+
+            // Add the link to DOM
+            document.body.appendChild(downloadLink);
+
+            // Click download link
+            downloadLink.click();
+        }
+
+        function exportTableToCSV(filename, table) {
+            var csv = [];
+            var datatable = document.getElementById(table);
+            var rows = datatable.querySelectorAll("tr");
+
+            for (var i = 0; i < rows.length; i++) {
+                var row = [], cols = rows[i].querySelectorAll("td, th");
+
+                for (var j = 0; j < cols.length; j++)
+                    row.push(cols[j].innerText);
+
+                csv.push(row.join(","));
+            }
+
+            // Download CSV file
+            downloadCSV(csv.join("\n"), filename);
+        }
+
+    </script>
+</head>
+
+<body>
+    <!--Start copy-->
+    <div class="columns">
+        <div class="column3">
             <h1>Slicing</h1>
             <div class="container">
+                <div>
+                    Experimenter
+                </div>
+                <div>
+                    <input name="who" id="Who" />
+                </div>
+
                 <div>
                     Date
                 </div>
                 <div>
-                    <input name="slicedate" type="date"/>
+                    <input name="slicedate" id="Recording_date" type="date" />
                 </div>
 
                 <div>
                     Transgenic Line
                 </div>
                 <div>
-                    <input name="strain"/>
+                    <input name="strain" id="strain" />
+                </div>
+
+                <div>
+                    Treatment
+                </div>
+                <div>
+                    <select name="treatment" id="Treatment">
+                        <option value="CON">Control</option>
+                        <option value="CON_main">Main colony control</option>
+                        <option value="VEH">Vehicle</option>
+                        <option value="DHT">DHT</option>
+                    </select>
                 </div>
 
                 <div>
                     Mouse ID # or Ear Tag
                 </div>
                 <div>
-                    <input name="mouseid"/>
+                    <input name="mouseid" id="MouseID" value="TestID" />
                 </div>
 
                 <div>
                     Cage #
                 </div>
                 <div>
-                    <input name="cagenum"/>
+                    <input name="cagenum" id="Cage" />
                 </div>
 
                 <div>
                     Date of Birth
                 </div>
                 <div>
-                    <input name="dob" type="date"/>
+                    <input name="dob" id="Date_of_birth" type="date" />
                 </div>
 
                 <div>
@@ -69,42 +249,54 @@
                     Body mass (g)
                 </div>
                 <div>
-                    <input name="bodymass" type="number" step="0.1"/>
+                    <input name="bodymass" id="BodyMass_g" type="number" step="0.1" />
                 </div>
 
                 <div>
+                    <!--Make this dynamic based on sex-->
                     Uterine/seminal mass (mg)
                 </div>
                 <div>
-                    <input name="gonadmass" type="number" step="0.01"/>
+                    <input name="gonadmass" id="gonadMass" type="number" step="0.01" />
                 </div>
 
                 <div>
                     Blood Glucose (mg/100mL)
                 </div>
                 <div>
-                    <input name="glucose" type="number" step="0.001"/>
+                    <input name="glucose" id="glucose" type="number" step="0.001" />
                 </div>
 
                 <div>
                     Serum Tube Label
                 </div>
                 <div>
-                    <input name="tubelabel"/>
+                    <input name="tubelabel" id="tubeLabel" />
                 </div>
 
                 <div>
                     Time of Sacrifice
                 </div>
                 <div>
-                    <input name="sactime" type="time"/>
+                    <input name="sactime" id="Time_sac" type="time" />
+                </div>
+
+                <div>
+                    Daylight Savings Time
+                </div>
+                <div>
+                    <label for="daylightsaving">Select:</label>
+                    <select name="daylightsaving" id="Daylight_Savings">
+                        <option value="Y"> Daylight Savings Time (summer) </option>
+                        <option value="N"> Standard Time (winter) </option>
+                    </select>
                 </div>
 
                 <div>
                     Nucleus/Area of Interest
                 </div>
                 <div>
-                    <input name="nucleus"/>
+                    <input name="nucleus" id="nucleus" />
                 </div>
 
                 <div>
@@ -118,7 +310,7 @@
                         <option value="poor"> Poor </option>
                     </select>
                     <label for="fluorcomment"><br>Comment:</label>
-                    <input name="fluorcomment"/>
+                    <input name="fluorcomment" />
                 </div>
 
                 <div>
@@ -126,11 +318,13 @@
                 </div>
                 <div>
                     <label for="pituitary"> Saved pituitary</label>
-                    <input type="checkbox" name="pituitary"/>
+                    <input type="checkbox" name="pituitary" id="Saved_pit" />
                 </div>
-
             </div>
 
+        </div>
+
+        <div class="column3">
             <h2>Gonadal Status</h2>
             <div class="container">
                 <div>
@@ -138,21 +332,22 @@
                 </div>
                 <div>
                     <label for="intact"> Intact?</label>
-                    <input type="checkbox" name="intact"/>
+                    <input type="checkbox" name="intact" id="checkbox" />
                 </div>
 
                 <div>
+                    <!--Make this dynamic-->
                     Cycle Stage
                 </div>
                 <div>
                     <label for="cyclestage"> Select:</label>
-                    <select id="cyclestage" name="cyclestage">
-                        <option value="diestrus"> Diestrus </option>
-                        <option value="proestrus"> Proestrus </option>
-                        <option value="estrus"> Estrus </option>
+                    <select name="cyclestage" id="CycleStage">
+                        <option value="D"> Diestrus </option>
+                        <option value="P"> Proestrus </option>
+                        <option value="E"> Estrus </option>
                     </select>
                     <label for="stagecomment"><br>Comment:</label>
-                    <input name="stagecomment"/>
+                    <input name="stagecomment" />
                 </div>
 
                 <div>
@@ -160,14 +355,14 @@
                 </div>
                 <div>
                     <label for="gdx"> GDX?</label>
-                    <input type="checkbox" name="gdx"/>
+                    <input type="checkbox" name="gdx" id="gdx" />
                 </div>
 
                 <div>
                     Date of surgery
                 </div>
                 <div>
-                    <input name="surgerydate" type="date"/>
+                    <input name="surgerydate" id="surgerydate" type="date" />
                 </div>
             </div>
 
@@ -178,29 +373,31 @@
                 </div>
                 <div>
                     <label for="e2"> E2:</label>
-                    <input type="checkbox" name="e2"/><br>
+                    <input type="checkbox" name="e2" id="e2" /><br>
                     <label for="dht"> DHT:</label>
-                    <input type="checkbox" name="dht"/><br>
+                    <input type="checkbox" name="dht" id="dht" /><br>
                     <label for="pira"> P IRA:</label>
-                    <input type="checkbox" name="pira"/><br>
+                    <input type="checkbox" name="pira" id="pira" /><br>
                     <label for="otherimplant"> Other:</label>
-                    <input type="checkbox" name="otherimplant"/>
+                    <input type="checkbox" name="otherimplant" id="otherimplant" />
                 </div>
                 <div>
                     Implant Comment
                 </div>
                 <div>
-                    <input name="implantcomment"/>
+                    <input name="implantcomment" />
                 </div>
             </div>
+        </div>
 
+        <div class="column3">
             <h2>Slicing</h2>
             <div class="container">
                 <div>
                     Slicing Orientation
                 </div>
                 <div>
-                    <input name="orientation"/>
+                    <input name="orientation" id="orientation" />
                 </div>
                 <div>
                     Quality
@@ -213,7 +410,7 @@
                         <option value="poor"> Poor </option>
                     </select>
                     <label for="slicecomment"><br>Comment:</label>
-                    <input name="slicecomment"/>
+                    <input name="slicecomment" />
                 </div>
             </div>
 
@@ -223,59 +420,107 @@
                     External and addition
                 </div>
                 <div>
-                    <input name="externalsoln"/>
+                    <input name="externalsoln" id="externalsoln" />
                 </div>
 
                 <div>
                     Internal Solution
                 </div>
                 <div>
-                    <input name="internalsoln"/>
+                    <input name="internalsoln" id="externalsoln" />
                 </div>
 
                 <div>
                     Internal Date
                 </div>
                 <div>
-                    <input name="internaldate" type="date"/>
+                    <input name="internaldate" type="date" id="internaldate" />
                 </div>
 
                 <div>
                     Pipette
                 </div>
                 <div>
-                    <input name="pipette"/>
+                    <input name="pipette" id="pipette" />
                 </div>
 
                 <div>
                     Date of pipette solution
                 </div>
                 <div>
-                    <input name="pipettedate" type="date"/>
+                    <input name="pipettedate" type="date" id="pipette" />
                 </div>
 
                 <div>
                     Pipette Lot
                 </div>
                 <div>
-                    <input name="pipettelot"/>
+                    <input name="pipettelot" id="pipettelot" />
                 </div>
 
                 <div>
                     Internal Solution
                 </div>
                 <div>
-                    <input name="internalsoln">
+                    <input name="internalsoln" id="internalsoln">
                 </div>
 
 
             </div>
-
-            <h2>Comments:</h2>
-            <textarea name="comments" rows="5"></textarea>
-
-
-            <!--Stop copying here-->
         </div>
-    </body>
+    </div>
+    <!--End columns div-->
+
+    <h2>Comments:</h2>
+    <textarea name="comments" rows="5"></textarea>
+
+    <br /><br />
+
+    <button id="toggleTable">Show/Hide Table</button>
+    <button id="calcValues" onclick="calcValues()">Calculate Values</button>
+    <button id="toCSV" onclick="(exportTableToCSV('mouseData', 'outTable'))">Save CSV</button>
+
+    <div>
+        <table id="outTable" border="1pt" style="display: none;">
+            <tr>
+                <th>MouseID</th>
+                <th>Cage</th>
+                <th>Treatment</th>
+                <th>GenTreatment</th>
+                <th>CycleStage</th>
+                <th>BodyMass_g</th>
+                <th>UterineMass</th>
+                <th>Uterine_mg_per_g</th>
+                <th>Date_of_birth</th>
+                <th>Recording_date</th>
+                <th>Age_in_days</th>
+                <th>Saved_pit</th>
+                <th>Daylight_Savings</th>
+                <th>Time_sac</th>
+                <th>Sac_hr</th>
+                <th>Who</th>
+            </tr>
+            <tr>
+                <td><span id="MouseID_calc">Test</span></td>
+                <td><span id="Cage_calc"></span></td>
+                <td><span id="Treatment_calc"></span></td>
+                <td><span id="GenTreatment_calc"></span></td>
+                <td><span id="CycleStage_calc"></span></td>
+                <td><span id="BodyMass_g_calc"></span></td>
+                <td><span id="UterineMass_calc"></span></td>
+                <td><span id="Uterine_mg_per_g_calc"></span></td>
+                <td><span id="Date_of_birth_calc"></span></td>
+                <td><span id="Recording_date_calc"></span></td>
+                <td><span id="Age_in_days_calc"></span></td>
+                <td><span id="Saved_pit_calc"></span></td>
+                <td><span id="Daylight_Savings_calc"></span></td>
+                <td><span id="Time_sac_calc"></span></td>
+                <td><span id="Sac_hr_calc"></span></td>
+                <td><span id="Who_calc"></span></td>
+            </tr>
+        </table>
+    </div>
+    <!--Stop copying here-->
+</body>
+
 </html>

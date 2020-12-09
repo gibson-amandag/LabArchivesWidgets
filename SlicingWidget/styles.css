@@ -1,5 +1,9 @@
-.widget {
-    width: 500px;
+.columns {
+    display: flex;
+    flex-wrap: wrap;
+}
+.column3 {
+   flex: 0 30%;
 }
 .container {
     display: flex;
