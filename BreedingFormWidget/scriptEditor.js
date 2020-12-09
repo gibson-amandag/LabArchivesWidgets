@@ -156,8 +156,8 @@ my_widget_script =
         // create an strainDiv2 and an input
         const strainDiv2 = document.createElement("div");
         const strainInput = document.createElement("input");
-        idInput.id = "damstrain_2";
-        idInput.name = "damstrain_2";
+        strainInput.id = "damstrain_2";
+        strainInput.name = "damstrain_2";
         strainDiv2.appendChild(strainInput);
 
         // create a massDiv1 and a massText
