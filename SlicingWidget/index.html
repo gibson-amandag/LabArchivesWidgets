@@ -164,9 +164,10 @@
 
 <body>
     <!--Start copy-->
+    <h1>Slicing</h1>
     <div class="columns">
         <div class="column3">
-            <h1>Slicing</h1>
+            <div><h3>General Info</h3></div>
             <div class="container">
                 <div>
                     Experimenter
@@ -180,98 +181,6 @@
                 </div>
                 <div>
                     <input name="slicedate" id="Recording_date" type="date" />
-                </div>
-
-                <div>
-                    Transgenic Line
-                </div>
-                <div>
-                    <input name="strain" id="strain" />
-                </div>
-
-                <div>
-                    Treatment
-                </div>
-                <div>
-                    <select name="treatment" id="Treatment">
-                        <option value="CON">Control</option>
-                        <option value="CON_main">Main colony control</option>
-                        <option value="VEH">Vehicle</option>
-                        <option value="DHT">DHT</option>
-                    </select>
-                </div>
-
-                <div>
-                    Mouse ID # or Ear Tag
-                </div>
-                <div>
-                    <input name="mouseid" id="MouseID" value="TestID" />
-                </div>
-
-                <div>
-                    Cage #
-                </div>
-                <div>
-                    <input name="cagenum" id="Cage" />
-                </div>
-
-                <div>
-                    Date of Birth
-                </div>
-                <div>
-                    <input name="dob" id="Date_of_birth" type="date" />
-                </div>
-
-                <div>
-                    Sex
-                </div>
-                <div>
-                    <label for="sex"> Select:</label>
-                    <select id="sex" name="sex">
-                        <option value="female">Female</option>
-                        <option value="male">Male</option>
-                    </select>
-                </div>
-
-                <div>
-                    Zygosity
-                </div>
-                <div>
-                    <label for="zygosity"> Select:</label>
-                    <select id="zygosity" name="zygosity">
-                        <option value="homoPlus"> +/+ </option>
-                        <option value="hetero"> +/- </option>
-                        <option value="homoNeg"> -/- </option>
-                    </select>
-                </div>
-
-                <div>
-                    Body mass (g)
-                </div>
-                <div>
-                    <input name="bodymass" id="BodyMass_g" type="number" step="0.1" />
-                </div>
-
-                <div>
-                    <!--Make this dynamic based on sex-->
-                    Uterine/seminal mass (mg)
-                </div>
-                <div>
-                    <input name="gonadmass" id="gonadMass" type="number" step="0.01" />
-                </div>
-
-                <div>
-                    Blood Glucose (mg/100mL)
-                </div>
-                <div>
-                    <input name="glucose" id="glucose" type="number" step="0.001" />
-                </div>
-
-                <div>
-                    Serum Tube Label
-                </div>
-                <div>
-                    <input name="tubelabel" id="tubeLabel" />
                 </div>
 
                 <div>
@@ -292,40 +201,101 @@
                     </select>
                 </div>
 
+                <div><h3>Mouse Information</h3></div>
+                <div></div>
+
                 <div>
-                    Nucleus/Area of Interest
+                    Mouse ID # or Ear Tag
                 </div>
                 <div>
-                    <input name="nucleus" id="nucleus" />
+                    <input name="mouseid" id="MouseID" value="TestID" />
                 </div>
 
                 <div>
-                    Fluorescent Quality
+                    Transgenic Line
                 </div>
                 <div>
-                    <label for="fluorqual"> Select:</label>
-                    <select id="fluorqual" name="fluorqual">
-                        <option value="good"> Good </option>
-                        <option value="fair"> Fair </option>
-                        <option value="poor"> Poor </option>
+                    <input name="strain" id="strain" />
+                </div>
+
+                <div>
+                    Zygosity
+                </div>
+                <div>
+                    <label for="zygosity"> Select:</label>
+                    <select id="zygosity" name="zygosity">
+                        <option value="homoPlus"> +/+ </option>
+                        <option value="hetero"> +/- </option>
+                        <option value="homoNeg"> -/- </option>
                     </select>
-                    <label for="fluorcomment"><br>Comment:</label>
-                    <input name="fluorcomment" />
                 </div>
 
                 <div>
-                    Pituitary
+                    Cage #
                 </div>
                 <div>
-                    <label for="pituitary"> Saved pituitary</label>
-                    <input type="checkbox" name="pituitary" id="Saved_pit" />
+                    <input name="cagenum" id="Cage" />
                 </div>
+
+                <div>
+                    Date of Birth
+                </div>
+                <div>
+                    <input name="dob" id="Date_of_birth" type="date" />
+                </div>
+
+                <div>
+                    Treatment
+                </div>
+                <div>
+                    <select name="treatment" id="Treatment">
+                        <option value="CON">Control</option>
+                        <option value="CON_main">Main colony control</option>
+                        <option value="VEH">Vehicle</option>
+                        <option value="DHT">DHT</option>
+                    </select>
+                </div>
+
+                <div>
+                    Sex
+                </div>
+                <div>
+                    <label for="sex"> Select:</label>
+                    <select id="sex" name="sex">
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                    </select>
+                </div>
+
+
+                <div>
+                    Body mass (g)
+                </div>
+                <div>
+                    <input name="bodymass" id="BodyMass_g" type="number" step="0.1" />
+                </div>
+
+                <div>
+                    <div class="female">Uterine Mass (mg)</div>
+                    <div class="male">Seminal Vesicle Mass (mg)</div>
+                </div>
+                <div>
+                    <input name="gonadmass" id="gonadMass" type="number" step="0.01" />
+                </div>
+
+                <div>
+                    Blood Glucose (mg/100mL)
+                </div>
+                <div>
+                    <input name="glucose" id="glucose" type="number" step="0.001" />
+                </div>
+
             </div>
 
         </div>
 
         <div class="column3">
-            <h2>Gonadal Status</h2>
+                <div><h3>Gonadal Status</h3></div>
             <div class="container">
                 <div>
                     Intact
@@ -366,7 +336,7 @@
                 </div>
             </div>
 
-            <h2>Steroid Implants</h2>
+            <h3>Steroid Implants</h3>
             <div class="container">
                 <div>
                     Implant
@@ -387,12 +357,38 @@
                 <div>
                     <input name="implantcomment" />
                 </div>
+
+                <div><h3>Samples</h3></div>
+                <div></div>
+
+                <div>
+                    Serum Tube Label
+                </div>
+                <div>
+                    <input name="tubelabel" id="tubeLabel" />
+                </div>
+
+                <div>
+                    Pituitary
+                </div>
+                <div>
+                    <label for="pituitary"> Saved pituitary</label>
+                    <input type="checkbox" name="pituitary" id="Saved_pit" />
+                </div>
+
             </div>
         </div>
 
         <div class="column3">
-            <h2>Slicing</h2>
+            <div><h3>Slice Info</h3></div>
             <div class="container">
+                <div>
+                    Nucleus/Area of Interest
+                </div>
+                <div>
+                    <input name="nucleus" id="nucleus" />
+                </div>
+
                 <div>
                     Slicing Orientation
                 </div>
@@ -412,10 +408,23 @@
                     <label for="slicecomment"><br>Comment:</label>
                     <input name="slicecomment" />
                 </div>
-            </div>
 
-            <h2>Solutions</h2>
-            <div class="container">
+                <div>
+                    Fluorescent Quality
+                </div>
+                <div>
+                    <label for="fluorqual"> Select:</label>
+                    <select id="fluorqual" name="fluorqual">
+                        <option value="good"> Good </option>
+                        <option value="fair"> Fair </option>
+                        <option value="poor"> Poor </option>
+                    </select>
+                    <label for="fluorcomment"><br>Comment:</label>
+                    <input name="fluorcomment" />
+                </div>
+
+                <div><h3>Solutions</h3></div>
+                <div></div>
                 <div>
                     External and addition
                 </div>
@@ -472,7 +481,7 @@
     <!--End columns div-->
 
     <h2>Comments:</h2>
-    <textarea name="comments" rows="5"></textarea>
+    <textarea name="comments" rows="5" cols="50%"></textarea>
 
     <br /><br />
 
