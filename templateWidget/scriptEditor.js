@@ -41,8 +41,7 @@ my_widget_script =
         //TO DO Disable buttons that you do not want to be available when not editing
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
-            var myButton = $("#myButton")
-            myButton.disabled = true;
+            $("#myButton").prop('disabled', true);
         };
 
         //when the size of the window changes, run the resize function
@@ -72,7 +71,7 @@ my_widget_script =
 
 
 
-        //use the expected lab archive data (just the stringified widgetData)
+        //use the expected LabArchives data (just the stringified widgetData)
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
         //find required fields and add a red asterisk after them
