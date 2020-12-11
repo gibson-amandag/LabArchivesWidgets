@@ -33,10 +33,15 @@ my_widget_script =
 
         //EXAMPLE:
         //if myContent exists, run the function to create it
-        // if(parsedJson.existsMyContent){
-        //     //if it exists, run the function
-        //      this.createMyContent();
-        //   };
+      	/*Note that for this situation where a checkbox defines whether or not the content exists, 
+		this is not actually the simplest way to do this. The init function can just check whether or not 
+		the box is checked and then run the appropriate functions. However, for content that may have been 
+		made by a button that could have been clicked an unknown number of times, for example, then additional 
+		information needs to be passed into to_json and used to recreate content as demonstrated here*/
+        if(parsedJson.existsMyContent){
+            //if it exists, run the function
+            this.createMyContent();
+          };
 
         //TO DO Disable buttons that you do not want to be available when not editing
         if (mode !== "edit" && mode !== "edit_dev") {
@@ -69,7 +74,17 @@ my_widget_script =
             my_widget_script.exportTableToCSV('templateData', 'outTable');
         });
 
-
+        //When the "addDivCheck" checkbox is clicked, run this function
+        $('#addDivCheck').click(function(){
+          	//alert("You clicked me!");
+            if( $(this).is(":checked") ){
+              	//alert("I'm checked");
+                my_widget_script.createMyContent();
+            } else {
+              	//alert("I'm not checked")
+                my_widget_script.removeMyContent();
+            }
+        });
 
         //use the expected LabArchives data (just the stringified widgetData)
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
@@ -87,6 +102,18 @@ my_widget_script =
 
         //Run the calculate values function to fill with the loaded data
         this.calcValues();
+      
+      	/*For this example, this would be the simpler way to recreate the dynamic content without having
+		to rely on adding additional values within to_json, since the value of the checkbox is stored
+      	//Check if the addDivChecked checkbox is checked
+      	if( $('#addDivCheck').is(":checked") ){
+        	//alert("I'm checked");
+        	my_widget_script.createMyContent();
+      	} else {
+        	//alert("I'm not checked")
+        	my_widget_script.removeMyContent();
+      	};
+		*/
     },
 
     to_json: function () {
@@ -101,15 +128,15 @@ my_widget_script =
         //These should ultimately be very simple. Something like true/false or a number
 
         //EXAMPLE:
-        // var myContent = $("#myContentID");
-        // var existsMyContent = (myContent !== null && myContent !== undefined) //if my content is not null and is not undefined, make existsMyContent true
+        var myContent = $("#myContentID");
+        var existsMyContent = (myContent !== null && myContent !== undefined) //if my content is not null and is not undefined, make existsMyContent true
 
         //TO DO - add additional information to this output variable
         //access within init function
-        var output = { widgetData: JSON.parse(widgetJsonString) };
+        //var output = { widgetData: JSON.parse(widgetJsonString) };
 
         //EXAMPLE:
-        // var output = { widgetData: JSON.parse(widgetJsonString), existsMyContent: existsMyContent };
+        var output = { widgetData: JSON.parse(widgetJsonString), existsMyContent: existsMyContent };
 
         //uncomment to check stringified output - note that complicated objects like divs cannot be passed this way
         //var stringedOutput = JSON.stringify(output);
@@ -139,12 +166,19 @@ my_widget_script =
 
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
+      	
+      	//find out what the random check was
+      	var addDivCheckVal = testData[1].value; //the second value in the array is the addDivCheck info
+      	var isCheckedAddDiv = false; //start with this isChecked variable as false
+      	if( addDivCheckVal !== "") { //if addDivCheckVal is not empty ("")
+        	isCheckedAddDiv = true; //change isCheckedAddDiv to true
+      	}
 
         //TO DO - add any additional test data information based on dynamic content.
-        var output = { widgetData: testData };
+        //var output = { widgetData: testData };
 
         //EXAMPLE: The additional content should match the objects in to_json
-        //var output = { widgetData: testData existsMyContent: true};
+        var output = { widgetData: testData, existsMyContent: isCheckedAddDiv};
 
         //return the stringified output for use by the init function
         return JSON.stringify(output);
@@ -286,16 +320,26 @@ my_widget_script =
 
         // Download CSV file
         this.downloadCSV(csv.join("\n"), filename);
-    }
+    },
 
-
-
-    //TO DO create your own functions. Add a comma after previous function closing }
     //EXAMPLE: 
-    // createMyContent: function () {
+    createMyContent: function () {
+        var myContent = "<div id='myContentID'>You just made me</div>";
+
+        $("#dynamicDiv").append(myContent);
 
         //resize the container after creating or deleting or modifying content
-        //my_widget_script.parent_class.resize_container();
-    // }
+        my_widget_script.parent_class.resize_container();
+    },
+
+    removeMyContent: function () {
+        $("#myContentID").remove();
+
+        //resize the container after creating or deleting or modifying content
+        my_widget_script.parent_class.resize_container();
+    }
+
+    //TO DO create your own functions. Add a comma after previous function closing }
+    
 
 }
