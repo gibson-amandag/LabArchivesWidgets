@@ -1,0 +1,32 @@
+<style type="text/css">
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .container>div {
+        flex: 0 50%;
+        margin-bottom: 20px;
+    }
+</style>
+<div class="widget">
+    <div class="container">
+        <div>Input 1</div>
+
+        <div><input name="input1" required/></div>
+
+        <div>Date</div>
+
+        <div><input name="date" required type="date" /></div>
+
+        <div>Input 3</div>
+
+        <div><label for="cars">Choose a car:</label> <select id="cars" name="cars" required>
+                <option value="">[Select]</option> <!-- Blank place holder option-->
+                <option value="volvo">Volvo</option>
+                <option value="saab">Saab</option>
+                <option value="fiat">Fiat</option>
+                <option value="audi">Audi</option>
+            </select></div>
+    </div>
+</div>
