@@ -83,8 +83,8 @@ my_widget_script =
         //when the calculate button is clicked, run the calcValues function
         $('#calculate').click(my_widget_script.calcValues);
 
-        //when the resize button is clicked, run the resize function
-        $('#resize').click(my_widget_script.resize);
+        //when the size of the window changes, run the resize function
+        window.onresize = my_widget_script.resize;
 
         //load the expected lab archive data (just the stringified widgetData)
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
@@ -223,7 +223,7 @@ my_widget_script =
         //Cycle stage
         if ($("#sex").val() === "female" && $("#gonadstatus").val() === "intact") { //only for intact females
             $("#CycleStage_calc").text($("#CycleStage").val());
-        }else {
+        } else {
             $("#CycleStage_calc").text("NA");
         }
 
@@ -318,9 +318,9 @@ my_widget_script =
     resize: function () {
         //adding this here ensures that even if table is showing, that it doesn't try to resize with that out of view
         //gets the inner width of the window. Resets the size of the tableDiv. THEN resizes the container
-      	var width = window.innerWidth;
+        var width = window.innerWidth;
         $(".tableDiv").width(width * .95); //make width of table div 95% of current width
-      
+
         //resize the container
         my_widget_script.parent_class.resize_container();
     },
