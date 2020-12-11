@@ -53,6 +53,7 @@ my_widget_script =
                 $(".male").show() //show male class elements
                 $(".cycle").hide() //hide cycles for male
             }
+
         });
 
         //Show/hide elements based on gonad status
@@ -70,6 +71,7 @@ my_widget_script =
                 $(".gdx").show() //show gdx class elements
                 $(".cycle").hide()
             }
+
         });
 
         //If there are buttons that you don't want to be active when not editing, disable them here
@@ -314,6 +316,11 @@ my_widget_script =
     },
 
     resize: function () {
+        //adding this here ensures that even if table is showing, that it doesn't try to resize with that out of view
+        //gets the inner width of the window. Resets the size of the tableDiv. THEN resizes the container
+      	var width = window.innerWidth;
+        $(".tableDiv").width(width * .95); //make width of table div 95% of current width
+      
         //resize the container
         my_widget_script.parent_class.resize_container();
     },
