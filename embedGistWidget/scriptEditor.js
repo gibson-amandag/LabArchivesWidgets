@@ -104,7 +104,7 @@ my_widget_script =
         //LA calls this method with b_suppress_message and relies on your code to communicate issues to the user
         //Returning an empty array [] or NULL equals no error
         //TO DO write code specific to your form
-//validate fields
+        //validate fields
         // source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
         var fail = false; //begin with a fail variable that is false
         var fail_log = ''; //begin with an empty fail log
@@ -149,7 +149,7 @@ my_widget_script =
     updateGistFrame: function () {
         //alert("pressed");
         // source: https://gist.github.com/jeremiahlee/1748966
-        // This gist by Jeremiah Lee was vital to creating this widget that dynamically updates the embedded gist
+        // This gist was vital to creating this widget that dynamically updates the embedded gist
 
         // Create an iframe, append it to this document where specified
 
@@ -160,6 +160,15 @@ my_widget_script =
             var linkToGist = "<a href=\"" + srcCode + "\" target=\"_blank\" >Click here for Gist</a>";
 
             $("#showSource").html(linkToGist);
+
+            var fileName = $("#fileName").val();
+
+            var appendFileName = "";
+
+            if (fileName) {
+                appendFileName = "?file=" + fileName;
+            }
+            //alert(appendFileName);
 
             var iFrameHeight = $("#iFrameHeight").val(); //Get the height
 
@@ -172,7 +181,7 @@ my_widget_script =
             zone.appendChild(gistFrame);
 
             // Create the iframe's document
-            var gistFrameHTML = '<html><body><scr' + 'ipt type="text/javascript" src="' + srcCode + '.js"></sc' + 'ript></body></html>';
+            var gistFrameHTML = '<html><body><scr' + 'ipt type="text/javascript" src="' + srcCode + '.js' + appendFileName + '"></sc' + 'ript></body></html>';
 
             // Set iframe's document with a trigger for this document to adjust the height
             var gistFrameDoc = gistFrame.document;
