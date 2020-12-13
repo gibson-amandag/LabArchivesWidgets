@@ -49,7 +49,20 @@ my_widget_script =
         ** -----------------------------------------------------------------------------
         */
 
-        
+        //adds rows back to dam1PlugTable when initializing
+        for (var i = 0; i < parsedJson.dam1Plug_addedRows; i++) {
+            var tableName = $("#dam1PlugTable");
+            var whichDam = "dam1";
+
+            my_widget_script.createPlugCheckRow(tableName, whichDam);
+        }
+
+        for (var i=0; i < parsedJson.dam2Plug_addedRows; i++) {
+            var tableName = $("#dam2PlugTable");
+            var whichDam = "dam2";
+
+            my_widget_script.createPlugCheckRow(tableName, whichDam);
+        }
 
         /* -----------------------------------------------------------------------------
         ** ADJUST FORM DESIGN AND BUTTONS BASED ON MODE
@@ -62,6 +75,10 @@ my_widget_script =
 
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
+            addPlugCheck1.disabled = true;
+            removePlugCheck1.disabled = true;
+            addPlugCheck2.disabled = true;
+            removePlugCheck2.disabled = true;
         };
 
         /* -----------------------------------------------------------------------------
@@ -98,15 +115,54 @@ my_widget_script =
 
         //When the "addDivCheck" checkbox is changed, run this function
         $('#dam2Check').change(function () { //change rather than click so that it runs only when editable
-            alert("You clicked me!");
+            //alert("You clicked me!");
             if ($(this).is(":checked")) {
                 //alert("I'm checked");
-                $("#dam2Div").show();
+                $(".dam2").show();
             } else {
                 //alert("I'm not checked")
-                $("#dam2Div").hide();
-            }
+                $(".dam2").hide();
+            };
+
+            //resize the container
+             my_widget_script.parent_class.resize_container();
         });
+
+        //When damid_1 is changed, replace the text in the #dam1_calc span
+        $("#damid_1").change(function () {
+            $("#dam1_calc").text($("#damid_1").val());
+        });
+
+        //When damid_2 is changed, replace the text in the #dam2_calc span
+        $("#damid_2").change(function () {
+            $("#dam2_calc").text($("#damid_2").val());
+        });
+
+        $("#addPlugCheck1").click(function (){
+            var tableName = $("#dam1PlugTable");
+            var whichDam = "dam1";
+
+            my_widget_script.createPlugCheckRow(tableName, whichDam);
+        });
+
+        $("#removePlugCheck1").click(function (){
+            var tableName = ("#dam1PlugTable");
+
+            my_widget_script.deletePlugCheckRow(tableName);
+        });
+
+        $("#addPlugCheck2").click(function (){
+            var tableName = $("#dam2PlugTable");
+            var whichDam = "dam2";
+
+            my_widget_script.createPlugCheckRow(tableName, whichDam);
+        });
+
+        $("#removePlugCheck2").click(function (){
+            var tableName = ("#dam2PlugTable");
+            my_widget_script.deletePlugCheckRow(tableName);
+        });
+
 
         /* -----------------------------------------------------------------------------
         ** INITIALIZE THE FORM WITH THE STORED WIDGET DATA
@@ -139,11 +195,17 @@ my_widget_script =
         //Check if the dam2Check checkbox is checked and adjust visibility
         if ($('#dam2Check').is(":checked")) {
             //alert("I'm checked");
-            $("#dam2Div").show();
+            $(".dam2").show();
         } else {
             //alert("I'm not checked")
-            $("#dam2Div").hide();
+            $(".dam2").hide();
+        //resize the container
+        my_widget_script.parent_class.resize_container();
         };
+
+        $("#dam1_calc").text($("#damid_1").val());
+        $("#dam2_calc").text($("#damid_2").val());
+
     },
 
     to_json: function () {
@@ -168,6 +230,8 @@ my_widget_script =
         ** -----------------------------------------------------------------------------
         */
 
+        var dam1Plug_addedRows = $( "#dam1PlugTable" ).find( "tr" ).length - 1;
+        var dam2Plug_addedRows = $( "#dam2PlugTable" ).find( "tr" ).length - 1;
 
         /* -----------------------------------------------------------------------------
         ** ADD widgetJsonString AND ADDITIONAL VARIABLES TO OUTPUT
@@ -177,10 +241,10 @@ my_widget_script =
         */
 
         //If you do not need to add additional dynamic content, use this line
-        var output = { widgetData: JSON.parse(widgetJsonString) };
+        //var output = { widgetData: JSON.parse(widgetJsonString) };
 
         // Define additional output components
-        //var output = { widgetData: JSON.parse(widgetJsonString), existsDam2Div: existsDam2Div };
+        var output = { widgetData: JSON.parse(widgetJsonString), dam1Plug_addedRows: dam1Plug_addedRows, dam2Plug_addedRows: dam2Plug_addedRows };
 
         //uncomment to check stringified output - note that complicated objects like divs cannot be passed this way
         //console.log("to JSON", JSON.stringify(output));
@@ -329,6 +393,45 @@ my_widget_script =
         //resize the container
         my_widget_script.parent_class.resize_container();
     },
+
+    createPlugCheckRow: function(tableName, whichDam) {
+        var rowCount = $( tableName ).find( "tr" ).length;
+        var rowID = whichDam + "_row_" + rowCount;
+
+        var tableRow = document.createElement("tr");
+        tableRow.id = rowID;
+
+        //Still breaks if select December 1 -> November. Also, if change date after making rows -> problems
+        /*var plugDate = new Date($("#breeddate").val());
+        plugDate.setDate(plugDate.getUTCDate()+rowCount); //Only combo I could figure out to resolve UTC/local issues
+        "<td>" + plugDate.toDateString() + "</td>"
+        */
+
+        var col1ID = whichDam + "date_" + rowCount;
+        var col1 = "<td><input id='" + col1ID + "' name='" + col1ID + "' type='date'/></td>"
+
+        var col2ID = whichDam + "_qual_" + rowCount;
+        var col2 = "<td><select id='" + col2ID + "' name='" + col2ID + "' ><option value='0'>None</option><option value='1'>Questionable</option><option value='2'>Probable</option><option value='3'>Definite</option></td>";
+        tableRow.innerHTML = col1 + col2;
+
+        $( tableName ).append( tableRow );
+
+        //resize the container
+        my_widget_script.parent_class.resize_container();
+    },
+
+    deletePlugCheckRow: function(tableName) {
+        var rowCount = $( tableName ).find( "tr" ).length;
+        if( rowCount > 1){
+        var lastRow = $( tableName ).find( "tr" ).last();
+        $( lastRow ).remove();
+        } else {
+            alert("Cannot delete table header");
+        }
+
+        //resize the container
+        my_widget_script.parent_class.resize_container();
+    }
 
     /* NOT CURRENTLY USING, but could use to output breeding info
     calcValues: function () {
