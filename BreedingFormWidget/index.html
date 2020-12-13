@@ -5,6 +5,7 @@
     <!-- https://www.viralpatel.net/dynamically-add-remove-rows-in-html-table-using-javascript/#:~:text=For%20adding%20dynamic%20row%20in,created%20cells%20by%20using%20row. -->
     <!-- These functions are added in the scriptEditor. Need to change the format within LabArchives. [function name]: function(){} -->
     <!-- https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement -->
+    <!-- Alternative would be to write the dam2 div into the html, and then just write a short function to show/hide with a check box -->
     <script language="javascript">
         function addDam2() {
             // create a new div element 
@@ -116,6 +117,13 @@
         </div>
         <div>
             <h2><input id="breedcage" name="breedcage" type="number" /></h2>
+        </div>
+
+        <div>
+            <h2>Cage Location:</h2>
+        </div>
+        <div>
+            <h2><input id="cagelocation" name="cagelocation"/></h2>
         </div>
     </div>
 
