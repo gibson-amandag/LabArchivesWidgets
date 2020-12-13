@@ -48,11 +48,8 @@ my_widget_script =
         ** appropriate page contents. Use parsedJson.[objectName] to get this data
         ** -----------------------------------------------------------------------------
         */
-       
-        if(parsedJson.existsDam2Div){
-        //if it exists, run the addDam2 function
-         this.addDam2();
-        }
+
+        
 
         /* -----------------------------------------------------------------------------
         ** ADJUST FORM DESIGN AND BUTTONS BASED ON MODE
@@ -65,8 +62,6 @@ my_widget_script =
 
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
-            $("#add").prop('disabled', true);
-          	$("#remove").prop('disabled', true);
         };
 
         /* -----------------------------------------------------------------------------
@@ -99,19 +94,19 @@ my_widget_script =
         $('#toCSV').click(function () {
             my_widget_script.exportTableToCSV('templateData', 'outTable');
         });
+        */
 
         //When the "addDivCheck" checkbox is changed, run this function
-        $('#addDivCheck').change(function(){ //change rather than click so that it runs only when editable
-          	//alert("You clicked me!");
-            if( $(this).is(":checked") ){
-              	//alert("I'm checked");
-                my_widget_script.createMyContent();
+        $('#dam2Check').change(function () { //change rather than click so that it runs only when editable
+            alert("You clicked me!");
+            if ($(this).is(":checked")) {
+                //alert("I'm checked");
+                $("#dam2Div").show();
             } else {
-              	//alert("I'm not checked")
-                my_widget_script.removeMyContent();
+                //alert("I'm not checked")
+                $("#dam2Div").hide();
             }
         });
-        */
 
         /* -----------------------------------------------------------------------------
         ** INITIALIZE THE FORM WITH THE STORED WIDGET DATA
@@ -140,18 +135,15 @@ my_widget_script =
         ** based on the contents of the form
         ** -----------------------------------------------------------------------------
         */
-      
-      	/*For this example, this would be the simpler way to recreate the dynamic content without having
-		to rely on adding additional values within to_json, since the value of the checkbox is stored
-      	//Check if the addDivChecked checkbox is checked
-      	if( $('#addDivCheck').is(":checked") ){
-        	//alert("I'm checked");
-        	my_widget_script.createMyContent();
-      	} else {
-        	//alert("I'm not checked")
-        	my_widget_script.removeMyContent();
-      	};
-		*/
+
+        //Check if the dam2Check checkbox is checked and adjust visibility
+        if ($('#dam2Check').is(":checked")) {
+            //alert("I'm checked");
+            $("#dam2Div").show();
+        } else {
+            //alert("I'm not checked")
+            $("#dam2Div").hide();
+        };
     },
 
     to_json: function () {
@@ -165,7 +157,7 @@ my_widget_script =
         ** This uses LabArchives's to_json() function to get the form data as a string
         ** -----------------------------------------------------------------------------
         */
-        
+
         var widgetJsonString = this.parent_class.to_json();
 
         /* -----------------------------------------------------------------------------
@@ -176,9 +168,6 @@ my_widget_script =
         ** -----------------------------------------------------------------------------
         */
 
-        //Get dam2Div
-        var dam2Div = document.getElementById("dam2Div");
-      	var existsDam2Div = (dam2Div !== null && dam2Div !== undefined);
 
         /* -----------------------------------------------------------------------------
         ** ADD widgetJsonString AND ADDITIONAL VARIABLES TO OUTPUT
@@ -188,10 +177,10 @@ my_widget_script =
         */
 
         //If you do not need to add additional dynamic content, use this line
-        //var output = { widgetData: JSON.parse(widgetJsonString) };
+        var output = { widgetData: JSON.parse(widgetJsonString) };
 
         // Define additional output components
-        var output = { widgetData: JSON.parse(widgetJsonString), existsDam2Div: existsDam2Div };
+        //var output = { widgetData: JSON.parse(widgetJsonString), existsDam2Div: existsDam2Div };
 
         //uncomment to check stringified output - note that complicated objects like divs cannot be passed this way
         //console.log("to JSON", JSON.stringify(output));
@@ -200,7 +189,7 @@ my_widget_script =
         ** RETURN STRINGIFIED OUTPUT
         ** -----------------------------------------------------------------------------
         */
-        
+
         return JSON.stringify(output);
     },
 
@@ -225,7 +214,7 @@ my_widget_script =
         ** radio buttons, and checkboxes
         ** -----------------------------------------------------------------------------
         */
-        
+
         //return this.parent_class.test_data();
 
         /* -----------------------------------------------------------------------------
@@ -240,7 +229,7 @@ my_widget_script =
 
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
-        
+
         //If no additional dynamic content 
         var output = { widgetData: testData };
 
@@ -276,7 +265,7 @@ my_widget_script =
         var name; //create a name variable
 
         //search the_form for all elements that are of type select, textarea, or input
-        $('#the_form').find('select, textarea, input').each(function () { 
+        $('#the_form').find('select, textarea, input').each(function () {
             if (!$(this).prop('required')) { //if this element does not have a required attribute
                 //don't change anything (fail remains false)
             } else { //if there is a required attribute
@@ -302,7 +291,7 @@ my_widget_script =
         ** This checks for fields that have _mandatory appended to the name attribute
         ** -----------------------------------------------------------------------------
         */
-        
+
         //return this.parent_class.is_valid(b_suppress_message);
     },
 
@@ -330,7 +319,7 @@ my_widget_script =
         ** content is created, modified, or deleted within a function.
         ** -----------------------------------------------------------------------------
         */
-        
+
         //gets the inner width of the window.
         //var width = window.innerWidth;
 
@@ -458,94 +447,4 @@ my_widget_script =
     ** content is created, modified, or deleted within a function.
     ** -----------------------------------------------------------------------------
     */
-
-    addDam2: function () {
-
-        // create a new div element 
-        const newDiv = document.createElement("div");
-        newDiv.className = "mouseDiv";
-        newDiv.id = "dam2Div";
-
-        // create an idDiv1 and an idText
-        const idDiv1 = document.createElement("div");
-        const idText = document.createTextNode("Dam 2 ID:");
-        idDiv1.appendChild(idText);
-
-        // create an idDiv2 and an input
-        const idDiv2 = document.createElement("div");
-        const idInput = document.createElement("input");
-        idInput.id = "damid_2";
-        idInput.name = "damid_2";
-        idDiv2.appendChild(idInput);
-
-        // create a dobDiv1 and an dobText
-        const dobDiv1 = document.createElement("div");
-        const dobText = document.createTextNode("Dam 2 DOB:");
-        dobDiv1.appendChild(dobText);
-
-        // create an dobDiv2 and an input
-        const dobDiv2 = document.createElement("div");
-        const dobInput = document.createElement("input");
-        dobInput.id = "damdob_2";
-        dobInput.name = "damdob_2";
-        dobInput.type = "date";
-        dobDiv2.appendChild(dobInput);
-
-        // create a strainDiv1 and a strainText
-        const strainDiv1 = document.createElement("div");
-        const strainText = document.createTextNode("Dam 2 Strain:");
-        strainDiv1.appendChild(strainText);
-
-        // create an strainDiv2 and an input
-        const strainDiv2 = document.createElement("div");
-        const strainInput = document.createElement("input");
-        strainInput.id = "damstrain_2";
-        strainInput.name = "damstrain_2";
-        strainDiv2.appendChild(strainInput);
-
-        // create a massDiv1 and a massText
-        const massDiv1 = document.createElement("div");
-        const massText = document.createTextNode("Dam 2 Mass:");
-        massDiv1.appendChild(massText);
-
-        // create an dobDiv2 and an input
-        const massDiv2 = document.createElement("div");
-        const massInput = document.createElement("input");
-        massInput.id = "dammass_2";
-        massInput.name = "dammass_2";
-        massInput.type = "number";
-        massInput.min = "0";
-        massInput.step = "0.1"
-        massDiv2.appendChild(massInput);
-
-        // add the divs to the outer div
-        newDiv.appendChild(idDiv1);
-        newDiv.appendChild(idDiv2);
-        newDiv.appendChild(dobDiv1);
-        newDiv.appendChild(dobDiv2);
-        newDiv.appendChild(strainDiv1);
-        newDiv.appendChild(strainDiv2);
-        newDiv.appendChild(massDiv1);
-        newDiv.appendChild(massDiv2);
-
-        // add the newly created element and its content into the DOM 
-        const beforeDiv = document.getElementById("sireDiv");
-        beforeDiv.before(newDiv);
-
-        // disable button after use
-        add.disabled = true;
-        remove.disabled = false;
-
-        //resize the container as rows are deleted
-        my_widget_script.parent_class.resize_container();
-
-    },
-    removeDam2: function () {
-        dam2Div.remove();
-        add.disabled = false;
-        remove.disabled = true;
-
-        //resize the container as rows are deleted
-        my_widget_script.parent_class.resize_container();
-    }
 }

@@ -52,28 +52,37 @@
     </div>
 </div>
 
-<p><button id="add" onclick="form_script.addDam2()" type="button">Add Dam 2</button><button disabled="true" id="remove"
-        onclick="form_script.removeDam2()" type="button">Remove Dam 2</button></p>
+<p><label for="dam2Check">Add a second dam: </label><input type="checkbox" id="dam2Check" name="dam2check" />
 
 <p>&nbsp;</p>
 
 <div class="container" id="mouseInfo">
     <div class="mouseDiv" id="dam1Div">
         <div>Dam 1 ID:</div>
-
         <div><input id="damid_1" name="damid_1" /></div>
 
         <div>Dam 1 DOB:</div>
-
         <div><input id="damdob_1" name="damdob_1" type="date" /></div>
 
         <div>Dam 1 Strain:</div>
-
         <div><input id="damstrain_1" name="damstrain_1" /></div>
 
         <div>Dam 1 Mass:</div>
-
         <div><input id="dammass_1" min="0" name="dammass_1" step="0.1" type="number" /></div>
+    </div>
+
+    <div class="mouseDiv" id="dam2Div" style="display: none;">
+        <div>Dam 2 ID:</div>
+        <div><input id="damid_2" name="damid_2" /></div>
+
+        <div>Dam 2 DOB:</div>
+        <div><input id="damdob_2" name="damdob_2" type="date" /></div>
+
+        <div>Dam 2 Strain:</div>
+        <div><input id="damstrain_2" name="damstrain_2" /></div>
+
+        <div>Dam 2 Mass:</div>
+        <div><input id="dammass_2" min="0" name="dammass_2" step="0.1" type="number" /></div>
     </div>
 
     <div class="mouseDiv" id="sireDiv">
