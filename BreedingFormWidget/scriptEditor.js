@@ -57,7 +57,7 @@ my_widget_script =
             my_widget_script.createPlugCheckRow(tableName, whichDam);
         }
 
-        for (var i=0; i < parsedJson.dam2Plug_addedRows; i++) {
+        for (var i = 0; i < parsedJson.dam2Plug_addedRows; i++) {
             var tableName = $("#dam2PlugTable");
             var whichDam = "dam2";
 
@@ -125,7 +125,7 @@ my_widget_script =
             };
 
             //resize the container
-             my_widget_script.parent_class.resize_container();
+            my_widget_script.parent_class.resize_container();
         });
 
         //When damid_1 is changed, replace the text in the #dam1_calc span
@@ -138,27 +138,27 @@ my_widget_script =
             $("#dam2_calc").text($("#damid_2").val());
         });
 
-        $("#addPlugCheck1").click(function (){
+        $("#addPlugCheck1").click(function () {
             var tableName = $("#dam1PlugTable");
             var whichDam = "dam1";
 
             my_widget_script.createPlugCheckRow(tableName, whichDam);
         });
 
-        $("#removePlugCheck1").click(function (){
+        $("#removePlugCheck1").click(function () {
             var tableName = ("#dam1PlugTable");
 
             my_widget_script.deletePlugCheckRow(tableName);
         });
 
-        $("#addPlugCheck2").click(function (){
+        $("#addPlugCheck2").click(function () {
             var tableName = $("#dam2PlugTable");
             var whichDam = "dam2";
 
             my_widget_script.createPlugCheckRow(tableName, whichDam);
         });
 
-        $("#removePlugCheck2").click(function (){
+        $("#removePlugCheck2").click(function () {
             var tableName = ("#dam2PlugTable");
             my_widget_script.deletePlugCheckRow(tableName);
         });
@@ -199,8 +199,8 @@ my_widget_script =
         } else {
             //alert("I'm not checked")
             $(".dam2").hide();
-        //resize the container
-        my_widget_script.parent_class.resize_container();
+            //resize the container
+            my_widget_script.parent_class.resize_container();
         };
 
         $("#dam1_calc").text($("#damid_1").val());
@@ -230,8 +230,8 @@ my_widget_script =
         ** -----------------------------------------------------------------------------
         */
 
-        var dam1Plug_addedRows = $( "#dam1PlugTable" ).find( "tr" ).length - 1;
-        var dam2Plug_addedRows = $( "#dam2PlugTable" ).find( "tr" ).length - 1;
+        var dam1Plug_addedRows = $("#dam1PlugTable").find("tr").length - 1;
+        var dam2Plug_addedRows = $("#dam2PlugTable").find("tr").length - 1;
 
         /* -----------------------------------------------------------------------------
         ** ADD widgetJsonString AND ADDITIONAL VARIABLES TO OUTPUT
@@ -394,12 +394,9 @@ my_widget_script =
         my_widget_script.parent_class.resize_container();
     },
 
-    createPlugCheckRow: function(tableName, whichDam) {
-        var rowCount = $( tableName ).find( "tr" ).length;
+    createPlugCheckRow: function (tableName, whichDam) {
+        var rowCount = $(tableName).find("tr").length;
         var rowID = whichDam + "_row_" + rowCount;
-
-        var tableRow = document.createElement("tr");
-        tableRow.id = rowID;
 
         //Still breaks if select December 1 -> November. Also, if change date after making rows -> problems
         /*var plugDate = new Date($("#breeddate").val());
@@ -408,23 +405,51 @@ my_widget_script =
         */
 
         var col1ID = whichDam + "date_" + rowCount;
-        var col1 = "<td><input id='" + col1ID + "' name='" + col1ID + "' type='date'/></td>"
-
         var col2ID = whichDam + "_qual_" + rowCount;
-        var col2 = "<td><select id='" + col2ID + "' name='" + col2ID + "' ><option value='0'>None</option><option value='1'>Questionable</option><option value='2'>Probable</option><option value='3'>Definite</option></td>";
-        tableRow.innerHTML = col1 + col2;
+        var col3ID = whichDam + "_comment_" + rowCount;
 
-        $( tableName ).append( tableRow );
+        $(tableName).append(
+            $('<tr/>', { //add a new row
+                id: rowID //give this row the rowID
+            }).append(
+                $('<td/>').append( //append a new <td> to the row
+                    $('<input/>', {//append a new <input> to the <td>
+                        id: col1ID,
+                        name: col1ID,
+                        type: "date" //make it type "date"
+                    })
+                )
+            ).append(
+                $('<td/>').append( //append a new <td> to the row
+                    $('<select/>', {//append a new <select> to the <td>
+                        id: col2ID,
+                        name: col2ID
+                    }).append( //append options to the <select> tag
+                        "<option value='0'>None (-/-)</option>",
+                        "<option value='1'>Uncertain (-/-)</option>",
+                        "<option value='2'>Transparent (+/-)</option>",
+                        "<option value='3'>Waxy (+/+)</option>"
+                    )
+                )
+            ).append(
+                $('<td/>').append( //append a new <td> to the row
+                    $('<textarea/>', {//append a new <textarea> to the <td>
+                        id: col3ID,
+                        name: col3ID
+                    })
+                )
+            )
+        );
 
         //resize the container
         my_widget_script.parent_class.resize_container();
     },
 
-    deletePlugCheckRow: function(tableName) {
-        var rowCount = $( tableName ).find( "tr" ).length;
-        if( rowCount > 1){
-        var lastRow = $( tableName ).find( "tr" ).last();
-        $( lastRow ).remove();
+    deletePlugCheckRow: function (tableName) {
+        var rowCount = $(tableName).find("tr").length;
+        if (rowCount > 1) {
+            var lastRow = $(tableName).find("tr").last();
+            $(lastRow).remove();
         } else {
             alert("Cannot delete table header");
         }
