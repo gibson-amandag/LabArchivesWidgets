@@ -230,8 +230,8 @@ my_widget_script =
         ** -----------------------------------------------------------------------------
         */
 
-        var dam1Plug_addedRows = $("#dam1PlugTable").find("tr").length - 1;
-        var dam2Plug_addedRows = $("#dam2PlugTable").find("tr").length - 1;
+        var dam1Plug_addedRows = $("#dam1PlugTable").find("tbody tr").length;
+        var dam2Plug_addedRows = $("#dam2PlugTable").find("tbody tr").length;
 
         /* -----------------------------------------------------------------------------
         ** ADD widgetJsonString AND ADDITIONAL VARIABLES TO OUTPUT
@@ -395,7 +395,7 @@ my_widget_script =
     },
 
     createPlugCheckRow: function (tableName, whichDam) {
-        var rowCount = $(tableName).find("tr").length;
+        var rowCount = $(tableName).find("tbody tr").length + 1;
         var rowID = whichDam + "_row_" + rowCount;
 
         //Still breaks if select December 1 -> November. Also, if change date after making rows -> problems
@@ -408,23 +408,23 @@ my_widget_script =
         var col2ID = whichDam + "_qual_" + rowCount;
         var col3ID = whichDam + "_comment_" + rowCount;
 
-        $(tableName).append(
+        $(tableName).find("tbody").append(
             $('<tr/>', { //add a new row
                 id: rowID //give this row the rowID
             }).append(
-                $('<td/>').append( //append a new <td> to the row
-                    $('<input/>', {//append a new <input> to the <td>
+                $('<td/>').append( //append a new td to the row
+                    $('<input/>', { //append a new input to the td
                         id: col1ID,
                         name: col1ID,
                         type: "date" //make it type "date"
                     })
                 )
             ).append(
-                $('<td/>').append( //append a new <td> to the row
-                    $('<select/>', {//append a new <select> to the <td>
+                $('<td/>').append( //append a new td to the row
+                    $('<select/>', { //append a new select to the td
                         id: col2ID,
                         name: col2ID
-                    }).append( //append options to the <select> tag
+                    }).append( //append options to the select tag
                         "<option value='0'>None (-/-)</option>",
                         "<option value='1'>Uncertain (-/-)</option>",
                         "<option value='2'>Transparent (+/-)</option>",
@@ -432,8 +432,8 @@ my_widget_script =
                     )
                 )
             ).append(
-                $('<td/>').append( //append a new <td> to the row
-                    $('<textarea/>', {//append a new <textarea> to the <td>
+                $('<td/>').append( //append a new td to the row
+                    $('<input/>', { //append a new input to the td. For some reason, adding a textarea breaks LA
                         id: col3ID,
                         name: col3ID
                     })
@@ -446,13 +446,8 @@ my_widget_script =
     },
 
     deletePlugCheckRow: function (tableName) {
-        var rowCount = $(tableName).find("tr").length;
-        if (rowCount > 1) {
-            var lastRow = $(tableName).find("tr").last();
-            $(lastRow).remove();
-        } else {
-            alert("Cannot delete table header");
-        }
+        var lastRow = $(tableName).find("tbody tr").last();
+        $(lastRow).remove();
 
         //resize the container
         my_widget_script.parent_class.resize_container();
