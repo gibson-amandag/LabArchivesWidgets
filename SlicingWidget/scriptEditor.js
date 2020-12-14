@@ -80,6 +80,8 @@ my_widget_script =
         $("#toggleTable").click(function () { //when the showTable button is clicked, run this function
             //alert("button pressed");
             my_widget_script.resize();
+            my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+            my_widget_script.calcValues();
             $("#tableDiv").toggle();
             //resize the container (need here for when toggle off)
             my_widget_script.parent_class.resize_container();
@@ -87,7 +89,7 @@ my_widget_script =
 
         //when the calculate button is clicked, run the calcValues function
         $('#calculate').click(function () {
-            var data_valid = my_widget_script.data_valid_form();
+            my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
             my_widget_script.calcValues();
 
         });
@@ -97,6 +99,7 @@ my_widget_script =
             var data_valid = my_widget_script.data_valid_form();
             //alert(data_valid);
             if (data_valid) {
+                my_widget_script.calcValues();
                 my_widget_script.exportTableToCSV('mouseData', 'outTable');
             };
         });
@@ -107,6 +110,7 @@ my_widget_script =
             //alert(data_valid);
             if (data_valid) {
                 //alert("I'm clicked");
+                my_widget_script.calcValues();
                 my_widget_script.copyTableRow();
             } else {
                 alert("Nothing was copied");
@@ -190,7 +194,7 @@ my_widget_script =
 
         $('.needForTable').each(function () { //find element with class "needForForm"
             //alert($(this).val());
-            $(this).after("<span style='color:blue'>#</span>"); //add asterisk after
+            $(this).after("<span style='color:blue'>#</span>"); //add # after
         });
 
         $('#the_form').find('select, textarea, input').each(function () { //find each select field, textarea, and input
@@ -414,7 +418,7 @@ my_widget_script =
 
     data_valid_form: function () {
         /* -----------------------------------------------------------------------------
-        ** VALIDATE FORM ENTRY BEFORE CALCULATING/WORKING WITH TABLE
+        ** VALIDATE FORM ENTRY BEFORE SAVING OR COPYING TABLE
         **
         ** This function will check that elements with a class "needForTable"
         ** are not blank. If there are blank elements, it will return false
@@ -429,7 +433,7 @@ my_widget_script =
         //var name; //create a name variable
 
         //search the_form for all elements that are of class "needForForm"
-        $('#the_form').find('.needForTable').each(function () {
+        $('.needForTable').each(function () {
             if (!$(this).val()) { //if there is not a value for this input
                 valid = false; //change valid to false
                 //name = $(this).attr('id'); //replace the name variable with the name attribute of this element
