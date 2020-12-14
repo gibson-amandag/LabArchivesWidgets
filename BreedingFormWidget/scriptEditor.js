@@ -433,7 +433,10 @@ my_widget_script =
                 )
             ).append(
                 $('<td/>').append( //append a new td to the row
-                    $('<input/>', { //append a new input to the td. For some reason, adding a textarea breaks LA
+                    //append a new text area to the script. this string has to be split to make LA happy
+                    //the widget script entry is within a text area, and if it finds another here, it 
+                    //thinks that it has reached the end of the script
+                    $('<text' + 'area></text' + 'area>', {
                         id: col3ID,
                         name: col3ID
                     })
