@@ -86,17 +86,31 @@ my_widget_script =
         });
 
         //when the calculate button is clicked, run the calcValues function
-        $('#calculate').click(my_widget_script.calcValues);
+        $('#calculate').click(function () {
+            var data_valid = my_widget_script.data_valid_form();
+            my_widget_script.calcValues();
+
+        });
 
         //when the toCSV button is clicked, run the exportTableToCSV function
         $('#toCSV').click(function () {
-            my_widget_script.exportTableToCSV('mouseData', 'outTable');
+            var data_valid = my_widget_script.data_valid_form();
+            //alert(data_valid);
+            if (data_valid) {
+                my_widget_script.exportTableToCSV('mouseData', 'outTable');
+            };
         });
 
         //When the copy button is clicked, run the copyTableRow function
         $("#copyDataButton").click(function () {
-            //alert("I'm clicked");
-            my_widget_script.copyTableRow();
+            var data_valid = my_widget_script.data_valid_form();
+            //alert(data_valid);
+            if (data_valid) {
+                //alert("I'm clicked");
+                my_widget_script.copyTableRow();
+            } else {
+                alert("Nothing was copied");
+            };
         });
 
         //when the showGoogleDoc button is clicked, resize the containers, and toggle visability
@@ -118,7 +132,7 @@ my_widget_script =
                 } else {
                     $(".cycle").hide()
                 }
-            } else if($("#sex").val() === "male") { //if male
+            } else if ($("#sex").val() === "male") { //if male
                 $(".female").hide() //hide female class elements
                 $(".male").show() //show male class elements
                 $(".cycle").hide() //hide cycles for male
@@ -173,6 +187,12 @@ my_widget_script =
         */
 
         //source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+
+        $('.needForTable').each(function () { //find element with class "needForForm"
+            //alert($(this).val());
+            $(this).after("<span style='color:blue'>#</span>"); //add asterisk after
+        });
+
         $('#the_form').find('select, textarea, input').each(function () { //find each select field, textarea, and input
             if ($(this).prop('required')) { //if has the attribute "required"
                 $(this).after("<span style='color:red'>*</span>"); //add asterisk after
@@ -194,7 +214,7 @@ my_widget_script =
             } else {
                 $(".cycle").hide()
             }
-        } else if($("#sex").val() === "male") { //if male
+        } else if ($("#sex").val() === "male") { //if male
             $(".female").hide() //hide female class elements
             $(".male").show() //show male class elements
             $(".cycle").hide() //hide cycles for male
@@ -390,6 +410,40 @@ my_widget_script =
         //typically called have a save
         //TO DO write code specific to your form
         return this.parent_class.reset_edited();
+    },
+
+    data_valid_form: function () {
+        /* -----------------------------------------------------------------------------
+        ** VALIDATE FORM ENTRY BEFORE CALCULATING/WORKING WITH TABLE
+        **
+        ** This function will check that elements with a class "needForTable"
+        ** are not blank. If there are blank elements, it will return false
+        ** and will post an error message "Please fill out all elements marked by a blue #"
+        **
+        ** source: source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+        ** -----------------------------------------------------------------------------
+        */
+
+        var valid = true; //begin with a valid value of true
+        //var fail_log = ''; //begin with an empty fail log
+        //var name; //create a name variable
+
+        //search the_form for all elements that are of class "needForForm"
+        $('#the_form').find('.needForTable').each(function () {
+            if (!$(this).val()) { //if there is not a value for this input
+                valid = false; //change valid to false
+                //name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                //fail_log += name + " is required \n"; //add to the fail log that this name is required
+            }
+        });
+
+        if (!valid) {
+            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+        } else {
+            $("#errorMsg").html("");
+        };
+
+        return valid;
     },
 
     resize: function () {
@@ -597,30 +651,30 @@ my_widget_script =
         ** -----------------------------------------------------------------------------
         */
 
-       var csv = [];
-       var datatable = document.getElementById(table);
-       var rows = datatable.querySelectorAll("tr");
+        var csv = [];
+        var datatable = document.getElementById(table);
+        var rows = datatable.querySelectorAll("tr");
 
-       for (var i = 0; i < rows.length; i++) {
-           var row = [], cols = rows[i].querySelectorAll("td, th");
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
 
-           for (var j = 0; j < cols.length; j++)
-               row.push(cols[j].innerText);
+            for (var j = 0; j < cols.length; j++)
+                row.push(cols[j].innerText);
 
-           csv.push(row.join(","));
-       }
+            csv.push(row.join(","));
+        }
 
-       // Download CSV file
-       this.downloadCSV(csv.join("\n"), filename);
+        // Download CSV file
+        this.downloadCSV(csv.join("\n"), filename);
     },
-  	
-  	copyTableRow: function () {
-          //create a temporary text area
-        var $temp = $('<textarea style="opacity:0;"></textarea>');
-        $("#mouseDataRow").children().each(function (){ //add each child of the row
+
+    copyTableRow: function () {
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        $("#mouseDataRow").children().each(function () { //add each child of the row
             $temp.text($temp.text() + $(this).text() + "\t")
         });
-       
+
         $temp.appendTo($('body')).focus().select(); //add temp to body and select
         document.execCommand("copy"); //copy the "selected" text
         $temp.remove(); //remove temp

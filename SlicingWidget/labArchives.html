@@ -1,231 +1,283 @@
-<style type="text/css">.columns {
-    display: flex;
-    flex-wrap: wrap;
-    column-gap: 2%;
-}
+<style type="text/css">
+    .columns {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 2%;
+    }
 
-.column3 {
-    flex: 0 30%;
-}
+    .column3 {
+        flex: 0 30%;
+    }
 
-.container {
-    /* display: flex; */
-    /* flex-wrap: wrap; */
-}
+    .container {
+        /* display: flex; */
+        /* flex-wrap: wrap; */
+    }
 
-.container>div {
-    /* flex: 0 50%; */
-    margin-bottom: 5px;
-}
+    .container>div {
+        /* flex: 0 50%; */
+        margin-bottom: 5px;
+    }
 
-.implant {
-    display: none;
-}
+    .implant {
+        display: none;
+    }
 
-.tableDiv {
-    width: 400px;
-    overflow-x: scroll;
+    .tableDiv {
+        width: 400px;
+        overflow-x: scroll;
 
-}
+    }
 
-.iFrameDiv {
-    width: 800px; 
-    overflow-x: scroll;
-padding-left: 2.5%;
-display: none;
-}
-
-.needForTable {}
-
-.needToUpload {}
+    .iFrameDiv {
+        width: 800px;
+        overflow-x: scroll;
+        padding-left: 2.5%;
+        display: none;
+    }
 </style>
 <h1><span style="font-size:36px;">Slicing</span></h1>
 
+<p>Elements that are required to save this page are marked with a red asterisk <span style="color:red">*</span></p>
+
+<p>Elements that are required to calculate the table, copy, or save to CSV are marked with a blue pound sign <span
+        style="color:blue">#</span></p>
+
 <div class="columns">
-<div class="column3">
-<div>
-<h3>General Info</h3>
-</div>
+    <div class="column3">
+        <div>
+            <h3>General Info</h3>
+        </div>
 
-<div class="container">
-<div>Experimenter</div>
+        <div class="container">
+            <div>Experimenter</div>
 
-<div><input id="Who" name="who" required="" /></div>
+            <div><input class="needForTable" id="Who" name="who" required="" /></div>
 
-<div>Date</div>
+            <div>Date</div>
 
-<div><input id="Recording_date" name="slicedate" required="" type="date" /></div>
+            <div><input class="needForTable" id="Recording_date" name="slicedate" required="" type="date" /></div>
 
-<div>Time of Sacrifice</div>
+            <div>Time of Sacrifice</div>
 
-<div><input id="Time_sac" name="sactime" type="time" /></div>
+            <div><input class="needForTable" id="Time_sac" name="sactime" type="time" /></div>
 
-<div>Daylight Savings Time</div>
+            <div>Daylight Savings Time</div>
 
-<div><label for="daylightsaving">Select:</label> <select id="Daylight_Savings" name="daylightsaving" required=""><option value="">[Select]</option><option value="Y">Daylight Savings Time (summer)</option><option value="N">Standard Time (winter)</option> </select></div>
+            <div><label for="daylightsaving">Select:</label> <select class="needForTable" id="Daylight_Savings"
+                    name="daylightsaving" required="">
+                    <option value="">[Select]</option>
+                    <option value="Y">Daylight Savings Time (summer)</option>
+                    <option value="N">Standard Time (winter)</option>
+                </select></div>
 
-<div>
-<h3>Mouse Information</h3>
-</div>
+            <div>
+                <h3>Mouse Information</h3>
+            </div>
 
-<div>&nbsp;</div>
+            <div>&nbsp;</div>
 
-<div>Mouse ID # or Ear Tag</div>
+            <div>Mouse ID # or Ear Tag</div>
 
-<div><input id="MouseID" name="mouseid" required="" /></div>
+            <div><input class="needForTable" id="MouseID" name="mouseid" required="" /></div>
 
-<div>Transgenic Line</div>
+            <div>Transgenic Line</div>
 
-<div><input id="strain" name="strain" /></div>
+            <div><input class="needForTable" id="strain" name="strain" /></div>
 
-<div>Zygosity</div>
+            <div>Zygosity</div>
 
-<div><label for="zygosity">Select:</label> <select id="zygosity" name="zygosity" required=""><option value="">[Select]</option><option value="homoPlus">+/+</option><option value="hetero">+/-</option><option value="homoNeg">-/-</option> </select></div>
+            <div><label for="zygosity">Select:</label> <select class="needForTable" id="zygosity" name="zygosity"
+                    required="">
+                    <option value="">[Select]</option>
+                    <option value="homoPlus">+/+</option>
+                    <option value="hetero">+/-</option>
+                    <option value="homoNeg">-/-</option>
+                </select></div>
 
-<div>Cage #</div>
+            <div>Cage #</div>
 
-<div><input id="Cage" name="cagenum" /></div>
+            <div><input id="Cage" name="cagenum" /></div>
 
-<div>Date of Birth</div>
+            <div>Date of Birth</div>
 
-<div><input id="Date_of_birth" name="dob" required="" type="date" /></div>
+            <div><input class="needForTable" id="Date_of_birth" name="dob" required="" type="date" /></div>
 
-<div>Treatment</div>
+            <div>Treatment</div>
 
-<div><select id="Treatment" name="treatment"><option value="">[Select]</option><option value="CON">Control</option><option value="CON_main">Main colony control</option><option value="VEH">Vehicle</option><option value="DHT">DHT</option> </select></div>
+            <div><select id="Treatment" name="treatment">
+                    <option value="">[Select]</option>
+                    <option value="CON">Control</option>
+                    <option value="CON_main">Main colony control</option>
+                    <option value="VEH">Vehicle</option>
+                    <option value="DHT">DHT</option>
+                </select></div>
 
-<div>Sex</div>
+            <div>Sex</div>
 
-<div><label for="sex">Select:</label> <select id="sex" name="sex" required=""><option value="">[Select]</option><option value="female">Female</option><option value="male">Male</option> </select></div>
+            <div><label for="sex">Select:</label> <select class="needForTable" id="sex" name="sex" required="">
+                    <option value="">[Select]</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                </select></div>
 
-<div>Body mass (g)</div>
+            <div>Body mass (g)</div>
 
-<div><input id="BodyMass_g" name="bodymass" step="0.1" type="number" /></div>
+            <div><input class="needForTable" id="BodyMass_g" name="bodymass" step="0.1" type="number" /></div>
 
-<div>
-<div class="female">Uterine Mass (mg)</div>
+            <div>
+                <div class="female">Uterine Mass (mg)</div>
 
-<div class="male" style="display: none;">Seminal Vesicle Mass (mg)</div>
-</div>
+                <div class="male" style="display: none;">Seminal Vesicle Mass (mg)</div>
+            </div>
 
-<div><input id="gonadMass" name="gonadmass" step="0.01" type="number" /></div>
+            <div><input class="needForTable" id="gonadMass" name="gonadmass" step="0.01" type="number" /></div>
 
-<div>Blood Glucose (mg/100mL)</div>
+            <div>Blood Glucose (mg/100mL)</div>
 
-<div><input id="glucose" name="glucose" step="0.001" type="number" /></div>
-</div>
-</div>
+            <div><input id="glucose" name="glucose" step="0.001" type="number" /></div>
+        </div>
+    </div>
 
-<div class="column3">
-<div>
-<h3>Gonadal Status</h3>
-</div>
+    <div class="column3">
+        <div>
+            <h3>Gonadal Status</h3>
+        </div>
 
-<div class="container">
-<div>Gonad Status</div>
+        <div class="container">
+            <div>Gonad Status</div>
 
-<div><label for="gonadstatus">Status:</label> <select id="gonadstatus" name="gonadstatus" required=""><option value="">[Select]</option><option value="intact">Intact</option><option value="gdx">Gonadectomized</option> </select></div>
+            <div><label for="gonadstatus">Status:</label> <select class="needForTable" id="gonadstatus"
+                    name="gonadstatus" required="">
+                    <option value="">[Select]</option>
+                    <option value="intact">Intact</option>
+                    <option value="gdx">Gonadectomized</option>
+                </select></div>
 
-<div class="cycle">Cycle Stage</div>
+            <div class="cycle">Cycle Stage</div>
 
-<div class="cycle"><label for="cyclestage">Select:</label> <select id="CycleStage" name="cyclestage"><option value="">[Select]</option><option value="NA">NA</option><option value="D">Diestrus</option><option value="P">Proestrus</option><option value="E">Estrus</option> </select><br />
-<label for="stagecomment">Comment:</label> <input name="stagecomment" /></div>
+            <div class="cycle"><label for="cyclestage">Select:</label> <select id="CycleStage" name="cyclestage">
+                    <option value="">[Select]</option>
+                    <option value="NA">NA</option>
+                    <option value="D">Diestrus</option>
+                    <option value="P">Proestrus</option>
+                    <option value="E">Estrus</option>
+                </select><br />
+                <label for="stagecomment">Comment:</label> <input name="stagecomment" /></div>
 
-<div class="gdx" style="display: none;">Date of surgery</div>
+            <div class="gdx" style="display: none;">Date of surgery</div>
 
-<div class="gdx" style="display: none;"><input id="surgerydate" name="surgerydate" type="date" /></div>
-</div>
+            <div class="gdx" style="display: none;"><input id="surgerydate" name="surgerydate" type="date" /></div>
+        </div>
 
-<h3>Steroid Implants</h3>
+        <h3>Steroid Implants</h3>
 
-<div class="container">
-<div>Implant?</div>
+        <div class="container">
+            <div>Implant?</div>
 
-<div><label for="implant">Check if yes:</label> <input id="implantBox" name="implant" type="checkbox" /></div>
+            <div><label for="implant">Check if yes:</label> <input id="implantBox" name="implant" type="checkbox" />
+            </div>
 
-<div class="implant">Type of implant</div>
+            <div class="implant">Type of implant</div>
 
-<div class="implant"><select id="implantType" name="implanttype"><option value="">[Select]</option><option value="e2">E2</option><option value="dht">DHT</option><option value="pira">P IRA</option><option value="other">Other</option> </select></div>
+            <div class="implant"><select id="implantType" name="implanttype">
+                    <option value="">[Select]</option>
+                    <option value="e2">E2</option>
+                    <option value="dht">DHT</option>
+                    <option value="pira">P IRA</option>
+                    <option value="other">Other</option>
+                </select></div>
 
-<div class="implant">Implant Comment</div>
+            <div class="implant">Implant Comment</div>
 
-<div class="implant"><input name="implantcomment" /></div>
+            <div class="implant"><input name="implantcomment" /></div>
 
-<div>
-<h3>Samples</h3>
-</div>
+            <div>
+                <h3>Samples</h3>
+            </div>
 
-<div>&nbsp;</div>
+            <div>&nbsp;</div>
 
-<div>Serum Tube Label</div>
+            <div>Serum Tube Label</div>
 
-<div><input id="tubeLabel" name="tubelabel" /></div>
+            <div><input class="needForTable" id="tubeLabel" name="tubelabel" /></div>
 
-<div>Pituitary</div>
+            <div>Pituitary</div>
 
-<div><label for="pituitary">Saved pituitary</label> <input id="Saved_pit" name="pituitary" type="checkbox" /></div>
-</div>
-</div>
+            <div><label for="pituitary">Saved pituitary</label> <input id="Saved_pit" name="pituitary"
+                    type="checkbox" /></div>
+        </div>
+    </div>
 
-<div class="column3">
-<div>
-<h3>Slice Info</h3>
-</div>
+    <div class="column3">
+        <div>
+            <h3>Slice Info</h3>
+        </div>
 
-<div class="container">
-<div>Nucleus/Area of Interest</div>
+        <div class="container">
+            <div>Nucleus/Area of Interest</div>
 
-<div><input id="nucleus" name="nucleus" /></div>
+            <div><input class="needForTable" id="nucleus" name="nucleus" /></div>
 
-<div>Slicing Orientation</div>
+            <div>Slicing Orientation</div>
 
-<div><input id="orientation" name="orientation" /></div>
+            <div><input class="needForTable" id="orientation" name="orientation" /></div>
 
-<div>Quality</div>
+            <div>Quality</div>
 
-<div><label for="slicequal">Select:</label> <select id="slicequal" name="slicequal"><option value="">[Select]</option><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option> </select><br />
-<label for="slicecomment">Comment:</label> <input name="slicecomment" /></div>
+            <div><label for="slicequal">Select:</label> <select id="slicequal" name="slicequal">
+                    <option value="">[Select]</option>
+                    <option value="good">Good</option>
+                    <option value="fair">Fair</option>
+                    <option value="poor">Poor</option>
+                </select><br />
+                <label for="slicecomment">Comment:</label> <input name="slicecomment" /></div>
 
-<div>Fluorescent Quality</div>
+            <div>Fluorescent Quality</div>
 
-<div><label for="fluorqual">Select:</label> <select id="fluorqual" name="fluorqual"><option value="">[Select]</option><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option> </select><br />
-<label for="fluorcomment">Comment:</label> <input name="fluorcomment" /></div>
+            <div><label for="fluorqual">Select:</label> <select id="fluorqual" name="fluorqual">
+                    <option value="">[Select]</option>
+                    <option value="good">Good</option>
+                    <option value="fair">Fair</option>
+                    <option value="poor">Poor</option>
+                </select><br />
+                <label for="fluorcomment">Comment:</label> <input name="fluorcomment" /></div>
 
-<div>
-<h3>Solutions</h3>
-</div>
+            <div>
+                <h3>Solutions</h3>
+            </div>
 
-<div>&nbsp;</div>
+            <div>&nbsp;</div>
 
-<div>External and addition</div>
+            <div>External and addition</div>
 
-<div><input id="externalsoln" name="externalsoln" /></div>
+            <div><input id="externalsoln" name="externalsoln" /></div>
 
-<div>Internal Solution</div>
+            <div>Internal Solution</div>
 
-<div><input id="externalsoln" name="internalsoln" /></div>
+            <div><input id="externalsoln" name="internalsoln" /></div>
 
-<div>Internal Date</div>
+            <div>Internal Date</div>
 
-<div><input id="internaldate" name="internaldate" type="date" /></div>
+            <div><input id="internaldate" name="internaldate" type="date" /></div>
 
-<div>Pipette</div>
+            <div>Pipette</div>
 
-<div><input id="pipette" name="pipette" /></div>
+            <div><input id="pipette" name="pipette" /></div>
 
-<div>Date of pipette solution</div>
+            <div>Date of pipette solution</div>
 
-<div><input id="pipette" name="pipettedate" type="date" /></div>
+            <div><input id="pipette" name="pipettedate" type="date" /></div>
 
-<div>Pipette Lot</div>
+            <div>Pipette Lot</div>
 
-<div><input id="pipettelot" name="pipettelot" /></div>
+            <div><input id="pipettelot" name="pipettelot" /></div>
 
-<div>Internal Solution</div>
+            <div>Internal Solution</div>
 
-<div><input id="internalsoln" name="internalsoln" /></div>
-</div>
-</div>
+            <div><input id="internalsoln" name="internalsoln" /></div>
+        </div>
+    </div>
 </div>
 <!--End columns div-->
 
@@ -234,57 +286,72 @@ display: none;
 <h2>Comments:</h2>
 
 <p><textarea cols="50%" name="comments" rows="5"></textarea><br />
-<br />
-<input id="toggleTable" name="toggletable" type="button" value="Show/Hide Table" /> <input id="calculate" name="calcvalues" type="button" value="Calculate Values" /> <input id="toCSV" name="tocsv" type="button" value="Save CSV" /> <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" /></p>
+    <br />
+    <input id="toggleTable" name="toggletable" type="button" value="Show/Hide Table" /> <input id="calculate"
+        name="calcvalues" type="button" value="Calculate Values" /> <input id="toCSV" name="tocsv" type="button"
+        value="Save CSV" /> <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" /></p>
+
+<div id="errorMsg">&nbsp;</div>
 
 <div class="tableDiv" id="tableDiv" style="display:none">
-<table border="1pt" id="outTable">
-<tbody>
-    <tr>
-        <th>MouseID</th>
-        <th>Cage</th>
-        <th>Treatment</th>
-        <th>GenTreatment</th>
-        <th>CycleStage</th>
-        <th>BodyMass_g</th>
-        <th>UterineMass</th>
-        <th>Uterine_mg_per_g</th>
-        <th>Date_of_birth</th>
-        <th>Recording_date</th>
-        <th>Age_in_days</th>
-        <th>Saved_pit</th>
-        <th>Daylight_Savings</th>
-        <th>Time_sac</th>
-        <th>Sac_hr</th>
-        <th>Who</th>
-    </tr>
-    <tr id="mouseDataRow">
-        <td id="MouseID_calc">&nbsp;</td>
-        <td id="Cage_calc">&nbsp;</td>
-        <td id="Treatment_calc">&nbsp;</td>
-        <td id="GenTreatment_calc">&nbsp;</td>
-        <td id="CycleStage_calc">&nbsp;</td>
-        <td id="BodyMass_g_calc">&nbsp;</td>
-        <td id="UterineMass_calc">&nbsp;</td>
-        <td id="Uterine_mg_per_g_calc">&nbsp;</td>
-        <td id="Date_of_birth_calc">&nbsp;</td>
-        <td id="Recording_date_calc">&nbsp;</td>
-        <td id="Age_in_days_calc">&nbsp;</td>
-        <td id="Saved_pit_calc">&nbsp;</td>
-        <td id="Daylight_Savings_calc">&nbsp;</td>
-        <td id="Time_sac_calc">&nbsp;</td>
-        <td id="Sac_hr_calc">&nbsp;</td>
-        <td id="Who_calc">&nbsp;</td>
-    </tr>
-</tbody>
-</table>
+    <table border="1pt" id="outTable">
+        <tbody>
+            <tr>
+                <th>MouseID</th>
+                <th>Cage</th>
+                <th>Treatment</th>
+                <th>GenTreatment</th>
+                <th>CycleStage</th>
+                <th>BodyMass_g</th>
+                <th>UterineMass</th>
+                <th>Uterine_mg_per_g</th>
+                <th>Date_of_birth</th>
+                <th>Recording_date</th>
+                <th>Age_in_days</th>
+                <th>Saved_pit</th>
+                <th>Daylight_Savings</th>
+                <th>Time_sac</th>
+                <th>Sac_hr</th>
+                <th>Who</th>
+            </tr>
+            <tr id="mouseDataRow">
+                <td id="MouseID_calc">&nbsp;</td>
+                <td id="Cage_calc">&nbsp;</td>
+                <td id="Treatment_calc">&nbsp;</td>
+                <td id="GenTreatment_calc">&nbsp;</td>
+                <td id="CycleStage_calc">&nbsp;</td>
+                <td id="BodyMass_g_calc">&nbsp;</td>
+                <td id="UterineMass_calc">&nbsp;</td>
+                <td id="Uterine_mg_per_g_calc">&nbsp;</td>
+                <td id="Date_of_birth_calc">&nbsp;</td>
+                <td id="Recording_date_calc">&nbsp;</td>
+                <td id="Age_in_days_calc">&nbsp;</td>
+                <td id="Saved_pit_calc">&nbsp;</td>
+                <td id="Daylight_Savings_calc">&nbsp;</td>
+                <td id="Time_sac_calc">&nbsp;</td>
+                <td id="Sac_hr_calc">&nbsp;</td>
+                <td id="Who_calc">&nbsp;</td>
+            </tr>
+        </tbody>
+    </table>
 
-<p>&nbsp;</p>
+    <p>&nbsp;</p>
 </div>
 
-<div><input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc" /> or <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">click here</a></big> to open the Google Sheet in a new window<br />
-<label for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> <select id="enteredDatatoDoc" name="entereddatatodoc" required=""><option value="">[Select]</option><option value="no">Not yet</option><option value="yes">Yes!</option> </select></div>
+<div><input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc" /> or <big><a
+            href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing"
+            target="_blank">click here</a></big> to open the Google Sheet in a new window<br />
+    <label for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> <select id="enteredDatatoDoc"
+        name="entereddatatodoc" required="">
+        <option value="">[Select]</option>
+        <option value="no">Not yet</option>
+        <option value="yes">Yes!</option>
+    </select></div>
 
 <div class="iFrameDiv">
-<div id="labGoogleSheet"><iframe frameborder="0" height="600" scrolling="auto" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" style="border:0" width="800"></iframe></div>
+    <div id="labGoogleSheet"><iframe frameborder="0" height="600" scrolling="auto"
+            src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing"
+            style="border:0" width="800"></iframe></div>
 </div>
+
+<div id="hiddenDiv" style="display:none"><textarea id="forCopying" name="forcopying"></textarea></div>
