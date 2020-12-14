@@ -12,9 +12,18 @@ my_widget_script =
         // returned from a call to to_json or empty if this is a new form.
         //By default it calls the parent_class's init.
 
-        //Uncomment debugger to be able to inspect and view code
+
+        /* -----------------------------------------------------------------------------
+        ** USE DEBUGGER TO INSPECT AND VIEW CODE
+        ** -----------------------------------------------------------------------------
+        */
+
         //debugger;
 
+        /* -----------------------------------------------------------------------------
+        ** CREATE jsonString AND parsedJSON VARIABLEs FROM json_data
+        ** -----------------------------------------------------------------------------
+        */
         var jsonString;
         //check if string or function because preview test is function and page is string
         if (typeof json_data === "string") {
@@ -28,13 +37,74 @@ my_widget_script =
         //Uncomment to print parsedJson to consol
         //console.log("init", parsedJson);
 
+        /* -----------------------------------------------------------------------------
+        ** CHECK parsedJson FOR INFORMATION NOT CONTAINED IN FORM INPUTS
+        **
+        ** Content that is created dynamically and therefore not contained wtihin the 
+        ** HTML script cannot be passed by the default json_data behavior of LA widgets.
+        ** This additional information has to be passed within to_json
+            ** This could include something such as row number or the existance of a div
+        ** That information that then has to be used here to re-initialize the
+        ** appropriate page contents. Use parsedJson.[objectName] to get this data
+        ** -----------------------------------------------------------------------------
+        */
+
+
+        /* -----------------------------------------------------------------------------
+        ** ADJUST FORM DESIGN AND BUTTONS BASED ON MODE
+        
+        ** If you do not want a button to be available when not editing disable it here
+        ** If you do not want certain elements to be available when not editing,
+        ** hide them here
+        ** -----------------------------------------------------------------------------
+        */
+
+        if (mode !== "edit" && mode !== "edit_dev") {
+            //disable when not editing
+            $("#calculate").prop("disabled", true)
+        };
+
+        /* -----------------------------------------------------------------------------
+        ** RESIZE THE CONTENT BOX WHEN THE WINDOW SIZE CHANGES
+        ** -----------------------------------------------------------------------------
+        */
+
+        window.onresize = my_widget_script.resize;
+
+        /* -----------------------------------------------------------------------------
+        ** DEFINE BEHAVIOR WHEN BUTTONS ARE CLICKED OR CHECKBOXES/SELECTIONS CHANGE
+        ** -----------------------------------------------------------------------------
+        */
+
         //Show/hide the table
-        $("#toggleTable").click(function () { //when the showTable button is clicked. Run this function
+        $("#toggleTable").click(function () { //when the showTable button is clicked, run this function
             //alert("button pressed");
-            //Get width
-            var width = window.innerWidth;
-            $(".tableDiv").width(width * .95); //make width 95% of current width
+            my_widget_script.resize();
             $("#tableDiv").toggle();
+            //resize the container (need here for when toggle off)
+            my_widget_script.parent_class.resize_container();
+        });
+
+        //when the calculate button is clicked, run the calcValues function
+        $('#calculate').click(my_widget_script.calcValues);
+
+        //when the toCSV button is clicked, run the exportTableToCSV function
+        $('#toCSV').click(function () {
+            my_widget_script.exportTableToCSV('mouseData', 'outTable');
+        });
+
+        //When the copy button is clicked, run the copyTableRow function
+        $("#copyDataButton").click(function () {
+            //alert("I'm clicked");
+            my_widget_script.copyTableRow();
+        });
+
+        //when the showGoogleDoc button is clicked, resize the containers, and toggle visability
+        $("#showGoogleDoc").click(function () {
+            //alert("button pressed");
+            my_widget_script.resize();
+            $(".iFrameDiv").toggle();
+            //resize the container (need here for when toggle off)
             my_widget_script.parent_class.resize_container();
         });
 
@@ -48,11 +118,15 @@ my_widget_script =
                 } else {
                     $(".cycle").hide()
                 }
-            } else {
+            } else if($("#sex").val() === "male") { //if male
                 $(".female").hide() //hide female class elements
                 $(".male").show() //show male class elements
                 $(".cycle").hide() //hide cycles for male
-            }
+            } else { //if not selected, hide everything
+                $(".female").hide() //hide female class elements
+                $(".male").hide() //hide male class elements
+                $(".cycle").hide() //hide cycles for male
+            };
 
         });
 
@@ -66,30 +140,52 @@ my_widget_script =
                 } else {
                     $(".cycle").hide()
                 }
-            } else {
+            } else if ($("#gonadstatus").val() === "gdx") {
                 $(".intact").hide() //hide intact class elements
                 $(".gdx").show() //show gdx class elements
                 $(".cycle").hide()
+            } else {
+                $(".intact").hide() //hide intact class elements
+                $(".gdx").hide() //hide gdx class elements
+                $(".cycle").hide() //hide cycle
             }
-
         });
 
-        //If there are buttons that you don't want to be active when not editing, disable them here
-        if (mode !== "edit" && mode !== "edit_dev") {
-            //disable specific buttons when not editing
+        $("#implantBox").change(function () {
+            if ($("#implantBox").is(":checked")) {
+                $(".implant").show() //show implant class elements
+            } else {
+                $(".implant").hide()
+            }
+        });
 
-        }
+        /* -----------------------------------------------------------------------------
+        ** INITIALIZE THE FORM WITH THE STORED WIDGET DATA
+        ** -----------------------------------------------------------------------------
+        */
 
-        //when the calculate button is clicked, run the calcValues function
-        $('#calculate').click(my_widget_script.calcValues);
-
-        //when the size of the window changes, run the resize function
-        window.onresize = my_widget_script.resize;
-
-        //load the expected lab archive data (just the stringified widgetData)
+        //use the expected LabArchives data (just the stringified widgetData)
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
-        //Use values to set up what should be shown or hidden based on this initial data
+        /* -----------------------------------------------------------------------------
+        ** ADD RED ASTERISKS AFTER REQUIRED FIELDS
+        ** -----------------------------------------------------------------------------
+        */
+
+        //source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+        $('#the_form').find('select, textarea, input').each(function () { //find each select field, textarea, and input
+            if ($(this).prop('required')) { //if has the attribute "required"
+                $(this).after("<span style='color:red'>*</span>"); //add asterisk after
+            }
+        });
+
+        /* -----------------------------------------------------------------------------
+        ** ADD ADDITIONAL FUNCTIONS AND STEPS THAT SHOULD BE TAKEN TO INITIALIZE HTML
+
+        ** For example, ensure that shown/hiden elements are properly displayed
+        ** based on the contents of the form
+        ** -----------------------------------------------------------------------------
+        */
         if ($("#sex").val() === "female") {
             $(".female").show() //show female class elements
             $(".male").hide() //hide male class elements
@@ -98,9 +194,13 @@ my_widget_script =
             } else {
                 $(".cycle").hide()
             }
-        } else {
+        } else if($("#sex").val() === "male") { //if male
             $(".female").hide() //hide female class elements
             $(".male").show() //show male class elements
+            $(".cycle").hide() //hide cycles for male
+        } else { //if not selected, hide everything
+            $(".female").hide() //hide female class elements
+            $(".male").hide() //hide male class elements
             $(".cycle").hide() //hide cycles for male
         };
 
@@ -112,11 +212,15 @@ my_widget_script =
             } else {
                 $(".cycle").hide()
             }
-        } else {
+        } else if ($("#gonadstatus").val() === "gdx") {
             $(".intact").hide() //hide intact class elements
             $(".gdx").show() //show gdx class elements
             $(".cycle").hide()
-        };
+        } else {
+            $(".intact").hide() //hide intact class elements
+            $(".gdx").hide() //hide gdx class elements
+            $(".cycle").hide() //hide cycle
+        }
 
         if ($("#implantBox").is(":checked")) {
             $(".implant").show() //show implant class elements
@@ -126,6 +230,7 @@ my_widget_script =
 
         //Run the calculate values function to fill with the loaded data
         this.calcValues();
+
     },
 
     to_json: function () {
@@ -133,17 +238,43 @@ my_widget_script =
         //whatever is return from the method is persisted in LabArchives.  must not be binary data.
         //called when the user hits the save button, when adding or editing an entry
 
-        //looks at HTML and gets input data. Gives a string
+        /* -----------------------------------------------------------------------------
+        ** ACQUIRE INPUT DATA FROM THE FORM
+        **
+        ** This uses LabArchives's to_json() function to get the form data as a string
+        ** -----------------------------------------------------------------------------
+        */
+
         var widgetJsonString = this.parent_class.to_json();
 
-        //add additional information to this output variable
+        /* -----------------------------------------------------------------------------
+        ** DEFINE ADDITIONAL VARIABLES OR PARAMETERS TO MONITOR DYNAMIC CONTENT
+        **
+        ** These should be simple variables, such as true/false, a number, or a state
+        ** This cannot be something complex like a full <div>
+        ** -----------------------------------------------------------------------------
+        */
 
-        //access within init function
+        /* -----------------------------------------------------------------------------
+        ** ADD widgetJsonString AND ADDITIONAL VARIABLES TO OUTPUT
+        **
+        ** This information will be accessed within the init function
+        ** -----------------------------------------------------------------------------
+        */
+
+        //If you do not need to add additional dynamic content, use this line
         var output = { widgetData: JSON.parse(widgetJsonString) };
 
+        // Define additional output components
+        //var output = { widgetData: JSON.parse(widgetJsonString), existsMyContent: existsMyContent };
+
         //uncomment to check stringified output - note that complicated objects like divs cannot be passed this way
-        //var stringedOutput = JSON.stringify(output);
-        //console.log("to JSON", stringedOutput);
+        //console.log("to JSON", JSON.stringify(output));
+
+        /* -----------------------------------------------------------------------------
+        ** RETURN STRINGIFIED OUTPUT
+        ** -----------------------------------------------------------------------------
+        */
 
         return JSON.stringify(output);
     },
@@ -162,9 +293,36 @@ my_widget_script =
     test_data: function () {
         //during development this method is called to populate your form while in preview mode
 
+        /* -----------------------------------------------------------------------------
+        ** ORIGINAL LABARCHIVES RETURN FOR TEST DATA
+        **
+        ** note that this will randomly select options for dropdown menus, 
+        ** radio buttons, and checkboxes
+        ** -----------------------------------------------------------------------------
+        */
+
+        //return this.parent_class.test_data();
+
+        /* -----------------------------------------------------------------------------
+        ** DEFINE YOUR OWN TEST DATA
+        **
+        ** note that this will randomly select options for dropdown menus, 
+        ** radio buttons, and checkboxes if you still use parent_class.test_data()
+        **
+        ** Add additional test data infromation based on dynamic content
+        ** -----------------------------------------------------------------------------
+        */
+
+        //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
-        //var output = { widgetData: testData, rowCount: 0 };
-        var output = { widgetData: testData }
+
+        //If no additional dynamic content 
+        var output = { widgetData: testData };
+
+        //The additional content should match the objects in to_json
+        //var output = { widgetData: testData, existsMyContent: isCheckedAddDiv};
+
+        //return the stringified output for use by the init function
         return JSON.stringify(output);
     },
 
@@ -177,7 +335,50 @@ my_widget_script =
         //Returning an empty array [] or NULL equals no error
         //TO DO write code specific to your form
 
-        return this.parent_class.is_valid(b_suppress_message);
+        /* -----------------------------------------------------------------------------
+        ** VALIDATE FORM ENTRY BEFORE SAVING
+        **
+        ** This function will now check that all fields with the required attribute
+        ** are not blank. If there are blank elements, it will return an alert that
+        ** provides a fail log with the ids of the elements that are missing
+        **
+        ** source: source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+        ** -----------------------------------------------------------------------------
+        */
+
+        var fail = false; //begin with a fail variable that is false
+        var fail_log = ''; //begin with an empty fail log
+        var name; //create a name variable
+
+        //search the_form for all elements that are of type select, textarea, or input
+        $('#the_form').find('select, textarea, input').each(function () {
+            if (!$(this).prop('required')) { //if this element does not have a required attribute
+                //don't change anything (fail remains false)
+            } else { //if there is a required attribute
+                if (!$(this).val()) { //if there is not a value for this input
+                    fail = true; //change fail to true
+                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                    fail_log += name + " is required \n"; //add to the fail log that this name is required
+                }
+
+            }
+        });
+
+        if (fail) { //if fail is true (meaning a required element didn't have a value)
+            return alert(fail_log); //return the fail log as an alert
+        } else {
+            var noErrors = [];
+            return noErrors;
+        }; //otherwise, return empty array
+
+        /* -----------------------------------------------------------------------------
+        ** ORIGINAL LABARCHIVES is_valid FUNCTION
+        **
+        ** This checks for fields that have _mandatory appended to the name attribute
+        ** -----------------------------------------------------------------------------
+        */
+
+        //return this.parent_class.is_valid(b_suppress_message);
     },
 
     is_edited: function () {
@@ -191,17 +392,47 @@ my_widget_script =
         return this.parent_class.reset_edited();
     },
 
-    //when the implant checkbox is checked
-    implantChecked: function () {
-        if ($("#implantBox").is(":checked")) {
-            $(".implant").show() //show implant class elements
-        } else {
-            $(".implant").hide()
-        }
+    resize: function () {
+        /* -----------------------------------------------------------------------------
+        ** resize function
+        **
+        ** This function can be used to ensure that if a table or other large content
+        ** exists on the page or gets created, that it doesn't try to resize the 
+        ** entry and push it off of the viewable page within the notebook.
+        ** 
+        ** This function also resizes the container using the LA parent_class script.
+        ** my_widget_script.parent_class.resize_container(); should be called each time
+        ** content is created, modified, or deleted within a function.
+        ** -----------------------------------------------------------------------------
+        */
+
+        //gets the inner width of the window.
+        var width = window.innerWidth;
+
+        //TO DO resize any specific divs (such as those with a large table) based on the innerWidth
+        $(".tableDiv").width(width * .95); //make width of table div 95% of current width
+        $(".iFrameDiv").width(width * .95);
+
+        //resize the container
+        my_widget_script.parent_class.resize_container();
     },
 
-    //calculate values for table
     calcValues: function () {
+        /* -----------------------------------------------------------------------------
+        ** calcValues function
+        **
+        ** This function takes the form contents and adds them to the output table.
+        ** For elements that are blank or NaN, the function provides an output of NA
+        **
+        ** The function does not currently require validation in order to provide a
+        ** calculation, but this could be easily modified.
+        **
+        ** my_widget_script.parent_class.resize_container(); is called at the end
+        ** -----------------------------------------------------------------------------
+        */
+
+        //Add check for validity
+
         //Mouse ID
         $("#MouseID_calc").text($("#MouseID").val());
 
@@ -315,18 +546,20 @@ my_widget_script =
 
     },
 
-    resize: function () {
-        //adding this here ensures that even if table is showing, that it doesn't try to resize with that out of view
-        //gets the inner width of the window. Resets the size of the tableDiv. THEN resizes the container
-        var width = window.innerWidth;
-        $(".tableDiv").width(width * .95); //make width of table div 95% of current width
-
-        //resize the container
-        my_widget_script.parent_class.resize_container();
-    },
-
     downloadCSV: function (csv, filename) {
-        // source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+        /* -----------------------------------------------------------------------------
+        ** downloadCSV function
+        **
+        ** This function takes a csv element and filename that are passed from the 
+        ** exportTableToCSV function.
+        **
+        ** This creates a csvFile and builds a download link that references this file
+        ** The download link is "clicked" by the function to prompt the browser to 
+        ** download this file
+        **
+        ** source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+        ** -----------------------------------------------------------------------------
+        */
         var csvFile;
         var downloadLink;
 
@@ -353,21 +586,43 @@ my_widget_script =
     },
 
     exportTableToCSV: function (filename, table) {
-        // source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
-        var csv = [];
-        var datatable = document.getElementById(table);
-        var rows = datatable.querySelectorAll("tr");
+        /* -----------------------------------------------------------------------------
+        ** exportTableToCSV function
+        **
+        ** This function takes a filename and table name (both strings) as input
+        ** It then creates a csv element from the table
+        ** This csv element is passed to the downloadCSV function along with the filename
+        ** 
+        ** source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+        ** -----------------------------------------------------------------------------
+        */
 
-        for (var i = 0; i < rows.length; i++) {
-            var row = [], cols = rows[i].querySelectorAll("td, th");
+       var csv = [];
+       var datatable = document.getElementById(table);
+       var rows = datatable.querySelectorAll("tr");
 
-            for (var j = 0; j < cols.length; j++)
-                row.push(cols[j].innerText);
+       for (var i = 0; i < rows.length; i++) {
+           var row = [], cols = rows[i].querySelectorAll("td, th");
 
-            csv.push(row.join(","));
-        }
+           for (var j = 0; j < cols.length; j++)
+               row.push(cols[j].innerText);
 
-        // Download CSV file
-        this.downloadCSV(csv.join("\n"), filename);
+           csv.push(row.join(","));
+       }
+
+       // Download CSV file
+       this.downloadCSV(csv.join("\n"), filename);
+    },
+  	
+  	copyTableRow: function () {
+          //create a temporary text area
+        var $temp = $('<textarea style="opacity:0;"></textarea>');
+        $("#mouseDataRow").children().each(function (){ //add each child of the row
+            $temp.text($temp.text() + $(this).text() + "\t")
+        });
+       
+        $temp.appendTo($('body')).focus().select(); //add temp to body and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
     }
 }
