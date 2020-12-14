@@ -12,8 +12,18 @@ my_widget_script =
         // returned from a call to to_json or empty if this is a new form.
         //By default it calls the parent_class's init.
 
-        //TO DO write code specific to your form
-        debugger;
+
+        /* -----------------------------------------------------------------------------
+        ** USE DEBUGGER TO INSPECT AND VIEW CODE
+        ** -----------------------------------------------------------------------------
+        */
+
+        //debugger;
+
+        /* -----------------------------------------------------------------------------
+        ** CREATE jsonString AND parsedJSON VARIABLEs FROM json_data
+        ** -----------------------------------------------------------------------------
+        */
         var jsonString;
         //check if string or function because preview test is function and page is string
         if (typeof json_data === "string") {
@@ -24,23 +34,141 @@ my_widget_script =
         //Take input string into js object to be able to use elsewhere
         var parsedJson = JSON.parse(jsonString);
 
-        //console.log("init", json_data);
+        //Uncomment to print parsedJson to consol
+        //console.log("init", parsedJson);
 
-        //adds rows back to the page when initializing
-        for (var i = 0; i < parsedJson.rowCount; i++) {
-            this.addRow('dataTable');
+        /* -----------------------------------------------------------------------------
+        ** CHECK parsedJson FOR INFORMATION NOT CONTAINED IN FORM INPUTS
+        **
+        ** Content that is created dynamically and therefore not contained wtihin the 
+        ** HTML script cannot be passed by the default json_data behavior of LA widgets.
+        ** This additional information has to be passed within to_json
+            ** This could include something such as row number or the existance of a div
+        ** That information that then has to be used here to re-initialize the
+        ** appropriate page contents. Use parsedJson.[objectName] to get this data
+        ** -----------------------------------------------------------------------------
+        */
+
+        ///adds rows back to exampleTable when initializing
+        for (var i = 0; i < parsedJson.addedRows; i++) {
+            var tableName = $("#dataTable");
+            my_widget_script.createRow(tableName);
         }
+
+        /* -----------------------------------------------------------------------------
+        ** ADJUST FORM DESIGN AND BUTTONS BASED ON MODE
+        
+        ** If you do not want a button to be available when not editing disable it here
+        ** If you do not want certain elements to be available when not editing,
+        ** hide them here
+        ** -----------------------------------------------------------------------------
+        */
 
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
-            var addButton = document.getElementById("addRow");
-            addButton.disabled = true;
-            var deleteButton = document.getElementById("deleteRow");
-            deleteButton.disabled = true;
-        }
+              $("#calculate").prop('disabled', true);
+              $("#addRow").prop('disabled', true);
+              $("#removeRow").prop('disabled', true);
+        };
 
-        //use the expected lab archive data (just the stringified widgetData)
+        /* -----------------------------------------------------------------------------
+        ** RESIZE THE CONTENT BOX WHEN THE WINDOW SIZE CHANGES
+        ** -----------------------------------------------------------------------------
+        */
+
+        window.onresize = my_widget_script.resize;
+
+        /* -----------------------------------------------------------------------------
+        ** DEFINE BEHAVIOR WHEN BUTTONS ARE CLICKED OR CHECKBOXES/SELECTIONS CHANGE
+        ** -----------------------------------------------------------------------------
+        */
+
+        // //Show/hide the table
+        // $("#toggleTable").click(function () { //when the showTable button is clicked. Run this function
+        //     //alert("button pressed");
+        //     my_widget_script.resize();
+        //     my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+        //     my_widget_script.calcValues();
+        //     $("#tableDiv").toggle();
+        //     my_widget_script.parent_class.resize_container();
+        // });
+
+        // //when the calculate button is clicked, run the calcValues function
+        // $('#calculate').click(function () {
+        //     my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+        //     my_widget_script.calcValues();
+
+        // });
+
+        //when the toCSV button is clicked, run the exportTableToCSV function
+        $('#toCSV').click(function () {
+            var data_valid = my_widget_script.data_valid_form();
+            //alert(data_valid);
+            if (data_valid) {
+                my_widget_script.calcValues();
+                my_widget_script.exportTableToCSV('templateData', 'outTable');
+            }
+        });
+
+        //When the copy button is clicked, run the copyTable function
+        $("#copyDataButton").click(function () {
+            var data_valid = my_widget_script.data_valid_form();
+            //alert(data_valid);
+            if (data_valid) {
+                //alert("I'm clicked");
+                my_widget_script.calcValues();
+                my_widget_script.copyTable();
+            } else {
+                alert("Nothing was copied");
+            };
+        });
+
+        $("#addRow").click(function () {
+            var tableName = $("#dataTable");
+            my_widget_script.createRow(tableName);
+        });
+
+        $("#removeRow").click(function () {
+            var tableName = ("#dataTable");
+            my_widget_script.deleteRow(tableName);
+        });
+
+        /* -----------------------------------------------------------------------------
+        ** INITIALIZE THE FORM WITH THE STORED WIDGET DATA
+        ** -----------------------------------------------------------------------------
+        */
+
+        //use the expected LabArchives data (just the stringified widgetData)
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
+
+        /* -----------------------------------------------------------------------------
+        ** ADD RED ASTERISKS AFTER REQUIRED FIELDS
+        ** -----------------------------------------------------------------------------
+        */
+
+        // $('.needForTable').each(function () { //find element with class "needForForm"
+        //     //alert($(this).val());
+        //     $(this).after("<span style='color:blue'>#</span>"); //add # after
+        // });
+
+        //source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+        $('#the_form').find('select, textarea, input').each(function () { //find each select field, textarea, and input
+            if ($(this).prop('required')) { //if has the attribute "required"
+                $(this).after("<span style='color:red'>*</span>"); //add asterisk after
+            }
+        });
+
+        /* -----------------------------------------------------------------------------
+        ** ADD ADDITIONAL FUNCTIONS AND STEPS THAT SHOULD BE TAKEN TO INITIALIZE HTML
+
+        ** For example, ensure that shown/hiden elements are properly displayed
+        ** based on the contents of the form
+        ** -----------------------------------------------------------------------------
+        */
+
+        // //Run the calculate values function to fill with the loaded data
+        // this.calcValues();
+        
     },
 
     to_json: function () {
@@ -48,20 +176,46 @@ my_widget_script =
         //whatever is return from the method is persisted in LabArchives.  must not be binary data.
         //called when the user hits the save button, when adding or editing an entry
 
-        //looks at HTML and get input data. Gives a string
+        /* -----------------------------------------------------------------------------
+        ** ACQUIRE INPUT DATA FROM THE FORM
+        **
+        ** This uses LabArchives's to_json() function to get the form data as a string
+        ** -----------------------------------------------------------------------------
+        */
+        
         var widgetJsonString = this.parent_class.to_json();
 
-        //Get the rowCount when saving the output
-        //added rows have the "tableRow" classname
-        var rows = document.getElementsByClassName("tableRow");
+        /* -----------------------------------------------------------------------------
+        ** DEFINE ADDITIONAL VARIABLES OR PARAMETERS TO MONITOR DYNAMIC CONTENT
+        **
+        ** These should be simple variables, such as true/false, a number, or a state
+        ** This cannot be something complex like a full <div>
+        ** -----------------------------------------------------------------------------
+        */
 
-        // count the number of rows from the length of the array
-        var rowCount = rows.length;
+       var addedRows = $("#dataTable").find("tbody tr").length;
 
-        //add additional information to this output variable
-        //access within init function
-        var output = { widgetData: JSON.parse(widgetJsonString), rowCount: rowCount };
+        /* -----------------------------------------------------------------------------
+        ** ADD widgetJsonString AND ADDITIONAL VARIABLES TO OUTPUT
+        **
+        ** This information will be accessed within the init function
+        ** -----------------------------------------------------------------------------
+        */
 
+        //If you do not need to add additional dynamic content, use this line
+        //var output = { widgetData: JSON.parse(widgetJsonString) };
+
+        // Define additional output components
+        var output = { widgetData: JSON.parse(widgetJsonString), addedRows: addedRows };
+
+        //uncomment to check stringified output - note that complicated objects like divs cannot be passed this way
+        //console.log("to JSON", JSON.stringify(output));
+
+        /* -----------------------------------------------------------------------------
+        ** RETURN STRINGIFIED OUTPUT
+        ** -----------------------------------------------------------------------------
+        */
+        
         return JSON.stringify(output);
     },
 
@@ -79,8 +233,36 @@ my_widget_script =
     test_data: function () {
         //during development this method is called to populate your form while in preview mode
 
+        /* -----------------------------------------------------------------------------
+        ** ORIGINAL LABARCHIVES RETURN FOR TEST DATA
+        **
+        ** note that this will randomly select options for dropdown menus, 
+        ** radio buttons, and checkboxes
+        ** -----------------------------------------------------------------------------
+        */
+        
+        //return this.parent_class.test_data();
+
+        /* -----------------------------------------------------------------------------
+        ** DEFINE YOUR OWN TEST DATA
+        **
+        ** note that this will randomly select options for dropdown menus, 
+        ** radio buttons, and checkboxes if you still use parent_class.test_data()
+        **
+        ** Add additional test data infromation based on dynamic content
+        ** -----------------------------------------------------------------------------
+        */
+
+        //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
-        var output = { widgetData: testData, rowCount: 0 };
+        
+        //If no additional dynamic content 
+        var output = { widgetData: testData };
+
+        //The additional content should match the objects in to_json
+        //var output = { widgetData: testData, existsMyContent: isCheckedAddDiv};
+
+        //return the stringified output for use by the init function
         return JSON.stringify(output);
     },
 
@@ -93,7 +275,50 @@ my_widget_script =
         //Returning an empty array [] or NULL equals no error
         //TO DO write code specific to your form
 
-        return this.parent_class.is_valid(b_suppress_message);
+        /* -----------------------------------------------------------------------------
+        ** VALIDATE FORM ENTRY BEFORE SAVING
+        **
+        ** This function will now check that all fields with the required attribute
+        ** are not blank. If there are blank elements, it will return an alert that
+        ** provides a fail log with the ids of the elements that are missing
+        **
+        ** source: source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+        ** -----------------------------------------------------------------------------
+        */
+
+        var fail = false; //begin with a fail variable that is false
+        var fail_log = ''; //begin with an empty fail log
+        var name; //create a name variable
+
+        //search the_form for all elements that are of type select, textarea, or input
+        $('#the_form').find('select, textarea, input').each(function () { 
+            if (!$(this).prop('required')) { //if this element does not have a required attribute
+                //don't change anything (fail remains false)
+            } else { //if there is a required attribute
+                if (!$(this).val()) { //if there is not a value for this input
+                    fail = true; //change fail to true
+                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                    fail_log += name + " is required \n"; //add to the fail log that this name is required
+                }
+
+            }
+        });
+
+        if (fail) { //if fail is true (meaning a required element didn't have a value)
+            return alert(fail_log); //return the fail log as an alert
+        } else {
+            var noErrors = [];
+            return noErrors;
+        }; //otherwise, return empty array
+
+        /* -----------------------------------------------------------------------------
+        ** ORIGINAL LABARCHIVES is_valid FUNCTION
+        **
+        ** This checks for fields that have _mandatory appended to the name attribute
+        ** -----------------------------------------------------------------------------
+        */
+        
+        //return this.parent_class.is_valid(b_suppress_message);
     },
 
     is_edited: function () {
@@ -107,102 +332,280 @@ my_widget_script =
         return this.parent_class.reset_edited();
     },
 
-    //addRow and deleteRow inspired from here: 
-    //https://www.viralpatel.net/dynamically-add-remove-rows-in-html-table-using-javascript/#:~:text=For%20adding%20dynamic%20row%20in,created%20cells%20by%20using%20row
-    addRow: function (tableID) {
+    // data_valid_form: function () {
+    //     /* -----------------------------------------------------------------------------
+    //     ** VALIDATE FORM ENTRY BEFORE SAVING OR COPYING TABLE
+    //     **
+    //     ** This function will check that elements with a class "needForTable"
+    //     ** are not blank. If there are blank elements, it will return false
+    //     ** and will post an error message "Please fill out all elements marked by a blue #"
+    //     **
+    //     ** source: source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+    //     ** -----------------------------------------------------------------------------
+    //     */
 
-        var table = document.getElementById(tableID);
+    //     var valid = true; //begin with a valid value of true
+    //     //var fail_log = ''; //begin with an empty fail log
+    //     //var name; //create a name variable
 
-        var rowCount = table.rows.length;
-        console.log("adding row " + rowCount)
-        var row = table.insertRow(rowCount);
-        row.id = rowCount;
-        row.className = "tableRow"
+    //     //search the_form for all elements that are of class "needForForm"
+    //     $('.needForTable').each(function () {
+    //         if (!$(this).val()) { //if there is not a value for this input
+    //             valid = false; //change valid to false
+    //             //name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+    //             //fail_log += name + " is required \n"; //add to the fail log that this name is required
+    //         }
+    //     });
 
-        var cell1 = row.insertCell(0);
-        var element1 = document.createElement("input");
-        element1.type = "checkbox";
-        element1.name = "select_" + rowCount;
-        cell1.appendChild(element1);
+    //     if (!valid) {
+    //         $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+    //     } else {
+    //         $("#errorMsg").html("");
+    //     };
 
-        var cell2 = row.insertCell(1);
-        var element2 = document.createElement("input");
-        element2.type = "number";
-        element2.name = "series_" + rowCount;
-        element2.id = "series_" + rowCount;
-        element2.min = "1";
-        element2.style = "width: 7ex"
-        var previousSeries = document.getElementById("series_" + (rowCount - 1));
-        if (previousSeries) {
-            element2.value = 1 + parseInt(previousSeries.value);
-        } else { element2.value = rowCount };
-        cell2.appendChild(element2);
+    //     return valid;
+    // },
 
-        var cell3 = row.insertCell(2);
-        var element3 = document.createElement("input");
-        element3.type = "number";
-        element3.name = "resistance_" + rowCount;
-        element3.step = "0.01";
-        element3.min = "0";
-        cell3.appendChild(element3);
+    resize: function () {
+        /* -----------------------------------------------------------------------------
+        ** resize function
+        **
+        ** This function can be used to ensure that if a table or other large content
+        ** exists on the page or gets created, that it doesn't try to resize the 
+        ** entry and push it off of the viewable page within the notebook.
+        ** 
+        ** This function also resizes the container using the LA parent_class script.
+        ** my_widget_script.parent_class.resize_container(); should be called each time
+        ** content is created, modified, or deleted within a function.
+        ** -----------------------------------------------------------------------------
+        */
+        
+        //gets the inner width of the window.
+        var width = window.innerWidth;
 
-        var cell4 = row.insertCell(3);
-        var element4 = document.createElement("input");
-        element4.type = "time";
-        element4.name = "time_" + rowCount;
-        cell4.appendChild(element4);
+        //TO DO resize any specific divs (such as those with a large table) based on the innerWidth
+        $(".tableDiv").width(width * .95); //make width of table div 95% of current width
 
-        var cell5 = row.insertCell(4);
-        var element5 = document.createElement("textarea");
-        //element5.type = "text";
-        element5.name = "notes_" + rowCount;
-        cell5.appendChild(element5);
-
-        var cell6 = row.insertCell(5);
-        var element6 = document.createElement("input");
-        element6.type = "radio";
-        element6.name = "condition_" + rowCount;
-        element6.value = "stabil";
-        cell6.appendChild(element6);
-
-        var cell7 = row.insertCell(6);
-        var element7 = document.createElement("input");
-        element7.type = "radio";
-        element7.name = "condition_" + rowCount;
-        element7.value = "spont";
-        cell7.appendChild(element7);
-
-        var cell8 = row.insertCell(7);
-        var element8 = document.createElement("input");
-        element8.type = "radio";
-        element8.name = "condition_" + rowCount;
-        element8.value = "addition";
-        cell8.appendChild(element8);
-
-        //resize the container as new rows are added
+        //resize the container
         my_widget_script.parent_class.resize_container();
-
     },
-    deleteRow: function (tableID) {
-        try {
-            var table = document.getElementById(tableID);
-            var rowCount = table.rows.length;
 
-            for (var i = 0; i < rowCount; i++) {
-                var row = table.rows[i];
-                var select = row.cells[0].childNodes[0];
-                if (null != select && true == select.checked) {
-                    table.deleteRow(i);
-                    rowCount--;
-                    i--;
-                }
+    // calcValues: function () {
+    //     /* -----------------------------------------------------------------------------
+    //     ** calcValues function
+    //     **
+    //     ** This function takes the form contents and adds them to the output table.
+    //     ** For elements that are blank or NaN, the function provides an output of NA
+    //     **
+    //     ** The function does not currently require validation in order to provide a
+    //     ** calculation, but this could be easily modified.
+    //     **
+    //     ** my_widget_script.parent_class.resize_container(); is called at the end
+    //     ** -----------------------------------------------------------------------------
+    //     */
 
+    //     //Add check for validity
 
-            }
-        } catch (e) {
-            alert(e);
+    //     //Column A
+    //     var ColumnA = $("#ColumnA").val();
+    //     $("#ColumnA_calc").text(ColumnA);
+
+    //     //ColumnB
+    //     var ColumnB = $("#ColumnB").val();
+    //     $("#ColumnB_calc").text(ColumnB);
+
+    //     $("#outTable tr").each(function () { //for each row
+    //         $("td", this).each(function () { //for each cell
+    //             var value = $(this).text(); //get the value of the text
+    //             if ( value === "" || value === "NaN" ) { //if blank or NaN
+    //                 $( this ).text("NA"); //make NA
+    //             }
+    //         })
+    //     });
+
+    //     //resize the container
+    //     my_widget_script.parent_class.resize_container();
+
+    // },
+
+    downloadCSV: function (csv, filename) {
+        /* -----------------------------------------------------------------------------
+        ** downloadCSV function
+        **
+        ** This function takes a csv element and filename that are passed from the 
+        ** exportTableToCSV function.
+        **
+        ** This creates a csvFile and builds a download link that references this file
+        ** The download link is "clicked" by the function to prompt the browser to 
+        ** download this file
+        **
+        ** source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+        ** -----------------------------------------------------------------------------
+        */
+        var csvFile;
+        var downloadLink;
+
+        // CSV file
+        csvFile = new Blob([csv], { type: "text/csv" });
+
+        // Download link
+        downloadLink = document.createElement("a");
+
+        // File name
+        downloadLink.download = filename;
+
+        // Create a link to the file
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+
+        // Hide download link
+        downloadLink.style.display = "none";
+
+        // Add the link to DOM
+        document.body.appendChild(downloadLink);
+
+        // Click download link
+        downloadLink.click();
+    },
+
+    exportTableToCSV: function (filename, table) {
+        /* -----------------------------------------------------------------------------
+        ** exportTableToCSV function
+        **
+        ** This function takes a filename and table name (both strings) as input
+        ** It then creates a csv element from the table
+        ** This csv element is passed to the downloadCSV function along with the filename
+        ** 
+        ** source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+        ** -----------------------------------------------------------------------------
+        */
+
+        var csv = [];
+        var datatable = document.getElementById(table);
+        var rows = datatable.querySelectorAll("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
+
+            for (var j = 0; j < cols.length; j++)
+                row.push(cols[j].innerText);
+
+            csv.push(row.join(","));
         }
-        //resize the container as rows are deleted
-        my_widget_script.parent_class.resize_container();
+
+        // Download CSV file
+        this.downloadCSV(csv.join("\n"), filename);
+    },
+
+    copyTable: function () {
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        $("#dataTable").children("tr").each(function () { //add each child of the row
+            $(this).children().each(function () {
+                $temp.text($temp.text() + $(this).text() + "\t")
+            });
+            $temp.text($temp.text() + $(this).text() + "\n")
+        });
+
+        $temp.appendTo($('body')).focus().select(); //add temp to body and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
+    },
+
+    //Use these to create template row addition examples
+    createRow: function (tableName) {
+        var rowCount = $(tableName).find("tbody tr").length + 1;
+        var rowID = "Row_" + rowCount;
+
+        var col1ID = "series_" + rowCount;
+        var col2ID = "resistance_" + rowCount;
+        var col3ID = "seriestime_" + rowCount;
+        var col4ID = "seriestype_" + rowCount;
+        var col5ID = "notes_" + rowCount;
+
+        $(tableName).find("tbody").append(
+            $('<tr/>', { //add a new row
+                id: rowID //give this row the rowID
+            }).append(
+                $('<td/>').append( //append a new td to the row
+                    $('<input/>', { //append a new input to the td
+                        id: col1ID,
+                        name: col1ID,
+                        type: "number", //make it type "number"
+                        min: "1",
+                        step: "1",
+                    }).css("width", "7ex")
+                )
+            ).append(
+                $('<td/>').append(
+                    $('<input/>', {
+                        id: col2ID,
+                        name: col2ID,
+                        type: "number",
+                        min: "0",
+                        step: "0.01"
+                    })
+                )
+            ).append(
+                $('<td/>').append(
+                    $('<input/>', {
+                        id: col3ID,
+                        name: col3ID,
+                        type: "time"
+                    })
+                )
+            ).append(
+                $('<td/>').append( //append a new td to the row
+                    $('<select/>', { //append a new select to the td
+                        id: col4ID,
+                        name: col4ID
+                    }).append( //append options to the select tag
+                        "<option value=''>[Select]</option>",
+                        "<option value='stabil'>Stabilization</option>",
+                        "<option value='spont'>Spontaneous</option>",
+                        "<option value='add'>Addition</option>"
+                    )
+                )
+            ).append(
+                $('<td/>').append( //append a new td to the row
+                    //append a new text area to the script. this string has to be split to make LA happy
+                    //the widget script entry is within a text area, and if it finds another here, it 
+                    //thinks that it has reached the end of the script
+                    $('<text' + 'area></text' + 'area>', {
+                        id: col5ID,
+                        name: col5ID
+                    })
+                )
+            )
+        );
+
+        var previousSeries = $("#series_" + (rowCount - 1)).val();
+        if (previousSeries) {
+            $("#series_" + rowCount).val(previousSeries);
+        }else {
+            $("#series_" + rowCount).val(rowCount);
+        };
+
+        //resize the container
+        my_widget_script.resize();
+    },
+
+    deleteRow: function (tableName) {
+        var lastRow = $(tableName).find("tbody tr").last();
+        $(lastRow).remove();
+
+        //resize the container
+        my_widget_script.resize();
     }
+
+    /* -----------------------------------------------------------------------------
+    ** DEFINE ADDITIONAL FUNCTIONS HERE
+    **
+    ** Be sure that there is a comma after previous function
+    **
+    ** my_widget_script.parent_class.resize_container(); should be called each time
+    ** content is created, modified, or deleted within a function.
+    ** -----------------------------------------------------------------------------
+    */
+    
+
 }

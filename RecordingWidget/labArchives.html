@@ -1,54 +1,80 @@
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* Add this class to a div to all for flex wrapping */
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    /* Each div takes of 50% of width. Creates two columns within the container */
+    .container>div {
+        flex: 0 50%;
+        margin-bottom: 5px;
+    }
+
+    /* Add this class to a div around tables. The script will automatically change the width to match the window
+    Adds a scroll bar when the content is too big for the width */
+    .tableDiv {
+        width: 400px;
+        overflow-x: scroll;
+
+    }
+</style>
+
 <div>
     <h1>Recording Notes</h1>
 </div>
 
 <div>Mouse ID:</div>
 
-<div><input id="mouseid" name="mouseid" /></div>
+<div><input id="mouseid" name="mouseid" required/></div>
 
 <div>Cell ID:</div>
 
-<div><input id="cellid" name="cellid" /></div>
+<div><input id="cellid" name="cellid" required/></div>
 
 <div>Pipette Resistance (MΩ):</div>
 
-<div><input id="pipetteresinit" name="pipetteresinit" step="0.01" type="number" /></div>
+<div><input id="pipetteresinit" name="pipetteresinit" step="0.01" type="number" required/></div>
 
 <div>Rig:</div>
 
-<div><input id="rig" name="rig" /></div>
+<div><input id="rig" name="rig" required/></div>
 
 <div>Length of Series (min):</div>
 
-<div><input id="seriesLength" min="0" name="serieslength" type="number" /></div>
+<div><input id="seriesLength" min="0" name="serieslength" type="number" required/></div>
 
 <div>Recording by:</div>
 
-<div><input id="experimenter" name="experimenter" /></div>
+<div><input id="experimenter" name="experimenter" required/></div>
 
-<p>To add a new series, click &quot;Add Row&quot;.<br />
-    To delete a row, check &quot;select&quot; and then press &quot;Delete Row&quot;.<br />
+<p>To add a new series, click &quot;Add a Row&quot;.<br />
+    To delete a row, click&quot;Remove Last Row&quot;.<br />
     The series value will automatically populate with 1 + the previous series number. If it cannot find the previous
-    value, it will use the row number.<br />
-    You can only select one radio input for either a stabilization series, spontaneous series, or addition series</p>
+    value, it will use the row number.
+</p>
 
-<p><button id="addRow" onclick="form_script.addRow('dataTable')" type="button">Add Row</button><button id="deleteRow"
-        onclick="form_script.deleteRow('dataTable')" type="button">Delete Row</button></p>
+<p><input type="button" id="addRow" name="addrow" value="Add a Row" />
+    <input type="button" id="removeRow" name="removerow" value="Remove Last Row" />
+</p>
 
-<table border="1" id="dataTable" width="350px">
-    <tbody>
-        <tr>
-            <td>Select</td>
-            <td>Series</td>
-            <td>Resistance (MΩ)</td>
-            <td>Time</td>
-            <td>Notes</td>
-            <td>Stabilization</td>
-            <td>Spontaneous</td>
-            <td>Addition</td>
-        </tr>
-    </tbody>
-</table>
+<div class="tableDiv">
+    <table border="1" id="dataTable" width="350px">
+        <thead>
+            <tr>
+                <td>Series</td>
+                <td>Resistance (MΩ)</td>
+                <td>Time</td>
+                <td>Series type</td>
+                <td>Notes</td>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
 
 <p>&nbsp;</p>
 
@@ -64,6 +90,7 @@
 
 <div>
     <h4>Length of Spontaneous Recording:</h4>
+    <p>Note that calculation is based on full series length and does not yet check whether or not spontaneous series were consecutive</p>
 </div>
 
 <div><input id="spontLength" min="0" name="spontlength" type="number" /></div>
