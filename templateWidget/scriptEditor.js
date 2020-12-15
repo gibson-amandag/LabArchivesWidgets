@@ -282,18 +282,18 @@ my_widget_script =
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
       	
-      	//find out what the random check was
-      	var addDivCheckVal = testData[1].value; //the second value in the array is the addDivCheck info
-      	var isCheckedAddDiv = false; //start with this isChecked variable as false
-      	if( addDivCheckVal !== "") { //if addDivCheckVal is not empty ("")
-        	isCheckedAddDiv = true; //change isCheckedAddDiv to true
-      	};
+      	// //find out what the random check was
+      	// var addDivCheckVal = testData[1].value; //the second value in the array is the addDivCheck info
+      	// var isCheckedAddDiv = false; //start with this isChecked variable as false
+      	// if( addDivCheckVal !== "") { //if addDivCheckVal is not empty ("")
+        // 	isCheckedAddDiv = true; //change isCheckedAddDiv to true
+      	// };
         
         //If no additional dynamic content 
-        //var output = { widgetData: testData };
+        var output = { widgetData: testData };
 
         //The additional content should match the objects in to_json
-        var output = { widgetData: testData, existsMyContent: isCheckedAddDiv};
+        //var output = { widgetData: testData, existsMyContent: isCheckedAddDiv};
 
         //return the stringified output for use by the init function
         return JSON.stringify(output);
@@ -536,8 +536,11 @@ my_widget_script =
     copyTableRow: function () {
         //create a temporary text area
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        
+        var addTab = "";
         $("#exampleDataRow").children().each(function () { //add each child of the row
-            $temp.text($temp.text() + $(this).text() + "\t")
+            $temp.text($temp.text() + addTab + $(this).text());
+            addTab = "\t";
         });
 
         $temp.appendTo($('body')).focus().select(); //add temp to body and select

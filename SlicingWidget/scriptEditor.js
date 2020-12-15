@@ -675,8 +675,10 @@ my_widget_script =
     copyTableRow: function () {
         //create a temporary text area
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addTab = "";
         $("#mouseDataRow").children().each(function () { //add each child of the row
-            $temp.text($temp.text() + $(this).text() + "\t")
+            $temp.text($temp.text() + addTab + $(this).text());
+            addTab = "\t"
         });
 
         $temp.appendTo($('body')).focus().select(); //add temp to body and select
