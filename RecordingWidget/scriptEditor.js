@@ -66,9 +66,10 @@ my_widget_script =
 
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
-              $("#calculate").prop('disabled', true);
-              $("#addRow").prop('disabled', true);
-              $("#removeRow").prop('disabled', true);
+            $("#calculate").prop('disabled', true);
+            $("#addRow").prop('disabled', true);
+            $("#removeRow").prop('disabled', true);
+            $("#addEvent").prop('disabled', true);
         };
 
         /* -----------------------------------------------------------------------------
@@ -116,7 +117,7 @@ my_widget_script =
             //alert(data_valid);
             if (data_valid) {
                 //alert("I'm clicked");
-                my_widget_script.calcValues();
+                //my_widget_script.calcValues();
                 my_widget_script.copyTable();
             } else {
                 alert("Nothing was copied");
@@ -131,6 +132,27 @@ my_widget_script =
         $("#removeRow").click(function () {
             var tableName = ("#dataTable");
             my_widget_script.deleteRow(tableName);
+        });
+
+        $("#calcSpontLength").click(function () {
+            my_widget_script.calcSpontLength();
+        });
+
+        $("#addEvent").click(function () {
+            if (!$("#eventLog").val() == "") {
+                addLine = "\n";
+            } else {
+                addLine = ""
+            }
+            var textToAdd = (
+                addLine +
+                new Date() +
+                " during Series # " +
+                $("#whichSeries").val() + ": " +
+                $("#eventName").val() +
+                "\n ---------"
+            );
+            $("#eventLog").val($("#eventLog").val() + textToAdd);
         });
 
         /* -----------------------------------------------------------------------------
@@ -168,7 +190,7 @@ my_widget_script =
 
         // //Run the calculate values function to fill with the loaded data
         // this.calcValues();
-        
+
     },
 
     to_json: function () {
@@ -182,7 +204,7 @@ my_widget_script =
         ** This uses LabArchives's to_json() function to get the form data as a string
         ** -----------------------------------------------------------------------------
         */
-        
+
         var widgetJsonString = this.parent_class.to_json();
 
         /* -----------------------------------------------------------------------------
@@ -193,7 +215,7 @@ my_widget_script =
         ** -----------------------------------------------------------------------------
         */
 
-       var addedRows = $("#dataTable").find("tbody tr").length;
+        var addedRows = $("#dataTable").find("tbody tr").length;
 
         /* -----------------------------------------------------------------------------
         ** ADD widgetJsonString AND ADDITIONAL VARIABLES TO OUTPUT
@@ -215,7 +237,7 @@ my_widget_script =
         ** RETURN STRINGIFIED OUTPUT
         ** -----------------------------------------------------------------------------
         */
-        
+
         return JSON.stringify(output);
     },
 
@@ -240,7 +262,7 @@ my_widget_script =
         ** radio buttons, and checkboxes
         ** -----------------------------------------------------------------------------
         */
-        
+
         //return this.parent_class.test_data();
 
         /* -----------------------------------------------------------------------------
@@ -255,7 +277,7 @@ my_widget_script =
 
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
-        
+
         //If no additional dynamic content 
         var output = { widgetData: testData };
 
@@ -291,7 +313,7 @@ my_widget_script =
         var name; //create a name variable
 
         //search the_form for all elements that are of type select, textarea, or input
-        $('#the_form').find('select, textarea, input').each(function () { 
+        $('#the_form').find('select, textarea, input').each(function () {
             if (!$(this).prop('required')) { //if this element does not have a required attribute
                 //don't change anything (fail remains false)
             } else { //if there is a required attribute
@@ -317,7 +339,7 @@ my_widget_script =
         ** This checks for fields that have _mandatory appended to the name attribute
         ** -----------------------------------------------------------------------------
         */
-        
+
         //return this.parent_class.is_valid(b_suppress_message);
     },
 
@@ -332,39 +354,39 @@ my_widget_script =
         return this.parent_class.reset_edited();
     },
 
-    // data_valid_form: function () {
-    //     /* -----------------------------------------------------------------------------
-    //     ** VALIDATE FORM ENTRY BEFORE SAVING OR COPYING TABLE
-    //     **
-    //     ** This function will check that elements with a class "needForTable"
-    //     ** are not blank. If there are blank elements, it will return false
-    //     ** and will post an error message "Please fill out all elements marked by a blue #"
-    //     **
-    //     ** source: source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
-    //     ** -----------------------------------------------------------------------------
-    //     */
+    data_valid_form: function () {
+        /* -----------------------------------------------------------------------------
+        ** VALIDATE FORM ENTRY BEFORE SAVING OR COPYING TABLE
+        **
+        ** This function will check that elements with a class "needForTable"
+        ** are not blank. If there are blank elements, it will return false
+        ** and will post an error message "Please fill out all elements marked by a blue #"
+        **
+        ** source: source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+        ** -----------------------------------------------------------------------------
+        */
 
-    //     var valid = true; //begin with a valid value of true
-    //     //var fail_log = ''; //begin with an empty fail log
-    //     //var name; //create a name variable
+        var valid = true; //begin with a valid value of true
+        //var fail_log = ''; //begin with an empty fail log
+        //var name; //create a name variable
 
-    //     //search the_form for all elements that are of class "needForForm"
-    //     $('.needForTable').each(function () {
-    //         if (!$(this).val()) { //if there is not a value for this input
-    //             valid = false; //change valid to false
-    //             //name = $(this).attr('id'); //replace the name variable with the name attribute of this element
-    //             //fail_log += name + " is required \n"; //add to the fail log that this name is required
-    //         }
-    //     });
+        //search the_form for all elements that are of class "needForForm"
+        $('.needForTable').each(function () {
+            if (!$(this).val()) { //if there is not a value for this input
+                valid = false; //change valid to false
+                //name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                //fail_log += name + " is required \n"; //add to the fail log that this name is required
+            }
+        });
 
-    //     if (!valid) {
-    //         $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
-    //     } else {
-    //         $("#errorMsg").html("");
-    //     };
+        if (!valid) {
+            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+        } else {
+            $("#errorMsg").html("");
+        };
 
-    //     return valid;
-    // },
+        return valid;
+    },
 
     resize: function () {
         /* -----------------------------------------------------------------------------
@@ -379,7 +401,7 @@ my_widget_script =
         ** content is created, modified, or deleted within a function.
         ** -----------------------------------------------------------------------------
         */
-        
+
         //gets the inner width of the window.
         var width = window.innerWidth;
 
@@ -499,14 +521,37 @@ my_widget_script =
     copyTable: function () {
         //create a temporary text area
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-        $("#dataTable").children("tr").each(function () { //add each child of the row
-            $(this).children().each(function () {
-                $temp.text($temp.text() + $(this).text() + "\t")
+
+        // $("#dataTable thead").children("tr").each(function () { //add each child of the row
+        //     //alert($(this).text());
+        //     var addTab = "";
+        //     $(this).children().each(function () {
+        //         $temp.text($temp.text() + addTab + $(this).text());
+        //         addTab = "\t";
+        //     });
+        // });
+
+         //Completing this manually to avoid "#" in heading
+        $temp.text("Series\tResistance (MΩ)\tTime\tSeries type\tNotes");
+
+        $("#dataTable tbody").children("tr").each(function () { //add each child of the row
+            $temp.text($temp.text() + "\n");
+            var addTab = "";
+            $(this).find("td").children().each(function () {
+                //alert($(this).val())
+                if ($(this).val()) {
+                    var addText = $(this).val();
+                } else {
+                    var addText = "NA"
+                }
+                $temp.text($temp.text() + addTab + addText);
+                addTab = "\t";
+                //alert($temp.text());
             });
-            $temp.text($temp.text() + $(this).text() + "\n")
         });
 
-        $temp.appendTo($('body')).focus().select(); //add temp to body and select
+        //alert($temp.text());
+        $temp.appendTo($('#forCopy')).focus().select(); //add temp to body and select
         document.execCommand("copy"); //copy the "selected" text
         $temp.remove(); //remove temp
     },
@@ -533,6 +578,7 @@ my_widget_script =
                         type: "number", //make it type "number"
                         min: "1",
                         step: "1",
+                        "class": "needForTable"
                     }).css("width", "7ex")
                 )
             ).append(
@@ -542,7 +588,8 @@ my_widget_script =
                         name: col2ID,
                         type: "number",
                         min: "0",
-                        step: "0.01"
+                        step: "0.01",
+                        "class": "needForTable"
                     })
                 )
             ).append(
@@ -550,19 +597,21 @@ my_widget_script =
                     $('<input/>', {
                         id: col3ID,
                         name: col3ID,
-                        type: "time"
+                        type: "time",
+                        "class": "needForTable"
                     })
                 )
             ).append(
                 $('<td/>').append( //append a new td to the row
                     $('<select/>', { //append a new select to the td
                         id: col4ID,
-                        name: col4ID
+                        name: col4ID,
+                        "class": "needForTable"
                     }).append( //append options to the select tag
                         "<option value=''>[Select]</option>",
-                        "<option value='stabil'>Stabilization</option>",
-                        "<option value='spont'>Spontaneous</option>",
-                        "<option value='add'>Addition</option>"
+                        "<option value='Stabilization'>Stabilization</option>",
+                        "<option value='Spontaneous'>Spontaneous</option>",
+                        "<option value='Addition'>Addition</option>"
                     )
                 )
             ).append(
@@ -580,10 +629,12 @@ my_widget_script =
 
         var previousSeries = $("#series_" + (rowCount - 1)).val();
         if (previousSeries) {
-            $("#series_" + rowCount).val(previousSeries);
-        }else {
+            $("#series_" + rowCount).val(parseInt(previousSeries) + 1);
+        } else {
             $("#series_" + rowCount).val(rowCount);
         };
+
+        $("#whichSeries").val($("#series_" + rowCount).val());
 
         //resize the container
         my_widget_script.resize();
@@ -595,6 +646,18 @@ my_widget_script =
 
         //resize the container
         my_widget_script.resize();
+    },
+
+    calcSpontLength: function () {
+        var spontSeriesNum = 0;
+        $("#dataTable tbody").find("select").each(function () {
+            if ($(this).val() === "Spontaneous") {
+                spontSeriesNum++;
+            }
+        })
+        var seriesLength = parseInt($("#seriesLength").val());
+        //alert("# spont series: " + spontSeriesNum + "; series length: " + seriesLength);
+        $("#spontLength").val(spontSeriesNum * seriesLength);
     }
 
     /* -----------------------------------------------------------------------------
@@ -606,6 +669,6 @@ my_widget_script =
     ** content is created, modified, or deleted within a function.
     ** -----------------------------------------------------------------------------
     */
-    
+
 
 }

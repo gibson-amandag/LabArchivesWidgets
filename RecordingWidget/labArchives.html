@@ -5,11 +5,16 @@
     .container {
         display: flex;
         flex-wrap: wrap;
+        column-gap: 2%;
     }
 
     /* Each div takes of 50% of width. Creates two columns within the container */
     .container>div {
-        flex: 0 50%;
+        flex: 0 29%;
+        margin-bottom: 5px;
+    }
+
+    .container>div>div {
         margin-bottom: 5px;
     }
 
@@ -21,53 +26,62 @@
 
     }
 </style>
-
 <div>
-    <h1>Recording Notes</h1>
+    <h2>Recording Notes</h2>
 </div>
 
-<div>Mouse ID:</div>
+<div class="container">
+    <div>
+        <div>Mouse ID:</div>
 
-<div><input id="mouseid" name="mouseid" required/></div>
+        <div><input id="mouseid" name="mouseid" required="" /></div>
 
-<div>Cell ID:</div>
+        <div>Pipette Resistance (MΩ):</div>
 
-<div><input id="cellid" name="cellid" required/></div>
+        <div><input id="pipetteresinit" name="pipetteresinit" required="" step="0.01" type="number" /></div>
+    </div>
 
-<div>Pipette Resistance (MΩ):</div>
+    <div>
+        <div>Cell ID:</div>
 
-<div><input id="pipetteresinit" name="pipetteresinit" step="0.01" type="number" required/></div>
+        <div><input id="cellid" name="cellid" required="" /></div>
 
-<div>Rig:</div>
+        <div>Length of Series (min):</div>
 
-<div><input id="rig" name="rig" required/></div>
+        <div><input id="seriesLength" min="0" name="serieslength" required="" type="number" /></div>
+    </div>
 
-<div>Length of Series (min):</div>
+    <div>
+        <div>Recording by:</div>
 
-<div><input id="seriesLength" min="0" name="serieslength" type="number" required/></div>
+        <div><input id="experimenter" name="experimenter" required="" /></div>
 
-<div>Recording by:</div>
+        <div>Rig:</div>
+        <!-- make this a dropdown -->
 
-<div><input id="experimenter" name="experimenter" required/></div>
+        <div><input id="rig" name="rig" required="" /></div>
+    </div>
+</div>
 
-<p>To add a new series, click &quot;Add a Row&quot;.<br />
-    To delete a row, click&quot;Remove Last Row&quot;.<br />
+<p>To add a new series, click <span style="background-color: lightgray;">Add a Row</span>. To delete a row, click <span
+        style="background-color: lightgray;">Remove Last Row</span>.<br />
     The series value will automatically populate with 1 + the previous series number. If it cannot find the previous
-    value, it will use the row number.
-</p>
+    value, it will use the row number.</p>
 
-<p><input type="button" id="addRow" name="addrow" value="Add a Row" />
-    <input type="button" id="removeRow" name="removerow" value="Remove Last Row" />
-</p>
+<p><input id="addRow" name="addrow" type="button" value="Add a Row" /> <input id="removeRow" name="removerow"
+        type="button" value="Remove Last Row" /> <input id="copyDataButton" name="copydatabutton" type="button"
+        value="Copy Data" /></p>
+
+<div id="errorMsg">&nbsp;</div>
 
 <div class="tableDiv">
     <table border="1" id="dataTable" width="350px">
         <thead>
             <tr>
-                <td>Series</td>
-                <td>Resistance (MΩ)</td>
-                <td>Time</td>
-                <td>Series type</td>
+                <td>Series<span style="color:blue">#</span></td>
+                <td>Resistance (MΩ)<span style="color:blue">#</span></td>
+                <td>Time<span style="color:blue">#</span></td>
+                <td>Series type<span style="color:blue">#</span></td>
                 <td>Notes</td>
             </tr>
         </thead>
@@ -76,67 +90,79 @@
     </table>
 </div>
 
+<div id="forCopy" style="display: none;">&nbsp;</div>
+
 <p>&nbsp;</p>
 
-<h3>Other comments:</h3>
+<div>
+    <h4>Event Log:</h4>
+    Pressing the <span style="background-color: lightgray;">Add Event to Log</span> button will create a new entry in
+    the log with the format<br />
+    <em>{System Time} during Series # [current series]: [event info]</em><br />
+    You can edit the text in the log manually, too<br />
+    <input id="addEvent" name="addevent" type="button" value="Add Event to Log" /><br />
+    <label for="eventName">Event: </label><textarea cols="20" id="eventName" name="eventname" rows="1"></textarea>
+    <label for="whichSeries"> Current series?</label> <input id="whichSeries" min="1" name="whichseries" step="1"
+        style="width: 6ex;" type="number" /><br />
+    <textarea cols="50" id="eventLog" name="eventlog" rows="10"></textarea>
+</div>
 
-<p><textarea cols="50" name="recordingcomments" rows="10"></textarea></p>
+<p>&nbsp;</p>
+
+<h3>Patchmaster Notebook:</h3>
+
+<p>You can paste the contents of the Patchmaster Notebook here if you desire</p>
+
+<p><textarea cols="50" name="recordingcomments" rows="5"></textarea></p>
 
 <p>&nbsp;</p>
 
 <h3>Recording Summary:</h3>
 
-<p>&nbsp;</p>
-
 <div>
     <h4>Length of Spontaneous Recording:</h4>
-    <p>Note that calculation is based on full series length and does not yet check whether or not spontaneous series were consecutive</p>
+    <input id="calcSpontLength" name="calcspontlength" type="button" value="Calculate" /> (<var>Series Length</var>) *
+    (<var># of Spontaneous Series</var>)<br />
+    Note that this does not check if the spontaneous series marked were consecutive
 </div>
 
 <div><input id="spontLength" min="0" name="spontlength" type="number" /></div>
 
 <p>&nbsp;</p>
 
-<div>
-    <h4>Spontaneous Activity?</h4>
+<div class="container">
+    <div>
+        <div>
+            <h4>Spontaneous Activity?</h4>
+        </div>
+
+        <div><label for="spontfiring">Check if events</label> <input id="spontfiring" name="spontfiring"
+                type="checkbox" /><br />
+            <textarea name="firingdesc">Describe firing</textarea>
+        </div>
+    </div>
+
+    <div>
+        <div>
+            <h4>Noise during recording</h4>
+        </div>
+
+        <div><label for="noise">Check if noise</label> <input id="noise" name="noise" type="checkbox" /><br />
+            <textarea name="noisedesc">Describe noise</textarea>
+        </div>
+    </div>
+
+    <div>
+        <div>
+            <h4>Movement during recording</h4>
+        </div>
+
+        <div><label for="movement">Check if movement</label> <input id="movement" name="movement"
+                type="checkbox" /><br />
+            <textarea name="movedesc">Describe movement</textarea>
+        </div>
+    </div>
 </div>
-
-<div><label for="spontfiring">Check if events</label> <input id="spontfiring" name="spontfiring"
-        type="checkbox" /><br />
-    <textarea name="firingdesc">Describe firing</textarea></div>
-
-<p>&nbsp;</p>
-
-<div>
-    <h4>Noise during recording</h4>
-</div>
-
-<div><label for="noise">Check if noise</label> <input id="noise" name="noise" type="checkbox" /><br />
-    <textarea name="noisedesc">Describe noise</textarea></div>
-
-<p>&nbsp;</p>
-
-<div>
-    <h4>Movement during recording</h4>
-</div>
-
-<div><label for="movement">Check if movement</label> <input id="movement" name="movement" type="checkbox" /><br />
-    <textarea name="movedesc">Describe movement</textarea></div>
-
-<p>&nbsp;</p>
-
-<div>
-    <h4>Added compound to ACSF:</h4>
-</div>
-
-<div><label for="addedcompound">Check if added</label> <input id="addedcompound" name="addedcompound"
-        type="checkbox" /><br />
-    <label for="compoundname">Name:</label> <input id="compoundname" name="compoundname" /><br />
-    <label for="addseries">Added during series #:</label> <input id="addseries" min="0" name="addseries" step="1"
-        type="number" /><br />
-    <label for="whenaddseries">When during series?</label> <input id="whenaddseries" name="whenaddseries" /></div>
-
-<p>&nbsp;</p>
 
 <h3>Other comments:</h3>
 
