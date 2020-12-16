@@ -85,9 +85,9 @@ my_widget_script =
 
         //When spontaneous length changes
         $("#spontLength").change(function () {
-            if(parseInt($("#spontLength").val()) < 60){
+            if (parseInt($("#spontLength").val()) < 60) {
                 $("#lengthWarning").html("<span style='color:red; font-size:18px;'>Warning: Spontaneous length is less than 60 minutes</span>");
-            }else {
+            } else {
                 $("#lengthWarning").html("");
             };
             my_widget_script.resize();
@@ -95,29 +95,38 @@ my_widget_script =
 
         //When senktide length changes
         $("#senktideLength").change(function () {
-            if(parseInt($("#senktideLength").val()) !== 12){
+            if (parseInt($("#senktideLength").val()) !== 12) {
                 $("#senktideLengthWarning").html("<span style='color:red; font-size:18px;'>Warning: senktide length is not 12 minutes</span>");
-            }else {
+            } else {
                 $("#senktideLengthWarning").html("");
             };
             my_widget_script.resize();
         });
 
+        //if senktide added
+        $("#senktideAdded").change(function () {
+            if ($("#senktideAdded").is(":checked")) {
+                $(".ifSenktide").show();
+            } else {
+                $(".ifSenktide").hide();
+            };
+        });
+
         //if spontaneous firing analyzed
         $("#firingAnalysis").change(function () {
-            if($("#firingAnalysis").val() === "yes_noact" || $("#firingAnalysis").val() === "yes_act") {
+            if ($("#firingAnalysis").val() === "yes_noact" || $("#firingAnalysis").val() === "yes_act") {
                 $(".ifFiring").show();
             } else {
                 $(".ifFiring").hide();
             };
             my_widget_script.resize();
         });
-        
+
         //if burst firing analyzed
         $("#burstAnalysis").change(function () {
-            if($("#burstAnalysis").val() === "yes_noact" || $("#burstAnalysis").val() === "yes_act") {
+            if ($("#burstAnalysis").val() === "yes_noact" || $("#burstAnalysis").val() === "yes_act") {
                 $(".ifBursting").show();
-                if($("#regionTablesProbs").val() === "yes") {
+                if ($("#regionTablesProbs").val() === "yes") {
                     $(".ifProbs").show()
                 } else {
                     $(".ifProbs").hide();
@@ -131,7 +140,7 @@ my_widget_script =
 
         //if region table problems
         $("#regionTablesProbs").change(function () {
-            if($("#regionTablesProbs").val() === "yes") {
+            if ($("#regionTablesProbs").val() === "yes") {
                 $(".ifProbs").show();
             } else {
                 $(".ifProbs").hide();
@@ -141,7 +150,7 @@ my_widget_script =
 
         //if cluster analyzed
         $("#clusterAnalysis").change(function () {
-            if($("#clusterAnalysis").val() === "yes_noact" || $("#clusterAnalysis").val() === "yes_act") {
+            if ($("#clusterAnalysis").val() === "yes_noact" || $("#clusterAnalysis").val() === "yes_act") {
                 $(".ifCluster").show();
             } else {
                 $(".ifCluster").hide();
@@ -151,9 +160,9 @@ my_widget_script =
 
         $(".check_no").change(function () {
             //alert($(this).val());
-            if($(this).val() === "" || $(this).val() === "no"){
+            if ($(this).val() === "" || $(this).val() === "no") {
                 $(this).parent().css("color", "red");
-            }else {
+            } else {
                 $(this).parent().css("color", "black");
             };
         })
@@ -199,13 +208,13 @@ my_widget_script =
         });
 
         //When the "addDivCheck" checkbox is changed, run this function
-        $('#showCheck').change(function(){ //change rather than click so that it runs only when editable
-          	//alert("You clicked me!");
-            if( $(this).is(":checked") ){
-              	//alert("I'm checked");
+        $('#showCheck').change(function () { //change rather than click so that it runs only when editable
+            //alert("You clicked me!");
+            if ($(this).is(":checked")) {
+                //alert("I'm checked");
                 $("#myContentID").show();
             } else {
-              	//alert("I'm not checked")
+                //alert("I'm not checked")
                 $("#myContentID").hide();
             }
         });
@@ -257,33 +266,33 @@ my_widget_script =
 
         //Run the calculate values function to fill with the loaded data
         this.calcValues();
-        
+
         //Based on existing options
         //spont length
-        if(parseInt($("#spontLength").val()) < 60){
+        if (parseInt($("#spontLength").val()) < 60) {
             $("#lengthWarning").html("<span style='color:red; font-size:18px;'>Warning: Spontaneous length is less than 60 minutes</span>");
-        }else {
+        } else {
             $("#lengthWarning").html("");
         };
 
         //senktide lengths
-        if(parseInt($("#senktideLength").val()) !== 12){
+        if (parseInt($("#senktideLength").val()) !== 12) {
             $("#senktideLengthWarning").html("<span style='color:red; font-size:18px;'>Warning: senktide length is not 12 minutes</span>");
-        }else {
+        } else {
             $("#senktideLengthWarning").html("");
         };
 
         //spont analyzed
-        if($("#firingAnalysis").val() === "yes_noact" || $("#firingAnalysis").val() === "yes_act") {
+        if ($("#firingAnalysis").val() === "yes_noact" || $("#firingAnalysis").val() === "yes_act") {
             $(".ifFiring").show();
         } else {
             $(".ifFiring").hide();
         };
 
         //burst analyzed
-        if($("#burstAnalysis").val() === "yes_noact" || $("#burstAnalysis").val() === "yes_act") {
+        if ($("#burstAnalysis").val() === "yes_noact" || $("#burstAnalysis").val() === "yes_act") {
             $(".ifBursting").show();
-            if($("#regionTablesProbs").val() === "yes") {
+            if ($("#regionTablesProbs").val() === "yes") {
                 $(".ifProbs").show()
             } else {
                 $(".ifProbs").hide();
@@ -294,18 +303,25 @@ my_widget_script =
         };
 
         //cluster analyzed
-        if($("#clusterAnalysis").val() === "yes_noact" || $("#clusterAnalysis").val() === "yes_act") {
+        if ($("#clusterAnalysis").val() === "yes_noact" || $("#clusterAnalysis").val() === "yes_act") {
             $(".ifCluster").show();
         } else {
             $(".ifCluster").hide();
         };
 
+        //if senktide added
+        if ($("#senktideAdded").is(":checked")) {
+            $(".ifSenktide").show();
+        } else {
+            $(".ifSentkide").hide();
+        };
+
         //check_no
         $(".check_no").each(function () {
             //alert($(this).val());
-            if($(this).val() === "" || $(this).val() === "no"){
+            if ($(this).val() === "" || $(this).val() === "no") {
                 $(this).parent().css("color", "red");
-            }else {
+            } else {
                 $(this).parent().css("color", "black");
             };
         })
@@ -324,7 +340,7 @@ my_widget_script =
         ** This uses LabArchives's to_json() function to get the form data as a string
         ** -----------------------------------------------------------------------------
         */
-        
+
         var widgetJsonString = this.parent_class.to_json();
 
         /* -----------------------------------------------------------------------------
@@ -335,7 +351,7 @@ my_widget_script =
         ** -----------------------------------------------------------------------------
         */
 
-       var addedRows = $("#exampleTable").find("tbody tr").length;
+        var addedRows = $("#exampleTable").find("tbody tr").length;
 
         /* -----------------------------------------------------------------------------
         ** ADD widgetJsonString AND ADDITIONAL VARIABLES TO OUTPUT
@@ -357,7 +373,7 @@ my_widget_script =
         ** RETURN STRINGIFIED OUTPUT
         ** -----------------------------------------------------------------------------
         */
-        
+
         return JSON.stringify(output);
     },
 
@@ -382,7 +398,7 @@ my_widget_script =
         ** radio buttons, and checkboxes
         ** -----------------------------------------------------------------------------
         */
-        
+
         //return this.parent_class.test_data();
 
         /* -----------------------------------------------------------------------------
@@ -397,14 +413,14 @@ my_widget_script =
 
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
-      	
-      	// //find out what the random check was
-      	// var addDivCheckVal = testData[1].value; //the second value in the array is the addDivCheck info
-      	// var isCheckedAddDiv = false; //start with this isChecked variable as false
-      	// if( addDivCheckVal !== "") { //if addDivCheckVal is not empty ("")
+
+        // //find out what the random check was
+        // var addDivCheckVal = testData[1].value; //the second value in the array is the addDivCheck info
+        // var isCheckedAddDiv = false; //start with this isChecked variable as false
+        // if( addDivCheckVal !== "") { //if addDivCheckVal is not empty ("")
         // 	isCheckedAddDiv = true; //change isCheckedAddDiv to true
-      	// };
-        
+        // };
+
         //If no additional dynamic content 
         var output = { widgetData: testData };
 
@@ -440,7 +456,7 @@ my_widget_script =
         var name; //create a name variable
 
         //search the_form for all elements that are of type select, textarea, or input
-        $('#the_form').find('select, textarea, input').each(function () { 
+        $('#the_form').find('select, textarea, input').each(function () {
             if (!$(this).prop('required')) { //if this element does not have a required attribute
                 //don't change anything (fail remains false)
             } else { //if there is a required attribute
@@ -466,7 +482,7 @@ my_widget_script =
         ** This checks for fields that have _mandatory appended to the name attribute
         ** -----------------------------------------------------------------------------
         */
-        
+
         //return this.parent_class.is_valid(b_suppress_message);
     },
 
@@ -528,7 +544,7 @@ my_widget_script =
         ** content is created, modified, or deleted within a function.
         ** -----------------------------------------------------------------------------
         */
-        
+
         //gets the inner width of the window.
         var width = window.innerWidth;
 
@@ -570,8 +586,8 @@ my_widget_script =
         $("#outTable tr").each(function () { //for each row
             $("td", this).each(function () { //for each cell
                 var value = $(this).text(); //get the value of the text
-                if ( value === "" || value === "NaN" ) { //if blank or NaN
-                    $( this ).text("NA"); //make NA
+                if (value === "" || value === "NaN") { //if blank or NaN
+                    $(this).text("NA"); //make NA
                 }
             })
         });
@@ -652,7 +668,7 @@ my_widget_script =
     copyTableRow: function () {
         //create a temporary text area
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-        
+
         var addTab = "";
         $("#exampleDataRow").children().each(function () { //add each child of the row
             $temp.text($temp.text() + addTab + $(this).text());
@@ -756,6 +772,6 @@ my_widget_script =
     ** content is created, modified, or deleted within a function.
     ** -----------------------------------------------------------------------------
     */
-    
+
 
 }
