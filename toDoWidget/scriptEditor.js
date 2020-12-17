@@ -126,6 +126,40 @@ init: function (mode, json_data) {
     ** based on the contents of the form
     ** -----------------------------------------------------------------------------
     */
+    
+    $(".priority").each(function() {
+        switch($(this).val()) {
+            case '':
+                $(this).css("background-color", "");
+                break;
+            case "low":
+                $(this).css("background-color", "lightgrey");
+                break;
+            case "medium":
+                $(this).css("background-color", "skyblue");
+                break;
+            case "high":
+                $(this).css("background-color", "fuchsia");
+                break;
+        };
+    });
+
+    $(".status").each(function() {
+        switch($(this).val()) {
+            case '':
+                $(this).closest("tr").css("background-color", "");
+                break;
+            case "notStarted":
+                $(this).closest("tr").css("background-color", "lightpink");
+                break;
+            case "inProgress":
+                $(this).closest("tr").css("background-color", "lightyellow");
+                break;
+            case "completed":
+                $(this).closest("tr").css("background-color", "lightgreen");
+                break;
+        };
+    });
 
 },
 
@@ -479,3 +513,4 @@ deleteRow: function (tableName) {
 
 
 }
+;
