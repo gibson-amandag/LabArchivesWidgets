@@ -68,14 +68,14 @@ my_widget_script =
             var tableName = $("#dam1MassTable");
             var whichDam = "dam1";
 
-            my_widget_script.createMassRow(tableName, whichDam);
+            my_widget_script.createMassRow(tableName, whichDam, $("#dammass_1"));
         }
 
         for (var i = 0; i < parsedJson.dam2Mass_addedRows; i++) {
             var tableName = $("#dam2MassTable");
             var whichDam = "dam2";
 
-            my_widget_script.createMassRow(tableName, whichDam);
+            my_widget_script.createMassRow(tableName, whichDam, $("#dammass_2"));
         }
 
         /* -----------------------------------------------------------------------------
@@ -187,7 +187,7 @@ my_widget_script =
             var tableName = $("#dam1MassTable");
             var whichDam = "dam1";
 
-            my_widget_script.createMassRow(tableName, whichDam);
+            my_widget_script.createMassRow(tableName, whichDam, $("#dammass_1"));
         });
 
         $("#removeMass1").click(function () {
@@ -199,25 +199,13 @@ my_widget_script =
             var tableName = $("#dam2MassTable");
             var whichDam = "dam2";
 
-            my_widget_script.createMassRow(tableName, whichDam);
+            my_widget_script.createMassRow(tableName, whichDam, $("#dammass_2"));
         });
 
         $("#removeMass2").click(function () {
             var tableName = $("#dam2MassTable");
 
             my_widget_script.deleteRow(tableName);
-        });
-
-        $("#calcMass1").click(function () {
-            $(".newMass_dam1").each(function () {
-                my_widget_script.calcPercMass($(this), $("#dammass_1"));
-            });
-        });
-
-        $("#calcMass2").click(function () {
-            $(".newMass_dam2").each(function () {
-                my_widget_script.calcPercMass($(this), $("#dammass_2"));
-            });
         });
 
         /* -----------------------------------------------------------------------------
@@ -513,7 +501,7 @@ my_widget_script =
         my_widget_script.parent_class.resize_container();
     },
 
-    createMassRow: function (tableName, whichDam) {
+    createMassRow: function (tableName, whichDam, initMass) {
         var rowCount = $(tableName).find("tbody tr").length + 1;
         var rowID = whichDam + "_row_" + rowCount;
 
@@ -543,7 +531,12 @@ my_widget_script =
                     $('<input/>', { //append a new select to the td
                         id: col2ID,
                         name: col2ID,
+                        type: "number",
+                        step: "0.1",
+                        min: "0",
                         "class": "newMass_" + whichDam
+                    }).change(function () {
+                        my_widget_script.calcPercMass($(this), initMass);
                     })
                 )
             ).append(
@@ -566,10 +559,18 @@ my_widget_script =
     },
 
     calcPercMass: function (newMass, initMass) {
-        var newMassVal = parseInt($(newMass).val());
-        var initMassVal = parseInt($(initMass).val());
-        var percChange = (newMassVal) / (initMassVal) * 100;
-        $(newMass).parent().next(".change").text(percChange.toFixed(1));
+        var newMassVal = parseFloat($(newMass).val());
+        var initMassVal = parseFloat($(initMass).val());
+
+        if (newMassVal > 0 && initMassVal > 0) {
+            var percChange = (newMassVal) / (initMassVal) * 100;
+            $(newMass).parent().next(".change").text(percChange.toFixed(1));
+        } else if (!newMassVal > 0) {
+            $(newMass).parent().next(".change").text("Enter New Mass");
+        } else {
+            $(newMass).parent().next(".change").text("Enter Initial Mass");
+        };
+
     }
 
     /* NOT CURRENTLY USING, but could use to output breeding info
@@ -689,5 +690,4 @@ my_widget_script =
     ** content is created, modified, or deleted within a function.
     ** -----------------------------------------------------------------------------
     */
-}
-    ;
+};
