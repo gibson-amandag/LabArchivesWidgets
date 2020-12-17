@@ -1,35 +1,47 @@
-<div>
-    <h1>To-Do Tasks</h1>
-</div>
+<style type="text/css">
+    /* TO DO Place css styling code here */
 
-<div>Focus:</div>
+    /* Add this class to a div to all for flex wrapping */
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+    }
 
-<div><textarea id="focus" name="focus">Focus</textarea></div>
+    /* Each div takes of 50% of width. Creates two columns within the container */
+    .container>div {
+        flex: 0 50%;
+        margin-bottom: 5px;
+    }
 
-<p>To add a new item, click &quot;Add Row&quot;.<br />
-    To delete a row, check &quot;select&quot; and then press &quot;Delete Row&quot;.<br />
-</p>
+    /* Add this class to a div around tables. The script will automatically change the width to match the window
+    Adds a scroll bar when the content is too big for the width */
+    .tableDiv {
+        width: 400px;
+        overflow-x: scroll;
 
-<!-- lab archives To call the function, need to use form_script before function name-->
-<p><button id="addRow" onclick="form_script.addRow('dataTable')" type="button">Add Row</button><button id="deleteRow"
-    onclick="form_script.deleteRow('dataTable')" type="button">Delete Row</button></p>
+    }
+</style>
+<!-- TO DO Begin typing your HTML code here -->
+<h3>To-Do List</h3>
+<textarea id="focus">Focus</textarea>
 
-    <table id="dataTable" width="350px">
-        <tbody>
+<h3>Add and delete table rows</h3>
+
+<p><input id="addRow" name="addrow" type="button" value="Add a Row" /> <input id="removeRow" name="removerow"
+        type="button" value="Remove Last Row" /></p>
+<div class="tableDiv" id="toDoTableDiv">
+    <table border="1" id="toDoTable">
+        <thead>
             <tr>
-                <th>Select</th>
-                <th>Task</th>
                 <th>Start Date</th>
                 <th>Due Date</th>
+                <th>Priority</th>
+                <th>Status</th>
                 <th>Description</th>
-                <th style="background-color:lightblue;">Completed</th>
-                <th>Completion Notes</th>
+                <th>Comment</th>
             </tr>
+        </thead>
+        <tbody>
         </tbody>
     </table>
-    
-    <p>&nbsp;</p>
-    
-    <h3>Other comments:</h3>
-    
-    <p><textarea cols="50" name="othercomments" rows="10"></textarea></p>
+</div>
