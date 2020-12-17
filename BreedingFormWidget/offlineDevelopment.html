@@ -121,6 +121,20 @@ init: function (mode, json_data) {
         my_widget_script.createPlugCheckRow(tableName, whichDam);
     }
 
+    for (var i = 0; i < parsedJson.dam1Mass_addedRows; i++) {
+        var tableName = $("#dam1MassTable");
+        var whichDam = "dam1";
+
+        my_widget_script.createMassRow(tableName, whichDam);
+    }
+
+    for (var i = 0; i < parsedJson.dam2Mass_addedRows; i++) {
+        var tableName = $("#dam2MassTable");
+        var whichDam = "dam2";
+
+        my_widget_script.createMassRow(tableName, whichDam);
+    }
+
     /* -----------------------------------------------------------------------------
     ** ADJUST FORM DESIGN AND BUTTONS BASED ON MODE
     
@@ -136,6 +150,12 @@ init: function (mode, json_data) {
         removePlugCheck1.disabled = true;
         addPlugCheck2.disabled = true;
         removePlugCheck2.disabled = true;
+        addMass1.disabled = true;
+        addMass2.disabled = true;
+        removeMass1.disabled = true;
+        removeMass2.disabled = true;
+        calcMass1.disabled = true;
+        calcMass2.disabled = true;
     };
 
     /* -----------------------------------------------------------------------------
@@ -187,12 +207,12 @@ init: function (mode, json_data) {
 
     //When damid_1 is changed, replace the text in the #dam1_calc span
     $("#damid_1").change(function () {
-        $("#dam1_calc").text($("#damid_1").val());
+        $(".dam1_calc").text($("#damid_1").val());
     });
 
     //When damid_2 is changed, replace the text in the #dam2_calc span
     $("#damid_2").change(function () {
-        $("#dam2_calc").text($("#damid_2").val());
+        $(".dam2_calc").text($("#damid_2").val());
     });
 
     $("#addPlugCheck1").click(function () {
@@ -203,9 +223,9 @@ init: function (mode, json_data) {
     });
 
     $("#removePlugCheck1").click(function () {
-        var tableName = ("#dam1PlugTable");
+        var tableName = $("#dam1PlugTable");
 
-        my_widget_script.deletePlugCheckRow(tableName);
+        my_widget_script.deleteRow(tableName);
     });
 
     $("#addPlugCheck2").click(function () {
@@ -216,10 +236,46 @@ init: function (mode, json_data) {
     });
 
     $("#removePlugCheck2").click(function () {
-        var tableName = ("#dam2PlugTable");
-        my_widget_script.deletePlugCheckRow(tableName);
+        var tableName = $("#dam2PlugTable");
+        my_widget_script.deleteRow(tableName);
     });
 
+    $("#addMass1").click(function () {
+        var tableName = $("#dam1MassTable");
+        var whichDam = "dam1";
+
+        my_widget_script.createMassRow(tableName, whichDam);
+    });
+
+    $("#removeMass1").click(function () {
+        var tableName = $("#dam1MassTable");
+        my_widget_script.deleteRow(tableName);
+    });
+
+    $("#addMass2").click(function () {
+        var tableName = $("#dam2MassTable");
+        var whichDam = "dam2";
+
+        my_widget_script.createMassRow(tableName, whichDam);
+    });
+
+    $("#removeMass2").click(function () {
+        var tableName = $("#dam2MassTable");
+
+        my_widget_script.deleteRow(tableName);
+    });
+
+    $("#calcMass1").click(function () {
+        $(".newMass_dam1").each(function () {
+            my_widget_script.calcPercMass($(this), $("#dammass_1"));
+        });
+    });
+
+    $("#calcMass2").click(function () {
+        $(".newMass_dam2").each(function () {
+            my_widget_script.calcPercMass($(this), $("#dammass_2"));
+        });
+    });
 
     /* -----------------------------------------------------------------------------
     ** INITIALIZE THE FORM WITH THE STORED WIDGET DATA
@@ -260,8 +316,16 @@ init: function (mode, json_data) {
         my_widget_script.parent_class.resize_container();
     };
 
-    $("#dam1_calc").text($("#damid_1").val());
-    $("#dam2_calc").text($("#damid_2").val());
+    $(".dam1_calc").text($("#damid_1").val());
+    $(".dam2_calc").text($("#damid_2").val());
+
+    $(".newMass_dam1").each(function () {
+        my_widget_script.calcPercMass($(this), $("#dammass_1"));
+    });
+
+    $(".newMass_dam2").each(function () {
+        my_widget_script.calcPercMass($(this), $("#dammass_2"));
+    });
 
 },
 
@@ -289,7 +353,9 @@ to_json: function () {
 
     var dam1Plug_addedRows = $("#dam1PlugTable").find("tbody tr").length;
     var dam2Plug_addedRows = $("#dam2PlugTable").find("tbody tr").length;
-
+    
+    var dam1Mass_addedRows = $("#dam1MassTable").find("tbody tr").length;
+    var dam2Mass_addedRows = $("#dam2MassTable").find("tbody tr").length;
     /* -----------------------------------------------------------------------------
     ** ADD widgetJsonString AND ADDITIONAL VARIABLES TO OUTPUT
     **
@@ -301,7 +367,7 @@ to_json: function () {
     //var output = { widgetData: JSON.parse(widgetJsonString) };
 
     // Define additional output components
-    var output = { widgetData: JSON.parse(widgetJsonString), dam1Plug_addedRows: dam1Plug_addedRows, dam2Plug_addedRows: dam2Plug_addedRows };
+    var output = { widgetData: JSON.parse(widgetJsonString), dam1Plug_addedRows: dam1Plug_addedRows, dam2Plug_addedRows: dam2Plug_addedRows, dam1Mass_addedRows: dam1Mass_addedRows, dam2Mass_addedRows: dam2Mass_addedRows };
 
     //uncomment to check stringified output - note that complicated objects like divs cannot be passed this way
     //console.log("to JSON", JSON.stringify(output));
@@ -482,10 +548,12 @@ createPlugCheckRow: function (tableName, whichDam) {
                     id: col2ID,
                     name: col2ID
                 }).append( //append options to the select tag
-                    "<option value='0'>None (-/-)</option>",
-                    "<option value='1'>Uncertain (-/-)</option>",
-                    "<option value='2'>Transparent (+/-)</option>",
-                    "<option value='3'>Waxy (+/+)</option>"
+                    "<option value='0'>-/-</option>",
+                    "<option value='1'>?</option>",
+                    "<option value='2'>+/-</option>",
+                    "<option value='3'>+/+</option>",
+                    "<option value='4'>Red</option>",
+                    "<option value='5'>Closed VO</option>"
                 )
             )
         ).append(
@@ -502,12 +570,63 @@ createPlugCheckRow: function (tableName, whichDam) {
     my_widget_script.parent_class.resize_container();
 },
 
-deletePlugCheckRow: function (tableName) {
+createMassRow: function (tableName, whichDam) {
+    var rowCount = $(tableName).find("tbody tr").length + 1;
+    var rowID = whichDam + "_row_" + rowCount;
+
+    //Still breaks if select December 1 -> November. Also, if change date after making rows -> problems
+    /*var plugDate = new Date($("#breeddate").val());
+    plugDate.setDate(plugDate.getUTCDate()+rowCount); //Only combo I could figure out to resolve UTC/local issues
+    "<td>" + plugDate.toDateString() + "</td>"
+    */
+
+    var col1ID = whichDam + "MassDate_" + rowCount;
+    var col2ID = whichDam + "_mass_" + rowCount;
+    //var col3ID = whichDam + "_change_" + rowCount;
+
+    $(tableName).find("tbody").append(
+        $('<tr></tr>', { //add a new row
+            id: rowID //give this row the rowID
+        }).append(
+            $('<td></td>').append( //append a new td to the row
+                $('<input/>', { //append a new input to the td
+                    id: col1ID,
+                    name: col1ID,
+                    type: "date" //make it type "date"
+                })
+            )
+        ).append(
+            $('<td></td>').append( //append a new td to the row
+                $('<input/>', { //append a new select to the td
+                    id: col2ID,
+                    name: col2ID,
+                    "class": "newMass_" + whichDam
+                })
+            )
+        ).append(
+            $('<td></td>', {
+                "class": "change"
+            })
+        )
+    );
+
+    //resize the container
+    my_widget_script.parent_class.resize_container();
+},
+
+deleteRow: function (tableName) {
     var lastRow = $(tableName).find("tbody tr").last();
     $(lastRow).remove();
 
     //resize the container
     my_widget_script.parent_class.resize_container();
+},
+
+calcPercMass: function (newMass, initMass) {
+    var newMassVal = parseInt($(newMass).val());
+    var initMassVal = parseInt($(initMass).val());
+    var percChange = (newMassVal)/(initMassVal) * 100;
+    $(newMass).parent().next(".change").text(percChange.toFixed(1));
 }
 
 /* NOT CURRENTLY USING, but could use to output breeding info
@@ -774,41 +893,86 @@ parent_form_script.wiget_version_info ={"version":14,"created":"2020-12-08T14:09
 </div>
 </div>
 
-<p><input id="addPlugCheck1" name="addplug1" type="button" value="Add Dam 1 Plug Check" /> <input id="removePlugCheck1" name="removeplug1" type="button" value="Remove Last Dam 1 Plug Check" /></p>
+<div class="container_50">
+    <div>
+        <p><input id="addPlugCheck1" name="addplug1" type="button" value="Add Dam 1 Plug Check" /> <input id="removePlugCheck1" name="removeplug1" type="button" value="Remove Last Dam 1 Plug Check" /></p>
 
-<div class="plugCheckTables" id="dam1PlugChecks">
-<h3>Plug check for <span id="dam1_calc">__</span></h3>
+        <div class="plugCheckTables" id="dam1PlugChecks">
+        <h3>Plug check for <span class="dam1_calc">__</span></h3>
 
-<table border="1" id="dam1PlugTable">
-<thead>
-    <tr>
-        <th>Date</th>
-        <th>Quality of Plug</th>
-        <th>Comment</th>
-    </tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+        <table border="1" id="dam1PlugTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Plug</th>
+                <th>Comment</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        </table>
+        </div>
+
+        <p><input class="dam2" id="addPlugCheck2" name="addplug2" type="button" value="Add Dam 2 Plug Check" /> <input class="dam2" id="removePlugCheck2" name="removeplug2" type="button" value="Remove Last Dam 2 Plug Check" /></p>
+
+        <div class="plugCheckTables dam2" id="dam2PlugChecks">
+        <h3>Plug check for <span class="dam2_calc">__</span></h3>
+
+        <table border="1" id="dam2PlugTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Plug</th>
+                <th>Comment</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        </table>
+        </div>
+    </div>
+
+    <div>
+        <p><input id="addMass1" name="addmass1" type="button" value="Add Dam 1 Mass" /> <input id="removeMass1" name="removemass1" type="button" value="Remove Last Dam 1 Mass Entry" /> <input id="calcMass1" name="calcmass1" type="button" value="Calc Dam 1 % Change"/></p>
+
+        <div class="massTables" id="dam1AddMass">
+        <h3>Additional masses for <span class="dam1_calc">__</span></h3>
+
+        <table border="1" id="dam1MassTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Mass</th>
+                <th>% of Initial Mass</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        </table>
+        </div>
+
+        <p><input class="dam2" id="addMass2" name="addmass2" type="button" value="Add Dam 2 Mass" /> <input class="dam2" id="removeMass2" name="removemass" type="button" value="Remove Last Dam 2 Mass Entry" /> <input id="calcMass2" name="calcmass2" class="dam2" type="button" value="Calc Dam 2 % Change"/></p>
+
+        <div class="massTables dam2" id="dam2AddMass">
+        <h3>Additional masses for <span class="dam2_calc">__</span></h3>
+
+        <table border="1" id="dam2MassTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Plug</th>
+                <th>% of Initial Mass</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        </table>
+        </div>
+    </div>
 </div>
 
-<p><input class="dam2" id="addPlugCheck2" name="addplug2" type="button" value="Add Dam 2 Plug Check" /> <input class="dam2" id="removePlugCheck2" name="removeplug2" type="button" value="Remove Last Dam 2 Plug Check" /></p>
 
-<div class="plugCheckTables dam2" id="dam2PlugChecks">
-<h3>Plug check for <span id="dam2_calc">__</span></h3>
 
-<table border="1" id="dam2PlugTable">
-<thead>
-    <tr>
-        <th>Date</th>
-        <th>Quality of Plug</th>
-        <th>Comment</th>
-    </tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-</div>
 
 <!------------------------------------------------------------------------------------------>
 <!--end of your code-->

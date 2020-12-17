@@ -54,41 +54,50 @@
     <div>
         <h2>Cage Location:</h2>
     </div>
+
     <div>
-        <h2><input id="cageLocation" name="cagelocation" size=5 /></h2>
+        <h2><input id="cageLocation" name="cagelocation" size="5" /></h2>
     </div>
 </div>
 
-<p><label for="dam2Check">Add a second dam: </label><input type="checkbox" id="dam2Check" name="dam2check" />
+<p><label for="dam2Check">Add a second dam: </label><input id="dam2Check" name="dam2check" type="checkbox" /></p>
 
 <p>&nbsp;</p>
 
 <div class="container" id="mouseInfo">
     <div class="mouseDiv" id="dam1Div">
         <div>Dam 1 ID:</div>
+
         <div><input id="damid_1" name="damid_1" /></div>
 
         <div>Dam 1 DOB:</div>
+
         <div><input id="damdob_1" name="damdob_1" type="date" /></div>
 
         <div>Dam 1 Strain:</div>
+
         <div><input id="damstrain_1" name="damstrain_1" /></div>
 
         <div>Dam 1 Mass:</div>
+
         <div><input id="dammass_1" min="0" name="dammass_1" step="0.1" type="number" /></div>
     </div>
 
     <div class="mouseDiv dam2" id="dam2Div" style="display: none;">
         <div>Dam 2 ID:</div>
+
         <div><input id="damid_2" name="damid_2" /></div>
 
         <div>Dam 2 DOB:</div>
+
         <div><input id="damdob_2" name="damdob_2" type="date" /></div>
 
         <div>Dam 2 Strain:</div>
+
         <div><input id="damstrain_2" name="damstrain_2" /></div>
 
         <div>Dam 2 Mass:</div>
+
         <div><input id="dammass_2" min="0" name="dammass_2" step="0.1" type="number" /></div>
     </div>
 
@@ -107,38 +116,87 @@
     </div>
 </div>
 
-<p><input type="button" id="addPlugCheck1" name="addplug1" value="Add Dam 1 Plug Check" />
-  <input type="button" id="removePlugCheck1" name="removeplug1" value="Remove Last Dam 1 Plug Check" /></p>
+<div class="container_50">
+    <div>
+        <p><input id="addPlugCheck1" name="addplug1" type="button" value="Add Dam 1 Plug Check" /> <input
+                id="removePlugCheck1" name="removeplug1" type="button" value="Remove Last Dam 1 Plug Check" /></p>
 
-<div id="dam1PlugChecks" class="plugCheckTables">
-    <h3>Plug check for <span id="dam1_calc">__</span></h3>
-    <table border="1" id="dam1PlugTable">
-        <thead>
-            <tr>
-            <th>Date</th>
-            <th>Quality of Plug</th>
-            <th>Comment</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+        <div class="plugCheckTables" id="dam1PlugChecks">
+            <h3>Plug check for <span class="dam1_calc">__</span></h3>
+
+            <table border="1" id="dam1PlugTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Plug</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <p><input class="dam2" id="addPlugCheck2" name="addplug2" type="button" value="Add Dam 2 Plug Check" /> <input
+                class="dam2" id="removePlugCheck2" name="removeplug2" type="button"
+                value="Remove Last Dam 2 Plug Check" /></p>
+
+        <div class="plugCheckTables dam2" id="dam2PlugChecks">
+            <h3>Plug check for <span class="dam2_calc">__</span></h3>
+
+            <table border="1" id="dam2PlugTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Plug</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div>
+        <p><input id="addMass1" name="addmass1" type="button" value="Add Dam 1 Mass" /> <input id="removeMass1"
+                name="removemass1" type="button" value="Remove Last Dam 1 Mass Entry" /> <input id="calcMass1"
+                name="calcmass1" type="button" value="Calc Dam 1 % Change" /></p>
+
+        <div class="massTables" id="dam1AddMass">
+            <h3>Additional masses for <span class="dam1_calc">__</span></h3>
+
+            <table border="1" id="dam1MassTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Mass</th>
+                        <th>% of Initial Mass</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <p><input class="dam2" id="addMass2" name="addmass2" type="button" value="Add Dam 2 Mass" /> <input class="dam2"
+                id="removeMass2" name="removemass" type="button" value="Remove Last Dam 2 Mass Entry" /> <input
+                id="calcMass2" name="calcmass2" class="dam2" type="button" value="Calc Dam 2 % Change" /></p>
+
+        <div class="massTables dam2" id="dam2AddMass">
+            <h3>Additional masses for <span class="dam2_calc">__</span></h3>
+
+            <table border="1" id="dam2MassTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Plug</th>
+                        <th>% of Initial Mass</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-
-<p><input class = "dam2" type="button" id="addPlugCheck2" name="addplug2" value="Add Dam 2 Plug Check" />
-    <input class = "dam2" type="button" id="removePlugCheck2" name="removeplug2" value="Remove Last Dam 2 Plug Check" /></p>
-  
-  <div id="dam2PlugChecks" class="plugCheckTables dam2">
-      <h3>Plug check for <span id="dam2_calc">__</span></h3>
-      <table border="1" id="dam2PlugTable">
-          <thead>
-              <tr>
-              <th>Date</th>
-              <th>Quality of Plug</th>
-              <th>Comment</th>
-              </tr>
-          </thead>
-          <tbody>
-          </tbody>
-      </table>
-  </div>
