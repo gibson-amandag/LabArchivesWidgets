@@ -97,8 +97,6 @@ my_widget_script =
             addMass2.disabled = true;
             removeMass1.disabled = true;
             removeMass2.disabled = true;
-            calcMass1.disabled = true;
-            calcMass2.disabled = true;
         };
 
         /* -----------------------------------------------------------------------------
