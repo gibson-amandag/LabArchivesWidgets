@@ -646,6 +646,12 @@ createRow: function (tableName) {
                     id: col4ID,
                     name: col4ID,
                     type: "checkbox"
+                }).change(function () {
+                    if($(this).is(":checked")){
+                        $(this).closest("tr").css("background-color", "lightgrey");
+                    } else {
+                        $(this).closest("tr").css("background-color", "");
+                    }
                 })
             )
         ).append(
@@ -655,10 +661,25 @@ createRow: function (tableName) {
                     name: col5ID
                 }).append( //append options to the select tag
                     "<option value=''>[Select]</option>",
-                    "<option value='1'>Option 1</option>",
-                    "<option value='2'>Option 2</option>",
-                    "<option value='3'>Option 3</option>"
-                )
+                    "<option value='1'>Green</option>",
+                    "<option value='2'>Blue</option>",
+                    "<option value='3'>Red</option>"
+                ).change(function () { //change the background color
+                    switch($(this).val()) {
+                        case '':
+                            $(this).css("background-color", "");
+                            break;
+                        case "1":
+                            $(this).css("background-color", "lightgreen");
+                            break;
+                        case "2":
+                            $(this).css("background-color", "skyblue");
+                            break;
+                        case "3":
+                            $(this).css("background-color", "lightpink");
+                            break;
+                    };
+                })
             )
         ).append(
             $('<td/>').append( //append a new td to the row
@@ -668,7 +689,7 @@ createRow: function (tableName) {
                 $('<text' + 'area></text' + 'area>', {
                     id: col6ID,
                     name: col6ID
-                })
+                }).css("margin", "5px")
             )
         )
     );
