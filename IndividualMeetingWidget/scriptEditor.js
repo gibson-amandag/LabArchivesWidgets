@@ -387,7 +387,7 @@ createRow: function (tableName) {
                 $('<input/>', {
                     id: col2ID,
                     name: col2ID
-                })
+                }).css("width", "25em")
             )
         ).append(
             $('<td/>').append( //append a new td to the row
@@ -396,7 +396,9 @@ createRow: function (tableName) {
                 //thinks that it has reached the end of the script
                 $('<text' + 'area></text' + 'area>', {
                     id: col3ID,
-                    name: col3ID
+                    name: col3ID,
+                    cols: "25",
+                    rows: "3"
                 }).css("margin", "5px")
             )
         ).append(
@@ -406,7 +408,9 @@ createRow: function (tableName) {
                 //thinks that it has reached the end of the script
                 $('<text' + 'area></text' + 'area>', {
                     id: col4ID,
-                    name: col4ID
+                    name: col4ID,
+                    cols: "25",
+                    rows: "3"
                 }).css("margin", "5px")
             )
         )
