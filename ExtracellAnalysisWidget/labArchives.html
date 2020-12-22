@@ -42,11 +42,15 @@
         flex: 0 23%;
     }
 
-    .container4>div>div{
+    .container4>div>div {
         padding-bottom: 5px;
     }
 
     .ifSenktide {
+        display: none;
+    }
+
+    .ifSenktideAnalyzed {
         display: none;
     }
 
@@ -61,7 +65,6 @@
     .ifProbs {
         display: none;
     }
-
 </style>
 <!-- TO DO Begin typing your HTML code here -->
 
@@ -91,13 +94,20 @@
         Demographic info for mouse in demographic excel sheet?
     </div>
     <div class="secondCol">
-        <label for="inDemoSheet" >Check if yes:</label>
-        <input id="inDemoSheet" name="indemosheet" type="checkbox"/>
+        <label for="inDemoSheet">Check if yes:</label>
+        <input id="inDemoSheet" name="indemosheet" type="checkbox" />
     </div>
 
     <div class="firstCol">
-        Patchmaster initial analysis file saved to... 
-        <br/>(select all that apply with <kbd>ctrl/cmd</kbd> or <kbd>shift</kbd>)
+        Patchmaster initial analysis file name:
+    </div>
+    <div class="secondCol">
+        <input id="initAnalysisName" name="initanalysisname" size="50" />
+    </div>
+
+    <div class="firstCol">
+        Patchmaster initial analysis file saved to...
+        <br />(select all that apply with <kbd>ctrl/cmd</kbd> or <kbd>shift</kbd>)
     </div>
     <div class="secondCol">
         <select id="initAnalSave" name="initanalsave" multiple>
@@ -108,11 +118,18 @@
     </div>
 
     <div class="firstCol">
+        Patchmaster JPSmartConc analysis file name:
+    </div>
+    <div class="secondCol">
+        <input id="JPSmartConcName" name="jpsmartconcname" size="50" />
+    </div>
+
+    <div class="firstCol">
         Patchmaster JPSmartConc "destroyed" file saved to...
         <br/>(select all that apply with <kbd>ctrl/cmd</kbd> or <kbd>shift</kbd>)
     </div>
     <div class="secondCol">
-        <select id="initAnalSave" name="initanalsave" multiple>
+        <select id="JPSmartConcSave" name="jpsmartconcsave" multiple>
             <option value="">[Select]</option>
             <option value="Server">Server</option>
             <option value="LabArchives">LabArchives</option>
@@ -123,7 +140,7 @@
         Spontaneous Length (in min):
     </div>
     <div class="secondCol">
-        <input id="spontLength" name="spontlength" type="number"/>
+        <input id="spontLength" name="spontlength" type="number" />
         <div id="lengthWarning"></div>
     </div>
 
@@ -131,14 +148,22 @@
         First spontaneous series #:
     </div>
     <div class="secondCol">
-        <input id="startSpontSeries" name="startspontseries" />
+        <input id="startSpontSeries" name="startspontseries" type="number" step="1" min="1" />
     </div>
 
     <div class="firstCol">
         Last spontaneous series #:
+        <br /> (included in analysis)
     </div>
     <div class="secondCol">
-        <input id="lastSpontSeries" name="lastspontseries" />
+        <input id="lastSpontSeries" name="lastspontseries" type="number" step="1" min="1" />
+    </div>
+
+    <div class="firstCol">
+        End analysis at which minute of last series?
+    </div>
+    <div class="secondCol">
+        <input id="lastSpontSeriesMin" name="lastspontseriesmin" type="number" step="2" min="0" />
     </div>
 
     <div class="firstCol">
@@ -146,19 +171,19 @@
     </div>
     <div class="secondCol">
         <label for="senktideAdded">Check if added:</label>
-        <input id="senktideAdded" name="senktideadded" type="checkbox"/>
+        <input id="senktideAdded" name="senktideadded" type="checkbox" />
     </div>
-    
+
 </div>
 
-<br/>
+<br />
 <span style="font-size: 30px; font-weight: bold;">Igor Analysis Parameters</span>
 <div class="container">
     <div class="firstCol">
         Derivative Threshold
     </div>
     <div class="secondCol">
-        <input id="derivThreshold" name="derivthreshold" type="number"/>
+        <input id="derivThreshold" name="derivthreshold" type="number" />
     </div>
 
     <div class="firstCol">
@@ -169,7 +194,7 @@
     </div>
 </div>
 
-<br/>
+<br />
 <div>
     <span style="font-size: 30px; font-weight: bold;">Answer the following questions about analysis</span>
 </div>
@@ -178,7 +203,7 @@
         <h4>Firing Rate</h4>
         <div>
             <label for="firingAnalysis">Completed Igor Analysis?</label>
-            <br/><select id="firingAnalysis" name="firinganalysis" class="check_no">
+            <br /><select id="firingAnalysis" name="firinganalysis" class="check_no">
                 <option value="">[Select]</option>
                 <option value="no">Not yet</option>
                 <option value="yes_noact">Yes, no/low spontaneous activity </option>
@@ -187,33 +212,34 @@
         </div>
         <div>
             Comments
-            <br/><textarea id="firingAnalComments" name="firinganalcomments"></textarea>
+            <br /><textarea id="firingAnalComments" name="firinganalcomments"></textarea>
         </div>
         <!-- make conditional on yes_ above -->
         <div>
             <label for="firingToExcel" class="ifFiring">JPSmartConc histogram copied to Excel?</label>
-            <br/><select id="firingToExcel" name="firingtoexcel" class="ifFiring check_no">
+            <br /><select id="firingToExcel" name="firingtoexcel" class="ifFiring check_no">
                 <option value="">[Select]</option>
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
             </select>
         </div>
         <div>
-            <label for="regionTables" class="ifFiring">Do region table times in Excel match start and end times for spontaneous and senktide periods?</label>
-            <br/><select id="regionTables" name="regiontables" class="ifFiring check_no">
+            <label for="regionTables" class="ifFiring">Do region table times in Excel match start and end times for
+                spontaneous and senktide periods?</label>
+            <br /><select id="regionTables" name="regiontables" class="ifFiring check_no">
                 <option value="">[Select]</option>
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
             </select>
         </div>
-        
+
     </div>
 
     <div class="ifFiring">
         <h4>Burst</h4>
         <div>
             <label for="burstAnalysis">Completed Igor Analysis?</label>
-            <br/><select id="burstAnalysis" name="burstanalysis" class="check_no">
+            <br /><select id="burstAnalysis" name="burstanalysis" class="check_no">
                 <option value="">[Select]</option>
                 <option value="no">Not yet</option>
                 <option value="yes_noact">Yes, no/low spontaneous activity </option>
@@ -222,13 +248,13 @@
         </div>
         <div>
             Comments:
-            <br/>
+            <br />
             <textarea id="burstingAnalComments" name="burstinganalcomments"></textarea>
         </div>
         <!-- make conditional on yes_ above -->
         <div>
             <label for="selectingBW" class="ifBursting">CellID entered in selecting burst window sheet?</label>
-            <br/><select id="selectingBW" name="selectingbw" class="ifBursting check_no">
+            <br /><select id="selectingBW" name="selectingbw" class="ifBursting check_no">
                 <option value="">[Select]</option>
                 <option value="no">Not yet</option>
                 <option value="no_noact">No, no/low spontaneous activity </option>
@@ -237,23 +263,24 @@
         </div>
         <div>
             <label for="regionTablesBursts" class="ifBursting">Used correct region table for analysis?</label>
-            <br/><select id="regionTablesBursts" name="regiontablesbursts" class="ifBursting check_no">
-            <option value="">[Select]</option>
-            <option value="no">No</option>
-            <option value="yes">Yes</option>
-            </select>
-        </div>
-        <div>
-            <label for="burstingToExcel" class="ifBursting">VBW output table copied to Excel?</label>
-            <br/><select id="burstingToExcel" name="burstingtoexcel" class="ifBursting check_no">
+            <br /><select id="regionTablesBursts" name="regiontablesbursts" class="ifBursting check_no">
                 <option value="">[Select]</option>
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
             </select>
         </div>
         <div>
-            <label for="regionTablesProbs" class="ifBursting">Analyzed before problem with region tables and frequency calc fixed?</label>
-            <br/><select id="regionTablesProbs" name="regiontablesprobs" class="ifBursting checkYes">
+            <label for="burstingToExcel" class="ifBursting">VBW output table copied to Excel?</label>
+            <br /><select id="burstingToExcel" name="burstingtoexcel" class="ifBursting check_no">
+                <option value="">[Select]</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+        <div>
+            <label for="regionTablesProbs" class="ifBursting">Analyzed before problem with region tables and frequency
+                calc fixed?</label>
+            <br /><select id="regionTablesProbs" name="regiontablesprobs" class="ifBursting checkYes">
                 <option value="">[Select]</option>
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
@@ -262,30 +289,22 @@
         <!-- make conditional on regionTableProbs = yes -->
         <div>
             <label for="regionTablesUpdated" class="ifProbs">Updated analysis after region table problems fixed?</label>
-            <br/><select id="regionTablesUpdated" name="regiontablesupdated" class="ifProbs check_no">
+            <br /><select id="regionTablesUpdated" name="regiontablesupdated" class="ifProbs check_no">
                 <option value="">[Select]</option>
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
             </select>
         </div>
         <!-- make conditional on yes_act for burst analysis -->
-        
-        
+
+
     </div>
 
     <div class="ifFiring">
         <h4>Cluster</h4>
         <div>
             <label for="clusterBinToExcel">JPSmartConc 120s-bin histogram copied to Excel?</label>
-            <br/><select id="clusterBinToExcel" name="clusterbintoexcel" class="check_no">
-                <option value="">[Select]</option>
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-            </select>
-        </div>
-        <div>
-            <label for="clusterAnalysis">Completed Igor Analysis?</label>
-            <br/><select id="clusterAnalysis" name="clusteranalysis" class="check_no">
+            <br /><select id="clusterBinToExcel" name="clusterbintoexcel" class="check_no">
                 <option value="">[Select]</option>
                 <option value="no">Not yet</option>
                 <option value="yes_noact">Yes, no/low spontaneous activity </option>
@@ -293,14 +312,24 @@
             </select>
         </div>
         <div>
+            <label for="clusterAnalysis">Completed Igor Analysis?</label>
+            <br /><select id="clusterAnalysis" name="clusteranalysis" class="check_no">
+                <option value="">[Select]</option>
+                <option value="no">Not yet</option>
+                <option value="no_noact">No, no/low spontaneous activity </option>
+                <option value="yes_act">Yes, spontaneous activity</option>
+            </select>
+        </div>
+        <div>
             Comments:
-            <br/>
+            <br />
             <textarea id="clusterAnalComments" name="clusteranalcomments"></textarea>
         </div>
         <!-- make conditional on yes_ above -->
         <div>
-            <label for="clusterToExcel" class="ifCluster">Entered data within tables in excel for recalculation of parameters?</label>
-            <br/><select id="clusterToExcel" name="clustertoexcel" class="ifCluster check_no">
+            <label for="clusterToExcel" class="ifCluster">Entered data within tables in excel for recalculation of
+                parameters?</label>
+            <br /><select id="clusterToExcel" name="clustertoexcel" class="ifCluster check_no">
                 <option value="">[Select]</option>
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
@@ -308,7 +337,7 @@
         </div>
         <div>
             <label for="clusterManual" class="ifCluster">Adjusted for any manual changes in peaks/nadirs?</label>
-            <br/><select id="clusterManual" name="clustermanual" class="ifCluster check_no">
+            <br /><select id="clusterManual" name="clustermanual" class="ifCluster check_no">
                 <option value="">[Select]</option>
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
@@ -321,7 +350,7 @@
         <h4>Senktide</h4>
         <div>
             <label for="senktideFiringAnalysis">Completed Igor Firing Analysis?</label>
-            <br/><select id="senktideFiringAnalysis" name="senktidefiringanalysis" class="check_no">
+            <br /><select id="senktideFiringAnalysis" name="senktidefiringanalysis" class="check_no">
                 <option value="">[Select]</option>
                 <option value="no">Not yet</option>
                 <option value="yes_noact">Yes, no response </option>
@@ -330,13 +359,22 @@
         </div>
         <div>
             <label for="senktideLength">Length of sentkide period analyzed?</label>
-            <br/><input id="senktideLength" name="senktidelength" type="number"/>
+            <br /><input id="senktideLength" name="senktidelength" type="number" />
             <div id="senktideLengthWarning"></div>
         </div>
         <div>
             Comments:
-            <br/>
+            <br />
             <textarea id="senktideAnalComments" name="senktideanalcomments"></textarea>
+        </div>
+        <div>
+            <label for="senktideBurstAnalysis" class="ifSenktideAnalyzed">Completed Igor Burst Analysis?</label>
+            <br /><select id="senktideBurstAnalysis" name="senktideburstanalysis" class="ifSenktideAnalyzed check_no">
+                <option value="">[Select]</option>
+                <option value="no">Not yet</option>
+                <option value="yes_noact">Yes, no response </option>
+                <option value="yes_act">Yes, response</option>
+            </select>
         </div>
     </div>
 </div>
@@ -345,7 +383,7 @@
 <textarea id="otherNotes" name="othernotes" cols="50" rows="5"></textarea>
 
 
-    <!-- <div>
+<!-- <div>
         Example button:
     </div>
     <div>
@@ -363,17 +401,17 @@
     <div>
         <input type="number" id="ColumnB" name="columnb" class="needForTable"/>
     </div>
-</div>
-
-<p><input id="toggleTable" name="toggletable" type="button" value="Show/Hide Table" />
+    </div>
+    
+    <p><input id="toggleTable" name="toggletable" type="button" value="Show/Hide Table" />
     <input id="calculate" name="calcvalues" type="button" value="Calculate Values" />
     <input id="toCSV" name="tocsv" type="button" value="Save CSV" />
     <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" /> 
-</p>
-
-<div id="errorMsg">&nbsp;</div>
-
-<div class="tableDiv" id="tableDiv" style="display:none">
+    </p>
+    
+    <div id="errorMsg">&nbsp;</div>
+    
+    <div class="tableDiv" id="tableDiv" style="display:none">
     <table border="1pt" id="outTable">
         <tbody>
             <tr>
@@ -386,23 +424,23 @@
             </tr>
         </tbody>
     </table>
-
+    
     <p>&nbsp;</p>
-</div>
-
-<div id="dynamicDiv">
+    </div>
+    
+    <div id="dynamicDiv">
     <p>&nbsp;</p>
     <label for="showCheck">Show/hide Content</label>
     <input type="checkbox" id="showCheck" name="showcheck">
     <div id='myContentID' style="display: none;">I'm showing!</div>
-</div>
-
-<div id="dynamicTable">
+    </div>
+    
+    <div id="dynamicTable">
     <p>&nbsp;</p>
     <h3>Add and delete table rows</h3>
     <p><input type="button" id="addRow" name="addrow" value="Add a Row" />
         <input type="button" id="removeRow" name="removerow" value="Remove Last Row" /></p>
-
+    
     <div id="exampleTableDiv" class="tableDiv">
         <table border="1" id="exampleTable">
             <thead>
@@ -419,4 +457,4 @@
             </tbody>
         </table>
     </div>
-</div> -->
+    </div> -->

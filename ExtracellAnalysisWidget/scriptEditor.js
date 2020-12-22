@@ -85,7 +85,7 @@ my_widget_script =
 
         //When spontaneous length changes
         $("#spontLength").change(function () {
-            if (parseInt($("#spontLength").val()) < 60) {
+            if (parseFloat($("#spontLength").val()) < 60) {
                 $("#lengthWarning").html("<span style='color:red; font-size:18px;'>Warning: Spontaneous length is less than 60 minutes</span>");
             } else {
                 $("#lengthWarning").html("");
@@ -95,7 +95,7 @@ my_widget_script =
 
         //When senktide length changes
         $("#senktideLength").change(function () {
-            if (parseInt($("#senktideLength").val()) !== 12) {
+            if (parseFloat($("#senktideLength").val()) !== 12) {
                 $("#senktideLengthWarning").html("<span style='color:red; font-size:18px;'>Warning: senktide length is not 12 minutes</span>");
             } else {
                 $("#senktideLengthWarning").html("");
@@ -157,6 +157,16 @@ my_widget_script =
             };
             my_widget_script.resize();
         });
+
+        //if senktide analyzed
+        $("#senktideFiringAnalysis").change(function () {
+            if ($("#senktideFiringAnalysis").val() === "yes_noact" || $("#senktideFiringAnalysis").val() === "yes_act") {
+                $(".ifSenktideAnalyzed").show();
+            } else {
+                $(".ifSenktideAnalyzed").hide();
+            };
+            my_widget_script.resize();
+        })
 
         $(".check_no").change(function () {
             //alert($(this).val());
@@ -258,7 +268,7 @@ my_widget_script =
 
         /* -----------------------------------------------------------------------------
         ** ADD ADDITIONAL FUNCTIONS AND STEPS THAT SHOULD BE TAKEN TO INITIALIZE HTML
-
+    
         ** For example, ensure that shown/hiden elements are properly displayed
         ** based on the contents of the form
         ** -----------------------------------------------------------------------------
@@ -312,8 +322,13 @@ my_widget_script =
         //if senktide added
         if ($("#senktideAdded").is(":checked")) {
             $(".ifSenktide").show();
+            if ($("#senktideFiringAnalysis").val() === "yes_noact" || $("#senktideFiringAnalysis").val() === "yes_act") {
+                $(".ifSenktideAnalyzed").show();
+            } else {
+                $(".ifSenktideAnalyzed").hide();
+            };
         } else {
-            $(".ifSentkide").hide();
+            $(".ifSenktide").hide();
         };
 
         //check_no
@@ -775,3 +790,4 @@ my_widget_script =
 
 
 }
+    ;

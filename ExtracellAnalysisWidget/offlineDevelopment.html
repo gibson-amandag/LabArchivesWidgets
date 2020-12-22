@@ -142,7 +142,7 @@ init: function (mode, json_data) {
 
     //When spontaneous length changes
     $("#spontLength").change(function () {
-        if(parseInt($("#spontLength").val()) < 60){
+        if(parseFloat($("#spontLength").val()) < 60){
             $("#lengthWarning").html("<span style='color:red; font-size:18px;'>Warning: Spontaneous length is less than 60 minutes</span>");
         }else {
             $("#lengthWarning").html("");
@@ -152,7 +152,7 @@ init: function (mode, json_data) {
 
     //When senktide length changes
     $("#senktideLength").change(function () {
-        if(parseInt($("#senktideLength").val()) !== 12){
+        if(parseFloat($("#senktideLength").val()) !== 12){
             $("#senktideLengthWarning").html("<span style='color:red; font-size:18px;'>Warning: senktide length is not 12 minutes</span>");
         }else {
             $("#senktideLengthWarning").html("");
@@ -214,6 +214,16 @@ init: function (mode, json_data) {
         };
         my_widget_script.resize();
     });
+
+    //if senktide analyzed
+    $("#senktideFiringAnalysis").change(function () {
+        if($("#senktideFiringAnalysis").val() === "yes_noact" || $("#senktideFiringAnalysis").val() === "yes_act") {
+            $(".ifSenktideAnalyzed").show();
+        } else {
+            $(".ifSenktideAnalyzed").hide();
+        };
+        my_widget_script.resize();
+    })
 
     $(".check_no").change(function () {
         //alert($(this).val());
@@ -369,8 +379,13 @@ init: function (mode, json_data) {
     //if senktide added
     if($("#senktideAdded").is(":checked")) {
         $(".ifSenktide").show();
+        if($("#senktideFiringAnalysis").val() === "yes_noact" || $("#senktideFiringAnalysis").val() === "yes_act") {
+            $(".ifSenktideAnalyzed").show();
+        } else {
+            $(".ifSenktideAnalyzed").hide();
+        };
     } else {
-        $(".ifSentkide").hide();
+        $(".ifSenktide").hide();
     };
 
     //check_no
@@ -843,7 +858,7 @@ deleteRow: function (tableName) {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("view", function() {return form_script.test_data()});
+      form_script.init("edit", function() {return form_script.test_data()});
 
 
     }
@@ -913,6 +928,10 @@ Adds a scroll bar when the content is too big for the width */
     display: none;
 }
 
+.ifSenktideAnalyzed {
+    display: none;
+}
+
 .ifFiring {
     display: none;
 }
@@ -959,6 +978,13 @@ Adds a scroll bar when the content is too big for the width */
 </div>
 
 <div class="firstCol">
+    Patchmaster initial analysis file name:
+</div>
+<div class="secondCol">
+    <input id="initAnalysisName" name="initanalysisname" size="50" />
+</div>
+
+<div class="firstCol">
     Patchmaster initial analysis file saved to... 
     <br/>(select all that apply with <kbd>ctrl/cmd</kbd> or <kbd>shift</kbd>)
 </div>
@@ -971,11 +997,18 @@ Adds a scroll bar when the content is too big for the width */
 </div>
 
 <div class="firstCol">
+    Patchmaster JPSmartConc analysis file name:
+</div>
+<div class="secondCol">
+    <input id="JPSmartConcName" name="jpsmartconcname" size="50" />
+</div>
+
+<div class="firstCol">
     Patchmaster JPSmartConc "destroyed" file saved to...
     <br/>(select all that apply with <kbd>ctrl/cmd</kbd> or <kbd>shift</kbd>)
 </div>
 <div class="secondCol">
-    <select id="initAnalSave" name="initanalsave" multiple>
+    <select id="JPSmartConcSave" name="jpsmartconcsave" multiple>
         <option value="">[Select]</option>
         <option value="Server">Server</option>
         <option value="LabArchives">LabArchives</option>
@@ -994,14 +1027,22 @@ Adds a scroll bar when the content is too big for the width */
     First spontaneous series #:
 </div>
 <div class="secondCol">
-    <input id="startSpontSeries" name="startspontseries" />
+    <input id="startSpontSeries" name="startspontseries" type="number" step="1" min="1" />
 </div>
 
 <div class="firstCol">
     Last spontaneous series #:
+    <br/> (included in analysis)
 </div>
 <div class="secondCol">
-    <input id="lastSpontSeries" name="lastspontseries" />
+    <input id="lastSpontSeries" name="lastspontseries" type="number" step="1" min="1" />
+</div>
+
+<div class="firstCol">
+    End analysis at which minute of last series?
+</div>
+<div class="secondCol">
+    <input id="lastSpontSeriesMin" name="lastspontseriesmin" type="number" step="2" min="0" />
 </div>
 
 <div class="firstCol">
@@ -1142,8 +1183,9 @@ Adds a scroll bar when the content is too big for the width */
         <label for="clusterBinToExcel">JPSmartConc 120s-bin histogram copied to Excel?</label>
         <br/><select id="clusterBinToExcel" name="clusterbintoexcel" class="check_no">
             <option value="">[Select]</option>
-            <option value="no">No</option>
-            <option value="yes">Yes</option>
+            <option value="no">Not yet</option>
+            <option value="yes_noact">Yes, no/low spontaneous activity </option>
+            <option value="yes_act">Yes, spontaneous activity</option>
         </select>
     </div>
     <div>
@@ -1151,7 +1193,7 @@ Adds a scroll bar when the content is too big for the width */
         <br/><select id="clusterAnalysis" name="clusteranalysis" class="check_no">
             <option value="">[Select]</option>
             <option value="no">Not yet</option>
-            <option value="yes_noact">Yes, no/low spontaneous activity </option>
+            <option value="no_noact">No, no/low spontaneous activity </option>
             <option value="yes_act">Yes, spontaneous activity</option>
         </select>
     </div>
@@ -1200,6 +1242,15 @@ Adds a scroll bar when the content is too big for the width */
         Comments:
         <br/>
         <textarea id="senktideAnalComments" name="senktideanalcomments"></textarea>
+    </div>
+    <div>
+        <label for="senktideBurstAnalysis" class="ifSenktideAnalyzed">Completed Igor Burst Analysis?</label>
+        <br/><select id="senktideBurstAnalysis" name="senktideburstanalysis" class="ifSenktideAnalyzed check_no">
+            <option value="">[Select]</option>
+            <option value="no">Not yet</option>
+            <option value="yes_noact">Yes, no response </option>
+            <option value="yes_act">Yes, response</option>
+        </select>
     </div>
 </div>
 </div>
