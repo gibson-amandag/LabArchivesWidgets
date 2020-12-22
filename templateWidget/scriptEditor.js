@@ -589,7 +589,7 @@ my_widget_script =
                         id: col4ID,
                         name: col4ID,
                         type: "checkbox"
-                    }).change(function () {
+                    }).change(function () { //make the background color of the row grey when checked
                         if ($(this).is(":checked")) {
                             $(this).closest("tr").css("background-color", "lightgrey");
                         } else {

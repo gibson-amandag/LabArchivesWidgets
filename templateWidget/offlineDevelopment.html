@@ -647,7 +647,7 @@ createRow: function (tableName) {
                     name: col4ID,
                     type: "checkbox"
                 }).change(function () {
-                    if($(this).is(":checked")){
+                    if($(this).is(":checked")){ //make the background color of the row grey when checked
                         $(this).closest("tr").css("background-color", "lightgrey");
                     } else {
                         $(this).closest("tr").css("background-color", "");
