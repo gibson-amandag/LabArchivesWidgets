@@ -484,7 +484,7 @@ createRow: function (tableName) {
                 $('<text' + 'area></text' + 'area>', {
                     id: col6ID,
                     name: col6ID
-                })
+                }).css("margin", "5px")
             )
         )
     );
