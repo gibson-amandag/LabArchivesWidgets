@@ -15,13 +15,8 @@ my_widget_script =
         //uncomment to inspect and view code while developing
         //debugger;
 
-        $('#jQueryScript')
-            .prop("src", "https://code.jquery.com/jquery-3.5.1.min.js")
-            .prop("integrity", "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=");
-
-        $('#bootstrapJS')
-            .prop("src", "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js")
-            .prop("integrity", "sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl");
+        //Load additional scripts such as updated jQuery and Bootstrap
+        this.loadAdditionalScripts();
 
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
@@ -172,6 +167,16 @@ my_widget_script =
     },
 
     // ********************** CUSTOM METHODS USED BY INIT METHOD **********************
+    loadAdditionalScripts: function () {
+        $('#jQueryScript')
+            .prop("src", "https://code.jquery.com/jquery-3.5.1.min.js")
+            .prop("integrity", "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=");
+
+        $('#bootstrapJS')
+            .prop("src", "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js")
+            .prop("integrity", "sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl");
+    },
+    
     parseInitJson: function (json_data) {
         var jsonString;
         //check if string or function because preview test is function and page is string
