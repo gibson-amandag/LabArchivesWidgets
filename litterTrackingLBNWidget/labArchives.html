@@ -1,0 +1,571 @@
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* Add this class to a div around tables. The script will automatically change the width to match the window
+    Adds a scroll bar when the content is too big for the width */
+    .tableDiv {
+        width: 400px;
+        overflow-x: scroll;
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .blackBackground {
+        background-color: black;
+        color: white
+    }
+
+    .p2_9 {
+        display: none;
+    }
+
+    .p4_11 {
+        display: none;
+    }
+
+    .selectPara {
+        display: none;
+    }
+
+    /* .p11, .p12, .p13, .p14, .p15, .p16, .p19, .p21 */
+    .massTable {
+        display: none;
+    }
+
+    #datesList {
+        display: none;
+    }
+</style>
+
+<!-- jQuery updated for bootstrap - added in init -->
+<script id="jQueryScript" crossorigin="anonymous" type="text/javascript"></script>
+
+<!-- Bootstrap style sheets -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+
+<!-- Bootstrap JS - added in init -->
+<script id="bootstrapJS" crossorigin="anonymous"></script>
+
+<!-- ------------------------------------------------------------ -->
+<!-- TO DO Begin typing your HTML code here -->
+<div class="container">
+    <p>Elements that are required to save this page are marked with a red asterisk <span
+            style="color:red">*</span><br />
+        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
+            style="color:blue">#</span></p>
+</div>
+
+<div class="container">
+    <h3>Dam Information</h3>
+
+    <div class="row align-items-end">
+        <div class="myLeftCol">Dam ID: </div>
+        <!-- myLeftCol adds additional classes in init function-->
+
+        <div class="col"><input id="damID" name="damid" class="needForTable" required /></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Dam Strain :</div>
+
+        <div class="col"><input id="damStrain" name="damstrain" required /></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">DOB (parturition): </div>
+
+        <div class="col"><input type="date" id="DOB" name="dob" /></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Cage Number: </div>
+
+        <div class="col"><input type="number" id="cageNum" name="cagenum" /></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Treatment: </div>
+
+        <div class="col">
+            <select id="treatment" name="treatment">
+                <option value=''>[Select]</option>
+                <option value='CON'>Control</option>
+                <option value='LBN'>LBN</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Treatment Period: </div>
+
+        <div class="col">
+            <select id="treatmentPeriod" name="treatmentperiod">
+                <option value=''>[Select]</option>
+                <option value='p2_9'>P2-P9</option>
+                <option value='p4_11'>P4-P11</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Sacrificed or Stopped: </div>
+
+        <div class="col">
+            <input id="sacOrStop" name="sacorstop" type="date" />
+        </div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Comment on sac/stop: </div>
+
+        <div class="col">
+            <textarea id="sacStopComment" name="sacstopcomment"></textarea>
+        </div>
+    </div>
+</div>
+
+<!-- Form if P2-P9 -->
+<div class="p2_9">
+    <div class="container mt-2">
+        This is the P2-P9 div
+    </div>
+</div>
+
+<!-- Form if P4-P11 -->
+<div class="p4_11">
+    <div class="container mt-2">
+        <div class="row">
+            <div class="myLeftCol">Show PND Dates: </div>
+            <div class="col"><input id="showDatesP4" name="showdatesp4" type="checkbox" /></div>
+        </div>
+        <div class="container" id="datesList">
+            <div class="row">
+                <div class="col-6 col-md-4"><strong>PND 4: </strong><span class="pnd4">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 11: </strong><span class="pnd11">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 12: </strong><span class="pnd12">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 13: </strong><span class="pnd13">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 14: </strong><span class="pnd14">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 15: </strong><span class="pnd15">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 16: </strong><span class="pnd16">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 19: </strong><span class="pnd19">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 21: </strong><span class="pnd21">&nbsp;</span></div>
+            </div>
+        </div>
+        <!-- header -->
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol">PND 4: </div>
+
+            <div class="col pnd4">&nbsp;</div>
+        </div>
+
+        <!-- Dam Mass -->
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Dam Mass: </div>
+
+            <div class="col"><input type="number" id="damMassP4" name="dam_mass_p4" /></div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col"><em>Enter the total mass after adding each pup individually</em></div>
+        </div>
+
+        <!-- Add/remove pup buttons -->
+        <div class="row mt-2">
+            <div class="myLeftCol"><input type="button" id="addPupP4" name="add_pup_p4" value="Add Pup" /></div>
+            <div class="col"><input type="button" id="removePupP4" name="remove_pup_p4" value="Remove Last Pup" /></div>
+        </div>
+
+        <!-- Offspring Mass Table -->
+        <div class="row mt-2">
+            <div class="myLeftCol"></div>
+            <div class="col">
+                <table id="offspringMassP4">
+                    <thead>
+                        <th>Total (g)</th>
+                        <th>Individual (g)</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Number of pups - calculated -->
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Number of pups: </div>
+
+            <div class="col" id="numPupsP4">&nbsp;</div>
+        </div>
+
+        <!-- Avg Pup Mass - calculated -->
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Average Pup Mass: </div>
+
+            <div class="col" id="avgMassP4">&nbsp;</div>
+        </div>
+
+        <!-- Video Monitoring -->
+        <div class="mt-4">
+            <h4>Video Monitoring</h4>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Camera: </div>
+
+            <div class="col"><input id="cameraP4" name="camera_p4" /></div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Monitoring Start Date: </div>
+
+            <div class="col"><input type="date" id="monitorStartDateP4" name="monitor_startdate_p4" /></div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Monitoring Start Time: </div>
+
+            <div class="col"><input type="time" id="monitorStartTimeP4" name="monitor_starttime_p4" /></div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Monitoring End Date: </div>
+
+            <div class="col"><input type="date" id="monitorEndDateP4" name="monitor_enddate_p4" /></div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Monitoring End Time: </div>
+
+            <div class="col"><input type="time" id="monitorEndTimeP4" name="monitor_endtime_p4" /></div>
+        </div>
+    </div>
+
+    <!-- Post-paradigm -->
+    <div class="container mt-4">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol">PND 11: </div>
+
+            <div class="col pnd11">&nbsp;</div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Dam Mass: </div>
+
+            <div class="col"><input type="number" id="damMassP11" name="dam_mass_p11" /></div>
+        </div>
+
+        <!-- Add/remove pup buttons -->
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol"><input type="button" id="addPupP11" name="add_pup_p11" value="Add Pup" /></div>
+            <div class="col"><input type="button" id="removePupP11" name="remove_pup_p11" value="Remove Last Pup" />
+            </div>
+        </div>
+
+        <!-- Offspring Demographic Info -->
+        <div class="container mt-2">
+            <div class="tableDiv hideView">
+                <table id="offspringDemoP11">
+                    <thead>
+                        <th>Tail</th>
+                        <th>Ear Tag</th>
+                        <th>Sex</th>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="row align-items-end mt-2">
+                <div class="myLeftCol">Number of pups: </div>
+
+                <div class="col" id="numPupsP11">&nbsp;</div>
+            </div>
+        </div>
+
+        <!-- Select Mass Tables -->
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Select Mass Day: </div>
+            <div class="col">
+                <select id="massDayP4_11" name="massday_p4_11">
+                    <option value="demo">Demographics</option>
+                    <option value="p11">P11</option>
+                    <option value="p12">P12</option>
+                    <option value="p13">P13</option>
+                    <option value="p14">P14</option>
+                    <option value="p15">P15</option>
+                    <option value="p16">P16</option>
+                    <option value="p19">P19</option>
+                    <option value="p21">P21</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="container mt-2">
+            <!-- Just Demographics -->
+            <div class="tableDiv demo massTable">
+                <table id="offspringDemoP11_nice">
+                    <thead>
+                        <th>Tail</th>
+                        <th>Mouse_ID</th>
+                        <th>Sex</th>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- PND 11 -->
+            <div class="tableDiv p11 massTable hideView">
+                <table id="offspringMassP11">
+                    <thead>
+                        <th>Tail</th>
+                        <th>ID</th>
+                        <th>Sex</th>
+                        <th>Mass</th>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- PND 12 -->
+            <div class="massTable p12  hideView">
+                <div class="row align-items-end mt-2 blackBackground">
+                    <div class="myLeftCol">PND 12: </div>
+
+                    <div class="col pnd12">&nbsp;</div>
+                </div>
+
+                <div class="tableDiv mt-2 hideView">
+                    <table id="offspringMassP12">
+                        <thead>
+                            <th>Tail</th>
+                            <th>ID</th>
+                            <th>Sex</th>
+                            <th>Mass</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <!-- PND 13 -->
+            <div class="massTable p13  hideView">
+                <div class="row align-items-end mt-2 blackBackground">
+                    <div class="myLeftCol">PND 13: </div>
+
+                    <div class="col pnd13">&nbsp;</div>
+                </div>
+
+                <div class="tableDiv mt-2">
+                    <table id="offspringMassP13">
+                        <thead>
+                            <th>Tail</th>
+                            <th>ID</th>
+                            <th>Sex</th>
+                            <th>Mass</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PND 14 -->
+            <div class="massTable p14  hideView">
+                <div class="row align-items-end mt-2 blackBackground">
+                    <div class="myLeftCol">PND 14: </div>
+
+                    <div class="col pnd14">&nbsp;</div>
+                </div>
+
+                <div class="tableDiv mt-2">
+                    <table id="offspringMassP14">
+                        <thead>
+                            <th>Tail</th>
+                            <th>ID</th>
+                            <th>Sex</th>
+                            <th>Mass</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PND 15 -->
+            <div class="massTable p15 hideView">
+                <div class="row align-items-end mt-2 blackBackground">
+                    <div class="myLeftCol">PND 15: </div>
+
+                    <div class="col pnd15">&nbsp;</div>
+                </div>
+
+                <div class="tableDiv mt-2">
+                    <table id="offspringMassP15">
+                        <thead>
+                            <th>Tail</th>
+                            <th>ID</th>
+                            <th>Sex</th>
+                            <th>Mass</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PND 16 -->
+            <div class="massTable p16 hideView">
+                <div class="row align-items-end mt-2 blackBackground">
+                    <div class="myLeftCol">PND 16: </div>
+
+                    <div class="col pnd16">&nbsp;</div>
+                </div>
+
+                <div class="tableDiv mt-2">
+                    <table id="offspringMassP16">
+                        <thead>
+                            <th>Tail</th>
+                            <th>ID</th>
+                            <th>Sex</th>
+                            <th>Mass</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PND 19 -->
+            <div class="massTable p19 hideView">
+                <div class="row align-items-end mt-2 blackBackground">
+                    <div class="myLeftCol">PND 19: </div>
+
+                    <div class="col pnd19">&nbsp;</div>
+                </div>
+
+                <div class="tableDiv mt-2">
+                    <table id="offspringMassP19">
+                        <thead>
+                            <th>Tail</th>
+                            <th>ID</th>
+                            <th>Sex</th>
+                            <th>Mass</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PND 21 -->
+            <div>
+                <div class="row align-items-end mt-2 blackBackground">
+                    <div class="myLeftCol">PND 21: </div>
+
+                    <div class="col pnd21">&nbsp;</div>
+                </div>
+
+                <div class="row align-items-end mt-2">
+                    <div class="myLeftCol">Dam Mass: </div>
+
+                    <div class="col"><input type="number" id="damMassP21" name="dam_mass_p21" /></div>
+                </div>
+            </div>
+
+            <div class="massTable p21  hideView">
+                <div class="tableDiv mt-2">
+                    <table id="offspringMassP21">
+                        <thead>
+                            <th>Tail</th>
+                            <th>ID</th>
+                            <th>Sex</th>
+                            <th>Mass</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="container tableDiv mt-2">
+
+    </div>
+</div>
+
+<div class="container mt-2 selectPara">
+    <div class="row mt-2">
+        <h3 class="col">Offspring Mass Output Table</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="col col-lg-3"><input id="toggleTable" name="toggletable" type="button" value="Show/Hide Table" />
+        </div>
+
+        <div class="col col-lg-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV" /></div>
+
+        <div class="col col-lg-3">
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" />
+            <br/>Copy Head? <input id="copyHead" name="copyhead" type="checkbox" />
+        </div>
+    </div>
+</div>
+
+<div class="container" id="errorMsg">&nbsp;</div>
+
+<div class="container tableDiv mt-2" id="offspringMassOutDiv" style="display:none">
+    <table id="offspringMassOutTable_p4_11" class="p4_11">
+        <thead>
+            <tr>
+                <th>Mouse_ID</th>
+                <th>ParaType</th>
+                <th>Mass_P9</th>
+                <th>Mass_P10</th>
+                <th>Mass_P11</th>
+                <th>Mass_P12</th>
+                <th>Mass_P13</th>
+                <th>Mass_P14</th>
+                <th>Mass_P15</th>
+                <th>Mass_P16</th>
+                <th>Mass_P17</th>
+                <th>Mass_P19</th>
+                <th>Mass_P21</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <table id="offspringMassOutTable_p2_9" class="p2_9">
+        <thead>
+            <tr>
+                <th>Mouse_ID</th>
+                <th>ParaType</th>
+                <th>Mass_P9</th>
+                <th>Mass_P10</th>
+                <th>Mass_P11</th>
+                <th>Mass_P12</th>
+                <th>Mass_P13</th>
+                <th>Mass_P14</th>
+                <th>Mass_P15</th>
+                <th>Mass_P16</th>
+                <th>Mass_P17</th>
+                <th>Mass_P19</th>
+                <th>Mass_P21</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <div id="forCopy"></div>
+    <p>&nbsp;</p>
+</div>

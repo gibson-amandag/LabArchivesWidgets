@@ -1,61 +1,4 @@
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<!-- START:stylesheet
--->
-
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/stylesheets/labarchive.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery-ui.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/themes/base/ui.all.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/chosen/chosen.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/css/jquery.dataTables_themeroller.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/css/TableTools.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/css/ColVis.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.css">
-          <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-1.7.2.min.js"></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-ui-1.9.1.custom.min.js"></script>
-                    <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/populate/jquery.populate.pack.js" defer="defer"></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/numeric/jquery.numeric.js" defer="defer"></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.js" defer="defer"></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/daepark-postmessage/postmessage.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/widget_proxy.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/parent_form_script.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/database_form_script.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/js/jquery.dataTables.min.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/TableTools.min.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/ZeroClipboard.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/js/ColVis.min.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColResize/ColReorderWithResize.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/chosen/chosen.jquery_modified.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/autoresize/jquery.autoresize.min.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/freezerbox_form_script.js" ></script>
-    
-<title></title>
-</head>
-<body>
-<script>
-var form_script = null;
-try {
-$(document).ready(function () {
-      
-      
-      // Create window var to store the locale for the datepicker
-      window.datepicker_locale = '';
-//***************************************************************************
-//***************************************************************************
-//***************************************************************************
-//place your javascript code below and when you have it the way you want it
-//just paste it into the LA Dev tool
-//***************************************************************************
-//***************************************************************************
-//***************************************************************************
-      form_script = my_widget_script =
+my_widget_script =
 {
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
@@ -116,7 +59,7 @@ $(document).ready(function () {
 
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
-        var output = { widgetData: JSON.parse(widgetJsonString), numPupsP4: dynamicContent.numPupsP4, numPupsP11: dynamicContent.numPupsP11, tailMarks: dynamicContent.tailMarks};
+        var output = { widgetData: JSON.parse(widgetJsonString), numPupsP4: dynamicContent.numPupsP4, numPupsP11: dynamicContent.numPupsP11, tailMarks: dynamicContent.tailMarks };
 
         //uncomment to check stringified output
         //console.log("to JSON", JSON.stringify(output));
@@ -158,7 +101,7 @@ $(document).ready(function () {
         var tailMarks = [];
         tailMarks[0] = "<span style='color:blue'>Test</span>"
         tailMarks[1] = "<span style='color:red'>Test2</span>"
-        
+
         var output = { widgetData: testData, numPupsP4: 2, numPupsP11: 2, tailMarks: tailMarks }
         //return the stringified output for use by the init function
         return JSON.stringify(output);
@@ -300,7 +243,7 @@ $(document).ready(function () {
             $(".hideView").hide();
             $(".massTable.demo").show();
             $("#offspringDemoP11").hide();
-            if($("#treatmentPeriod").val()) {$("#offspringMassOutDiv").show();}
+            if ($("#treatmentPeriod").val()) { $("#offspringMassOutDiv").show(); }
         }
     },
 
@@ -311,7 +254,7 @@ $(document).ready(function () {
     addEventListeners: function () {
         //When DamID changes, update pup IDs
         $("#damID").on("input", function () {
-            for (var i=0; i < my_widget_script.countPups($("#offspringDemoP11")); i++){
+            for (var i = 0; i < my_widget_script.countPups($("#offspringDemoP11")); i++) {
                 var rowCount = i + 1;
                 var whichPara = "p4_11"
 
@@ -342,19 +285,19 @@ $(document).ready(function () {
         $('#toCSV').on("click", function () {
             var whichPara = $("#treatmentPeriod").val();
 
-            if(whichPara){ 
+            if (whichPara) {
                 var data_valid = my_widget_script.data_valid_form();
                 //alert(data_valid);
                 if (data_valid) {
-                    if(whichPara === "p4_11"){
+                    if (whichPara === "p4_11") {
                         my_widget_script.exportTableToCSV("massOffspring", "offspringMassOutTable_p4_11");
-                    } else if(whichPara === "p2_9"){
+                    } else if (whichPara === "p2_9") {
                         my_widget_script.exportTableToCSV("massOffspring", "offspringMassOutTable_p2_9");
                     }
-                    $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Saved successfully</span>")               
+                    $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Saved successfully</span>")
                 } else {
                     $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Did not export</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
-                }    
+                }
             } else { //if have not selected paradigm - shouldn't happen since buttons are hidden now
                 $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please select a treatment period</span>");
             }
@@ -366,32 +309,32 @@ $(document).ready(function () {
             var copyHead
 
             //only copy the heading when the input box is checked
-            if($("#copyHead").is(":checked")) {
+            if ($("#copyHead").is(":checked")) {
                 copyHead = true;
             } else {
                 copyHead = false;
             }
 
-            if(whichPara){ 
+            if (whichPara) {
                 var data_valid = my_widget_script.data_valid_form();
                 //alert(data_valid);
                 if (data_valid) {
                     my_widget_script.resize();
                     $("#offspringMassOutDiv").show();
-                    if(whichPara === "p4_11"){
+                    if (whichPara === "p4_11") {
                         my_widget_script.copyTable($("#offspringMassOutTable_p4_11"), copyHead);
-                    } else if(whichPara === "p2_9"){
+                    } else if (whichPara === "p2_9") {
                         my_widget_script.copyTable($("#offspringMassOutTable_p2_9"), copyHead);
                     }
-                    $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Copied successfully</span>")               
+                    $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Copied successfully</span>")
                 } else {
                     $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
                 }
             } else { //if have not selected paradigm - Note, this shouldn't happen given that the buttons are now hidden
                 $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please select a treatment period</span>");
-                
+
             }
-            
+
         });
 
         $("#DOB").on("input", function () {
@@ -405,7 +348,7 @@ $(document).ready(function () {
         });
 
         $("#showDatesP4").on("change", function () {
-            if($(this).is(":checked")) {
+            if ($(this).is(":checked")) {
                 $("#datesList").show();
             } else {
                 $("#datesList").hide();
@@ -426,7 +369,7 @@ $(document).ready(function () {
             my_widget_script.resize();
         });
 
-        $("#removePupP4").on("click", function() {
+        $("#removePupP4").on("click", function () {
             var $table = $("#offspringMassP4");
             var $avgMass = $("#avgMassP4");
             var $numPups = $("#numPupsP4");
@@ -434,7 +377,7 @@ $(document).ready(function () {
             //var whichPara = "p4_11";
 
             my_widget_script.deleteRow($table);
-            
+
             my_widget_script.offspringCalculations($table, $numPups, $avgMass, whichPara);
             my_widget_script.resize();
         });
@@ -455,7 +398,7 @@ $(document).ready(function () {
             my_widget_script.resize();
         });
 
-        $("#removePupP11").on("click", function() {
+        $("#removePupP11").on("click", function () {
             var $tableDemo = $("#offspringDemoP11");
             var $numPups = $("#numPupsP11");
             var whichPara = $("#treatmentPeriod").val();
@@ -464,7 +407,7 @@ $(document).ready(function () {
             my_widget_script.deleteRow($tableDemo);
 
             my_widget_script.deleteRows_allMassTables(whichPara);
-            
+
             //Count Pups
             var numberPupsP11 = my_widget_script.countPups($tableDemo);
             $numPups.text(numberPupsP11);
@@ -508,31 +451,31 @@ $(document).ready(function () {
         $('.myLeftCol').addClass("col-6 col-md-4 col-lg-3 col-xl-2 text-right");
 
         //Print PND dates
-        if($("#DOB").val()) {
+        if ($("#DOB").val()) {
             my_widget_script.printPND_days();
         }
 
         //Show/hide based on treatment period
         my_widget_script.switchTreatmentPeriod($("#treatmentPeriod").val());
-        
+
         //Calculate the individual masses at paradigm start
         $(".totalMass").each(function () {
             var $totalMass = $(this);
             my_widget_script.getIndividualMass($totalMass);
         });
-        
+
         //Calculate number of pups and avg mass from P4 paradigm start
         my_widget_script.offspringCalculations($("#offspringMassP4"), $("#numPupsP4"), $("#avgMassP4"), "p4_11");
 
-        if($("#showDatesP4").is(":checked")) {
+        if ($("#showDatesP4").is(":checked")) {
             $("#datesList").show();
-        } else {$("#datesList").hide();}
+        } else { $("#datesList").hide(); }
 
         my_widget_script.switchMassTable($("#massDayP4_11").val());
 
         var numPupsP11 = my_widget_script.countPups($("#offspringDemoP11"));
 
-        for (var i=0; i < numPupsP11; i++){
+        for (var i = 0; i < numPupsP11; i++) {
             var rowCount = i + 1;
             var whichPara = "p4_11";
 
@@ -558,19 +501,19 @@ $(document).ready(function () {
             //initialize output table
             var output = my_widget_script.calcForOutputTable(whichPara, rowCount);
             console.log("Mass Vals: " + output.massVals + "\nLength: " + output.massVals.length);
-            for(var j=0; j < output.massVals.length; j++) {
+            for (var j = 0; j < output.massVals.length; j++) {
                 var massCalcClass = "." + output.massCalcClasses[j];
                 var massVal = output.massVals[j];
 
                 console.log(
-                    "Mass Class: " + massCalcClass + 
+                    "Mass Class: " + massCalcClass +
                     "\n Mass Value: " + massVal
                 );
 
                 $(massCalcClass).text(massVal);
             }
         }
-        
+
         my_widget_script.resize();
     },
 
@@ -595,7 +538,7 @@ $(document).ready(function () {
     getDynamicContent: function () {
         // These should be simple variables, such as true/false, a number, or a state
         // This cannot be something complex like a full <div>
-                
+
         var numPupsP4 = my_widget_script.countPups($("#offspringMassP4"));
         var numPupsP11 = my_widget_script.countPups($("#offspringDemoP11"));
         var tailMarks = [];
@@ -608,7 +551,7 @@ $(document).ready(function () {
             tailMarks[i] = tailMarkText;
         }
 
-        var dynamicContent = {numPupsP4: numPupsP4, numPupsP11: numPupsP11, tailMarks: tailMarks}
+        var dynamicContent = { numPupsP4: numPupsP4, numPupsP11: numPupsP11, tailMarks: tailMarks }
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -646,7 +589,7 @@ $(document).ready(function () {
         return valid;
     },
 
-    switchTreatmentPeriod: function (selectionVal){
+    switchTreatmentPeriod: function (selectionVal) {
         switch (selectionVal) {
             case '':
                 $(".p2_9").hide();
@@ -667,7 +610,7 @@ $(document).ready(function () {
     },
 
     switchMassTable: function (selectionVal) {
-        switch(selectionVal) {
+        switch (selectionVal) {
             case "demo":
                 $(".massTable.demo").show();
                 $(".massTable:not(.demo)").hide();
@@ -793,7 +736,7 @@ $(document).ready(function () {
         //create a temporary text area
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
         var addLine = "";
-        if(copyHead){
+        if (copyHead) {
             $table.find("thead").children("tr").each(function () { //add each child of the row
                 var addTab = "";
                 $(this).children().each(function () {
@@ -922,7 +865,7 @@ $(document).ready(function () {
 
         $table.find("tbody").append(
             $('<tr></tr>', { //add a new row
-                "class": rowClasses 
+                "class": rowClasses
             }).append(
                 $('<td></td>').append( //append a new td to the row
                     $('<input/>', { //append a new input to the td
@@ -990,7 +933,7 @@ $(document).ready(function () {
                         "<option value='66'>66</option>",
                         "<option value='46'>46</option>",
                         "<option value='64'>64</option>",
-                    ).on("input", function (){
+                    ).on("input", function () {
                         $(col2CalcClass).text(
                             $("#damID").val() + "_" + $(this).val()
                         )
@@ -1006,7 +949,7 @@ $(document).ready(function () {
                         "<option value=''>[Select]</option>",
                         "<option value='F'>Female</option>",
                         "<option value='M'>Male</option>"
-                    ).on("change", function() {
+                    ).on("change", function () {
                         $(col3CalcClass).text(
                             $(this).val()
                         )
@@ -1034,13 +977,13 @@ $(document).ready(function () {
         var massCalcClass = ".massCalc_" + whichDay + "_" + whichPara + "_" + rowCount;
 
         var dropMassCol = false;
-        if($table.find("th").length === 3){
+        if ($table.find("th").length === 3) {
             dropMassCol = true;
         }
 
         $table.find("tbody").append(
             $('<tr></tr>', { //add a new row
-                "class": rowClasses 
+                "class": rowClasses
             }).append(
                 $('<td></td>', {
                     "class": col1CalcClass
@@ -1072,8 +1015,8 @@ $(document).ready(function () {
             )
         );
 
-        if(dropMassCol){
-            $table.find("#"+col4ID).parent().remove();
+        if (dropMassCol) {
+            $table.find("#" + col4ID).parent().remove();
         }
 
         //resize the container
@@ -1084,10 +1027,10 @@ $(document).ready(function () {
         var rowCount = $table.find("tbody tr").length + 1;
 
         var output = my_widget_script.calcForOutputTable(whichPara, rowCount);
-        
+
         $table.find("tbody").append(
             $('<tr></tr>', { //add a new row
-                "class": output.rowClasses 
+                "class": output.rowClasses
             }).append( //Mouse_ID
                 $('<td></td>', {
                     "class": output.col2CalcClass
@@ -1177,18 +1120,18 @@ $(document).ready(function () {
     calcForOutputTable: function (whichPara, rowCount) {
         var rowClass = "Row_" + rowCount;
         var rowClasses = "offMassRow " + rowClass;
-        
+
         var rowClassWDot = "." + rowClass;
 
         var paraType
-        
+
         switch (whichPara) {
             case "p2_9":
                 paraType = 2;
                 break;
             case "p4_11":
                 paraType = 4;
-                break        
+                break
             default:
                 paraType = "NA";
                 break;
@@ -1201,9 +1144,9 @@ $(document).ready(function () {
         var massIDs = [];
         var massVals = [];
         var massCalcClasses = [];
-        for (var i=0; i < massDays.length; i++) {
+        for (var i = 0; i < massDays.length; i++) {
             var massID = "#mass_" + massDays[i] + "_" + whichPara + "_" + rowCount;
-            
+
             var massVal, massCalcClass
             if ($(massID)) {
                 massCalcClass = "massCalc_" + massDays[i] + "_" + whichPara + "_" + rowCount;
@@ -1211,7 +1154,7 @@ $(document).ready(function () {
                 massCalcClass = ""
             }
 
-            if($(massID).val()) {
+            if ($(massID).val()) {
                 massVal = parseFloat($(massID).val()).toFixed(1);
             } else {
                 massVal = "NA";
@@ -1227,41 +1170,41 @@ $(document).ready(function () {
             rowClasses: rowClasses,
             rowClassWDot: rowClassWDot,
             paraType: paraType,
-            col2CalcClass: col2CalcClass, 
+            col2CalcClass: col2CalcClass,
             paraTypeClass: paraTypeClass,
-            massIDs: massIDs, 
-            massVals: massVals, 
+            massIDs: massIDs,
+            massVals: massVals,
             massCalcClasses: massCalcClasses
         };
         return output;
     },
 
     createRows_allMassTables: function (whichPara) {
-        if(whichPara === "p4_11"){
+        if (whichPara === "p4_11") {
             var massTables = [$("#offspringDemoP11_nice"), $("#offspringMassP11"), $("#offspringMassP12"), $("#offspringMassP13"), $("#offspringMassP14"), $("#offspringMassP15"), $("#offspringMassP16"), $("#offspringMassP19"), $("#offspringMassP21")];
             var massDays = ["demo", "p11", "p12", "p13", "p14", "p15", "p16", "p19", "p21"];
-        } else if(whichPara === "p2_11"){ //to do add dates for P2-P9
+        } else if (whichPara === "p2_11") { //to do add dates for P2-P9
             var massTables = [];
             var massDays = [];
             //var massTables = [$("#offspringMassP11"), $("#offspringMassP12"), $("#offspringMassP13"), $("#offspringMassP14"), $("#offspringMassP15"), $("#offspringMassP16"), $("#offspringMassP19"), $("#offspringMassP21")];
             //var massDays = ["p11", "p12", "p13", "p14", "p15", "p16", "p19", "p21"];
         }
-        
-        if (massDays){
+
+        if (massDays) {
             for (var i = 0; i < massDays.length; i++) {
-            var $table = massTables[i];
-            var whichDay = massDays[i];
-            my_widget_script.createRow_massTable($table, whichPara, whichDay);
-        }
+                var $table = massTables[i];
+                var whichDay = massDays[i];
+                my_widget_script.createRow_massTable($table, whichPara, whichDay);
+            }
         }
 
         //Create row in summary table
-        if (whichPara === "p4_11"){
+        if (whichPara === "p4_11") {
             my_widget_script.createRow_summaryMassTable($("#offspringMassOutTable_p4_11"), whichPara);
-        } else if (whichPara = "p2_9"){
+        } else if (whichPara = "p2_9") {
             my_widget_script.createRow_summaryMassTable($("#offspringMassOutTable_p2_9"), whichPara);
         }
-        
+
     },
 
     /* -----------------------------------------------------------------------------
@@ -1278,7 +1221,7 @@ $(document).ready(function () {
     },
 
     deleteRows_allMassTables: function (whichPara) {
-        if(whichPara === "p4_11") {
+        if (whichPara === "p4_11") {
             var massTables = [$("#offspringDemoP11_nice"), $("#offspringMassP11"), $("#offspringMassP12"), $("#offspringMassP13"), $("#offspringMassP14"), $("#offspringMassP15"), $("#offspringMassP16"), $("#offspringMassP19"), $("#offspringMassP21")];
             //Delete from summary table
             my_widget_script.deleteRow($("#offspringMassOutTable_p4_11"));
@@ -1302,7 +1245,7 @@ $(document).ready(function () {
         //Get the total mass from this row
         var currentTotal = parseFloat($totalMass.val());
 
-        if(!prevTotal) { // if the previous total is NaN
+        if (!prevTotal) { // if the previous total is NaN
             //use this total
             $totalMass.parent().next(".individualMass").text(currentTotal.toFixed(1));
         } else {
@@ -1321,13 +1264,13 @@ $(document).ready(function () {
     getAvgMass: function ($table, whichPara) {
         var totalMass;
         var numberPups = my_widget_script.countPups($table);
-        
+
         var lastMassID = "#total_mass_" + whichPara + "_" + numberPups;
         var $lastTotalMass = $(lastMassID);
 
-        if($lastTotalMass.val()) {
+        if ($lastTotalMass.val()) {
             totalMass = parseFloat($lastTotalMass.val())
-        } else {totalmass = "NaN"}
+        } else { totalmass = "NaN" }
 
         //This was having problems with anything but the last value changed
         //Should double check that new doesn't cause errors with LabArchives, though
@@ -1335,10 +1278,10 @@ $(document).ready(function () {
         // var lastTotalMassEl = document.getElementById("total_mass_" + whichPara + "_" + numberPups);
 
         // if(lastTotalMassEl) {
-      	//     totalMass = parseFloat(lastTotalMassEl.value);
+        //     totalMass = parseFloat(lastTotalMassEl.value);
         // } else {totalMass = NaN;}
 
-        var avgMass = totalMass/numberPups;
+        var avgMass = totalMass / numberPups;
         return avgMass.toFixed(2);
     },
 
@@ -1353,609 +1296,3 @@ $(document).ready(function () {
     }
 
 };
-
-//**************************************************************************
-//End of your code
-//**************************************************************************
-//**************************************************************************
-      //the parent class functionality is added to your class below.
-      form_script.parent_class = parent_form_script;
-      //**************************************************************************
-      //**************************************************************************
-      //call to the init function in your script.  Note that you can change the mode in the call here.
-      //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("view", function() {return form_script.test_data()});
-
-
-    }
-)
-
-}
-catch (e) {
-
-}
-
-parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:20-05:00","last_modified_at":"2020-12-29T13:56:20-05:00","last_modified_by":"Amanda Gibson","owned_by":"unknown"};
-
-</script>
-<form id="the_form" style="display:table">
-<!------------------------------------------------------------------------------------------>
-<!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
-<!------------------------------------------------------------------------------------------>
-<style type="text/css">
-    /* TO DO Place css styling code here */
-
-    /* Add this class to a div around tables. The script will automatically change the width to match the window
-    Adds a scroll bar when the content is too big for the width */
-    .tableDiv {
-        width: 400px;
-        overflow-x: scroll;
-    }
-
-    table {
-        border: 2px solid black;
-    }
-
-    th {
-        padding: 5px;
-        border: 2px solid black;
-    }
-
-    td {
-        padding: 5px;
-        border: 1px solid black;
-    }
-
-    .blackBackground {
-        background-color: black;
-        color: white
-    }
-
-    .p2_9 {
-        display: none;
-    }
-
-    .p4_11 {
-        display: none;
-    }
-
-    .selectPara {
-        display: none;
-    }
-
-    /* .p11, .p12, .p13, .p14, .p15, .p16, .p19, .p21 */
-    .massTable {
-        display: none; 
-    }
-
-    #datesList {
-        display: none;
-    }
-</style>
-
-<!-- jQuery updated for bootstrap - added in init -->
-<script id="jQueryScript" crossorigin="anonymous" type="text/javascript"></script>
-
-<!-- Bootstrap style sheets -->
-<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
-
-<!-- Bootstrap JS - added in init -->
-<script id="bootstrapJS" crossorigin="anonymous"></script>
-
-<!-- ------------------------------------------------------------ -->
-<!-- TO DO Begin typing your HTML code here -->
-<div class="container">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
-        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-            style="color:blue">#</span></p>
-</div>
-
-<div class="container">
-    <h3>Dam Information</h3>
-
-    <div class="row align-items-end">
-        <div class="myLeftCol">Dam ID: </div>
-        <!-- myLeftCol adds additional classes in init function-->
-
-        <div class="col"><input id="damID" name="damid" class="needForTable" required /></div>
-    </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol">Dam Strain :</div>
-
-        <div class="col"><input id="damStrain" name="damstrain" required /></div>
-    </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol">DOB (parturition): </div>
-
-        <div class="col"><input type="date" id="DOB" name="dob" /></div>
-    </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol">Cage Number: </div>
-
-        <div class="col"><input type="number" id="cageNum" name="cagenum" /></div>
-    </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol">Treatment: </div>
-
-        <div class="col">
-            <select id="treatment" name="treatment">
-                <option value=''>[Select]</option>
-                <option value='CON'>Control</option>
-                <option value='LBN'>LBN</option>
-            </select>  
-        </div>
-    </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol">Treatment Period: </div>
-
-        <div class="col">
-            <select id="treatmentPeriod" name="treatmentperiod">
-                <option value=''>[Select]</option>
-                <option value='p2_9'>P2-P9</option>
-                <option value='p4_11'>P4-P11</option>
-            </select>  
-        </div>
-    </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol">Sacrificed or Stopped: </div>
-
-        <div class="col">
-            <input id="sacOrStop" name="sacorstop" type="date"/>
-        </div>
-    </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol">Comment on sac/stop: </div>
-
-        <div class="col">
-            <textarea id="sacStopComment" name="sacstopcomment"></textarea>
-        </div>
-    </div>
-</div>
-
-<!-- Form if P2-P9 -->
-<div class="p2_9">
-    <div class="container mt-2">
-        This is the P2-P9 div
-    </div>
-</div>
-
-<!-- Form if P4-P11 -->
-<div class="p4_11">
-    <div class="container mt-2">
-        <div class="row">
-            <div class="myLeftCol">Show PND Dates: </div>
-            <div class="col"><input id="showDatesP4" name="showdatesp4" type="checkbox"/></div>
-        </div>
-        <div class="container" id="datesList">
-            <div class="row">
-                <div class="col-6 col-md-4"><strong>PND 4: </strong><span class="pnd4">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 11: </strong><span class="pnd11">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 12: </strong><span class="pnd12">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 13: </strong><span class="pnd13">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 14: </strong><span class="pnd14">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 15: </strong><span class="pnd15">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 16: </strong><span class="pnd16">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 19: </strong><span class="pnd19">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 21: </strong><span class="pnd21">&nbsp;</span></div>
-            </div>
-        </div>
-        <!-- header -->
-        <div class="row align-items-end mt-2 blackBackground">
-            <div class="myLeftCol">PND 4: </div>
-    
-            <div class="col pnd4">&nbsp;</div>
-        </div>
-
-        <!-- Dam Mass -->
-        <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Dam Mass: </div>
-    
-            <div class="col"><input type="number" id="damMassP4" name="dam_mass_p4" /></div>
-        </div>
-
-        <div class="row mt-2">
-            <div class="col"><em>Enter the total mass after adding each pup individually</em></div>
-        </div>
-
-        <!-- Add/remove pup buttons -->
-        <div class="row mt-2">
-            <div class="myLeftCol"><input type="button" id="addPupP4" name="add_pup_p4" value="Add Pup"/></div>
-            <div class="col"><input type="button" id="removePupP4" name="remove_pup_p4" value="Remove Last Pup"/></div>
-        </div>
-
-        <!-- Offspring Mass Table -->
-        <div class="row mt-2">
-            <div class="myLeftCol"></div>
-            <div class="col">
-                <table id="offspringMassP4">
-                    <thead>
-                        <th>Total (g)</th>
-                        <th>Individual (g)</th>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Number of pups - calculated -->
-        <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Number of pups: </div>
-    
-            <div class="col" id="numPupsP4">&nbsp;</div>
-        </div>
-
-        <!-- Avg Pup Mass - calculated -->
-        <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Average Pup Mass: </div>
-    
-            <div class="col" id="avgMassP4">&nbsp;</div>
-        </div>
-
-        <!-- Video Monitoring -->
-        <div class="mt-4">
-            <h4>Video Monitoring</h4>
-        </div>
-        
-        <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Camera: </div>
-    
-            <div class="col"><input id="cameraP4" name="camera_p4" /></div>
-        </div>
-
-        <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Monitoring Start Date: </div>
-    
-            <div class="col"><input type="date" id="monitorStartDateP4" name="monitor_startdate_p4" /></div>
-        </div>
-
-        <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Monitoring Start Time: </div>
-    
-            <div class="col"><input type="time" id="monitorStartTimeP4" name="monitor_starttime_p4" /></div>
-        </div>
-
-        <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Monitoring End Date: </div>
-    
-            <div class="col"><input type="date" id="monitorEndDateP4" name="monitor_enddate_p4" /></div>
-        </div>
-
-        <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Monitoring End Time: </div>
-    
-            <div class="col"><input type="time" id="monitorEndTimeP4" name="monitor_endtime_p4" /></div>
-        </div>
-    </div>
-    
-    <!-- Post-paradigm -->
-    <div class="container mt-4">
-        <div class="row align-items-end mt-2 blackBackground">
-            <div class="myLeftCol">PND 11: </div>
-    
-            <div class="col pnd11">&nbsp;</div>
-        </div>
-
-        <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Dam Mass: </div>
-    
-            <div class="col"><input type="number" id="damMassP11" name="dam_mass_p11" /></div>
-        </div>
-
-        <!-- Add/remove pup buttons -->
-        <div class="row mt-2 hideView">
-            <div class="myLeftCol"><input type="button" id="addPupP11" name="add_pup_p11" value="Add Pup"/></div>
-            <div class="col"><input type="button" id="removePupP11" name="remove_pup_p11" value="Remove Last Pup"/></div>
-        </div>
-
-        <!-- Offspring Demographic Info -->
-        <div class="container mt-2">
-            <div class="tableDiv hideView">
-                <table id="offspringDemoP11">
-                    <thead>
-                        <th>Tail</th>
-                        <th>Ear Tag</th>
-                        <th>Sex</th>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <div class="row align-items-end mt-2">
-                <div class="myLeftCol">Number of pups: </div>
-        
-                <div class="col" id="numPupsP11">&nbsp;</div>
-            </div>
-        </div>
-
-        <!-- Select Mass Tables -->
-        <div class="row mt-2 hideView">
-            <div class="myLeftCol">Select Mass Day: </div>
-            <div class="col">
-                <select id="massDayP4_11" name="massday_p4_11">
-                    <option value="demo">Demographics</option>
-                    <option value="p11">P11</option>
-                    <option value="p12">P12</option>
-                    <option value="p13">P13</option>
-                    <option value="p14">P14</option>
-                    <option value="p15">P15</option>
-                    <option value="p16">P16</option>
-                    <option value="p19">P19</option>
-                    <option value="p21">P21</option>
-                </select> 
-            </div>
-        </div>
-
-        <div class="container mt-2">
-            <!-- Just Demographics -->
-            <div class="tableDiv demo massTable">
-                <table id="offspringDemoP11_nice">
-                    <thead>
-                        <th>Tail</th>
-                        <th>Mouse_ID</th>
-                        <th>Sex</th>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <!-- PND 11 -->
-            <div class="tableDiv p11 massTable hideView">
-                <table id="offspringMassP11">
-                    <thead>
-                        <th>Tail</th>
-                        <th>ID</th>
-                        <th>Sex</th>
-                        <th>Mass</th>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            
-            <!-- PND 12 -->
-            <div class="massTable p12  hideView">
-                <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 12: </div>
-            
-                    <div class="col pnd12">&nbsp;</div>
-                </div>
-
-                <div class="tableDiv mt-2 hideView">
-                    <table id="offspringMassP12">
-                        <thead>
-                            <th>Tail</th>
-                            <th>ID</th>
-                            <th>Sex</th>
-                            <th>Mass</th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-
-            <!-- PND 13 -->
-            <div class="massTable p13  hideView">
-                <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 13: </div>
-            
-                    <div class="col pnd13">&nbsp;</div>
-                </div>
-    
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP13">
-                        <thead>
-                            <th>Tail</th>
-                            <th>ID</th>
-                            <th>Sex</th>
-                            <th>Mass</th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- PND 14 -->
-            <div class="massTable p14  hideView">
-                <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 14: </div>
-            
-                    <div class="col pnd14">&nbsp;</div>
-                </div>
-    
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP14">
-                        <thead>
-                            <th>Tail</th>
-                            <th>ID</th>
-                            <th>Sex</th>
-                            <th>Mass</th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- PND 15 -->
-            <div class="massTable p15 hideView">
-                <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 15: </div>
-            
-                    <div class="col pnd15">&nbsp;</div>
-                </div>
-    
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP15">
-                        <thead>
-                            <th>Tail</th>
-                            <th>ID</th>
-                            <th>Sex</th>
-                            <th>Mass</th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- PND 16 -->
-            <div class="massTable p16 hideView">
-                <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 16: </div>
-            
-                    <div class="col pnd16">&nbsp;</div>
-                </div>
-    
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP16">
-                        <thead>
-                            <th>Tail</th>
-                            <th>ID</th>
-                            <th>Sex</th>
-                            <th>Mass</th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- PND 19 -->
-            <div class="massTable p19 hideView">
-                <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 19: </div>
-            
-                    <div class="col pnd19">&nbsp;</div>
-                </div>
-    
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP19">
-                        <thead>
-                            <th>Tail</th>
-                            <th>ID</th>
-                            <th>Sex</th>
-                            <th>Mass</th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- PND 21 -->
-            <div>
-                <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 21: </div>
-            
-                    <div class="col pnd21">&nbsp;</div>
-                </div>
-
-                <div class="row align-items-end mt-2">
-                    <div class="myLeftCol">Dam Mass: </div>
-            
-                    <div class="col"><input type="number" id="damMassP21" name="dam_mass_p21" /></div>
-                </div>
-            </div>
-
-            <div class="massTable p21  hideView">
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP21">
-                        <thead>
-                            <th>Tail</th>
-                            <th>ID</th>
-                            <th>Sex</th>
-                            <th>Mass</th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="container tableDiv mt-2">
-
-    </div>
-</div>
-
-<div class="container mt-2 selectPara">
-    <div class="row mt-2">
-        <h3 class="col">Offspring Mass Output Table</h3>
-    </div>
-    <div class="row mt-2">
-        <div class="col col-lg-3"><input id="toggleTable" name="toggletable" type="button" value="Show/Hide Table" />
-        </div>
-
-        <div class="col col-lg-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV" /></div>
-
-        <div class="col col-lg-3">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" />
-            <br/>Copy Head? <input id="copyHead" name="copyhead" type="checkbox"/>
-        </div>
-    </div>
-</div>
-
-<div class="container" id="errorMsg">&nbsp;</div>
-
-<div class="container tableDiv mt-2" id="offspringMassOutDiv" style="display:none">
-    <table id="offspringMassOutTable_p4_11" class="p4_11">
-        <thead>
-            <tr>
-                <th>Mouse_ID</th>
-                <th>ParaType</th>
-                <th>Mass_P9</th>
-                <th>Mass_P10</th>
-                <th>Mass_P11</th>
-                <th>Mass_P12</th>
-                <th>Mass_P13</th>
-                <th>Mass_P14</th>
-                <th>Mass_P15</th>
-                <th>Mass_P16</th>
-                <th>Mass_P17</th>
-                <th>Mass_P19</th>
-                <th>Mass_P21</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-
-    <table id="offspringMassOutTable_p2_9" class="p2_9">
-        <thead>
-            <tr>
-                <th>Mouse_ID</th>
-                <th>ParaType</th>
-                <th>Mass_P9</th>
-                <th>Mass_P10</th>
-                <th>Mass_P11</th>
-                <th>Mass_P12</th>
-                <th>Mass_P13</th>
-                <th>Mass_P14</th>
-                <th>Mass_P15</th>
-                <th>Mass_P16</th>
-                <th>Mass_P17</th>
-                <th>Mass_P19</th>
-                <th>Mass_P21</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-
-    <div id="forCopy"></div>
-    <p>&nbsp;</p>
-</div>
-<!------------------------------------------------------------------------------------------>
-<!--end of your code-->
-<!------------------------------------------------------------------------------------------>
-
-</form>
-</body>
-</html>
