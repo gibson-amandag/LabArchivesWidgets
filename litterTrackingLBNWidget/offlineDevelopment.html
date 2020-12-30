@@ -73,7 +73,7 @@ $(document).ready(function () {
         //debugger;
 
         //Load additional scripts such as updated jQuery and Bootstrap
-        this.loadAdditionalScripts();
+        //this.loadAdditionalScripts();
 
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
@@ -116,7 +116,7 @@ $(document).ready(function () {
 
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
-        var output = { widgetData: JSON.parse(widgetJsonString), numPupsP4: dynamicContent.numPupsP4 };
+        var output = { widgetData: JSON.parse(widgetJsonString), numPupsP4: dynamicContent.numPupsP4, numPupsP11: dynamicContent.numPupsP11, tailMarks: dynamicContent.tailMarks};
 
         //uncomment to check stringified output
         //console.log("to JSON", JSON.stringify(output));
@@ -158,10 +158,8 @@ $(document).ready(function () {
         var tailMarks = [];
         tailMarks[0] = "<span style='color:blue'>Test</span>"
         tailMarks[1] = "<span style='color:red'>Test2</span>"
-
-        //Add additional content to match the objects in to_json
-        var output = { widgetData: testData, numPupsP4: 2, numPupsP11: 2, tailMarks: tailMarks }; //When in development, initialize with 2 pups for P4
-
+        
+        var output = { widgetData: testData, numPupsP4: 2, numPupsP11: 2, tailMarks: tailMarks }
         //return the stringified output for use by the init function
         return JSON.stringify(output);
     },
@@ -276,7 +274,6 @@ $(document).ready(function () {
             var rowNum = i + 1;
             var rowClassName = ".Row_" + rowNum;
             $("#offspringDemoP11").find(rowClassName).find(".tailMark").html(parsedJson.tailMarks[i]);
-            $("#offspringDemoP11").find(rowClassName).find(".tailMark").html(parsedJson.tailMarks[i]);
 
             my_widget_script.createRows_allMassTables(whichPara);
         }
@@ -352,6 +349,7 @@ $(document).ready(function () {
 
         $("#DOB").on("input", function () {
             my_widget_script.printPND_days();
+            my_widget_script.resize();
         });
 
         $("#treatmentPeriod").on("change", function () {
@@ -369,6 +367,7 @@ $(document).ready(function () {
                     $(".P4_11").show();
                     break;
             }
+            my_widget_script.resize();
         });
 
         $("#showDatesP4").on("change", function () {
@@ -377,6 +376,7 @@ $(document).ready(function () {
             } else {
                 $("#datesList").hide();
             }
+            my_widget_script.resize();
         });
 
         $("#addPupP4").on("click", function () {
@@ -388,6 +388,7 @@ $(document).ready(function () {
             my_widget_script.createRow_startPara($table, $avgMass, whichPara);
 
             my_widget_script.offspringCalculations($table, $numPups, $avgMass, whichPara);
+            my_widget_script.resize();
         });
 
         $("#removePupP4").on("click", function() {
@@ -399,6 +400,7 @@ $(document).ready(function () {
             my_widget_script.deleteRow($table);
             
             my_widget_script.offspringCalculations($table, $numPups, $avgMass, whichPara);
+            my_widget_script.resize();
         });
 
         $("#addPupP11").on("click", function () {
@@ -413,6 +415,7 @@ $(document).ready(function () {
             //Count Pups
             var numberPupsP11 = my_widget_script.countPups($tableDemo);
             $numPups.text(numberPupsP11);
+            my_widget_script.resize();
         });
 
         $("#removePupP11").on("click", function() {
@@ -427,6 +430,7 @@ $(document).ready(function () {
             //Count Pups
             var numberPupsP11 = my_widget_script.countPups($tableDemo);
             $numPups.text(numberPupsP11);
+            my_widget_script.resize();
         });
 
         $("#massDayP4_11").on("change", function () {
@@ -467,6 +471,7 @@ $(document).ready(function () {
                     $(".massTable:not(.p21)").hide();
                     break;
             }
+            my_widget_script.resize();
         })
     },
 
@@ -538,42 +543,69 @@ $(document).ready(function () {
         } else {$("#datesList").hide();}
 
         switch($("#massDayP4_11").val()) {
-                case '':
-                    $(".massTable").hide();
-                    break;
-                case "p11":
-                    $(".massTable.p11").show();
-                    $(".massTable:not(.p11)").hide();
-                    break;
-                case "p12":
-                    $(".massTable.p12").show();
-                    $(".massTable:not(.p12)").hide();
-                    break;
-                case "p13":
-                    $(".massTable.p13").show();
-                    $(".massTable:not(.p13)").hide();
-                    break;
-                case "p14":
-                    $(".massTable.p14").show();
-                    $(".massTable:not(.p14)").hide();
-                    break;
-                case "p15":
-                    $(".massTable.p15").show();
-                    $(".massTable:not(.p15)").hide();
-                    break;
-                case "p16":
-                    $(".massTable.p16").show();
-                    $(".massTable:not(.p16)").hide();
-                    break;
-                case "p19":
-                    $(".massTable.p19").show();
-                    $(".massTable:not(.p19)").hide();
-                    break;
-                case "p21":
-                    $(".massTable.p21").show();
-                    $(".massTable:not(.p21)").hide();
-                    break;
-            }
+            case '':
+                $(".massTable").hide();
+                break;
+            case "p11":
+                $(".massTable.p11").show();
+                $(".massTable:not(.p11)").hide();
+                break;
+            case "p12":
+                $(".massTable.p12").show();
+                $(".massTable:not(.p12)").hide();
+                break;
+            case "p13":
+                $(".massTable.p13").show();
+                $(".massTable:not(.p13)").hide();
+                break;
+            case "p14":
+                $(".massTable.p14").show();
+                $(".massTable:not(.p14)").hide();
+                break;
+            case "p15":
+                $(".massTable.p15").show();
+                $(".massTable:not(.p15)").hide();
+                break;
+            case "p16":
+                $(".massTable.p16").show();
+                $(".massTable:not(.p16)").hide();
+                break;
+            case "p19":
+                $(".massTable.p19").show();
+                $(".massTable:not(.p19)").hide();
+                break;
+            case "p21":
+                $(".massTable.p21").show();
+                $(".massTable:not(.p21)").hide();
+                break;
+        }
+
+        for (var i=0; i < my_widget_script.countPups($("#offspringDemoP11")); i++){
+            var rowCount = i + 1;
+            var whichPara = "p4_11"
+
+            var rowClass = ".Row_" + rowCount;
+
+            var col1CalcClass = ".tailcalc_" + whichPara + "_" + rowCount;
+            var col2CalcClass = ".idcalc_" + whichPara + "_" + rowCount;
+            var col3CalcClass = ".sexcalc_" + whichPara + "_" + rowCount;
+
+            var $tableDemoP11 = $("#offspringDemoP11");
+            $(col1CalcClass).html(
+                $tableDemoP11.find(rowClass).find(".tailMark").html()
+            );
+
+            $(col2CalcClass).text(
+                $tableDemoP11.find(rowClass).find(".idCol").val()
+            );
+
+            $(col3CalcClass).text(
+                $tableDemoP11.find(rowClass).find(".sexCol").val()
+            );
+
+        }
+        
+        my_widget_script.resize();
     },
 
     /**
@@ -601,14 +633,16 @@ $(document).ready(function () {
         var numPupsP4 = my_widget_script.countPups($("#offspringMassP4"));
         var numPupsP11 = my_widget_script.countPups($("#offspringDemoP11"));
         var tailMarks = [];
-        for (var i = 0; i < numPups; i++) {
+        var IDs = [];
+        var sexes = [];
+        for (var i = 0; i < numPupsP11; i++) {
             var rowNum = i + 1;
             var rowClassName = ".Row_" + rowNum;
             var tailMarkText = $("#offspringDemoP11").find(rowClassName).find(".tailMark").html();
-            tailMarks[i] = tailMarkText
+            tailMarks[i] = tailMarkText;
         }
 
-        var dynamicContent = {numPupsP4: numPupsP4, numPupsP11: numPupsP11, tailMarks: tailMarks};
+        var dynamicContent = {numPupsP4: numPupsP4, numPupsP11: numPupsP11, tailMarks: tailMarks}
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -1077,8 +1111,10 @@ $(document).ready(function () {
         var numberPups = my_widget_script.countPups($table);
 
         var lastTotalMassEl = document.getElementById("total_mass_" + whichPara + "_" + numberPups);
-        totalMass = parseFloat(lastTotalMassEl.value);
-        // totalMass = parseFloat($table.find("tbody").last("tr").find(".individualMass").val());
+
+        if(lastTotalMassEl) {
+      	    totalMass = parseFloat(lastTotalMassEl.value);
+        } else {totalMass = NaN;}
 
         var avgMass = totalMass/numberPups;
         return avgMass.toFixed(2);
@@ -1259,15 +1295,15 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         </div>
         <div class="container" id="datesList">
             <div class="row">
-                <div class="col-6 col-md-4"><strong>PND 4: </strong><span class="pnd4"></span></div>
-                <div class="col-6 col-md-4"><strong>PND 11: </strong><span class="pnd11"></span></div>
-                <div class="col-6 col-md-4"><strong>PND 12: </strong><span class="pnd12"></span></div>
-                <div class="col-6 col-md-4"><strong>PND 13: </strong><span class="pnd13"></span></div>
-                <div class="col-6 col-md-4"><strong>PND 14: </strong><span class="pnd14"></span></div>
-                <div class="col-6 col-md-4"><strong>PND 15: </strong><span class="pnd15"></span></div>
-                <div class="col-6 col-md-4"><strong>PND 16: </strong><span class="pnd16"></span></div>
-                <div class="col-6 col-md-4"><strong>PND 19: </strong><span class="pnd19"></span></div>
-                <div class="col-6 col-md-4"><strong>PND 21: </strong><span class="pnd21"></span></div>
+                <div class="col-6 col-md-4"><strong>PND 4: </strong><span class="pnd4">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 11: </strong><span class="pnd11">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 12: </strong><span class="pnd12">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 13: </strong><span class="pnd13">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 14: </strong><span class="pnd14">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 15: </strong><span class="pnd15">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 16: </strong><span class="pnd16">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 19: </strong><span class="pnd19">&nbsp;</span></div>
+                <div class="col-6 col-md-4"><strong>PND 21: </strong><span class="pnd21">&nbsp;</span></div>
             </div>
         </div>
         <!-- header -->
@@ -1627,7 +1663,6 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
 
     <p>&nbsp;</p>
 </div>
-
 <!------------------------------------------------------------------------------------------>
 <!--end of your code-->
 <!------------------------------------------------------------------------------------------>
