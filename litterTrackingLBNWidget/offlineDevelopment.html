@@ -248,7 +248,7 @@ $(document).ready(function () {
     initDynamicContent: function (parsedJson) {
         for (var i = 0; i < parsedJson.numPupsP4; i++) {
             var $table = $("#offspringMassP4");
-            var $avgMass = $("#avgMassP4");
+            var $avgMass = $(".avgMassP4");
             var whichPara = $("#treatmentPeriod").val();
             //var whichPara = "p4_11";
             my_widget_script.createRow_startPara($table, $avgMass, whichPara);
@@ -266,7 +266,7 @@ $(document).ready(function () {
             my_widget_script.createRows_allMassTables(whichPara);
         }
 
-        $("#numPupsP11").text(parsedJson.numPupsP11);
+        $(".numPupsP11").text(parsedJson.numPupsP11);
 
     },
 
@@ -287,7 +287,10 @@ $(document).ready(function () {
             $(".hideView").hide();
             $(".massTable.demo").show();
             $("#offspringDemoP11").hide();
-            if($("#treatmentPeriod").val()) {$("#offspringMassOutDiv").show();}
+            if($("#treatmentPeriod").val()) {
+                $("#offspringMassOutDiv").show();
+                $("#damOutDiv").show();
+            }
         }
     },
 
@@ -325,6 +328,14 @@ $(document).ready(function () {
             my_widget_script.parent_class.resize_container();
         });
 
+        $("#toggleTableDam").on("click", function () { //when the showTable button is clicked. Run this function
+            //alert("button pressed");
+            my_widget_script.resize();
+            my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+            $("#damOutDiv").toggle();
+            my_widget_script.parent_class.resize_container();
+        });
+
         //when the toCSV button is clicked, run the exportTableToCSV function
         $('#toCSV').on("click", function () {
             var whichPara = $("#treatmentPeriod").val();
@@ -337,6 +348,28 @@ $(document).ready(function () {
                         my_widget_script.exportTableToCSV("massOffspring", "offspringMassOutTable_p4_11");
                     } else if(whichPara === "p2_9"){
                         my_widget_script.exportTableToCSV("massOffspring", "offspringMassOutTable_p2_9");
+                    }
+                    $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Saved successfully</span>")               
+                } else {
+                    $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Did not export</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
+                }    
+            } else { //if have not selected paradigm - shouldn't happen since buttons are hidden now
+                $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please select a treatment period</span>");
+            }
+        });
+
+        //when the toCSV button is clicked, run the exportTableToCSV function
+        $('#toCSVDam').on("click", function () {
+            var whichPara = $("#treatmentPeriod").val();
+
+            if(whichPara){ 
+                var data_valid = my_widget_script.data_valid_form();
+                //alert(data_valid);
+                if (data_valid) {
+                    if(whichPara === "p4_11"){
+                        my_widget_script.exportTableToCSV("damData", "damOutTable_p4_11");
+                    } else if(whichPara === "p2_9"){
+                        my_widget_script.exportTableToCSV("damData", "damOutTable_p2_9");
                     }
                     $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Saved successfully</span>")               
                 } else {
@@ -365,10 +398,46 @@ $(document).ready(function () {
                 if (data_valid) {
                     my_widget_script.resize();
                     $("#offspringMassOutDiv").show();
+                    $("#damOutDiv").show();
                     if(whichPara === "p4_11"){
                         my_widget_script.copyTable($("#offspringMassOutTable_p4_11"), copyHead);
                     } else if(whichPara === "p2_9"){
                         my_widget_script.copyTable($("#offspringMassOutTable_p2_9"), copyHead);
+                    }
+                    $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Copied successfully</span>")               
+                } else {
+                    $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
+                }
+            } else { //if have not selected paradigm - Note, this shouldn't happen given that the buttons are now hidden
+                $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please select a treatment period</span>");
+                
+            }
+            
+        });
+
+        //When the copy button is clicked, run the copyTable function
+        $("#copyDataButtonDam").on("click", function () {
+            var whichPara = $("#treatmentPeriod").val();
+            var copyHead
+
+            //only copy the heading when the input box is checked
+            if($("#copyHeadDam").is(":checked")) {
+                copyHead = true;
+            } else {
+                copyHead = false;
+            }
+
+            if(whichPara){ 
+                var data_valid = my_widget_script.data_valid_form();
+                //alert(data_valid);
+                if (data_valid) {
+                    my_widget_script.resize();
+                    $("#offspringMassOutDiv").show();
+                    $("#damOutDiv").show();
+                    if(whichPara === "p4_11"){
+                        my_widget_script.copyTable($("#damOutTable_p4_11"), copyHead);
+                    } else if(whichPara === "p2_9"){
+                        my_widget_script.copyTable($("#damOutTable_p2_9"), copyHead);
                     }
                     $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Copied successfully</span>")               
                 } else {
@@ -402,8 +471,8 @@ $(document).ready(function () {
 
         $("#addPupP4").on("click", function () {
             var $table = $("#offspringMassP4");
-            var $numPups = $("#numPupsP4");
-            var $avgMass = $("#avgMassP4");
+            var $numPups = $(".numPupsP4");
+            var $avgMass = $(".avgMassP4");
             var whichPara = $("#treatmentPeriod").val();
             //var whichPara = "p4_11";
 
@@ -415,8 +484,8 @@ $(document).ready(function () {
 
         $("#removePupP4").on("click", function() {
             var $table = $("#offspringMassP4");
-            var $avgMass = $("#avgMassP4");
-            var $numPups = $("#numPupsP4");
+            var $avgMass = $(".avgMassP4");
+            var $numPups = $(".numPupsP4");
             var whichPara = $("#treatmentPeriod").val();
             //var whichPara = "p4_11";
 
@@ -428,7 +497,7 @@ $(document).ready(function () {
 
         $("#addPupP11").on("click", function () {
             var $tableDemo = $("#offspringDemoP11");
-            var $numPups = $("#numPupsP11");
+            var $numPups = $(".numPupsP11");
             var whichPara = $("#treatmentPeriod").val();
             //var whichPara = "p4_11";
 
@@ -444,7 +513,7 @@ $(document).ready(function () {
 
         $("#removePupP11").on("click", function() {
             var $tableDemo = $("#offspringDemoP11");
-            var $numPups = $("#numPupsP11");
+            var $numPups = $(".numPupsP11");
             var whichPara = $("#treatmentPeriod").val();
             //var whichPara = "p4_11";
 
@@ -462,6 +531,43 @@ $(document).ready(function () {
             my_widget_script.switchMassTable($(this).val());
             my_widget_script.resize();
         });
+
+        $("#damMassP4").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".damMassP4_calc"));
+        });
+
+        $("#damMassP11").on("input", function() {
+            my_widget_script.updateCalculation($(this), $(".damMassP11_calc"));
+        });
+
+        $("#damMass_p4_11_p21").on("input", function() {
+            my_widget_script.updateCalculation($(this), $(".damMass_p4_11_p21_calc"));
+        });
+
+        $("#cameraP4").on("input", function() {
+            my_widget_script.updateCalculation($(this), $(".cameraP4_calc"));
+        });
+
+        $("#damMassP2").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".damMassP2_calc"));
+        });
+
+        $("#damMassP9").on("input", function() {
+            my_widget_script.updateCalculation($(this), $(".damMassP9_calc"));
+        });
+
+        $("#damMass_p2_9_p21").on("input", function() {
+            my_widget_script.updateCalculation($(this), $(".damMass_p2_9_p21_calc"));
+        });
+
+        $("#cameraP2").on("input", function() {
+            my_widget_script.updateCalculation($(this), $(".cameraP2_calc"));
+        });
+
+        $("#sacOrStop").on("input", function() {
+            my_widget_script.updateCalculation($(this), $(".sacOrStop_calc"));
+        })
+
     },
 
     /**
@@ -510,7 +616,7 @@ $(document).ready(function () {
         });
         
         //Calculate number of pups and avg mass from P4 paradigm start
-        my_widget_script.offspringCalculations($("#offspringMassP4"), $("#numPupsP4"), $("#avgMassP4"), "p4_11");
+        my_widget_script.offspringCalculations($("#offspringMassP4"), $(".numPupsP4"), $(".avgMassP4"), "p4_11");
 
         if($("#showDatesP4").is(":checked")) {
             $("#datesList").show();
@@ -558,6 +664,15 @@ $(document).ready(function () {
                 $(massCalcClass).text(massVal);
             }
         }
+
+        my_widget_script.updateCalculation($("#damMassP11"), $(".damMassP11_calc"));
+        my_widget_script.updateCalculation($("#damMass_p4_11_p21"), $(".damMass_p4_11_p21_calc"));
+        my_widget_script.updateCalculation($("#cameraP4"), $(".cameraP4_calc"));
+        my_widget_script.updateCalculation($("#damMassP2"), $(".damMassP2_calc"));
+        my_widget_script.updateCalculation($("#damMassP9"), $(".damMassP9_calc"));
+        my_widget_script.updateCalculation($("#damMass_p2_9_p21"), $(".damMass_p2_9_p21_calc"));
+        my_widget_script.updateCalculation($("#cameraP2"), $(".cameraP2_calc"));
+        my_widget_script.updateCalculation($("#sacOrStop"), $(".sacOrStop_calc"));
         
         my_widget_script.resize();
     },
@@ -1328,7 +1443,12 @@ $(document).ready(function () {
         // } else {totalMass = NaN;}
 
         var avgMass = totalMass/numberPups;
-        return avgMass.toFixed(2);
+        if(avgMass){
+           return avgMass.toFixed(2); 
+        } else {
+            return "NA";
+        }
+        
     },
 
     offspringCalculations: function ($table, $numPups, $avgMass, whichPara) {
@@ -1339,6 +1459,11 @@ $(document).ready(function () {
         //Update Avg
         var avgMass = my_widget_script.getAvgMass($table, whichPara);
         $avgMass.text(avgMass);
+    },
+
+    updateCalculation: function ($elToWatch, $elToUpdate) {
+        var value = $elToWatch.val();
+        $elToUpdate.text(value);
     }
 
 };
@@ -1594,14 +1719,14 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         <div class="row align-items-end mt-2">
             <div class="myLeftCol2">Number of pups: </div>
     
-            <div class="col" id="numPupsP4">&nbsp;</div>
+            <div class="col"><span class="numPupsP4">&nbsp;</span></span></div>
         </div>
 
         <!-- Avg Pup Mass - calculated -->
         <div class="row align-items-end mt-2">
             <div class="myLeftCol2">Average Pup Mass: </div>
     
-            <div class="col" id="avgMassP4">&nbsp;</div>
+            <div class="col"><span class="avgMassP4">&nbsp;</span></div>
         </div>
 
         <!-- Video Monitoring -->
@@ -1666,8 +1791,8 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
                 <table id="offspringDemoP11" class="table">
                     <thead>
                         <th>Tail</th>
-                        <th>Ear Tag</th>
-                        <th>Sex</th>
+                        <th>Ear Tag<span style="color:blue">#</span></th>
+                        <th>Sex<span style="color:blue">#</span></th>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -1676,7 +1801,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             <div class="row align-items-end mt-2">
                 <div class="myLeftCol2">Number of pups: </div>
         
-                <div class="col" id="numPupsP11">&nbsp;</div>
+                <div class="col" class="numPupsP11">&nbsp;</div>
             </div>
         </div>
 
@@ -1704,10 +1829,8 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
                 <table id="offspringDemoP11_nice" class="table">
                     <thead>
                         <th>Tail</th>
-                        <th>Mouse_ID<span
-                            style="color:blue">#</span></th>
-                        <th>Sex<span
-                            style="color:blue">#</span></th>
+                        <th>Mouse_ID</th>
+                        <th>Sex</th>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -1864,7 +1987,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
                 <div class="row align-items-end mt-2">
                     <div class="myLeftCol">Dam Mass: </div>
             
-                    <div class="col"><input type="number" id="damMassP21" name="dam_mass_p21" /></div>
+                    <div class="col"><input type="number" id="damMass_p4_11_p21" name="dam_mass_p4_11_p21" class="fullWidth"/></div>
                 </div>
             </div>
 
@@ -1890,6 +2013,110 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
     </div>
 </div>
 
+
+
+<div class="container">
+    <div class="row">
+        <div class="col" id="errorMsg">&nbsp;</div>
+    </div>
+</div>
+
+<div class="container mt-2 selectPara">
+    <div class="row mt-2">
+        <h3 class="col">Dam Output Table</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-4 col-lg-3"><input id="toggleTableDam" name="toggletabledam" type="button" value="Show/Hide Table" class="fullWidth"/>
+        </div>
+
+        <div class="col-12 col-sm-4 col-lg-3"><input id="toCSVDam" name="tocsvdam" type="button" value="Save CSV" class="fullWidth"/></div>
+
+        <div class="col-12 col-sm-4 col-lg-3">
+            <input id="copyDataButtonDam" name="copydatabuttondam" type="button" value="Copy Data" class="fullWidth"/>
+            <br/>Copy Head? <input id="copyHeadDam" name="copyheaddam" type="checkbox"/></p>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2" id="damOutDiv" style="display:none">
+    <div class="table-responsive xsTableDiv">
+        <table id="damOutTable_p4_11" class="p4_11 table">
+            <thead>
+                <tr>
+                    <th>ParaType</th>
+                    <th>Dam_Mass_P2</th>
+                    <th>Dam_Mass_P9</th>
+                    <th>Dam_Mass_P4</th>
+                    <th>Dam_Mass_P11</th>
+                    <th>Dam_Mass_P21</th>
+                    <th>Avg_litter_mass_startPara</th>
+                    <th>Litter_size_startPara</th>
+                    <th>Litter_size_endPara</th>
+                    <th>Camera_number</th>
+                    <th>Sac_or_stop</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>4</td>
+                    <td>NA</td>
+                    <td>NA</td>
+                    <td class="damMassP4_calc">&nbsp;</td>
+                    <td class="damMassP11_calc">&nbsp;</td>
+                    <td class="damMass_p4_11_p21_calc">&nbsp;</td>
+                    <td class="avgMassP4">&nbsp;</td>
+                    <td class="numPupsP4">&nbsp;</td>
+                    <td class="numPupsP11">&nbsp;</td>
+                    <td class="cameraP4_calc">&nbsp;</td>
+                    <td class="sacOrStop_calc">&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table id="damOutTable_p2_9" class="p2_9 table">
+            <thead>
+                <tr>
+                    <th>ParaType</th>
+                    <th>Dam_Mass_P2</th>
+                    <th>Dam_Mass_P9</th>
+                    <th>Dam_Mass_P4</th>
+                    <th>Dam_Mass_P11</th>
+                    <th>Dam_Mass_P21</th>
+                    <th>Avg_litter_mass_startPara</th>
+                    <th>Litter_size_startPara</th>
+                    <th>Litter_size_endPara</th>
+                    <th>Camera_number</th>
+                    <th>Sac_or_stop</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2</td>
+                    <td class="damMassP2_calc">&nbsp;</td>
+                    <td class="damMassP9_calc">&nbsp;</td>
+                    <td>NA</td>
+                    <td>NA</td>
+                    <td class="damMass_p2_9_p21_calc">&nbsp;</td>
+                    <td class="avgMassP2">&nbsp;</td>
+                    <td class="numPupsP2">&nbsp;</td>
+                    <td class="numPupsP9">&nbsp;</td>
+                    <td class="cameraP2_calc">&nbsp;</td>
+                    <td class="sacOrStop_calc">&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<div class="container">
+    <div class=row>
+        <div class="col">
+            <div id="forCopy">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
 <div class="container mt-2 selectPara">
     <div class="row mt-2">
         <h3 class="col">Offspring Mass Output Table</h3>
@@ -1904,12 +2131,6 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth"/>
             <br/>Copy Head? <input id="copyHead" name="copyhead" type="checkbox"/></p>
         </div>
-    </div>
-</div>
-
-<div class="container">
-    <div class="row">
-        <div class="col" id="errorMsg">&nbsp;</div>
     </div>
 </div>
 
@@ -1960,12 +2181,6 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         </table>
 
         <p>&nbsp;</p>
-    </div>
-    
-    <div class=row>
-        <div class="col">
-            <div id="forCopy">&nbsp;</div>
-        </div>
     </div>
 </div>
 <!------------------------------------------------------------------------------------------>
