@@ -28,13 +28,13 @@ my_widget_script =
         window.onresize = this.resize;
 
         //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners(parsedJson);
+        this.addEventListeners();
 
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
         // Add * and # to mark required field indicators
-        this.addRequiredFieldIndicators();
+        //this.addRequiredFieldIndicators();
 
         // Set up the form based on previously entered form input
         this.setUpInitialState();
@@ -435,7 +435,8 @@ my_widget_script =
     */
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
-        $('.myLeftCol').addClass("col-6 col-md-4 col-lg-3 col-xl-2 text-right");
+        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 text-left text-sm-right");
+        $('.myLeftCol2').addClass("col-6 col-md-4 col-lg-3 col-xl-2 text-right");
 
         //Print PND dates
         if ($("#DOB").val()) {
@@ -509,11 +510,12 @@ my_widget_script =
     * should be adjusted based on the current width of the window
     */
     resize: function () {
-        //gets the inner width of the window.
-        var width = window.innerWidth;
+        //with responsive table, this resizing of tableDivs should no longer be necessary
+        // //gets the inner width of the window.
+        // var width = window.innerWidth;
 
-        //make width of table div 95% of current width
-        $(".tableDiv").width(width * .95);
+        // //make width of table div 95% of current width
+        // $(".tableDiv").width(width * .95);
 
         //resize the container
         my_widget_script.parent_class.resize_container();

@@ -85,13 +85,13 @@ $(document).ready(function () {
         window.onresize = this.resize;
 
         //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners(parsedJson);
+        this.addEventListeners();
 
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
         // Add * and # to mark required field indicators
-        this.addRequiredFieldIndicators();
+        //this.addRequiredFieldIndicators();
 
         // Set up the form based on previously entered form input
         this.setUpInitialState();
@@ -492,7 +492,8 @@ $(document).ready(function () {
     */
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
-        $('.myLeftCol').addClass("col-6 col-md-4 col-lg-3 col-xl-2 text-right");
+        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 text-left text-sm-right");
+        $('.myLeftCol2').addClass("col-6 col-md-4 col-lg-3 col-xl-2 text-right");
 
         //Print PND dates
         if($("#DOB").val()) {
@@ -566,11 +567,12 @@ $(document).ready(function () {
     * should be adjusted based on the current width of the window
     */
     resize: function () {
-        //gets the inner width of the window.
-        var width = window.innerWidth;
+        //with responsive table, this resizing of tableDivs should no longer be necessary
+        // //gets the inner width of the window.
+        // var width = window.innerWidth;
 
-        //make width of table div 95% of current width
-        $(".tableDiv").width(width * .95);
+        // //make width of table div 95% of current width
+        // $(".tableDiv").width(width * .95);
 
         //resize the container
         my_widget_script.parent_class.resize_container();
@@ -1351,7 +1353,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("view", function() {return form_script.test_data()});
+      form_script.init("edit", function() {return form_script.test_data()});
 
 
     }
@@ -1372,11 +1374,12 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
 <style type="text/css">
     /* TO DO Place css styling code here */
 
-    /* Add this class to a div around tables. The script will automatically change the width to match the window
-    Adds a scroll bar when the content is too big for the width */
-    .tableDiv {
-        width: 400px;
-        overflow-x: scroll;
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
     }
 
     table {
@@ -1418,6 +1421,10 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
     #datesList {
         display: none;
     }
+
+    .fullWidth {
+        width: 90%
+    }
 </style>
 
 <!-- Bootstrap CSS -->
@@ -1437,45 +1444,50 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
 <!-- ------------------------------------------------------------ -->
 <!-- TO DO Begin typing your HTML code here -->
 <div class="container">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
-        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-            style="color:blue">#</span></p>
+    <div class="row">
+        <p class="col">Elements that are required to save this page are marked with a red asterisk <span
+                style="color:red">*</span><br />
+            Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
+                style="color:blue">#</span></p>
+    </div>
 </div>
 
 <div class="container">
     <h3>Dam Information</h3>
 
     <div class="row align-items-end">
-        <div class="myLeftCol">Dam ID: </div>
+        <div class="myLeftCol"><span
+            style="color:red">*</span><span
+            style="color:blue">#</span>Dam ID: </div>
         <!-- myLeftCol adds additional classes in init function-->
 
-        <div class="col"><input id="damID" name="damid" class="needForTable" required /></div>
+        <div class="col"><input id="damID" name="damid" class="needForTable fullWidth" required /></div>
     </div>
 
     <div class="row align-items-end mt-2">
-        <div class="myLeftCol">Dam Strain :</div>
+        <div class="myLeftCol"><span
+            style="color:red">*</span>Dam Strain: </div>
 
-        <div class="col"><input id="damStrain" name="damstrain" required /></div>
+        <div class="col"><input id="damStrain" name="damstrain" class="fullWidth" required /></div>
     </div>
 
     <div class="row align-items-end mt-2">
         <div class="myLeftCol">DOB (parturition): </div>
 
-        <div class="col"><input type="date" id="DOB" name="dob" /></div>
+        <div class="col"><input type="date" id="DOB" name="dob" class="fullWidth"/></div>
     </div>
 
     <div class="row align-items-end mt-2">
         <div class="myLeftCol">Cage Number: </div>
 
-        <div class="col"><input type="number" id="cageNum" name="cagenum" /></div>
+        <div class="col"><input type="number" id="cageNum" name="cagenum" class="fullWidth"/></div>
     </div>
 
     <div class="row align-items-end mt-2">
         <div class="myLeftCol">Treatment: </div>
 
         <div class="col">
-            <select id="treatment" name="treatment">
+            <select id="treatment" name="treatment" class="fullWidth">
                 <option value=''>[Select]</option>
                 <option value='CON'>Control</option>
                 <option value='LBN'>LBN</option>
@@ -1487,7 +1499,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         <div class="myLeftCol">Treatment Period: </div>
 
         <div class="col">
-            <select id="treatmentPeriod" name="treatmentperiod">
+            <select id="treatmentPeriod" name="treatmentperiod" class="fullWidth">
                 <option value=''>[Select]</option>
                 <option value='p2_9'>P2-P9</option>
                 <option value='p4_11'>P4-P11</option>
@@ -1499,7 +1511,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         <div class="myLeftCol">Sacrificed or Stopped: </div>
 
         <div class="col">
-            <input id="sacOrStop" name="sacorstop" type="date"/>
+            <input id="sacOrStop" name="sacorstop" type="date" class="fullWidth"/>
         </div>
     </div>
 
@@ -1507,7 +1519,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         <div class="myLeftCol">Comment on sac/stop: </div>
 
         <div class="col">
-            <textarea id="sacStopComment" name="sacstopcomment"></textarea>
+            <textarea id="sacStopComment" name="sacstopcomment" class="fullWidth"></textarea>
         </div>
     </div>
 </div>
@@ -1523,25 +1535,25 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
 <div class="p4_11">
     <div class="container mt-2">
         <div class="row">
-            <div class="myLeftCol">Show PND Dates: </div>
+            <div class="col-6 col-md-4 col-lg-3 col-xl-2 text-right">Show PND Dates: </div>
             <div class="col"><input id="showDatesP4" name="showdatesp4" type="checkbox"/></div>
         </div>
         <div class="container" id="datesList">
             <div class="row">
-                <div class="col-6 col-md-4"><strong>PND 4: </strong><span class="pnd4">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 11: </strong><span class="pnd11">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 12: </strong><span class="pnd12">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 13: </strong><span class="pnd13">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 14: </strong><span class="pnd14">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 15: </strong><span class="pnd15">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 16: </strong><span class="pnd16">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 19: </strong><span class="pnd19">&nbsp;</span></div>
-                <div class="col-6 col-md-4"><strong>PND 21: </strong><span class="pnd21">&nbsp;</span></div>
+                <div class="col-12 col-sm-6 col-md-4"><strong>PND 4: </strong><span class="pnd4">&nbsp;</span></div>
+                <div class="col-12 col-sm-6 col-md-4"><strong>PND 11: </strong><span class="pnd11">&nbsp;</span></div>
+                <div class="col-12 col-sm-6 col-md-4"><strong>PND 12: </strong><span class="pnd12">&nbsp;</span></div>
+                <div class="col-12 col-sm-6 col-md-4"><strong>PND 13: </strong><span class="pnd13">&nbsp;</span></div>
+                <div class="col-12 col-sm-6 col-md-4"><strong>PND 14: </strong><span class="pnd14">&nbsp;</span></div>
+                <div class="col-12 col-sm-6 col-md-4"><strong>PND 15: </strong><span class="pnd15">&nbsp;</span></div>
+                <div class="col-12 col-sm-6 col-md-4"><strong>PND 16: </strong><span class="pnd16">&nbsp;</span></div>
+                <div class="col-12 col-sm-6 col-md-4"><strong>PND 19: </strong><span class="pnd19">&nbsp;</span></div>
+                <div class="col-12 col-sm-6 col-md-4"><strong>PND 21: </strong><span class="pnd21">&nbsp;</span></div>
             </div>
         </div>
         <!-- header -->
         <div class="row align-items-end mt-2 blackBackground">
-            <div class="myLeftCol">PND 4: </div>
+            <div class="myLeftCol2">PND 4: </div>
     
             <div class="col pnd4">&nbsp;</div>
         </div>
@@ -1550,7 +1562,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         <div class="row align-items-end mt-2">
             <div class="myLeftCol">Dam Mass: </div>
     
-            <div class="col"><input type="number" id="damMassP4" name="dam_mass_p4" /></div>
+            <div class="col"><input type="number" id="damMassP4" name="dam_mass_p4" class="fullWidth"/></div>
         </div>
 
         <div class="row mt-2">
@@ -1559,15 +1571,15 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
 
         <!-- Add/remove pup buttons -->
         <div class="row mt-2">
-            <div class="myLeftCol"><input type="button" id="addPupP4" name="add_pup_p4" value="Add Pup"/></div>
-            <div class="col"><input type="button" id="removePupP4" name="remove_pup_p4" value="Remove Last Pup"/></div>
+            <div class="myLeftCol"><input type="button" id="addPupP4" name="add_pup_p4" value="Add Pup" class="fullWidth"/></div>
+            <div class="col"><input type="button" id="removePupP4" name="remove_pup_p4" value="Remove Last Pup" class="fullWidth"/></div>
         </div>
 
         <!-- Offspring Mass Table -->
         <div class="row mt-2">
-            <div class="myLeftCol"></div>
-            <div class="col">
-                <table id="offspringMassP4">
+            <!-- <div class="myLeftCol"></div> -->
+            <div class="col table-responive xsTableDiv">
+                <table id="offspringMassP4" class="table">
                     <thead>
                         <th>Total (g)</th>
                         <th>Individual (g)</th>
@@ -1580,14 +1592,14 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
 
         <!-- Number of pups - calculated -->
         <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Number of pups: </div>
+            <div class="myLeftCol2">Number of pups: </div>
     
             <div class="col" id="numPupsP4">&nbsp;</div>
         </div>
 
         <!-- Avg Pup Mass - calculated -->
         <div class="row align-items-end mt-2">
-            <div class="myLeftCol">Average Pup Mass: </div>
+            <div class="myLeftCol2">Average Pup Mass: </div>
     
             <div class="col" id="avgMassP4">&nbsp;</div>
         </div>
@@ -1600,38 +1612,38 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         <div class="row align-items-end mt-2">
             <div class="myLeftCol">Camera: </div>
     
-            <div class="col"><input id="cameraP4" name="camera_p4" /></div>
+            <div class="col"><input id="cameraP4" name="camera_p4" class="fullWidth"/></div>
         </div>
 
         <div class="row align-items-end mt-2">
             <div class="myLeftCol">Monitoring Start Date: </div>
     
-            <div class="col"><input type="date" id="monitorStartDateP4" name="monitor_startdate_p4" /></div>
+            <div class="col"><input type="date" id="monitorStartDateP4" name="monitor_startdate_p4" class="fullWidth"/></div>
         </div>
 
         <div class="row align-items-end mt-2">
             <div class="myLeftCol">Monitoring Start Time: </div>
     
-            <div class="col"><input type="time" id="monitorStartTimeP4" name="monitor_starttime_p4" /></div>
+            <div class="col"><input type="time" id="monitorStartTimeP4" name="monitor_starttime_p4" class="fullWidth"/></div>
         </div>
 
         <div class="row align-items-end mt-2">
             <div class="myLeftCol">Monitoring End Date: </div>
     
-            <div class="col"><input type="date" id="monitorEndDateP4" name="monitor_enddate_p4" /></div>
+            <div class="col"><input type="date" id="monitorEndDateP4" name="monitor_enddate_p4" class="fullWidth"/></div>
         </div>
 
         <div class="row align-items-end mt-2">
             <div class="myLeftCol">Monitoring End Time: </div>
     
-            <div class="col"><input type="time" id="monitorEndTimeP4" name="monitor_endtime_p4" /></div>
+            <div class="col"><input type="time" id="monitorEndTimeP4" name="monitor_endtime_p4" class="fullWidth"/></div>
         </div>
     </div>
     
     <!-- Post-paradigm -->
     <div class="container mt-4">
         <div class="row align-items-end mt-2 blackBackground">
-            <div class="myLeftCol">PND 11: </div>
+            <div class="myLeftCol2">PND 11: </div>
     
             <div class="col pnd11">&nbsp;</div>
         </div>
@@ -1639,19 +1651,19 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         <div class="row align-items-end mt-2">
             <div class="myLeftCol">Dam Mass: </div>
     
-            <div class="col"><input type="number" id="damMassP11" name="dam_mass_p11" /></div>
+            <div class="col"><input type="number" id="damMassP11" name="dam_mass_p11" class="fullWidth"/></div>
         </div>
 
         <!-- Add/remove pup buttons -->
         <div class="row mt-2 hideView">
-            <div class="myLeftCol"><input type="button" id="addPupP11" name="add_pup_p11" value="Add Pup"/></div>
-            <div class="col"><input type="button" id="removePupP11" name="remove_pup_p11" value="Remove Last Pup"/></div>
+            <div class="myLeftCol"><input type="button" id="addPupP11" name="add_pup_p11" value="Add Pup" class="fullWidth"/></div>
+            <div class="col"><input type="button" id="removePupP11" name="remove_pup_p11" value="Remove Last Pup" class="fullWidth"/></div>
         </div>
 
         <!-- Offspring Demographic Info -->
         <div class="container mt-2">
-            <div class="tableDiv hideView">
-                <table id="offspringDemoP11">
+            <div class="table-responive xsTableDiv hideView">
+                <table id="offspringDemoP11" class="table">
                     <thead>
                         <th>Tail</th>
                         <th>Ear Tag</th>
@@ -1662,7 +1674,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             </div>
 
             <div class="row align-items-end mt-2">
-                <div class="myLeftCol">Number of pups: </div>
+                <div class="myLeftCol2">Number of pups: </div>
         
                 <div class="col" id="numPupsP11">&nbsp;</div>
             </div>
@@ -1672,7 +1684,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         <div class="row mt-2 hideView">
             <div class="myLeftCol">Select Mass Day: </div>
             <div class="col">
-                <select id="massDayP4_11" name="massday_p4_11">
+                <select id="massDayP4_11" name="massday_p4_11" class="fullWidth">
                     <option value="demo">Demographics</option>
                     <option value="p11">P11</option>
                     <option value="p12">P12</option>
@@ -1688,20 +1700,22 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
 
         <div class="container mt-2">
             <!-- Just Demographics -->
-            <div class="tableDiv demo massTable">
-                <table id="offspringDemoP11_nice">
+            <div class="table-responive xsTableDiv demo massTable">
+                <table id="offspringDemoP11_nice" class="table">
                     <thead>
                         <th>Tail</th>
-                        <th>Mouse_ID</th>
-                        <th>Sex</th>
+                        <th>Mouse_ID<span
+                            style="color:blue">#</span></th>
+                        <th>Sex<span
+                            style="color:blue">#</span></th>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
 
             <!-- PND 11 -->
-            <div class="tableDiv p11 massTable hideView">
-                <table id="offspringMassP11">
+            <div class="table-responive xsTableDiv p11 massTable hideView">
+                <table id="offspringMassP11" class="table">
                     <thead>
                         <th>Tail</th>
                         <th>ID</th>
@@ -1715,13 +1729,13 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             <!-- PND 12 -->
             <div class="massTable p12  hideView">
                 <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 12: </div>
+                    <div class="myLeftCol2">PND 12: </div>
             
                     <div class="col pnd12">&nbsp;</div>
                 </div>
 
-                <div class="tableDiv mt-2 hideView">
-                    <table id="offspringMassP12">
+                <div class="table-responive xsTableDiv mt-2 hideView">
+                    <table id="offspringMassP12" class="table">
                         <thead>
                             <th>Tail</th>
                             <th>ID</th>
@@ -1737,13 +1751,13 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             <!-- PND 13 -->
             <div class="massTable p13  hideView">
                 <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 13: </div>
+                    <div class="myLeftCol2">PND 13: </div>
             
                     <div class="col pnd13">&nbsp;</div>
                 </div>
     
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP13">
+                <div class="table-responive xsTableDiv mt-2">
+                    <table id="offspringMassP13" class="table">
                         <thead>
                             <th>Tail</th>
                             <th>ID</th>
@@ -1758,13 +1772,13 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             <!-- PND 14 -->
             <div class="massTable p14  hideView">
                 <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 14: </div>
+                    <div class="myLeftCol2">PND 14: </div>
             
                     <div class="col pnd14">&nbsp;</div>
                 </div>
     
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP14">
+                <div class="table-responive xsTableDiv mt-2">
+                    <table id="offspringMassP14" class="table">
                         <thead>
                             <th>Tail</th>
                             <th>ID</th>
@@ -1779,13 +1793,13 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             <!-- PND 15 -->
             <div class="massTable p15 hideView">
                 <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 15: </div>
+                    <div class="myLeftCol2">PND 15: </div>
             
                     <div class="col pnd15">&nbsp;</div>
                 </div>
     
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP15">
+                <div class="table-responive xsTableDiv mt-2">
+                    <table id="offspringMassP15" class="table">
                         <thead>
                             <th>Tail</th>
                             <th>ID</th>
@@ -1800,13 +1814,13 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             <!-- PND 16 -->
             <div class="massTable p16 hideView">
                 <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 16: </div>
+                    <div class="myLeftCol2">PND 16: </div>
             
                     <div class="col pnd16">&nbsp;</div>
                 </div>
     
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP16">
+                <div class="table-responive xsTableDiv mt-2">
+                    <table id="offspringMassP16" class="table">
                         <thead>
                             <th>Tail</th>
                             <th>ID</th>
@@ -1821,13 +1835,13 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             <!-- PND 19 -->
             <div class="massTable p19 hideView">
                 <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 19: </div>
+                    <div class="myLeftCol2">PND 19: </div>
             
                     <div class="col pnd19">&nbsp;</div>
                 </div>
     
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP19">
+                <div class="table-responive xsTableDiv mt-2">
+                    <table id="offspringMassP19" class="table">
                         <thead>
                             <th>Tail</th>
                             <th>ID</th>
@@ -1842,7 +1856,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             <!-- PND 21 -->
             <div>
                 <div class="row align-items-end mt-2 blackBackground">
-                    <div class="myLeftCol">PND 21: </div>
+                    <div class="myLeftCol2">PND 21: </div>
             
                     <div class="col pnd21">&nbsp;</div>
                 </div>
@@ -1855,8 +1869,8 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
             </div>
 
             <div class="massTable p21  hideView">
-                <div class="tableDiv mt-2">
-                    <table id="offspringMassP21">
+                <div class="table-responive xsTableDiv mt-2">
+                    <table id="offspringMassP21" class="table">
                         <thead>
                             <th>Tail</th>
                             <th>ID</th>
@@ -1871,7 +1885,7 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         </div>
     </div>
 
-    <div class="container tableDiv mt-2">
+    <div class="container table-responive xsTableDiv mt-2">
 
     </div>
 </div>
@@ -1881,67 +1895,78 @@ parent_form_script.wiget_version_info ={"version":1,"created":"2020-12-29T13:56:
         <h3 class="col">Offspring Mass Output Table</h3>
     </div>
     <div class="row mt-2">
-        <div class="col col-lg-3"><input id="toggleTable" name="toggletable" type="button" value="Show/Hide Table" />
+        <div class="col-12 col-sm-4 col-lg-3"><input id="toggleTable" name="toggletable" type="button" value="Show/Hide Table" class="fullWidth"/>
         </div>
 
-        <div class="col col-lg-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV" /></div>
+        <div class="col-12 col-sm-4 col-lg-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV" class="fullWidth"/></div>
 
-        <div class="col col-lg-3">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" />
-            <br/>Copy Head? <input id="copyHead" name="copyhead" type="checkbox"/>
+        <div class="col-12 col-sm-4 col-lg-3">
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth"/>
+            <br/>Copy Head? <input id="copyHead" name="copyhead" type="checkbox"/></p>
         </div>
     </div>
 </div>
 
-<div class="container" id="errorMsg">&nbsp;</div>
+<div class="container">
+    <div class="row">
+        <div class="col" id="errorMsg">&nbsp;</div>
+    </div>
+</div>
 
-<div class="container tableDiv mt-2" id="offspringMassOutDiv" style="display:none">
-    <table id="offspringMassOutTable_p4_11" class="p4_11">
-        <thead>
-            <tr>
-                <th>Mouse_ID</th>
-                <th>ParaType</th>
-                <th>Mass_P9</th>
-                <th>Mass_P10</th>
-                <th>Mass_P11</th>
-                <th>Mass_P12</th>
-                <th>Mass_P13</th>
-                <th>Mass_P14</th>
-                <th>Mass_P15</th>
-                <th>Mass_P16</th>
-                <th>Mass_P17</th>
-                <th>Mass_P19</th>
-                <th>Mass_P21</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+<div class="container mt-2" id="offspringMassOutDiv" style="display:none">
+    <div class="table-responsive xsTableDiv">
+        <table id="offspringMassOutTable_p4_11" class="p4_11 table">
+            <thead>
+                <tr>
+                    <th>Mouse_ID</th>
+                    <th>ParaType</th>
+                    <th>Mass_P9</th>
+                    <th>Mass_P10</th>
+                    <th>Mass_P11</th>
+                    <th>Mass_P12</th>
+                    <th>Mass_P13</th>
+                    <th>Mass_P14</th>
+                    <th>Mass_P15</th>
+                    <th>Mass_P16</th>
+                    <th>Mass_P17</th>
+                    <th>Mass_P19</th>
+                    <th>Mass_P21</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
 
-    <table id="offspringMassOutTable_p2_9" class="p2_9">
-        <thead>
-            <tr>
-                <th>Mouse_ID</th>
-                <th>ParaType</th>
-                <th>Mass_P9</th>
-                <th>Mass_P10</th>
-                <th>Mass_P11</th>
-                <th>Mass_P12</th>
-                <th>Mass_P13</th>
-                <th>Mass_P14</th>
-                <th>Mass_P15</th>
-                <th>Mass_P16</th>
-                <th>Mass_P17</th>
-                <th>Mass_P19</th>
-                <th>Mass_P21</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+        <table id="offspringMassOutTable_p2_9" class="p2_9 table">
+            <thead>
+                <tr>
+                    <th>Mouse_ID</th>
+                    <th>ParaType</th>
+                    <th>Mass_P9</th>
+                    <th>Mass_P10</th>
+                    <th>Mass_P11</th>
+                    <th>Mass_P12</th>
+                    <th>Mass_P13</th>
+                    <th>Mass_P14</th>
+                    <th>Mass_P15</th>
+                    <th>Mass_P16</th>
+                    <th>Mass_P17</th>
+                    <th>Mass_P19</th>
+                    <th>Mass_P21</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
 
-    <div id="forCopy"></div>
-    <p>&nbsp;</p>
+        <p>&nbsp;</p>
+    </div>
+    
+    <div class=row>
+        <div class="col">
+            <div id="forCopy">&nbsp;</div>
+        </div>
+    </div>
 </div>
 <!------------------------------------------------------------------------------------------>
 <!--end of your code-->
