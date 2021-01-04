@@ -80,14 +80,11 @@ $(document).ready(function () {
         //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
 
-        //adjust form design and buttons based on mode
-        this.adjustForMode(mode);
-
         //resize the content box when the window size changes
         window.onresize = this.resize;
 
         //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners(parsedJson);
+        this.addEventListeners();
 
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
@@ -97,6 +94,9 @@ $(document).ready(function () {
 
         // Set up the form based on previously entered form input
         this.setUpInitialState();
+
+        //adjust form design and buttons based on mode
+        this.adjustForMode(mode);
     },
 
     to_json: function () {
