@@ -3,10 +3,7 @@ my_widget_script =
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
-        // mode = if it equals 'view' than it should not be editable
-        //        if it equals 'edit' then it will be used for entry
-        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
-        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
+        // mode = 'view' 'edit' 'view_dev' or 'edit_dev'
 
         // json_data will contain the data to populate the form with, it will be in the form of the data
         // returned from a call to to_json or empty if this is a new form.
@@ -33,9 +30,6 @@ my_widget_script =
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
-        // Add * and # to mark required field indicators
-        //this.addRequiredFieldIndicators();
-
         // Set up the form based on previously entered form input
         this.setUpInitialState();
 
@@ -56,7 +50,15 @@ my_widget_script =
 
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
-        var output = { widgetData: JSON.parse(widgetJsonString), numPupsP4: dynamicContent.numPupsP4, numPupsP11: dynamicContent.numPupsP11, tailMarks: dynamicContent.tailMarks };
+        var output = {
+            widgetData: JSON.parse(widgetJsonString),
+            numPupsP4: dynamicContent.numPupsP4,
+            numPupsP11: dynamicContent.numPupsP11,
+            tailMarksP11: dynamicContent.tailMarksP11,
+            numPupsP2: dynamicContent.numPupsP2,
+            numPupsP9: dynamicContent.numPupsP9,
+            tailMarksP9: dynamicContent.tailMarksP9
+        };
 
         //uncomment to check stringified output
         //console.log("to JSON", JSON.stringify(output));
@@ -92,20 +94,30 @@ my_widget_script =
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
 
-        //If no additional dynamic content 
-        //var output = { widgetData: testData };
+        var tailMarksP11 = [];
+        tailMarksP11[0] = "<span style='color:blue'>Test</span>"
+        tailMarksP11[1] = "<span style='color:red'>Test2</span>"
 
-        var tailMarks = [];
-        tailMarks[0] = "<span style='color:blue'>Test</span>"
-        tailMarks[1] = "<span style='color:red'>Test2</span>"
+        var tailMarksP9 = [];
+        tailMarksP9[0] = "<span style='color:blue'>P9 Test</span>"
+        tailMarksP9[1] = "<span style='color:red'>P9 Test2</span>"
+        tailMarksP9[2] = "<span style='color:blue'>P9 Test3</span>"
 
-        var output = { widgetData: testData, numPupsP4: 2, numPupsP11: 2, tailMarks: tailMarks }
+        var output = {
+            widgetData: testData,
+            numPupsP4: 2,
+            numPupsP11: 2,
+            tailMarksP11: tailMarksP11,
+            numPupsP2: 3,
+            numPupsP9: 3,
+            tailMarksP9: tailMarksP9,
+        }
         //return the stringified output for use by the init function
         return JSON.stringify(output);
     },
 
     /**
-    * This function determines whether or not the user is allowed to save the widget to the page
+    * Determines whether or not the user is allowed to save the widget to the page
     * 
     * The original LabArchives function checks for fields that have _mandatory appended to the name attribute
     * 
@@ -184,16 +196,12 @@ my_widget_script =
     * defined within the HTML code. 
     * 
     * This function requires the parsedJson object.
-    * 
-    * Here, we are getting the number of addedRows (defined in to_json) from the parsedJson 
-    * object and then using the createRow function to remake those rows
     */
     initDynamicContent: function (parsedJson) {
         for (var i = 0; i < parsedJson.numPupsP4; i++) {
             var $table = $("#offspringMassP4");
-            var $avgMass = $("#avgMassP4");
-            var whichPara = $("#treatmentPeriod").val();
-            //var whichPara = "p4_11";
+            var $avgMass = $(".avgMassP4");
+            var whichPara = "p4_11";
             my_widget_script.createRow_startPara($table, $avgMass, whichPara);
         }
 
@@ -204,21 +212,38 @@ my_widget_script =
 
             var rowNum = i + 1;
             var rowClassName = ".Row_" + rowNum;
-            $("#offspringDemoP11").find(rowClassName).find(".tailMark").html(parsedJson.tailMarks[i]);
+            $("#offspringDemoP11").find(rowClassName).find(".tailMark").html(parsedJson.tailMarksP11[i]);
 
             my_widget_script.createRows_allMassTables(whichPara);
         }
 
-        $("#numPupsP11").text(parsedJson.numPupsP11);
+        for (var i = 0; i < parsedJson.numPupsP2; i++) {
+            var $table = $("#offspringMassP2");
+            var $avgMass = $(".avgMassP2");
+            var whichPara = "p2_9";
+            my_widget_script.createRow_startPara($table, $avgMass, whichPara);
+        }
+
+        for (var i = 0; i < parsedJson.numPupsP9; i++) {
+            var $tableDemo = $("#offspringDemoP9");
+            var whichPara = "p2_9";
+            my_widget_script.createRow_offDemo($tableDemo, whichPara);
+
+            var rowNum = i + 1;
+            var rowClassName = ".Row_" + rowNum;
+            $("#offspringDemoP9").find(rowClassName).find(".tailMark").html(parsedJson.tailMarksP9[i]);
+
+            my_widget_script.createRows_allMassTables(whichPara);
+        }
+
+        $(".numPupsP11").text(parsedJson.numPupsP11);
+        $(".numPupsP9").text(parsedJson.numPupsP9);
 
     },
 
     /**
     * TO DO: edit this function to define how the HTML elements should be adjusted
     * based on the current mode.
-    * 
-    * Here, a subset of buttons are disabled when the widget is not being edited.
-    * There may be other elements that should be shown/hidden based on the mode
     */
     adjustForMode: function (mode) {
         if (mode !== "edit" && mode !== "edit_dev") {
@@ -227,10 +252,18 @@ my_widget_script =
             $("#removePupP4").prop('disabled', true);
             $("#addPupP11").prop('disabled', true);
             $("#removePupP11").prop('disabled', true);
+            $("#addPupP2").prop('disabled', true);
+            $("#removePupP2").prop('disabled', true);
+            $("#addPupP9").prop('disabled', true);
+            $("#removePupP9").prop('disabled', true);
             $(".hideView").hide();
             $(".massTable.demo").show();
+            $(".massTableP2.demo").show();
             $("#offspringDemoP11").hide();
-            if ($("#treatmentPeriod").val()) { $("#offspringMassOutDiv").show(); }
+            if ($("#treatmentPeriod").val()) {
+                $("#offspringMassOutDiv").show();
+                $("#damOutDiv").show();
+            }
         }
     },
 
@@ -244,84 +277,61 @@ my_widget_script =
             for (var i = 0; i < my_widget_script.countPups($("#offspringDemoP11")); i++) {
                 var rowCount = i + 1;
                 var whichPara = "p4_11"
-
                 var rowClass = ".Row_" + rowCount;
-
                 var col2CalcClass = ".idcalc_" + whichPara + "_" + rowCount;
-
                 var $tableDemoP11 = $("#offspringDemoP11");
-
                 $(col2CalcClass).text(
                     $("#damID").val() + "_" + $tableDemoP11.find(rowClass).find(".idCol").val()
                 );
             }
 
-            //to do add for P2-9
+            for (var i = 0; i < my_widget_script.countPups($("#offspringDemoP9")); i++) {
+                var rowCount = i + 1;
+                var whichPara = "p2_9"
+                var rowClass = ".Row_" + rowCount;
+                var col2CalcClass = ".idcalc_" + whichPara + "_" + rowCount;
+                var $tableDemoP9 = $("#offspringDemoP9");
+                $(col2CalcClass).text(
+                    $("#damID").val() + "_" + $tableDemoP9.find(rowClass).find(".idCol").val()
+                );
+            }
         });
 
         //Show/hide the table
         $("#toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
-            //alert("button pressed");
-            my_widget_script.resize();
             my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
             $("#offspringMassOutDiv").toggle();
-            my_widget_script.parent_class.resize_container();
+            my_widget_script.resize();
+        });
+
+        $("#toggleTableDam").on("click", function () { //when the showTable button is clicked. Run this function
+            my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+            $("#damOutDiv").toggle();
+            my_widget_script.resize();
         });
 
         //when the toCSV button is clicked, run the exportTableToCSV function
         $('#toCSV').on("click", function () {
             var whichPara = $("#treatmentPeriod").val();
+            my_widget_script.runCSV_buttonFunc(whichPara, "offspring");
+        });
 
-            if (whichPara) {
-                var data_valid = my_widget_script.data_valid_form();
-                //alert(data_valid);
-                if (data_valid) {
-                    if (whichPara === "p4_11") {
-                        my_widget_script.exportTableToCSV("massOffspring", "offspringMassOutTable_p4_11");
-                    } else if (whichPara === "p2_9") {
-                        my_widget_script.exportTableToCSV("massOffspring", "offspringMassOutTable_p2_9");
-                    }
-                    $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Saved successfully</span>")
-                } else {
-                    $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Did not export</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
-                }
-            } else { //if have not selected paradigm - shouldn't happen since buttons are hidden now
-                $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please select a treatment period</span>");
-            }
+        //when the toCSV button is clicked, run the exportTableToCSV function
+        $('#toCSVDam').on("click", function () {
+            var whichPara = $("#treatmentPeriod").val();
+            my_widget_script.runCSV_buttonFunc(whichPara, "dam");
         });
 
         //When the copy button is clicked, run the copyTable function
         $("#copyDataButton").on("click", function () {
             var whichPara = $("#treatmentPeriod").val();
-            var copyHead
+            my_widget_script.copyData_buttonFunc(whichPara, "offspring", $("#copyHead"));
+        });
 
-            //only copy the heading when the input box is checked
-            if ($("#copyHead").is(":checked")) {
-                copyHead = true;
-            } else {
-                copyHead = false;
-            }
-
-            if (whichPara) {
-                var data_valid = my_widget_script.data_valid_form();
-                //alert(data_valid);
-                if (data_valid) {
-                    my_widget_script.resize();
-                    $("#offspringMassOutDiv").show();
-                    if (whichPara === "p4_11") {
-                        my_widget_script.copyTable($("#offspringMassOutTable_p4_11"), copyHead);
-                    } else if (whichPara === "p2_9") {
-                        my_widget_script.copyTable($("#offspringMassOutTable_p2_9"), copyHead);
-                    }
-                    $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Copied successfully</span>")
-                } else {
-                    $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
-                }
-            } else { //if have not selected paradigm - Note, this shouldn't happen given that the buttons are now hidden
-                $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please select a treatment period</span>");
-
-            }
-
+        //When the copy button is clicked, run the copyTable function
+        $("#copyDataButtonDam").on("click", function () {
+            var whichPara = $("#treatmentPeriod").val();
+            my_widget_script.copyData_buttonFunc(whichPara, "dam", $("#copyHeadDam"));
         });
 
         $("#DOB").on("input", function () {
@@ -343,89 +353,121 @@ my_widget_script =
             my_widget_script.resize();
         });
 
+        $("#showDatesP2").on("change", function () {
+            if ($(this).is(":checked")) {
+                $("#datesListP2").show();
+            } else {
+                $("#datesListP2").hide();
+            }
+            my_widget_script.resize();
+        });
+
         $("#addPupP4").on("click", function () {
             var $table = $("#offspringMassP4");
-            var $numPups = $("#numPupsP4");
-            var $avgMass = $("#avgMassP4");
+            var $numPups = $(".numPupsP4");
+            var $avgMass = $(".avgMassP4");
             var whichPara = $("#treatmentPeriod").val();
-            //var whichPara = "p4_11";
+            my_widget_script.addPupStartFuncs($table, $numPups, $avgMass, whichPara);
+        });
 
-            my_widget_script.createRow_startPara($table, $avgMass, whichPara);
-
-            my_widget_script.offspringCalculations($table, $numPups, $avgMass, whichPara);
-            my_widget_script.resize();
+        $("#addPupP2").on("click", function () {
+            var $table = $("#offspringMassP2");
+            var $numPups = $(".numPupsP2");
+            var $avgMass = $(".avgMassP2");
+            var whichPara = $("#treatmentPeriod").val();
+            my_widget_script.addPupStartFuncs($table, $numPups, $avgMass, whichPara);
         });
 
         $("#removePupP4").on("click", function () {
             var $table = $("#offspringMassP4");
-            var $avgMass = $("#avgMassP4");
-            var $numPups = $("#numPupsP4");
+            var $avgMass = $(".avgMassP4");
+            var $numPups = $(".numPupsP4");
             var whichPara = $("#treatmentPeriod").val();
-            //var whichPara = "p4_11";
+            my_widget_script.removePupStartFuncs($table, $numPups, $avgMass, whichPara);
+        });
 
-            my_widget_script.deleteRow($table);
-
-            my_widget_script.offspringCalculations($table, $numPups, $avgMass, whichPara);
-            my_widget_script.resize();
+        $("#removePupP2").on("click", function () {
+            var $table = $("#offspringMassP2");
+            var $avgMass = $(".avgMassP2");
+            var $numPups = $(".numPupsP2");
+            var whichPara = $("#treatmentPeriod").val();
+            my_widget_script.removePupStartFuncs($table, $numPups, $avgMass, whichPara);
         });
 
         $("#addPupP11").on("click", function () {
             var $tableDemo = $("#offspringDemoP11");
-            var $numPups = $("#numPupsP11");
+            var $numPups = $(".numPupsP11");
             var whichPara = $("#treatmentPeriod").val();
-            //var whichPara = "p4_11";
+            my_widget_script.addPupEndFuncs($tableDemo, $numPups, whichPara);
+        });
 
-            my_widget_script.createRow_offDemo($tableDemo, whichPara);
-
-            my_widget_script.createRows_allMassTables(whichPara);
-
-            //Count Pups
-            var numberPupsP11 = my_widget_script.countPups($tableDemo);
-            $numPups.text(numberPupsP11);
-            my_widget_script.resize();
+        $("#addPupP9").on("click", function () {
+            var $tableDemo = $("#offspringDemoP9");
+            var $numPups = $(".numPupsP9");
+            var whichPara = $("#treatmentPeriod").val();
+            my_widget_script.addPupEndFuncs($tableDemo, $numPups, whichPara);
         });
 
         $("#removePupP11").on("click", function () {
             var $tableDemo = $("#offspringDemoP11");
-            var $numPups = $("#numPupsP11");
+            var $numPups = $(".numPupsP11");
             var whichPara = $("#treatmentPeriod").val();
-            //var whichPara = "p4_11";
+            my_widget_script.removePupEndFuncs($tableDemo, $numPups, whichPara);
+        });
 
-            my_widget_script.deleteRow($tableDemo);
-
-            my_widget_script.deleteRows_allMassTables(whichPara);
-
-            //Count Pups
-            var numberPupsP11 = my_widget_script.countPups($tableDemo);
-            $numPups.text(numberPupsP11);
-            my_widget_script.resize();
+        $("#removePupP9").on("click", function () {
+            var $tableDemo = $("#offspringDemoP9");
+            var $numPups = $(".numPupsP9");
+            var whichPara = $("#treatmentPeriod").val();
+            my_widget_script.removePupEndFuncs($tableDemo, $numPups, whichPara);
         });
 
         $("#massDayP4_11").on("change", function () {
             my_widget_script.switchMassTable($(this).val());
             my_widget_script.resize();
         });
-    },
 
-    /**
-    * TO DO: edit this function to define the symbols that should be added to the HTML
-    * page based on whether or not a field is required to save the widget to the page
-    * 
-    * Here, the function adds a blue # after fields of the class "needForForm" and a 
-    * red * after fields with the "required" property
-    */
-    addRequiredFieldIndicators: function () {
-        $('.needForTable').each(function () { //find element with class "needForForm"
-            //alert($(this).val());
-            $(this).after("<span style='color:blue'>#</span>"); //add # after
+        $("#massDayP2_9").on("change", function () {
+            my_widget_script.switchMassTableP2($(this).val());
+            my_widget_script.resize();
         });
 
-        //source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
-        $('#the_form').find('select, textarea, input').each(function () { //find each select field, textarea, and input
-            if ($(this).prop('required')) { //if has the attribute "required"
-                $(this).after("<span style='color:red'>*</span>"); //add asterisk after
-            }
+        $("#damMassP4").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".damMassP4_calc"));
         });
+
+        $("#damMassP11").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".damMassP11_calc"));
+        });
+
+        $("#damMass_p4_11_p21").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".damMass_p4_11_p21_calc"));
+        });
+
+        $("#cameraP4").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".cameraP4_calc"));
+        });
+
+        $("#damMassP2").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".damMassP2_calc"));
+        });
+
+        $("#damMassP9").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".damMassP9_calc"));
+        });
+
+        $("#damMass_p2_9_p21").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".damMass_p2_9_p21_calc"));
+        });
+
+        $("#cameraP2").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".cameraP2_calc"));
+        });
+
+        $("#sacOrStop").on("input", function () {
+            my_widget_script.updateCalculation($(this), $(".sacOrStop_calc"));
+        })
+
     },
 
     /**
@@ -453,54 +495,49 @@ my_widget_script =
         });
 
         //Calculate number of pups and avg mass from P4 paradigm start
-        my_widget_script.offspringCalculations($("#offspringMassP4"), $("#numPupsP4"), $("#avgMassP4"), "p4_11");
+        my_widget_script.offspringCalculations($("#offspringMassP4"), $(".numPupsP4"), $(".avgMassP4"), "p4_11");
+
+        //Calculate number of pups and avg mass from P2 paradigm start
+        my_widget_script.offspringCalculations($("#offspringMassP2"), $(".numPupsP2"), $(".avgMassP2"), "p2_9");
 
         if ($("#showDatesP4").is(":checked")) {
             $("#datesList").show();
         } else { $("#datesList").hide(); }
 
+        if ($("#showDatesP2").is(":checked")) {
+            $("#datesListP2").show();
+        } else { $("#datesListP2").hide(); }
+
         my_widget_script.switchMassTable($("#massDayP4_11").val());
+        my_widget_script.switchMassTableP2($("#massDayP2_9").val());
 
         var numPupsP11 = my_widget_script.countPups($("#offspringDemoP11"));
+        var numPupsP9 = my_widget_script.countPups($("#offspringDemoP9"));
 
         for (var i = 0; i < numPupsP11; i++) {
             var rowCount = i + 1;
             var whichPara = "p4_11";
+            var $demoTable = $("#offspringDemoP11");
 
-            var rowClass = ".Row_" + rowCount;
-
-            var col1CalcClass = ".tailcalc_" + whichPara + "_" + rowCount;
-            var col2CalcClass = ".idcalc_" + whichPara + "_" + rowCount;
-            var col3CalcClass = ".sexcalc_" + whichPara + "_" + rowCount;
-
-            var $tableDemoP11 = $("#offspringDemoP11");
-            $(col1CalcClass).html(
-                $tableDemoP11.find(rowClass).find(".tailMark").html()
-            );
-
-            $(col2CalcClass).text(
-                $("#damID").val() + "_" + $tableDemoP11.find(rowClass).find(".idCol").val()
-            );
-
-            $(col3CalcClass).text(
-                $tableDemoP11.find(rowClass).find(".sexCol").val()
-            );
-
-            //initialize output table
-            var output = my_widget_script.calcForOutputTable(whichPara, rowCount);
-            console.log("Mass Vals: " + output.massVals + "\nLength: " + output.massVals.length);
-            for (var j = 0; j < output.massVals.length; j++) {
-                var massCalcClass = "." + output.massCalcClasses[j];
-                var massVal = output.massVals[j];
-
-                console.log(
-                    "Mass Class: " + massCalcClass +
-                    "\n Mass Value: " + massVal
-                );
-
-                $(massCalcClass).text(massVal);
-            }
+            my_widget_script.remakeEndParaTables(rowCount, whichPara, $demoTable);
         }
+
+        for (var i = 0; i < numPupsP9; i++) {
+            var rowCount = i + 1;
+            var whichPara = "p2_9";
+            var $demoTable = $("#offspringDemoP9");
+
+            my_widget_script.remakeEndParaTables(rowCount, whichPara, $demoTable);
+        }
+
+        my_widget_script.updateCalculation($("#damMassP11"), $(".damMassP11_calc"));
+        my_widget_script.updateCalculation($("#damMass_p4_11_p21"), $(".damMass_p4_11_p21_calc"));
+        my_widget_script.updateCalculation($("#cameraP4"), $(".cameraP4_calc"));
+        my_widget_script.updateCalculation($("#damMassP2"), $(".damMassP2_calc"));
+        my_widget_script.updateCalculation($("#damMassP9"), $(".damMassP9_calc"));
+        my_widget_script.updateCalculation($("#damMass_p2_9_p21"), $(".damMass_p2_9_p21_calc"));
+        my_widget_script.updateCalculation($("#cameraP2"), $(".cameraP2_calc"));
+        my_widget_script.updateCalculation($("#sacOrStop"), $(".sacOrStop_calc"));
 
         my_widget_script.resize();
     },
@@ -510,13 +547,6 @@ my_widget_script =
     * should be adjusted based on the current width of the window
     */
     resize: function () {
-        //with responsive table, this resizing of tableDivs should no longer be necessary
-        // //gets the inner width of the window.
-        // var width = window.innerWidth;
-
-        // //make width of table div 95% of current width
-        // $(".tableDiv").width(width * .95);
-
         //resize the container
         my_widget_script.parent_class.resize_container();
     },
@@ -525,33 +555,41 @@ my_widget_script =
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        // These should be simple variables, such as true/false, a number, or a state
-        // This cannot be something complex like a full <div>
-
         var numPupsP4 = my_widget_script.countPups($("#offspringMassP4"));
         var numPupsP11 = my_widget_script.countPups($("#offspringDemoP11"));
-        var tailMarks = [];
-        var IDs = [];
-        var sexes = [];
+        var tailMarksP11 = [];
         for (var i = 0; i < numPupsP11; i++) {
             var rowNum = i + 1;
             var rowClassName = ".Row_" + rowNum;
             var tailMarkText = $("#offspringDemoP11").find(rowClassName).find(".tailMark").html();
-            tailMarks[i] = tailMarkText;
+            tailMarksP11[i] = tailMarkText;
         }
 
-        var dynamicContent = { numPupsP4: numPupsP4, numPupsP11: numPupsP11, tailMarks: tailMarks }
+        var numPupsP2 = my_widget_script.countPups($("#offspringMassP2"));
+        var numPupsP9 = my_widget_script.countPups($("#offspringDemoP9"));
+        var tailMarksP9 = [];
+        for (var i = 0; i < numPupsP11; i++) {
+            var rowNum = i + 1;
+            var rowClassName = ".Row_" + rowNum;
+            var tailMarkText = $("#offspringDemoP9").find(rowClassName).find(".tailMark").html();
+            tailMarksP9[i] = tailMarkText;
+        }
+
+        var dynamicContent = {
+            numPupsP4: numPupsP4,
+            numPupsP11: numPupsP11,
+            tailMarksP11: tailMarksP11,
+            numPupsP2: numPupsP2,
+            numPupsP9: numPupsP9,
+            tailMarksP9: tailMarksP9,
+        }
+
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
     /** -----------------------------------------------------------------------------
     * VALIDATE FORM ENTRY BEFORE COPYING OR SAVING TABLE TO CSV
-    *
-    * This function will check that elements with a class "needForTable"
-    * are not blank. If there are blank elements, it will return false
-    * and will post an error message "Please fill out all elements marked by a blue #"
-    *
     * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
     * -----------------------------------------------------------------------------
     */
@@ -639,125 +677,52 @@ my_widget_script =
         }
     },
 
-    /**
-    * 
-    * This function takes a csv element and filename that are passed from the
-    * exportTableToCSV function.
-    * 
-    * This creates a csvFile and builds a download link that references this file.
-    * The download link is "clicked" by the function to prompt the browser to 
-    * download this file
-    * 
-    * source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
-    */
-    downloadCSV: function (csv, filename) {
-        var csvFile;
-        var downloadLink;
-
-        // CSV file
-        csvFile = new Blob([csv], { type: "text/csv" });
-
-        // Download link
-        downloadLink = document.createElement("a");
-
-        // File name
-        downloadLink.download = filename;
-
-        // Create a link to the file
-        downloadLink.href = window.URL.createObjectURL(csvFile);
-
-        // Hide download link
-        downloadLink.style.display = "none";
-
-        // Add the link to DOM
-        document.body.appendChild(downloadLink);
-
-        // Click download link
-        downloadLink.click();
-    },
-
-    /**
-    * This function takes a filename and table name (both strings) as input
-    * It then creates a csv element from the table
-    * This csv element is passed to the downloadCSV function along with the filename
-    * 
-    * source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
-    */
-    exportTableToCSV: function (filename, table) {
-        var csv = [];
-        var datatable = document.getElementById(table);
-        var rows = datatable.querySelectorAll("tr");
-
-        for (var i = 0; i < rows.length; i++) {
-            var row = [], cols = rows[i].querySelectorAll("td, th");
-
-            for (var j = 0; j < cols.length; j++) {
-                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
-                row.push(cellText);
-            };
-
-            csv.push(row.join(","));
+    switchMassTableP2: function (selectionVal) {
+        switch (selectionVal) {
+            case "demo":
+                $(".massTableP2.demo").show();
+                $(".massTableP2:not(.demo)").hide();
+                break;
+            case "p9":
+                $(".massTableP2.p9").show();
+                $(".massTableP2:not(.p9)").hide();
+                break;
+            case "p10":
+                $(".massTableP2.p10").show();
+                $(".massTableP2:not(.p10)").hide();
+                break;
+            case "p11":
+                $(".massTableP2.p11").show();
+                $(".massTableP2:not(.p11)").hide();
+                break;
+            case "p12":
+                $(".massTableP2.p12").show();
+                $(".massTableP2:not(.p12)").hide();
+                break;
+            case "p13":
+                $(".massTableP2.p13").show();
+                $(".massTableP2:not(.p13)").hide();
+                break;
+            case "p15":
+                $(".massTableP2.p15").show();
+                $(".massTableP2:not(.p15)").hide();
+                break;
+            case "p17":
+                $(".massTableP2.p17").show();
+                $(".massTableP2:not(.p17)").hide();
+                break;
+            case "p19":
+                $(".massTableP2.p19").show();
+                $(".massTableP2:not(.p19)").hide();
+                break;
+            case "p21":
+                $(".massTableP2.p21").show();
+                $(".massTableP2:not(.p21)").hide();
+                break;
         }
-
-        // Download CSV file
-        this.downloadCSV(csv.join("\n"), filename);
-    },
-
-    /** 
-    * This function creates a temporary textarea and then appends the contents of the
-    * specified table body to this textarea, separating each cell with a tab (\t).
-    * Because the script editor in LA is within a <textarea> the script cannot contain
-    * the verbatim string "textarea" so this must be separated as "text" + "area"
-    * to avoid errors.
-    * 
-    * If copying a table that has form inputs, then need to refer to the children of 
-    * <td> tags, and get the values by using .val() instead of .text()
-    * 
-    * If copying a table that could have multiple table rows (<tr>), the use the 
-    * \n new line separator
-    * 
-    * The temporary <textarea> is appended to the HTML form, focused on, and selected.
-    * Note that this moves the literal page focus, so having this append near the 
-    * button that calls this function is best. After the <textarea> is copied, it is
-    * then removed from the page.
-    */
-    copyTable: function ($table, copyHead) {
-        //create a temporary text area
-        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-        var addLine = "";
-        if (copyHead) {
-            $table.find("thead").children("tr").each(function () { //add each child of the row
-                var addTab = "";
-                $(this).children().each(function () {
-                    $temp.text($temp.text() + addTab + $(this).text());
-                    addTab = "\t";
-                });
-            });
-            addLine = "\n";
-        }
-
-        $table.find("tbody").children("tr").each(function () { //add each child of the row
-            $temp.text($temp.text() + addLine);
-            var addTab = "";
-            $(this).find("td").each(function () {
-                if ($(this).text()) {
-                    var addText = $(this).text();
-                } else {
-                    var addText = "NA"
-                }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                addLine = "\n";
-            });
-        });
-
-        $temp.appendTo($('#forCopy')).focus().select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
-        $temp.remove(); //remove temp
     },
 
     addDays: function ($startDateVal, $newDateClass, numDays) {
-        //debugger;
         var dateString = $startDateVal; //get the date string from the input
 
         var startDate = new Date(dateString);
@@ -772,24 +737,18 @@ my_widget_script =
         $newDateClass.text(newDate.toDateString());
     },
 
-    /* -----------------------------------------------------------------------------
-    ** DEFINE ADDITIONAL METHODS HERE
-    **
-    ** Be sure that there is a comma after previous method
-    **
-    ** my_widget_script.parent_class.resize_container(); should be called each time
-    ** content is created, modified, or deleted within a function.
-    ** -----------------------------------------------------------------------------
-    */
-
     printPND_days: function () {
+        my_widget_script.addDays($("#DOB").val(), $(".pnd2"), 2);
         my_widget_script.addDays($("#DOB").val(), $(".pnd4"), 4);
+        my_widget_script.addDays($("#DOB").val(), $(".pnd9"), 9);
+        my_widget_script.addDays($("#DOB").val(), $(".pnd10"), 10);
         my_widget_script.addDays($("#DOB").val(), $(".pnd11"), 11);
         my_widget_script.addDays($("#DOB").val(), $(".pnd12"), 12);
         my_widget_script.addDays($("#DOB").val(), $(".pnd13"), 13);
         my_widget_script.addDays($("#DOB").val(), $(".pnd14"), 14);
         my_widget_script.addDays($("#DOB").val(), $(".pnd15"), 15);
         my_widget_script.addDays($("#DOB").val(), $(".pnd16"), 16);
+        my_widget_script.addDays($("#DOB").val(), $(".pnd17"), 17);
         my_widget_script.addDays($("#DOB").val(), $(".pnd19"), 19);
         my_widget_script.addDays($("#DOB").val(), $(".pnd21"), 21);
     },
@@ -956,6 +915,11 @@ my_widget_script =
         var rowClass = "Row_" + rowCount;
         var rowClasses = "offMassRow " + rowClass;
         var rowClassWDot = "." + rowClass;
+        if (whichPara === "p4_11") {
+            var $demoTable = $("#offspringDemoP11");
+        } else if (whichPara === "p2_9") {
+            var $demoTable = $("#offspringDemoP9");
+        }
 
         var col1CalcClass = "tailcalc_" + whichPara + "_" + rowCount;
         var col2CalcClass = "idcalc_" + whichPara + "_" + rowCount;
@@ -977,19 +941,19 @@ my_widget_script =
                 $('<td></td>', {
                     "class": col1CalcClass
                 }).append(
-                    $("#offspringDemoP11").find(rowClassWDot).find(".tailMark").html()
+                    $demoTable.find(rowClassWDot).find(".tailMark").html()
                 )
             ).append(
                 $('<td></td>', {
                     "class": col2CalcClass
                 }).append(
-                    $("#damID").val() + "_" + $("#offspringDemoP11").find(rowClassWDot).find(".idCol").val()
+                    $("#damID").val() + "_" + $demoTable.find(rowClassWDot).find(".idCol").val()
                 )
             ).append(
                 $('<td></td>', {
                     "class": col3CalcClass
                 }).append(
-                    $("#offspringDemoP11").find(rowClassWDot).find(".sexCol").val()
+                    $demoTable.find(rowClassWDot).find(".sexCol").val()
                 )
             ).append(
                 $('<td></td>').append(
@@ -1014,8 +978,13 @@ my_widget_script =
 
     createRow_summaryMassTable: function ($table, whichPara) {
         var rowCount = $table.find("tbody tr").length + 1;
-
         var output = my_widget_script.calcForOutputTable(whichPara, rowCount);
+
+        if (whichPara === "p4_11") {
+            var $demoTable = $("#offspringDemoP11");
+        } else if (whichPara === "p2_9") {
+            var $demoTable = $("#offspringDemoP9");
+        }
 
         $table.find("tbody").append(
             $('<tr></tr>', { //add a new row
@@ -1025,7 +994,7 @@ my_widget_script =
                     "class": output.col2CalcClass
                 }).append(
                     //get id from demo table, if it already exists
-                    $("#damID").val() + "_" + $("#offspringDemoP11").find(output.rowClassWDot).find(".idCol").val()
+                    $("#damID").val() + "_" + $demoTable.find(output.rowClassWDot).find(".idCol").val()
                 )
             ).append( //ParaType
                 $('<td></td>', {
@@ -1170,13 +1139,32 @@ my_widget_script =
 
     createRows_allMassTables: function (whichPara) {
         if (whichPara === "p4_11") {
-            var massTables = [$("#offspringDemoP11_nice"), $("#offspringMassP11"), $("#offspringMassP12"), $("#offspringMassP13"), $("#offspringMassP14"), $("#offspringMassP15"), $("#offspringMassP16"), $("#offspringMassP19"), $("#offspringMassP21")];
+            var massTables = [
+                $("#offspringDemoP11_nice"),
+                $("#offspringMassP11"),
+                $("#offspringMassP12"),
+                $("#offspringMassP13"),
+                $("#offspringMassP14"),
+                $("#offspringMassP15"),
+                $("#offspringMassP16"),
+                $("#offspringMassP19"),
+                $("#offspringMassP21")
+            ];
             var massDays = ["demo", "p11", "p12", "p13", "p14", "p15", "p16", "p19", "p21"];
-        } else if (whichPara === "p2_11") { //to do add dates for P2-P9
-            var massTables = [];
-            var massDays = [];
-            //var massTables = [$("#offspringMassP11"), $("#offspringMassP12"), $("#offspringMassP13"), $("#offspringMassP14"), $("#offspringMassP15"), $("#offspringMassP16"), $("#offspringMassP19"), $("#offspringMassP21")];
-            //var massDays = ["p11", "p12", "p13", "p14", "p15", "p16", "p19", "p21"];
+        } else if (whichPara === "p2_9") {
+            var massTables = [
+                $("#offspringDemoP9_nice"),
+                $("#offspringMassP9_P9"),
+                $("#offspringMassP9_P10"),
+                $("#offspringMassP9_P11"),
+                $("#offspringMassP9_P12"),
+                $("#offspringMassP9_P13"),
+                $("#offspringMassP9_P15"),
+                $("#offspringMassP9_P17"),
+                $("#offspringMassP9_P19"),
+                $("#offspringMassP9_P21")
+            ];
+            var massDays = ["demo", "p9", "p10", "p11", "p12", "p13", "p15", "p17", "p19", "21"];
         }
 
         if (massDays) {
@@ -1196,11 +1184,6 @@ my_widget_script =
 
     },
 
-    /* -----------------------------------------------------------------------------
-    ** This function deletes the last row of the table body for the given table
-    ** and then resizes the container and tableDiv.
-    ** -----------------------------------------------------------------------------
-    */
     deleteRow: function (tableName) {
         var lastRow = $(tableName).find("tbody tr").last();
         $(lastRow).remove();
@@ -1211,11 +1194,32 @@ my_widget_script =
 
     deleteRows_allMassTables: function (whichPara) {
         if (whichPara === "p4_11") {
-            var massTables = [$("#offspringDemoP11_nice"), $("#offspringMassP11"), $("#offspringMassP12"), $("#offspringMassP13"), $("#offspringMassP14"), $("#offspringMassP15"), $("#offspringMassP16"), $("#offspringMassP19"), $("#offspringMassP21")];
+            var massTables = [
+                $("#offspringDemoP11_nice"),
+                $("#offspringMassP11"),
+                $("#offspringMassP12"),
+                $("#offspringMassP13"),
+                $("#offspringMassP14"),
+                $("#offspringMassP15"),
+                $("#offspringMassP16"),
+                $("#offspringMassP19"),
+                $("#offspringMassP21")
+            ];
             //Delete from summary table
             my_widget_script.deleteRow($("#offspringMassOutTable_p4_11"));
         } else if (whichPara === "p2_9") {
-            var massTables = []; //to do P2-9
+            var massTables = [
+                $("#offspringDemoP9_nice"),
+                $("#offspringMassP9_P9"),
+                $("#offspringMassP9_P10"),
+                $("#offspringMassP9_P11"),
+                $("#offspringMassP9_P12"),
+                $("#offspringMassP9_P13"),
+                $("#offspringMassP9_P15"),
+                $("#offspringMassP9_P17"),
+                $("#offspringMassP9_P19"),
+                $("#offspringMassP9_P21")
+            ];
             my_widget_script.deleteRow($("#offspringMassOutTable_p2_9"));
         }
 
@@ -1244,12 +1248,6 @@ my_widget_script =
         }
     },
 
-    countPups: function ($table) {
-        var numberPups
-        numberPups = $table.find("tbody tr").length;
-        return numberPups;
-    },
-
     getAvgMass: function ($table, whichPara) {
         var totalMass;
         var numberPups = my_widget_script.countPups($table);
@@ -1261,17 +1259,19 @@ my_widget_script =
             totalMass = parseFloat($lastTotalMass.val())
         } else { totalmass = "NaN" }
 
-        //This was having problems with anything but the last value changed
-        //Should double check that new doesn't cause errors with LabArchives, though
-
-        // var lastTotalMassEl = document.getElementById("total_mass_" + whichPara + "_" + numberPups);
-
-        // if(lastTotalMassEl) {
-        //     totalMass = parseFloat(lastTotalMassEl.value);
-        // } else {totalMass = NaN;}
-
         var avgMass = totalMass / numberPups;
-        return avgMass.toFixed(2);
+        if (avgMass) {
+            return avgMass.toFixed(2);
+        } else {
+            return "NA";
+        }
+
+    },
+
+    countPups: function ($table) {
+        var numberPups
+        numberPups = $table.find("tbody tr").length;
+        return numberPups;
     },
 
     offspringCalculations: function ($table, $numPups, $avgMass, whichPara) {
@@ -1282,6 +1282,237 @@ my_widget_script =
         //Update Avg
         var avgMass = my_widget_script.getAvgMass($table, whichPara);
         $avgMass.text(avgMass);
-    }
+    },
 
+    updateCalculation: function ($elToWatch, $elToUpdate) {
+        var value = $elToWatch.val();
+        $elToUpdate.text(value);
+    },
+
+    addPupStartFuncs: function ($table, $numPups, $avgMass, whichPara) {
+        my_widget_script.createRow_startPara($table, $avgMass, whichPara);
+        my_widget_script.offspringCalculations($table, $numPups, $avgMass, whichPara);
+        my_widget_script.resize();
+    },
+
+    removePupStartFuncs: function ($table, $numPups, $avgMass, whichPara) {
+        my_widget_script.deleteRow($table);
+        my_widget_script.offspringCalculations($table, $numPups, $avgMass, whichPara);
+        my_widget_script.resize();
+    },
+
+    addPupEndFuncs: function ($tableDemo, $numPups, whichPara) {
+        my_widget_script.createRow_offDemo($tableDemo, whichPara);
+        my_widget_script.createRows_allMassTables(whichPara);
+
+        //Count Pups
+        var numberPups = my_widget_script.countPups($tableDemo);
+        $numPups.text(numberPups);
+        my_widget_script.resize();
+    },
+
+    removePupEndFuncs: function ($tableDemo, $numPups, whichPara) {
+        my_widget_script.deleteRow($tableDemo);
+        my_widget_script.deleteRows_allMassTables(whichPara);
+
+        //Count Pups
+        var numberPups = my_widget_script.countPups($tableDemo);
+        $numPups.text(numberPups);
+        my_widget_script.resize();
+    },
+
+    remakeEndParaTables: function (rowCount, whichPara, $demoTable) {
+        var rowClass = ".Row_" + rowCount;
+
+        var col1CalcClass = ".tailcalc_" + whichPara + "_" + rowCount;
+        var col2CalcClass = ".idcalc_" + whichPara + "_" + rowCount;
+        var col3CalcClass = ".sexcalc_" + whichPara + "_" + rowCount;
+
+        $(col1CalcClass).html(
+            $demoTable.find(rowClass).find(".tailMark").html()
+        );
+
+        $(col2CalcClass).text(
+            $("#damID").val() + "_" + $demoTable.find(rowClass).find(".idCol").val()
+        );
+
+        $(col3CalcClass).text(
+            $demoTable.find(rowClass).find(".sexCol").val()
+        );
+
+        //initialize output table
+        var output = my_widget_script.calcForOutputTable(whichPara, rowCount);
+        // console.log("Mass Vals: " + output.massVals + "\nLength: " + output.massVals.length);
+        for (var j = 0; j < output.massVals.length; j++) {
+            var massCalcClass = "." + output.massCalcClasses[j];
+            var massVal = output.massVals[j];
+
+            // console.log(
+            //     "Mass Class: " + massCalcClass + 
+            //     "\n Mass Value: " + massVal
+            // );
+
+            $(massCalcClass).text(massVal);
+        }
+    },
+
+    runCSV_buttonFunc: function (whichPara, whichGeneration) {
+        var fileName, outTable
+        if (whichGeneration === "dam") {
+            fileName = "damData";
+            if (whichPara === "p4_11") {
+                outTable = "damOutTable_p4_11"
+            } else if (whichPara === "p2_9") {
+                outTable = "damOutTable_p2_9"
+            }
+        } else if (whichGeneration === "offspring") {
+            fileName = "massOffspring"
+            if (whichPara === "p4_11") {
+                outTable = "offspringMassOutTable_p4_11"
+            } else if (whichPara === "p2_9") {
+                outTable = "offspringMassOutTable_p2_9"
+            }
+        }
+
+        if (whichPara) {
+            var data_valid = my_widget_script.data_valid_form();
+            //alert(data_valid);
+            if (data_valid) {
+                my_widget_script.exportTableToCSV(fileName, outTable);
+                $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Saved successfully</span>")
+            } else {
+                $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Did not export</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
+            }
+        } else { //if have not selected paradigm - shouldn't happen since buttons are hidden now
+            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please select a treatment period</span>");
+        }
+    },
+
+    // source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+    downloadCSV: function (csv, filename) {
+        var csvFile;
+        var downloadLink;
+
+        // CSV file
+        csvFile = new Blob([csv], { type: "text/csv" });
+
+        // Download link
+        downloadLink = document.createElement("a");
+
+        // File name
+        downloadLink.download = filename;
+
+        // Create a link to the file
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+
+        // Hide download link
+        downloadLink.style.display = "none";
+
+        // Add the link to DOM
+        document.body.appendChild(downloadLink);
+
+        // Click download link
+        downloadLink.click();
+    },
+
+    // source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+    exportTableToCSV: function (filename, table) {
+        var csv = [];
+        var datatable = document.getElementById(table);
+        var rows = datatable.querySelectorAll("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
+
+            for (var j = 0; j < cols.length; j++) {
+                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
+                row.push(cellText);
+            };
+
+            csv.push(row.join(","));
+        }
+
+        // Download CSV file
+        this.downloadCSV(csv.join("\n"), filename);
+    },
+
+    copyData_buttonFunc: function (whichPara, whichGeneration, $copyHead) {
+        var copyHead
+
+        //only copy the heading when the input box is checked
+        if ($copyHead.is(":checked")) {
+            copyHead = true;
+        } else {
+            copyHead = false;
+        }
+
+        //select output div and output table based on generation and paradigm
+        var $outDiv, $outTable
+        if (whichGeneration === "dam") {
+            $outDiv = $("#damOutDiv");
+            if (whichPara === "p4_11") {
+                $outTable = $("#damOutTable_p4_11");
+            } else if (whichPara === "p2_9") {
+                $outTable = $("#damOutTable_p2_9");
+            }
+        } else if (whichGeneration === "offspring") {
+            $outDiv = $("#offspringMassOutDiv");
+            if (whichPara === "p4_11") {
+                $outTable = $("#offspringMassOutTable_p4_11");
+            } else if (whichPara === "p2_9") {
+                $outTable = $("#offspringMassOutTable_p2_9");
+            }
+        }
+
+        if (whichPara) {
+            var data_valid = my_widget_script.data_valid_form();
+            //alert(data_valid);
+            if (data_valid) {
+                $outDiv.show();
+                my_widget_script.resize();
+                my_widget_script.copyTable($outTable, copyHead);
+                $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Copied successfully</span>")
+            } else {
+                $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
+            }
+        } else { //if have not selected paradigm - Note, this shouldn't happen given that the buttons are now hidden
+            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please select a treatment period</span>");
+
+        }
+    },
+
+    copyTable: function ($table, copyHead) {
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addLine = "";
+        if (copyHead) {
+            $table.find("thead").children("tr").each(function () { //add each child of the row
+                var addTab = "";
+                $(this).children().each(function () {
+                    $temp.text($temp.text() + addTab + $(this).text());
+                    addTab = "\t";
+                });
+            });
+            addLine = "\n";
+        }
+
+        $table.find("tbody").children("tr").each(function () { //add each child of the row
+            $temp.text($temp.text() + addLine);
+            var addTab = "";
+            $(this).find("td").each(function () {
+                if ($(this).text()) {
+                    var addText = $(this).text();
+                } else {
+                    var addText = "NA"
+                }
+                $temp.text($temp.text() + addTab + addText);
+                addTab = "\t";
+                addLine = "\n";
+            });
+        });
+
+        $temp.appendTo($('#forCopy')).focus().select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
+    }
 };
