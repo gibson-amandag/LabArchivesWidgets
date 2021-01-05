@@ -40,6 +40,7 @@
 </head>
 <body>
 <script>
+    // #region
 var form_script = null;
 try {
 $(document).ready(function () {
@@ -55,8 +56,11 @@ $(document).ready(function () {
 //***************************************************************************
 //***************************************************************************
 //***************************************************************************
-      form_script = my_widget_script =
+// #endregion
+    form_script = 
+    my_widget_script =
 {
+    
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -99,7 +103,7 @@ $(document).ready(function () {
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
     },
-
+    
     to_json: function () {
         //should return a json string containing the data entered into the form by the user
         //whatever is return from the method is persisted in LabArchives.  must not be binary data.
@@ -260,10 +264,7 @@ $(document).ready(function () {
     adjustForMode: function (mode) {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
-            $("#myButton").prop('disabled', true);
-            $("#calculate").prop('disabled', true);
-            $("#addRow").prop('disabled', true);
-            $("#removeRow").prop('disabled', true);
+            $(".disableOnView").prop("disabled", true);
         }
     },
 
@@ -342,15 +343,15 @@ $(document).ready(function () {
         });
 
         $("#addRow").on("click", function () {
-            var tableName = $("#exampleTable");
+            var $table = $("#exampleTable");
 
-            my_widget_script.createRow(tableName);
+            my_widget_script.createRow($table);
         });
 
         $("#removeRow").on("click", function () {
-            var tableName = ("#exampleTable");
+            var $table = ("#exampleTable");
 
-            my_widget_script.deleteRow(tableName);
+            my_widget_script.deleteRow($table);
         });
 
         $("#numDays").on("input", function () {
@@ -654,30 +655,6 @@ $(document).ready(function () {
         $temp.remove(); //remove temp
     },
 
-    copyTableRow: function () {
-        //create a temporary text area
-        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-
-        $("#outTable tbody").children("tr").each(function () { //add each child of the row
-            var addTab = "";
-            $(this).find("td").each(function () {
-                //alert($(this).text());
-                if ($(this).text()) {
-                    var addText = $(this).text();
-                } else {
-                    var addText = "NA"
-                }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                //alert($temp.text());
-            });
-        });
-
-        $temp.appendTo($('#tableDiv')).focus().select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
-        $temp.remove(); //remove temp
-    },
-
     /* -----------------------------------------------------------------------------
     ** This function creates a new row at the end of the specified table.
     ** 
@@ -691,8 +668,8 @@ $(document).ready(function () {
     ** to avoid errors. 
     ** -----------------------------------------------------------------------------
     */
-    createRow: function (tableName) {
-        var rowCount = $(tableName).find("tbody tr").length + 1;
+    createRow: function ($table) {
+        var rowCount = $table.find("tbody tr").length + 1;
         var rowID = "Row_" + rowCount;
 
         var col1ID = "col1_" + rowCount;
@@ -702,7 +679,7 @@ $(document).ready(function () {
         var col5ID = "col5_" + rowCount;
         var col6ID = "col6_" + rowCount;
 
-        $(tableName).find("tbody").append(
+        $table.find("tbody").append(
             $('<tr></tr>', { //add a new row
                 id: rowID //give this row the rowID
             }).append(
@@ -793,8 +770,8 @@ $(document).ready(function () {
     ** and then resizes the container and tableDiv.
     ** -----------------------------------------------------------------------------
     */
-    deleteRow: function (tableName) {
-        var lastRow = $(tableName).find("tbody tr").last();
+    deleteRow: function ($table) {
+        var lastRow = $table.find("tbody tr").last();
         $(lastRow).remove();
 
         //resize the container
@@ -827,6 +804,7 @@ $(document).ready(function () {
     ** -----------------------------------------------------------------------------
     */
 };
+
 //**************************************************************************
 //End of your code
 //**************************************************************************
@@ -855,6 +833,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!------------------------------------------------------------------------------------------>
 <!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
 <!------------------------------------------------------------------------------------------>
+<!-- #region HTML -->
 <style type="text/css">
     /* TO DO Place css styling code here */
 
@@ -914,7 +893,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="myLeftCol">Example button:</div>
         <!-- myLeftCol adds additional classes in init function-->
 
-        <div class="col"><input id="myButton" name="mybutton" type="button" value="Click Me!" class="fullWidth" /></div>
+        <div class="col"><input id="myButton" name="mybutton" type="button" value="Click Me!" class="fullWidth disableOnView" /></div>
     </div>
 
     <div class="row align-items-end mt-2">
@@ -937,7 +916,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
 
         <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="calculate" name="calcvalues" type="button"
-                value="Calculate Values" class="fullWidth" />
+                value="Calculate Values" class="fullWidth disableOnView" />
         </div>
 
         <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
@@ -981,8 +960,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <div class="container mt-2" id="dynamicTable">
     <h3>Add and delete table rows</h3>
 
-    <p><input id="addRow" name="addrow" type="button" value="Add a Row" /> <input id="removeRow" name="removerow"
-            type="button" value="Remove Last Row" /></p>
+    <p>
+        <input id="addRow" name="addrow" type="button" value="Add a Row" class="disableOnView" /> 
+        <input id="removeRow" name="removerow" type="button" value="Remove Last Row" class="disableOnView" />
+    </p>
 </div>
 
 <div class="container mt-2">
@@ -1026,7 +1007,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="col" id="newDate">&nbsp;</div>
     </div>
 </div>
-
+<!-- #endregion -->
 <!------------------------------------------------------------------------------------------>
 <!--end of your code-->
 <!------------------------------------------------------------------------------------------>
