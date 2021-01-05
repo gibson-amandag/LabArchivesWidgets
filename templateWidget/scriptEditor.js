@@ -192,8 +192,8 @@ my_widget_script =
     */
     initDynamicContent: function (parsedJson) {
         for (var i = 0; i < parsedJson.addedRows; i++) {
-            var tableName = $("#exampleTable");
-            my_widget_script.createRow(tableName);
+            var $table = $("#exampleTable");
+            my_widget_script.createRow($table);
         };
     },
 
@@ -221,6 +221,13 @@ my_widget_script =
             my_widget_script.myButtonFunc();
         });
 
+        //When text is input for column c, update the table
+        $("#ColumnC").on("input", function () {
+            var $elToWatch = $(this);
+            var $elToUpdate = $("#ColumnC_calc");
+            my_widget_script.watchValue($elToWatch, $elToUpdate)
+        })
+
         //Show/hide the table
         $("#toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
             //alert("button pressed");
@@ -238,13 +245,18 @@ my_widget_script =
 
         });
 
-        //when the toCSV button is clicked, run the exportTableToCSV function
+        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
         $('#toCSV').on("click", function () {
             var data_valid = my_widget_script.data_valid_form();
-            //alert(data_valid);
+            var fileName = "templateData";
+            var tableID = "outTable"
+
             if (data_valid) {
                 my_widget_script.calcValues();
-                my_widget_script.exportTableToCSV('templateData', 'outTable');
+                my_widget_script.exportTableToCSV(fileName, tableID);
+                $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Saved successfully</span>")
+            } else {
+                $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
             }
         });
 
@@ -299,17 +311,23 @@ my_widget_script =
 
         $("#numDays").on("input", function () {
             if ($("#startDate").val()) {
-                my_widget_script.addDays($("#numDays").val());
+                var startDateVal = $("#startDate").val();
+                var $newDate = $("#newDate");
+                var numDays = $("#numDays").val();
+                my_widget_script.addDays(startDateVal, $newDate, numDays);
             } else {
-                $("#newDate").text("Enter start date")
+                $("#newDate").text("Enter start date");
             }
         });
 
         $("#startDate").on("input", function () {
             if ($("#numDays").val()) {
-                my_widget_script.addDays($("#numDays").val());
+                var startDateVal = $("#startDate").val();
+                var $newDate = $("#newDate");
+                var numDays = $("#numDays").val();
+                my_widget_script.addDays(startDateVal, $newDate, numDays);
             } else {
-                $("#newDate").text("Enter number of days")
+                $("#newDate").text("Enter number of days");
             }
         });
     },
@@ -340,10 +358,13 @@ my_widget_script =
     */
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
-        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 text-left text-sm-right");
+        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
         //Run the calculate values method to fill with the loaded data
         this.calcValues();
+
+        //Update Column C with current input value
+        this.watchValue($("#ColumnC"), $("#ColumnC_calc"));
 
         //Check initial state of checkbox
         if ($('#showCheck').is(":checked")) {
@@ -383,7 +404,10 @@ my_widget_script =
 
         //Print new date
         if ($("#numDays").val() && $("#startDate").val()) {
-            my_widget_script.addDays();
+            var startDateVal = $("#startDate").val();
+            var $newDate = $("#newDate");
+            var numDays = $("#numDays").val();
+            my_widget_script.addDays(startDateVal, $newDate, numDays);
         } else if (!$("#numDays")) {
             $("#newDate").text("Enter number of days");
         } else {
@@ -722,11 +746,14 @@ my_widget_script =
         my_widget_script.resize();
     },
 
-    addDays: function (numDays) {
-        //debugger;
-        var dateString = $("#startDate").val(); //get the date string from the input
-
-        var startDate = new Date(dateString);
+    /* -----------------------------------------------------------------------------
+    ** This function takes a startDateVal from a date input and adds a certain 
+    ** numDays (number of days), and replaces the text in the $newDate element 
+    ** which can be either an id or a class with date string of that addition
+    ** -----------------------------------------------------------------------------
+    */
+    addDays: function (startDateVal, $newDate, numDays) {
+        var startDate = new Date(startDateVal);
 
         var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
         // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
@@ -735,8 +762,17 @@ my_widget_script =
         //Add the number of days (in ms) and offset (in ms) to the start Date (in ms) and make it a new date object
         var newDate = new Date(startDate.getTime() + numDays * 24 * 60 * 60 * 1000 + offset * 60 * 1000);
 
-        $("#newDate").text(newDate.toDateString());
-    }
+        $newDate.text(newDate.toDateString());
+    },
+
+    /* ----
+     * This takes the value of the input for the $elToWatch and then updates the text of 
+     * $elToUpdate to match whenever watchValue is called
+     */
+    watchValue: function ($elToWatch, $elToUpdate) {
+        var value = $elToWatch.val();
+        $elToUpdate.text(value);
+    },
 
     /* -----------------------------------------------------------------------------
     ** DEFINE ADDITIONAL METHODS HERE

@@ -71,22 +71,27 @@
 
         <div class="col"><input class="needForTable fullWidth" id="ColumnB" name="columnb" type="number" /></div>
     </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Column C Text:<br /><em>Auto-updates table</em></div>
+        <div class="col"><input type="text" class="fullWidth" id="ColumnC" name="columnc"></div>
+    </div>
 </div>
 
 <div class="container mt-2">
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="toggleTable" name="toggletable" type="button"
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable" name="toggletable" type="button"
                 value="Show/Hide Table" class="fullWidth" />
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="calculate" name="calcvalues" type="button"
+        <div class="col-12 col-sm-6 col-md-3"><input id="calculate" name="calcvalues" type="button"
                 value="Calculate Values" class="fullWidth disableOnView" />
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
                 class="fullWidth" /></div>
 
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+        <div class="col-12 col-sm-6 col-md-3">
             <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
             <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" />
         </div>
@@ -102,12 +107,14 @@
                 <tr>
                     <th>ColumnA</th>
                     <th>ColumnB</th>
+                    <th>ColumnC</th>
                 </tr>
             </thead>
             <tbody>
                 <tr id="exampleDataRow">
                     <td id="ColumnA_calc">&nbsp;</td>
                     <td id="ColumnB_calc">&nbsp;</td>
+                    <td id="ColumnC_calc">&nbsp;</td>
                 </tr>
             </tbody>
         </table>

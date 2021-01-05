@@ -252,8 +252,8 @@ $(document).ready(function () {
     */
     initDynamicContent: function (parsedJson) {
         for (var i = 0; i < parsedJson.addedRows; i++) {
-            var tableName = $("#exampleTable");
-            my_widget_script.createRow(tableName);
+            var $table = $("#exampleTable");
+            my_widget_script.createRow($table);
         };
     },
 
@@ -281,6 +281,13 @@ $(document).ready(function () {
             my_widget_script.myButtonFunc();
         });
 
+        //When text is input for column c, update the table
+        $("#ColumnC").on("input", function () {
+            var $elToWatch = $(this);
+            var $elToUpdate = $("#ColumnC_calc");
+            my_widget_script.watchValue($elToWatch, $elToUpdate)
+        })
+
         //Show/hide the table
         $("#toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
             //alert("button pressed");
@@ -298,13 +305,18 @@ $(document).ready(function () {
 
         });
 
-        //when the toCSV button is clicked, run the exportTableToCSV function
+        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
         $('#toCSV').on("click", function () {
             var data_valid = my_widget_script.data_valid_form();
-            //alert(data_valid);
+            var fileName = "templateData";
+            var tableID = "outTable"
+            
             if (data_valid) {
                 my_widget_script.calcValues();
-                my_widget_script.exportTableToCSV('templateData', 'outTable');
+                my_widget_script.exportTableToCSV(fileName, tableID);
+                $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Saved successfully</span>")
+            } else {
+                $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
             }
         });
 
@@ -406,10 +418,13 @@ $(document).ready(function () {
     */
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
-        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 text-left text-sm-right");
+        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
         //Run the calculate values method to fill with the loaded data
         this.calcValues();
+
+        //Update Column C with current input value
+        this.watchValue($("#ColumnC"), $("#ColumnC_calc"));
 
         //Check initial state of checkbox
         if ($('#showCheck').is(":checked")) {
@@ -810,6 +825,15 @@ $(document).ready(function () {
         $newDate.text(newDate.toDateString());
     },
 
+    /* ----
+     * This takes the value of the input for the $elToWatch and then updates the text of 
+     * $elToUpdate to match whenever watchValue is called
+     */  
+    watchValue: function ($elToWatch, $elToUpdate) {
+        var value = $elToWatch.val();
+        $elToUpdate.text(value);
+    },
+
     /* -----------------------------------------------------------------------------
     ** DEFINE ADDITIONAL METHODS HERE
     **
@@ -923,22 +947,27 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
         <div class="col"><input class="needForTable fullWidth" id="ColumnB" name="columnb" type="number" /></div>
     </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Column C Text:<br/><em>Auto-updates table</em></div>
+        <div class="col"><input type="text" class="fullWidth" id="ColumnC" name="columnc"></div>
+    </div>
 </div>
 
 <div class="container mt-2">
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="toggleTable" name="toggletable" type="button"
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable" name="toggletable" type="button"
                 value="Show/Hide Table" class="fullWidth" />
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="calculate" name="calcvalues" type="button"
+        <div class="col-12 col-sm-6 col-md-3"><input id="calculate" name="calcvalues" type="button"
                 value="Calculate Values" class="fullWidth disableOnView" />
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
                 class="fullWidth" /></div>
 
-        <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+        <div class="col-12 col-sm-6 col-md-3">
             <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
             <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" />
         </div>
@@ -954,12 +983,14 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <tr>
                     <th>ColumnA</th>
                     <th>ColumnB</th>
+                    <th>ColumnC</th>
                 </tr>
             </thead>
             <tbody>
                 <tr id="exampleDataRow">
                     <td id="ColumnA_calc">&nbsp;</td>
                     <td id="ColumnB_calc">&nbsp;</td>
+                    <td id="ColumnC_calc">&nbsp;</td>
                 </tr>
             </tbody>
         </table>
