@@ -1,5 +1,6 @@
 my_widget_script =
 {
+
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -52,11 +53,14 @@ my_widget_script =
         var widgetJsonString = this.parent_class.to_json();
 
         //Get information about any dynamic content that may have been created
-        var addedRows = this.getDynamicContent();
+        var dynamicContent = this.getDynamicContent();
 
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
-        var output = { widgetData: JSON.parse(widgetJsonString), addedRows: addedRows };
+        var output = {
+            widgetData: JSON.parse(widgetJsonString),
+            addedRows: dynamicContent.addedRows
+        };
 
         //uncomment to check stringified output
         //console.log("to JSON", JSON.stringify(output));
@@ -203,10 +207,7 @@ my_widget_script =
     adjustForMode: function (mode) {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
-            $("#myButton").prop('disabled', true);
-            $("#calculate").prop('disabled', true);
-            $("#addRow").prop('disabled', true);
-            $("#removeRow").prop('disabled', true);
+            $(".disableOnView").prop("disabled", true);
         }
     },
 
@@ -285,15 +286,15 @@ my_widget_script =
         });
 
         $("#addRow").on("click", function () {
-            var tableName = $("#exampleTable");
+            var $table = $("#exampleTable");
 
-            my_widget_script.createRow(tableName);
+            my_widget_script.createRow($table);
         });
 
         $("#removeRow").on("click", function () {
-            var tableName = ("#exampleTable");
+            var $table = ("#exampleTable");
 
-            my_widget_script.deleteRow(tableName);
+            my_widget_script.deleteRow($table);
         });
 
         $("#numDays").on("input", function () {
@@ -317,8 +318,8 @@ my_widget_script =
     * TO DO: edit this function to define the symbols that should be added to the HTML
     * page based on whether or not a field is required to save the widget to the page
     * 
-    * Here, the function adds a blue # after fields of the class "needForForm" and a 
-    * red * after fields with the "required" property
+    * Here, the function adds a blue # before fields of the class "needForFormLab" and a 
+    * red * before fields with the "requiredLab" property
     */
     addRequiredFieldIndicators: function () {
         $('.needForTableLab').each(function () { //find element with class "needForFormLab"
@@ -409,7 +410,8 @@ my_widget_script =
         // This cannot be something complex like a full <div>
 
         var addedRows = $("#exampleTable").find("tbody tr").length;
-        return addedRows;
+        var dynamicContent = { addedRows: addedRows };
+        return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
@@ -597,30 +599,6 @@ my_widget_script =
         $temp.remove(); //remove temp
     },
 
-    copyTableRow: function () {
-        //create a temporary text area
-        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-
-        $("#outTable tbody").children("tr").each(function () { //add each child of the row
-            var addTab = "";
-            $(this).find("td").each(function () {
-                //alert($(this).text());
-                if ($(this).text()) {
-                    var addText = $(this).text();
-                } else {
-                    var addText = "NA"
-                }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                //alert($temp.text());
-            });
-        });
-
-        $temp.appendTo($('#tableDiv')).focus().select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
-        $temp.remove(); //remove temp
-    },
-
     /* -----------------------------------------------------------------------------
     ** This function creates a new row at the end of the specified table.
     ** 
@@ -634,8 +612,8 @@ my_widget_script =
     ** to avoid errors. 
     ** -----------------------------------------------------------------------------
     */
-    createRow: function (tableName) {
-        var rowCount = $(tableName).find("tbody tr").length + 1;
+    createRow: function ($table) {
+        var rowCount = $table.find("tbody tr").length + 1;
         var rowID = "Row_" + rowCount;
 
         var col1ID = "col1_" + rowCount;
@@ -645,7 +623,7 @@ my_widget_script =
         var col5ID = "col5_" + rowCount;
         var col6ID = "col6_" + rowCount;
 
-        $(tableName).find("tbody").append(
+        $table.find("tbody").append(
             $('<tr></tr>', { //add a new row
                 id: rowID //give this row the rowID
             }).append(
@@ -736,8 +714,8 @@ my_widget_script =
     ** and then resizes the container and tableDiv.
     ** -----------------------------------------------------------------------------
     */
-    deleteRow: function (tableName) {
-        var lastRow = $(tableName).find("tbody tr").last();
+    deleteRow: function ($table) {
+        var lastRow = $table.find("tbody tr").last();
         $(lastRow).remove();
 
         //resize the container

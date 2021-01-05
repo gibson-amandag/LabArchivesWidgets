@@ -57,7 +57,7 @@
         <div class="myLeftCol">Example button:</div>
         <!-- myLeftCol adds additional classes in init function-->
 
-        <div class="col"><input id="myButton" name="mybutton" type="button" value="Click Me!" class="fullWidth" /></div>
+        <div class="col"><input id="myButton" name="mybutton" type="button" value="Click Me!" class="fullWidth disableOnView" /></div>
     </div>
 
     <div class="row align-items-end mt-2">
@@ -80,7 +80,7 @@
         </div>
 
         <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="calculate" name="calcvalues" type="button"
-                value="Calculate Values" class="fullWidth" />
+                value="Calculate Values" class="fullWidth disableOnView" />
         </div>
 
         <div class="col-12 col-sm-6 col-md-3 col-xl-2"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
@@ -124,8 +124,10 @@
 <div class="container mt-2" id="dynamicTable">
     <h3>Add and delete table rows</h3>
 
-    <p><input id="addRow" name="addrow" type="button" value="Add a Row" /> <input id="removeRow" name="removerow"
-            type="button" value="Remove Last Row" /></p>
+    <p>
+        <input id="addRow" name="addrow" type="button" value="Add a Row" class="disableOnView" /> 
+        <input id="removeRow" name="removerow" type="button" value="Remove Last Row" class="disableOnView" />
+    </p>
 </div>
 
 <div class="container mt-2">
