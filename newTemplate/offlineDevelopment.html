@@ -113,11 +113,14 @@ $(document).ready(function () {
         var widgetJsonString = this.parent_class.to_json();
 
         //Get information about any dynamic content that may have been created
-        var addedRows = this.getDynamicContent();
+        var dynamicContent = this.getDynamicContent();
 
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
-        var output = { widgetData: JSON.parse(widgetJsonString), addedRows: addedRows };
+        var output = { 
+            widgetData: JSON.parse(widgetJsonString), 
+            addedRows: dynamicContent.addedRows 
+        };
 
         //uncomment to check stringified output
         //console.log("to JSON", JSON.stringify(output));
@@ -467,7 +470,8 @@ $(document).ready(function () {
         // This cannot be something complex like a full <div>
 
         var addedRows = $("#exampleTable").find("tbody tr").length;
-        return addedRows;
+        var dynamicContent = {addedRows: addedRows};
+        return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
