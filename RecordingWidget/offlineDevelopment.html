@@ -565,9 +565,11 @@ exportTableToCSV: function (filename, table) {
     for (var i = 0; i < rows.length; i++) {
         var row = [], cols = rows[i].querySelectorAll("td, th");
 
-        for (var j = 0; j < cols.length; j++)
-            row.push(cols[j].innerText);
-
+        for (var j = 0; j < cols.length; j++) {
+            var cellText = '"'+ cols[j].innerText + '"'; //add to protect from commas within cell
+            row.push(cellText);
+        };
+        
         csv.push(row.join(","));
     }
 
@@ -740,7 +742,7 @@ calcSpontLength: function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("view", function() {return form_script.test_data()});
+      form_script.init("edit", function() {return form_script.test_data()});
 
 
     }
