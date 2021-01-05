@@ -374,8 +374,8 @@ $(document).ready(function () {
     * TO DO: edit this function to define the symbols that should be added to the HTML
     * page based on whether or not a field is required to save the widget to the page
     * 
-    * Here, the function adds a blue # after fields of the class "needForForm" and a 
-    * red * after fields with the "required" property
+    * Here, the function adds a blue # before fields of the class "needForFormLab" and a 
+    * red * before fields with the "requiredLab" property
     */
     addRequiredFieldIndicators: function () {
         $('.needForTableLab').each(function () { //find element with class "needForFormLab"
@@ -646,30 +646,6 @@ $(document).ready(function () {
                 $temp.text($temp.text() + addTab + addText);
                 addTab = "\t";
                 addLine = "\n";
-            });
-        });
-
-        $temp.appendTo($('#tableDiv')).focus().select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
-        $temp.remove(); //remove temp
-    },
-
-    copyTableRow: function () {
-        //create a temporary text area
-        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-
-        $("#outTable tbody").children("tr").each(function () { //add each child of the row
-            var addTab = "";
-            $(this).find("td").each(function () {
-                //alert($(this).text());
-                if ($(this).text()) {
-                    var addText = $(this).text();
-                } else {
-                    var addText = "NA"
-                }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                //alert($temp.text());
             });
         });
 
