@@ -299,14 +299,14 @@ $(document).ready(function () {
             $(".disableOnView").prop("disabled", true);
             //TO DO add class to these
 
-            addPlugCheck1.disabled = true;
-            removePlugCheck1.disabled = true;
-            addPlugCheck2.disabled = true;
-            removePlugCheck2.disabled = true;
-            addMass1.disabled = true;
-            addMass2.disabled = true;
-            removeMass1.disabled = true;
-            removeMass2.disabled = true;
+            // addPlugCheck1.disabled = true;
+            // removePlugCheck1.disabled = true;
+            // addPlugCheck2.disabled = true;
+            // removePlugCheck2.disabled = true;
+            // addMass1.disabled = true;
+            // addMass2.disabled = true;
+            // removeMass1.disabled = true;
+            // removeMass2.disabled = true;
         }
     },
 
@@ -317,13 +317,13 @@ $(document).ready(function () {
     addEventListeners: function () {
         //When the "addDivCheck" checkbox is changed, run this function
         $('#dam2Check').on("change", function () { //change rather than click so that it runs only when editable
-            //alert("You clicked me!");
             if ($(this).is(":checked")) {
-                //alert("I'm checked");
                 $(".dam2").show();
+                $("#sireDiv").removeClass("mt-md-0").addClass("mt-xl-0");
             } else {
                 //alert("I'm not checked")
                 $(".dam2").hide();
+                $("#sireDiv").addClass("mt-md-0").removeClass("mt-xl-0");
             };
 
             //resize the container
@@ -332,12 +332,24 @@ $(document).ready(function () {
 
         //When damid_1 is changed, replace the text in the #dam1_calc span
         $("#damid_1").on("input", function () {
-            my_widget_script.watchValue($("damid_1"), $(".dam1_calc"));
+            my_widget_script.watchValue($("#damid_1"), $(".dam1_calc"));
         });
 
         //When damid_2 is changed, replace the text in the #dam2_calc span
         $("#damid_2").on("input", function () {
-            my_widget_script.watchValue($("damid_2"), $(".dam2_calc"));
+            my_widget_script.watchValue($("#damid_2"), $(".dam2_calc"));
+        });
+
+        $("#dammass_1").on("input", function () {
+            $(".newMass_dam1").each(function () {
+                my_widget_script.calcPercMass($(this), $("#dammass_1"));
+            });
+        });
+
+        $("#dammass_2").on("input", function () {
+            $(".newMass_dam2").each(function () {
+                my_widget_script.calcPercMass($(this), $("#dammass_2"));
+            });
         });
 
         $("#addPlugCheck1").on("click", function () {
@@ -418,17 +430,15 @@ $(document).ready(function () {
 
         //Check if the dam2Check checkbox is checked and adjust visibility
         if ($('#dam2Check').is(":checked")) {
-            //alert("I'm checked");
             $(".dam2").show();
+            $("#sireDiv").removeClass("mt-md-0").addClass("mt-xl-0");
         } else {
-            //alert("I'm not checked")
             $(".dam2").hide();
-            //resize the container
-            my_widget_script.parent_class.resize_container();
+            $("#sireDiv").addClass("mt-md-0").removeClass("mt-xl-0");
         };
 
-        my_widget_script.watchValue($("damid_1"), $(".dam1_calc"));
-        my_widget_script.watchValue($("damid_2"), $(".dam2_calc"));
+        my_widget_script.watchValue($("#damid_1"), $(".dam1_calc"));
+        my_widget_script.watchValue($("#damid_2"), $(".dam2_calc"));
 
         $(".newMass_dam1").each(function () {
             my_widget_script.calcPercMass($(this), $("#dammass_1"));
@@ -589,6 +599,7 @@ $(document).ready(function () {
                         type: "number",
                         step: "0.1",
                         min: "0",
+                        width: "4em",
                         "class": "newMass_" + whichDam
                     }).on("input", function () {
                         my_widget_script.calcPercMass($(this), initMass);
@@ -639,7 +650,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("edit", function() {return form_script.test_data()});
+      form_script.init("view", function() {return form_script.test_data()});
 
 
     }
@@ -804,8 +815,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         
         <!-- Sire -->
-        <div class="col-12 col-md-6 col-xl-4 mt-2 mt-xl-0">
-            <div class="container mouseDiv" id="sireDiv">
+        <div class="col-12 col-md-6 col-xl-4 mt-2 mt-md-0" id="sireDiv">
+            <div class="container mouseDiv">
                 <div class="row align-items-end">
                     <div class="col text-left">Sire ID: </div>
                     <div class="col text-right"><input id="sireid" name="sireid" class="fullWidth"/></div>
@@ -828,11 +839,127 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<!-- Error Message Div -->
-<div class="container" id="errorMsg">&nbsp;</div>
+<div class="container">
+    <div class="row">
+        <div class="col-12 col-lg-6">
+            <!-- Dam 1 Plug Check -->
+            <div class="container mt-2">
+                <div class="row">
+                    <div class="col-12 col-md"><input id="addPlugCheck1" name="addplug1" type="button" value="Add Dam 1 Plug Check" class="fullWidth disableOnView" /></div>
+                    <div class="col-12 col-md mt-2 mt-md-0"><input id="removePlugCheck1" name="removeplug1" type="button" value="Remove Dam 1 Plug Check" class="fullWidth disableOnView"/></div>
+                </div>
+            
+                <div class="row mt-2">
+                    <div class="col-12"><h3>Plug check for <span class="dam1_calc">__</span></h3></div>
+                    <div class="col-12 plugCheckTables table-responsive xsTableDiv" id="dam1PlugChecks">
+                        <table id="dam1PlugTable" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Plug</th>
+                                    <th>Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dam 2 Plug Check -->
+            <div class="container mt-2 dam2">
+                <div class="row">
+                    <div class="col-12 col-md"><input id="addPlugCheck2" name="addplug2" type="button" value="Add Dam 2 Plug Check" class="fullWidth disableOnView" /></div>
+                    <div class="col-12 col-md mt-2 mt-md-0"><input id="removePlugCheck2" name="removeplug2" type="button" value="Remove Dam 2 Plug Check" class="fullWidth disableOnView"/></div>
+                </div>
+            
+                <div class="row mt-2">
+                    <div class="col-12"><h3>Plug check for <span class="dam2_calc">__</span></h3></div>
+                    <div class="col-12 plugCheckTables table-responsive xsTableDiv" id="dam2PlugChecks">
+                        <table id="dam2PlugTable" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Plug</th>
+                                    <th>Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-lg-6">
+            <!-- Dam 1 Mass -->
+            <div class="container mt-2">
+                <div class="row">
+                    <div class="col-12 col-md"><input id="addMass1" name="addmass1" type="button" value="Add Dam 1 Mass" class="fullWidth disableOnView" /></div>
+                    <div class="col-12 col-md mt-2 mt-md-0"><input id="removeMass1" name="removemass1" type="button" value="Remove Dam 1 Mass" class="fullWidth disableOnView" /></div>
+                </div>
+            
+                <div class="row mt-2">
+                    <div class="col-12"><h3>Additional masses for <span class="dam1_calc">__</span></h3></div>
+                    <div class="col-12 massTables table-responsive xsTableDiv" id="dam1AddMass">
+                        <table id="dam1MassTable" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Mass</th>
+                                    <th>% of Initial Mass</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dam 2 Mass -->
+            <div class="container mt-2 dam2">
+                <div class="row">
+                    <div class="col-12 col-md"><input id="addMass2" name="addmass2" type="button" value="Add Dam 2 Mass" class="fullWidth disableOnView" /></div>
+                    <div class="col-12 col-md mt-2 mt-md-0"><input id="removeMass2" name="removemass" type="button" value="Remove Dam 2 Mass" class="fullWidth disableOnView" /></div>
+                </div>
+            
+                <div class="row mt-2">
+                    <div class="col-12"><h3>Additional masses for <span class="dam2_calc">__</span></h3></div>
+                    <div class="col-12 plugCheckTables table-responsive xsTableDiv" id="dam2AddMass">
+                        <table id="dam2MassTable" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Mass</th>
+                                    <th>% of Initial Mass</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- <div class="container mt-2 dam2">
+    <div class="plugCheckTables table-responsive xsTableDiv" id="dam2PlugChecks">
+        <table id="dam2PlugTable" class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Plug</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div> -->
 
 <!-- Example Table Container that is responsive to window width, including for xs -->
-<div class="container mt-2">
+<!-- <div class="container mt-2">
     <div class="table-responsive xsTableDiv">
         <table class="table">
             <thead>
@@ -844,7 +971,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </table>
         <p>&nbsp;</p>
     </div>
-</div>
+</div> -->
 
 <!-- #endregion -->
 <!------------------------------------------------------------------------------------------>
