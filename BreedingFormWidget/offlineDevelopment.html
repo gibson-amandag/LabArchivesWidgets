@@ -576,7 +576,7 @@ $(document).ready(function () {
         var rowCount = $(tableName).find("tbody tr").length + 1;
         var rowID = whichDam + "_row_" + rowCount;
 
-        var col1ID = whichDam + "MassDate_" + rowCount;
+        var col1ID = whichDam + "_massdate_" + rowCount;
         var col2ID = whichDam + "_mass_" + rowCount;
         //var col3ID = whichDam + "_change_" + rowCount;
 
@@ -745,14 +745,14 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 
     <div class="row align-items-end mt-2">
-        <div class="myLeftCol">Breeding Date:</div>
+        <div class="myLeftCol">Breeding Date: </div>
         <!-- myLeftCol adds additional classes in init function-->
 
         <div class="col"><input id="breeddate" name="breeddate" type="date" class="fullWidth" /></div>
     </div>
 
     <div class="row align-items-end mt-2">
-        <div class="myLeftCol">Breeding Cage</div>
+        <div class="myLeftCol">Breeding Cage: </div>
         <div class="col"><input type="number" name="breedcage" id="breedcage" class="fullWidth"/></div>
     </div>
 
