@@ -62,12 +62,8 @@ my_widget_script =
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
     /**
-     *  his takes the value of the input for the $elToWatch and then updates the text of 
+     * This takes the value of the input for the $elToWatch and then updates the text of 
      * $elToUpdate to match whenever watchValue is called
-     * */ 
-
-    /**
-     * 
      * @param {*} $elToWatch - jQuery object with the input element whose value will be used to update
      * @param {*} $elToUpdate - jQuery object of the element whose text will be updated based on the element to watch
      */
