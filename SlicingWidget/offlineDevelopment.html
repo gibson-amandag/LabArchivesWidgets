@@ -363,6 +363,40 @@ $(document).ready(function () {
                 $(".implant").hide()
             }
         });
+
+
+        // Output table calculations
+        $(".simpleCalc").on("input", function () {
+            var elementID = this.id;
+            var calcID = "." + elementID + "_calc";
+            my_widget_script.watchValue($(this), $(calcID));
+        });
+
+        $("#Treatment").on("change", function () {
+            my_widget_script.calcGenTreatment();
+        });
+
+        $(".cycleCalc").on("change", function () {
+            my_widget_script.calcCycleStage();
+        });
+
+        $(".massCalc").on("input", function () {
+            my_widget_script.calcUterineMass();
+            my_widget_script.calcUterineMass_perBodyMass();
+            my_widget_script.calcGonadMass_perBodyMass();
+        });
+
+        $(".ageCalc").on("input", function () {
+            my_widget_script.calcAgeInDays();
+        });
+
+        $("#Saved_pit").on("change", function () {
+            my_widget_script.calcSavedPit();
+        });
+
+        $(".timeCalc").on("input", function () {
+            my_widget_script.calcHoursPostLightsOn();
+        });
     },
 
     /**
@@ -437,7 +471,7 @@ $(document).ready(function () {
         } else {
             $(".implant").hide()
         };
-
+        
         //Run the calculate values function to fill with the loaded data
         this.calcValues();
 
@@ -495,86 +529,102 @@ $(document).ready(function () {
         return valid;
     },
 
-    calcValues: function () {
-        //Mouse ID
-        $("#MouseID_calc").text($("#MouseID").val());
+    calcGenTreatment: function () {
+        // for normal treatment
+        // if want text from selected, instead of value $("#Treatment").children("option:selected").text())
 
-        //Cage number
-        $("#Cage_calc").text($("#Cage").val());
-
-        //treatment
-        //if want text from selected, instead of value $("#Treatment").children("option:selected").text())
-        $("#Treatment_calc").text($("#Treatment").val());
-        //generic treatment
-        if ($("#Treatment_calc").text() === "CON" || //if Treatment_calc equals CON, CON_main, or VEH,
-            $("#Treatment_calc").text() === "CON_main" ||
-            $("#Treatment_calc").text() === "VEH") {
-            $("#GenTreatment_calc").text("Control"); //GenTreatment_calc equals "Control"
+        if (
+            $("#Treatment").val() === "CON" || //if Treatment_calc equals CON, CON_main, or VEH,
+            $("#Treatment").val() === "CON_main" ||
+            $("#Treatment").val() === "VEH"
+            ) {
+                $(".GenTreatment_calc").text("Control"); //GenTreatment_calc equals "Control"
+        } else if($("#Treatment").val() === "DHT") {
+            $(".GenTreatment_calc").text("PNA"); //else equals "PNA"
         } else {
-            $("#GenTreatment_calc").text("PNA") //else equals "PNA"
+            $(".GenTreatment_calc").text("NA");
         }
+    },
 
-        //Cycle stage
+    calcCycleStage: function () {
         if ($("#sex").val() === "female" && $("#gonadstatus").val() === "intact") { //only for intact females
-            $("#CycleStage_calc").text($("#CycleStage").val());
+            $(".CycleStage_calc").text($("#CycleStage").val());
+            my_widget_script.watchValue($("#stageComment"), $(".stageComment_calc"));
         } else {
-            $("#CycleStage_calc").text("NA");
+            $(".CycleStage_calc").text("NA");
+            $(".stageComment_calc").text("NA");
         }
+    },
 
-        //body mass
-        $("#BodyMass_g_calc").text($("#BodyMass_g").val());
-
-        //uterine mass
+    calcUterineMass: function () {
+        var gonadMass;
         if ($("#sex").val() === "female") {
-            $("#UterineMass_calc").text($("#gonadMass").val());
-        } else {
-            $("#UterineMass_calc").text("NA");
+            var gonadMass = $("#gonadMass").val();
         }
-        //uterine mass per body mass
+
+        if (isFinite(gonadMass) && gonadMass) {
+            $(".uterineMass_calc").text(gonadMass);
+        } else {
+            $(".uterineMass_calc").text("NA");
+        }
+    },
+
+    calcUterineMass_perBodyMass: function () {
+        var uterine_mg_per_g;
         if ($("#sex").val() === "female") {
             var uterine_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
-            $("#Uterine_mg_per_g_calc").text(uterine_mg_per_g.toFixed(4));
-        } else {
-            $("#Uterine_mg_per_g_calc").text("NA");
         }
 
-        //Date of birth
-        $("#Date_of_birth_calc").text($("#Date_of_birth").val());
+        if (isFinite(uterine_mg_per_g) && uterine_mg_per_g) {
+            $(".uterine_mg_per_g_calc").text(uterine_mg_per_g.toFixed(4));
+        } else {
+            $(".uterine_mg_per_g_calc").text("NA");
+        }
+    },
 
-        //Recording date
-        $("#Recording_date_calc").text($("#Recording_date").val());
+    calcGonadMass_perBodyMass: function () {
+        var gonad_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
+        if(isFinite(gonad_mg_per_g) && gonad_mg_per_g){
+            $("#gonad_mg_per_g_calc").text(gonad_mg_per_g.toFixed(4));
+        } else {
+            $("#gonad_mg_per_g_calc").text("NA");
+        }
+    },
 
-        //Age in days
+    calcAgeInDays: function () {
         //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
-        var DOBisDay = 1; //change to 0 if want DOB to be day 0
+        var DOBisDay = parseInt($("#DOB_equals").val());
         var Recording_date_as_ms = new Date($("#Recording_date").val()).getTime();
         var DOB_as_ms = new Date($("#Date_of_birth").val()).getTime();
         var Age_in_days = (Recording_date_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
-        $("#Age_in_days_calc").text(Age_in_days);
+        if(isFinite(Age_in_days)){
+            $(".Age_in_days_calc").text(Age_in_days);
+        } else {
+            $(".Age_in_days_calc").text("NA");
+        }
+    },
 
-        //saved pituitary
+    calcSavedPit: function () {
         if ($("#Saved_pit").is(":checked")) {
             var Saved_pit = "Y";
         } else {
             var Saved_pit = "N";
         }
-        $("#Saved_pit_calc").text(Saved_pit);
+        $(".Saved_pit_calc").text(Saved_pit);
+    },
 
-        //Daylight savings
-        $("#Daylight_Savings_calc").text($("#Daylight_Savings").val());
-
-        //Time of sacrifice
-        $("#Time_sac_calc").text($("#Time_sac").val());
-
-        //Hours since lights on
+    calcHoursPostLightsOn: function () {
         //http://jsfiddle.net/44NCk/4/
         var time_sac = $("#Time_sac").val().split(":");
         if ($("#Daylight_Savings").val() === "Y") { //if daylight savings time
             var lights_on = "04:00"; //lights on at 4am
             var lights_on_split = lights_on.split(":");
-        } else {
+        } else if ($("#Daylight_Savings").val() === "N") {
             var lights_on = "03:00" //otherwise, lights on at 3a
             var lights_on_split = lights_on.split(":");
+        } else {
+            $(".Sac_hr_calc").text("Select daylight saving");
+            return
         }
         var hours_sac = parseInt(time_sac[0], 10), //get the hours component for time sac
             hours_lights = parseInt(lights_on_split[0], 10),
@@ -592,13 +642,51 @@ $(document).ready(function () {
         mins = mins / 60; //divide min by 60 to get decimal
         hours += mins; //add min to hours
         hours = hours.toFixed(3); //three decimal points
-        $("#Sac_hr_calc").text(hours);
-        $("#Who_calc").text($("#Who").val());
+        if (isFinite(hours)) {
+            $(".Sac_hr_calc").text(hours);
+        } else {
+            $(".Sac_hr_calc").text("NA");
+        }
+        
+    },
+
+    calcValues: function () {
+
+        //Elements that just update based on input value
+        $(".simpleCalc").each(function () {
+            var elementID = this.id;
+            var calcID = "." + elementID + "_calc";
+            my_widget_script.watchValue($(this), $(calcID));
+        });
+
+        //generic treatment
+        my_widget_script.calcGenTreatment();
+
+        //Cycle stage
+        my_widget_script.calcCycleStage();
+
+        //uterine mass
+        my_widget_script.calcUterineMass();
+
+        //uterine mass per body mass
+        my_widget_script.calcUterineMass_perBodyMass();
+
+        //gonad mass per body mass
+        my_widget_script.calcGonadMass_perBodyMass();
+
+        //Age in days
+        my_widget_script.calcAgeInDays();
+
+        //saved pituitary
+        my_widget_script.calcSavedPit();
+
+        //Hours since lights on
+        my_widget_script.calcHoursPostLightsOn();
 
         $("#outTable tr").each(function () { //for each row
             $("td", this).each(function () { //for each cell
                 var value = $(this).text(); //get the value of the text
-                if (value === "" || value === "NaN" || value === "___") { //if blank or NaN
+                if (value === "" || value === "NaN" || value === "___" || value === "Select daylight saving") { //if blank or NaN
                     $(this).text("NA"); //make NA
                 }
             })
@@ -815,6 +903,17 @@ $(document).ready(function () {
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
+    },
+
+    /**
+     * This takes the value of the input for the $elToWatch and then updates the text of 
+     * $elToUpdate to match whenever watchValue is called
+     * @param {*} $elToWatch - jQuery object with the input element whose value will be used to update
+     * @param {*} $elToUpdate - jQuery object of the element whose text will be updated based on the element to watch
+     */
+    watchValue: function ($elToWatch, $elToUpdate) {
+        var value = $elToWatch.val();
+        $elToUpdate.text(value);
     }
 };
 
@@ -828,7 +927,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("view", function() {return form_script.test_data()});
+      form_script.init("edit", function() {return form_script.test_data()});
 
 
     }
@@ -922,17 +1021,17 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <h2>General Info</h2>
 
                     <div class="requiredLab needForTableLab">Experimenter</div>
-                    <div><input class="needForTable fullWidth" id="Who" name="who" required="" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc" id="Who" name="who" required="" /></div>
 
                     <div class="requiredLab needForTableLab mt-2">Date</div>
-                    <div><input class="needForTable fullWidth" id="Recording_date" name="slicedate" required="" type="date" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Recording_date" name="slicedate" required="" type="date" /></div>
 
                     <div class="needForTableLab mt-2">Time of Sacrifice</div>
-                    <div><input class="needForTable fullWidth" id="Time_sac" name="sactime" type="time" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc timeCalc" id="Time_sac" name="sactime" type="time" /></div>
 
                     <div class="requiredLab needForTableLab mt-2">Daylight Savings Time</div>
                     <div>
-                        <select class="needForTable fullWidth" id="Daylight_Savings" name="daylightsaving" required="">
+                        <select class="needForTable fullWidth simpleCalc timeCalc" id="Daylight_Savings" name="daylightsaving" required="">
                             <option value="">[Select]</option>
                             <option value="Y">Daylight Savings Time (summer)</option>
                             <option value="N">Standard Time (winter)</option> 
@@ -944,14 +1043,14 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <h2>Mouse Information</h2>
 
                     <div class="requiredLab needForTableLab mt-2" >Mouse ID # or Ear Tag</div>
-                    <div><input class="needForTable fullWidth" id="MouseID" name="mouseid" required="" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc" id="MouseID" name="mouseid" required="" /></div>
 
                     <div class="requiredLab needForTableLab mt-2">Transgenic Line</div>
-                    <div><input class="needForTable fullWidth" id="strain" name="strain" required="" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc" id="strain" name="strain" required="" /></div>
 
                     <div class="requiredLab needForTableLab mt-2">Zygosity</div>
                     <div>
-                        <select class="needForTable fullWidth" id="zygosity" name="zygosity" required="">
+                        <select class="needForTable fullWidth simpleCalc" id="zygosity" name="zygosity" required="">
                             <option value="">[Select]</option>
                             <option value="homoPlus">+/+</option>
                             <option value="hetero">+/-</option>
@@ -960,14 +1059,22 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     </div>
 
                     <div class="mt-2">Cage #</div>
-                    <div><input id="Cage" name="cagenum" class="fullWidth"/></div>
+                    <div><input id="Cage" name="cagenum" class="fullWidth simpleCalc"/></div>
 
                     <div class="needForTableLab mt-2" >Date of Birth</div>
-                    <div><input class="needForTable fullWidth" id="Date_of_birth" name="dob" required="" type="date" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Date_of_birth" name="dob" required="" type="date" /></div>
+
+                    <div class="mt-2">DOB Counts as...</div>
+                    <div>
+                        <select id="DOB_equals" name="dobequals" class="fullWidth ageCalc">
+                            <option value="0">PND 0</option>
+                            <option value="1" selected>PND 1</option>
+                        </select>
+                    </div>
 
                     <div class="mt-2">Treatment</div>
                     <div>
-                        <select id="Treatment" name="treatment" class="fullWidth">
+                        <select id="Treatment" name="treatment" class="fullWidth simpleCalc">
                             <option value="">[Select]</option>
                             <option value="CON">Control</option>
                             <option value="CON_main">Main colony control</option>
@@ -978,7 +1085,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
                     <div class="needForTableLab mt-2">Sex</div>
                     <div>
-                       <select class="needForTable fullWidth" id="sex" name="sex" required="">
+                       <select class="needForTable fullWidth simpleCalc massCalc cycleCalc" id="sex" name="sex" required="">
                            <option value="">[Select]</option>
                            <option value="female">Female</option>
                            <option value="male">Male</option> 
@@ -987,7 +1094,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
                     <div class="needForTableLab mt-2">Body mass (g)</div>
                     <div>
-                        <input class="needForTable fullWidth" id="BodyMass_g" name="bodymass" step="0.1" type="number" />
+                        <input class="needForTable fullWidth simpleCalc massCalc" id="BodyMass_g" name="bodymass" step="0.1" type="number" />
                     </div>
 
                     <!-- Change the event listener to only make the entry appear when one of the sexes is selected -->
@@ -995,12 +1102,12 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <div class="female mt-2 needForTableLab">Uterine Mass (mg)</div>
                         <div class="male mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
                         <div>
-                            <input class="needForTable fullWidth anySex" id="gonadMass" name="gonadmass" step="0.01" type="number" />
+                            <input class="needForTable fullWidth anySex simpleCalc massCalc" id="gonadMass" name="gonadmass" step="0.01" type="number" />
                         </div>
                     </div>
 
                     <div class="mt-2">Blood Glucose (mg/100mL)</div>
-                    <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth"/></div>
+                    <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth simpleCalc"/></div>
 
                 </div>
             </div>
@@ -1012,7 +1119,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
                     <div class="needForTableLab requiredLab">Gonad Status</div>
                     <div>
-                        <select class="needForTable fullWidth" id="gonadstatus" name="gonadstatus" required="">
+                        <select class="needForTable fullWidth simpleCalc cycleCalc" id="gonadstatus" name="gonadstatus" required="">
                             <option value="">[Select]</option>
                             <option value="intact">Intact</option>
                             <option value="gdx">Gonadectomized</option> 
@@ -1022,7 +1129,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <!-- Intact -->
                     <div class="cycle mt-2">Cycle Stage</div>
                     <div class="cycle">
-                        <select class="fullWidth" id="CycleStage" name="cyclestage">
+                        <select class="fullWidth cycleCalc" id="CycleStage" name="cyclestage">
                             <option value="">[Select]</option>
                             <option value="NA">NA</option>
                             <option value="D">Diestrus</option>
@@ -1032,7 +1139,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     </div>
                     <div class="cycle">Comment:</div>
                     <div class="cycle">
-                        <textarea name="stagecomment" id="stageComment" rows="1" class="fullWidth"></textarea>
+                        <textarea name="stagecomment" id="stageComment" rows="1" class="fullWidth cycleCalc"></textarea>
                     </div>
 
                     <!-- GDX -->
@@ -1047,7 +1154,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
                     <div class="mt-2">Implant?</div>
                     <div>
-                        <input id="implantBox" name="implant" type="checkbox" />
+                        <input id="implantBox" name="implant" type="checkbox" class="simpleCalc" />
                     </div>
 
                     <div class="implant mt-2">Type of implant</div>
@@ -1072,7 +1179,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
                     <div class="mt-2 needForTableLab">Serum Tube Label</div>
                     <div>
-                        <input class="needForTable fullWidth" id="tubeLabel" name="tubelabel" />
+                        <input class="needForTable fullWidth simpleCalc" id="tubeLabel" name="tubelabel" />
                     </div>
                     
                     <div class="mt-2">Pituitary</div>
@@ -1088,17 +1195,17 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
                     <div class="mt-2 needForTableLab" >Nucleus/Area of Interest</div>
                     <div>
-                        <input class="needForTable fullWidth" id="nucleus" name="nucleus" />
+                        <input class="needForTable fullWidth simpleCalc" id="nucleus" name="nucleus" />
                     </div>
                     
                     <div class="mt-2 needForTableLab">Slicing Orientation</div>
                     <div>
-                        <input class="needForTable fullWidth" id="orientation" name="orientation" />
+                        <input class="needForTable fullWidth simpleCalc" id="orientation" name="orientation" />
                     </div>
                     
                     <div class="mt-2">Quality</div>
                     <div>
-                        <select id="slicequal" name="slicequal" class="fullWidth">
+                        <select id="slicequal" name="slicequal" class="fullWidth simpleCalc">
                             <option value="">[Select]</option>
                             <option value="good">Good</option>
                             <option value="fair">Fair</option>
@@ -1107,12 +1214,12 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     </div>
                     <div>Comment:</div>
                     <div>
-                        <textarea name="slicecomment" rows="1" class="fullWidth"></textarea>
+                        <textarea name="slicecomment" rows="1" class="fullWidth simpleCalc"></textarea>
                     </div>
                     
                     <div class="mt-2">Fluorescent Quality</div>
                     <div>
-                        <select id="fluorqual" name="fluorqual" class="fullWidth">
+                        <select id="fluorqual" name="fluorqual" class="fullWidth simpleCalc">
                             <option value="">[Select]</option>
                             <option value="good">Good</option>
                             <option value="fair">Fair</option>
@@ -1121,7 +1228,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     </div>
                     <div>Comment:</div>
                     <div>
-                        <textarea name="fluorcomment" id="fluorcomment" rows="1" class="fullWidth"></textarea>
+                        <textarea name="fluorcomment" id="fluorcomment" rows="1" class="fullWidth simpleCalc"></textarea>
                     </div>
                 </div>
 
@@ -1129,22 +1236,22 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <h2>Solutions</h2>
 
                     <div class="mt-2">External and addition</div>
-                    <div><input id="externalsoln" name="externalsoln" class="fullWidth"/></div>
+                    <div><input id="externalsoln" name="externalsoln" class="fullWidth simpleCalc"/></div>
                     
                     <div class="mt-2">Internal Solution</div>
-                    <div><input id="internalsoln" name="internalsoln" class="fullWidth" /></div>
+                    <div><input id="internalsoln" name="internalsoln" class="fullWidth simpleCalc" /></div>
                     
                     <div class="mt-2">Internal Date</div>
-                    <div><input id="internaldate" name="internaldate" type="date" class="fullWidth" /></div>
+                    <div><input id="internaldate" name="internaldate" type="date" class="fullWidth simpleCalc" /></div>
                     
                     <div class="mt-2">Pipette</div>
-                    <div><input id="pipette" name="pipette" class="fullWidth" /></div>
+                    <div><input id="pipette" name="pipette" class="fullWidth simpleCalc" /></div>
                     
                     <div class="mt-2">Date of pipette solution</div>
-                    <div><input id="pipettedate" name="pipettedate" type="date" class="fullWidth" /></div>
+                    <div><input id="pipettedate" name="pipettedate" type="date" class="fullWidth simpleCalc" /></div>
                     
                     <div class="mt-2">Pipette Lot</div>
-                    <div><input id="pipettelot" name="pipettelot" class="fullWidth" /></div>
+                    <div><input id="pipettelot" name="pipettelot" class="fullWidth simpleCalc" /></div>
 
                 </div>
             </div>
@@ -1218,22 +1325,22 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 </thead>
                 <tbody>
                     <tr id="mouseDataRow">
-                        <td id="MouseID_calc">&nbsp;</td>
-                        <td id="Cage_calc">&nbsp;</td>
-                        <td id="Treatment_calc">&nbsp;</td>
-                        <td id="GenTreatment_calc">&nbsp;</td>
-                        <td id="CycleStage_calc">&nbsp;</td>
-                        <td id="BodyMass_g_calc">&nbsp;</td>
-                        <td id="UterineMass_calc">&nbsp;</td>
-                        <td id="Uterine_mg_per_g_calc">&nbsp;</td>
-                        <td id="Date_of_birth_calc">&nbsp;</td>
-                        <td id="Recording_date_calc">&nbsp;</td>
-                        <td id="Age_in_days_calc">&nbsp;</td>
-                        <td id="Saved_pit_calc">&nbsp;</td>
-                        <td id="Daylight_Savings_calc">&nbsp;</td>
-                        <td id="Time_sac_calc">&nbsp;</td>
-                        <td id="Sac_hr_calc">&nbsp;</td>
-                        <td id="Who_calc">&nbsp;</td>
+                        <td class="MouseID_calc">&nbsp;</td>
+                        <td class="Cage_calc">&nbsp;</td>
+                        <td class="Treatment_calc">&nbsp;</td>
+                        <td class="GenTreatment_calc">&nbsp;</td>
+                        <td class="CycleStage_calc">&nbsp;</td>
+                        <td class="BodyMass_g_calc">&nbsp;</td>
+                        <td class="uterineMass_calc">&nbsp;</td>
+                        <td class="uterine_mg_per_g_calc">&nbsp;</td>
+                        <td class="Date_of_birth_calc">&nbsp;</td>
+                        <td class="Recording_date_calc">&nbsp;</td>
+                        <td class="Age_in_days_calc">&nbsp;</td>
+                        <td class="Saved_pit_calc">&nbsp;</td>
+                        <td class="Daylight_Savings_calc">&nbsp;</td>
+                        <td class="Time_sac_calc">&nbsp;</td>
+                        <td class="Sac_hr_calc">&nbsp;</td>
+                        <td class="Who_calc">&nbsp;</td>
                     </tr>
                 </tbody>
             </table>
