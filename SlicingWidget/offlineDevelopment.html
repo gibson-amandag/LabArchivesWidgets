@@ -83,7 +83,7 @@ $(document).ready(function () {
         //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
-        this.initDynamicContent(parsedJson);
+        // this.initDynamicContent(parsedJson);
 
         //resize the content box when the window size changes
         window.onresize = this.resize;
@@ -1132,7 +1132,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <div><input id="externalsoln" name="externalsoln" class="fullWidth"/></div>
                     
                     <div class="mt-2">Internal Solution</div>
-                    <div><input id="externalsoln" name="internalsoln" class="fullWidth" /></div>
+                    <div><input id="internalsoln" name="internalsoln" class="fullWidth" /></div>
                     
                     <div class="mt-2">Internal Date</div>
                     <div><input id="internaldate" name="internaldate" type="date" class="fullWidth" /></div>
@@ -1141,13 +1141,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <div><input id="pipette" name="pipette" class="fullWidth" /></div>
                     
                     <div class="mt-2">Date of pipette solution</div>
-                    <div><input id="pipette" name="pipettedate" type="date" class="fullWidth" /></div>
+                    <div><input id="pipettedate" name="pipettedate" type="date" class="fullWidth" /></div>
                     
                     <div class="mt-2">Pipette Lot</div>
                     <div><input id="pipettelot" name="pipettelot" class="fullWidth" /></div>
-                    
-                    <div class="mt-2">Internal Solution</div>
-                    <div><input id="internalsoln" name="internalsoln" class="fullWidth" /></div>
 
                 </div>
             </div>
