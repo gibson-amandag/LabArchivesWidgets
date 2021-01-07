@@ -262,6 +262,8 @@ $(document).ready(function () {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
+
+            $("#tableDiv").show();
         }
     },
 
@@ -702,6 +704,7 @@ $(document).ready(function () {
             $table.find("thead").children("tr").each(function () { //add each child of the row
                 var addTab = "";
                 $(this).children().each(function () {
+                    // console.log($(this).text());
                     $temp.text($temp.text() + addTab + $(this).text());
                     addTab = "\t";
                 });
@@ -709,10 +712,13 @@ $(document).ready(function () {
             addLine = "\n";
         }
 
+        console.log("temp after head: " + $temp.text());
+
         $table.find("tbody").children("tr").each(function () { //add each child of the row
             $temp.text($temp.text() + addLine);
             var addTab = "";
             $(this).find("td").each(function () {
+                console.log($(this).text());
                 if ($(this).text()) {
                     var addText = $(this).text();
                 } else {
@@ -723,7 +729,7 @@ $(document).ready(function () {
                 addLine = "\n";
             });
         });
-        console.log($temp);
+        console.log($temp.text());
         $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
         document.execCommand("copy"); //copy the "selected" text
         $temp.remove(); //remove temp
@@ -822,7 +828,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("edit", function() {return form_script.test_data()});
+      form_script.init("view", function() {return form_script.test_data()});
 
 
     }
@@ -1190,11 +1196,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="col" id="errorMsg">&nbsp;</div>
     </div>
 
-    <!-- Copy Div -->
-    <div class="row">
-        <div class="col" id="forCopy" style="display: none;">&nbsp;</div>
-    </div>
-
     <div class="row mt-2">
         <div class="col-12 table-responsive xsTableDiv" id="tableDiv">
             <table id="outTable" class="table">
@@ -1241,6 +1242,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </table>
         </div>
     </div>
+</div>
+
+<!-- Copy Div -->
+<div class="row">
+    <div class="col" id="forCopy">&nbsp;</div>
 </div>
 
 <div class="container">
