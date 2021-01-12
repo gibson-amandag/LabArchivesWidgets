@@ -892,7 +892,7 @@ my_widget_script =
                     $('<select></select>', { //append a new select to the td
                         id: col3ID,
                         name: col3ID,
-                        "class": "sexCol needForTable"
+                        "class": "sexCol"
                     }).append( //append options to the select tag
                         "<option value=''>[Select]</option>",
                         "<option value='F'>Female</option>",
