@@ -1,295 +1,428 @@
-<style type="text/css">.columns {
-    display: flex;
-    flex-wrap: wrap;
-    column-gap: 2%;
-}
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<!-- Load jQuery for Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<!-- Load bootstrap java -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+<!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
+<script>
+    var $jq351 = jQuery.noConflict(true);
+</script>
+<style type="text/css">
+    /* TO DO Place css styling code here */
 
-.column3 {
-    flex: 0 30%;
-}
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
 
-.container {
-    /* display: flex; */
-    /* flex-wrap: wrap; */
-}
+    table {
+        border: 2px solid black;
+    }
 
-.container>div {
-    /* flex: 0 50%; */
-    margin-bottom: 5px;
-}
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
 
-.implant {
-    display: none;
-}
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
 
-.tableDiv {
-    width: 400px;
-    overflow-x: scroll;
+    .fullWidth {
+        width: 90%
+    }
 
-}
-
-.iFrameDiv {
-    width: 800px; 
-    overflow-x: scroll;
-padding-left: 2.5%;
-display: none;
-}
+    .female, .male, .anySex, .cycle, .gdx, .iFrameDiv {
+        display: none;
+    }
 </style>
-<h1><span style="font-size:36px;">Slicing</span></h1>
 
-<em>I'm slow to load. Please be patient with me</em>
+<!-- TO DO Begin typing your HTML code here -->
 
-<p>Elements that are required to save this page are marked with a red asterisk <span style="color:red">*</span><br/>
-Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span style="color:blue">#</span></p>
 
-<div class="columns">
-<div class="column3">
-<div>
-<h3>General Info</h3>
+<div class="container">
+    <div class="row">
+        <h1 class="col-12">Slicing</h1>
+        <div class="col-12">
+            <em>I'm slow to load. Please be patient with me</em>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <p>Elements that are required to save this page are marked with a red asterisk <span
+            style="color:red">*</span><br />
+        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
+            style="color:blue">#</span></p>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <div class="col-12 col-lg container">
+            <div class="row">
+                <div class="col-12 col-md-6 col-lg-12">
+                    <h2>General Info</h2>
+
+                    <div class="requiredLab needForTableLab">Experimenter</div>
+                    <div><input class="needForTable fullWidth" id="Who" name="who" required="" /></div>
+
+                    <div class="requiredLab needForTableLab mt-2">Date</div>
+                    <div><input class="needForTable fullWidth" id="Recording_date" name="slicedate" required="" type="date" /></div>
+
+                    <div class="needForTableLab mt-2">Time of Sacrifice</div>
+                    <div><input class="needForTable fullWidth" id="Time_sac" name="sactime" type="time" /></div>
+
+                    <div class="requiredLab needForTableLab mt-2">Daylight Savings Time</div>
+                    <div>
+                        <select class="needForTable fullWidth" id="Daylight_Savings" name="daylightsaving" required="">
+                            <option value="">[Select]</option>
+                            <option value="Y">Daylight Savings Time (summer)</option>
+                            <option value="N">Standard Time (winter)</option> 
+                        </select>
+                    </div>
+
+                </div>
+                <div class="col-12 col-md-6 col-lg-12 mt-2 mt-md-0 mt-lg-2">
+                    <h2>Mouse Information</h2>
+
+                    <div class="requiredLab needForTableLab mt-2" >Mouse ID # or Ear Tag</div>
+                    <div><input class="needForTable fullWidth" id="MouseID" name="mouseid" required="" /></div>
+
+                    <div class="requiredLab needForTableLab mt-2">Transgenic Line</div>
+                    <div><input class="needForTable fullWidth" id="strain" name="strain" required="" /></div>
+
+                    <div class="requiredLab needForTableLab mt-2">Zygosity</div>
+                    <div>
+                        <select class="needForTable fullWidth" id="zygosity" name="zygosity" required="">
+                            <option value="">[Select]</option>
+                            <option value="homoPlus">+/+</option>
+                            <option value="hetero">+/-</option>
+                            <option value="homoNeg">-/-</option> 
+                        </select>
+                    </div>
+
+                    <div class="mt-2">Cage #</div>
+                    <div><input id="Cage" name="cagenum" class="fullWidth"/></div>
+
+                    <div class="needForTableLab mt-2" >Date of Birth</div>
+                    <div><input class="needForTable fullWidth" id="Date_of_birth" name="dob" required="" type="date" /></div>
+
+                    <div class="mt-2">Treatment</div>
+                    <div>
+                        <select id="Treatment" name="treatment" class="fullWidth">
+                            <option value="">[Select]</option>
+                            <option value="CON">Control</option>
+                            <option value="CON_main">Main colony control</option>
+                            <option value="VEH">Vehicle</option>
+                            <option value="DHT">DHT</option> 
+                        </select>
+                    </div>
+
+                    <div class="needForTableLab mt-2">Sex</div>
+                    <div>
+                       <select class="needForTable fullWidth" id="sex" name="sex" required="">
+                           <option value="">[Select]</option>
+                           <option value="female">Female</option>
+                           <option value="male">Male</option> 
+                        </select>
+                    </div>
+
+                    <div class="needForTableLab mt-2">Body mass (g)</div>
+                    <div>
+                        <input class="needForTable fullWidth" id="BodyMass_g" name="bodymass" step="0.1" type="number" />
+                    </div>
+
+                    <!-- Change the event listener to only make the entry appear when one of the sexes is selected -->
+                    <div id="gonadMassDiv">
+                        <div class="female mt-2 needForTableLab">Uterine Mass (mg)</div>
+                        <div class="male mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
+                        <div>
+                            <input class="needForTable fullWidth anySex" id="gonadMass" name="gonadmass" step="0.01" type="number" />
+                        </div>
+                    </div>
+
+                    <div class="mt-2">Blood Glucose (mg/100mL)</div>
+                    <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth"/></div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg mt-2 mt-lg-0 container">
+            <div class="row">
+                <div class="col-12 col-md-4 col-lg-12">
+                    <h2>Gonadal Status</h2>
+
+                    <div class="needForTableLab requiredLab">Gonad Status</div>
+                    <div>
+                        <select class="needForTable fullWidth" id="gonadstatus" name="gonadstatus" required="">
+                            <option value="">[Select]</option>
+                            <option value="intact">Intact</option>
+                            <option value="gdx">Gonadectomized</option> 
+                        </select>
+                    </div>
+
+                    <!-- Intact -->
+                    <div class="cycle mt-2">Cycle Stage</div>
+                    <div class="cycle">
+                        <select class="fullWidth" id="CycleStage" name="cyclestage">
+                            <option value="">[Select]</option>
+                            <option value="NA">NA</option>
+                            <option value="D">Diestrus</option>
+                            <option value="P">Proestrus</option>
+                            <option value="E">Estrus</option> 
+                        </select>
+                    </div>
+                    <div class="cycle">Comment:</div>
+                    <div class="cycle">
+                        <textarea name="stagecomment" id="stageComment" rows="1" class="fullWidth"></textarea>
+                    </div>
+
+                    <!-- GDX -->
+                    <div class="gdx mt-2" >Date of surgery</div>
+                    <div class="gdx" >
+                        <input class="fullWidth" id="surgerydate" name="surgerydate" type="date" />
+                    </div>
+
+                </div>
+                <div class="col-12 col-md-4 col-lg-12 mt-2 mt-md-0 mt-lg-2">
+                    <h2>Steroid Implants</h2>
+
+                    <div class="mt-2">Implant?</div>
+                    <div>
+                        <input id="implantBox" name="implant" type="checkbox" />
+                    </div>
+
+                    <div class="implant mt-2">Type of implant</div>
+                    <div class="implant">
+                        <select id="implantType" name="implanttype" class="fullWidth">
+                            <option value="">[Select]</option>
+                            <option value="e2">E2</option>
+                            <option value="dht">DHT</option>
+                            <option value="pira">P IRA</option>
+                            <option value="other">Other</option> 
+                        </select>
+                    </div>
+
+                    <div class="implant mt-2">Implant Comment</div>
+                    <div class="implant">
+                        <textarea name="implantcomment" id="implantcomment" rows="1" class="fullWidth"></textarea>
+                    </div>
+
+                </div>
+                <div class="col-12 col-md-4 col-lg-12 mt-2 mt-md-0 mt-lg-2">
+                    <h2>Samples</h2>
+
+                    <div class="mt-2 needForTableLab">Serum Tube Label</div>
+                    <div>
+                        <input class="needForTable fullWidth" id="tubeLabel" name="tubelabel" />
+                    </div>
+                    
+                    <div class="mt-2">Pituitary</div>
+                    <div><label for="pituitary">Saved pituitary</label> <input id="Saved_pit" name="pituitary" type="checkbox" /></div>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg mt-2 mt-lg-0 container">
+            <div class="row">
+                <div class="col-12 col-md-6 col-lg-12">
+                    <h2>Slice Info</h2>
+
+                    <div class="mt-2 needForTableLab" >Nucleus/Area of Interest</div>
+                    <div>
+                        <input class="needForTable fullWidth" id="nucleus" name="nucleus" />
+                    </div>
+                    
+                    <div class="mt-2 needForTableLab">Slicing Orientation</div>
+                    <div>
+                        <input class="needForTable fullWidth" id="orientation" name="orientation" />
+                    </div>
+                    
+                    <div class="mt-2">Quality</div>
+                    <div>
+                        <select id="slicequal" name="slicequal" class="fullWidth">
+                            <option value="">[Select]</option>
+                            <option value="good">Good</option>
+                            <option value="fair">Fair</option>
+                            <option value="poor">Poor</option> 
+                        </select>
+                    </div>
+                    <div>Comment:</div>
+                    <div>
+                        <textarea name="slicecomment" rows="1" class="fullWidth"></textarea>
+                    </div>
+                    
+                    <div class="mt-2">Fluorescent Quality</div>
+                    <div>
+                        <select id="fluorqual" name="fluorqual" class="fullWidth">
+                            <option value="">[Select]</option>
+                            <option value="good">Good</option>
+                            <option value="fair">Fair</option>
+                            <option value="poor">Poor</option> 
+                        </select>
+                    </div>
+                    <div>Comment:</div>
+                    <div>
+                        <textarea name="fluorcomment" id="fluorcomment" rows="1" class="fullWidth"></textarea>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-12 mt-2 mt-md-0 mt-lg-2">
+                    <h2>Solutions</h2>
+
+                    <div class="mt-2">External and addition</div>
+                    <div><input id="externalsoln" name="externalsoln" class="fullWidth"/></div>
+                    
+                    <div class="mt-2">Internal Solution</div>
+                    <div><input id="internalsoln" name="internalsoln" class="fullWidth" /></div>
+                    
+                    <div class="mt-2">Internal Date</div>
+                    <div><input id="internaldate" name="internaldate" type="date" class="fullWidth" /></div>
+                    
+                    <div class="mt-2">Pipette</div>
+                    <div><input id="pipette" name="pipette" class="fullWidth" /></div>
+                    
+                    <div class="mt-2">Date of pipette solution</div>
+                    <div><input id="pipette" name="pipettedate" type="date" class="fullWidth" /></div>
+                    
+                    <div class="mt-2">Pipette Lot</div>
+                    <div><input id="pipettelot" name="pipettelot" class="fullWidth" /></div>
+                    
+                    <div class="mt-2">Internal Solution</div>
+                    <div><input id="internalsoln" name="internalsoln" class="fullWidth" /></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <div class="col-12">
+            <h3>Comments:</h3>
+        </div>
+        <div class="col-12">
+            <textarea name="comments" id="otherComments" rows="5" class="fullWidth"></textarea>
+        </div>
+    </div>
 </div>
 
 <div class="container">
-<div>Experimenter</div>
+    <div class="row mt-2">
+        <h2 class="col">Output Table</h2>
+    </div>
 
-<div><input class="needForTable" id="Who" name="who" required="" /></div>
+    <!-- buttons -->
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable" name="toggletable" type="button"
+                value="Show/Hide Table" class="fullWidth" />
+        </div>
 
-<div>Date</div>
+        <div class="col-12 col-sm-6 col-md-3"><input id="calculate" name="calcvalues" type="button"
+                value="Calculate Values" class="fullWidth disableOnView" />
+        </div>
 
-<div><input class="needForTable" id="Recording_date" name="slicedate" required="" type="date" /></div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="toCSV" name="tocsv" type="button" value="Save CSV" class="fullWidth" />
+        </div>
 
-<div>Time of Sacrifice</div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
+            <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" />
+        </div>
+    </div>
 
-<div><input class="needForTable" id="Time_sac" name="sactime" type="time" /></div>
+    <!-- Error Message -->
+    <div class="row">
+        <div class="col" id="errorMsg">&nbsp;</div>
+    </div>
 
-<div>Daylight Savings Time</div>
-
-<div><label for="daylightsaving">Select:</label> <select class="needForTable" id="Daylight_Savings" name="daylightsaving" required=""><option value="">[Select]</option><option value="Y">Daylight Savings Time (summer)</option><option value="N">Standard Time (winter)</option> </select></div>
-
-<div>
-<h3>Mouse Information</h3>
+    <div class="row mt-2">
+        <div class="col-12 table-responsive xsTableDiv" id="tableDiv">
+            <table id="outTable" class="table">
+                <thead>
+                    <tr>
+                        <th>MouseID</th>
+                        <th>Cage</th>
+                        <th>Treatment</th>
+                        <th>GenTreatment</th>
+                        <th>CycleStage</th>
+                        <th>BodyMass_g</th>
+                        <th>UterineMass</th>
+                        <th>Uterine_mg_per_g</th>
+                        <th>Date_of_birth</th>
+                        <th>Recording_date</th>
+                        <th>Age_in_days</th>
+                        <th>Saved_pit</th>
+                        <th>Daylight_Savings</th>
+                        <th>Time_sac</th>
+                        <th>Sac_hr</th>
+                        <th>Who</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="mouseDataRow">
+                        <td id="MouseID_calc">&nbsp;</td>
+                        <td id="Cage_calc">&nbsp;</td>
+                        <td id="Treatment_calc">&nbsp;</td>
+                        <td id="GenTreatment_calc">&nbsp;</td>
+                        <td id="CycleStage_calc">&nbsp;</td>
+                        <td id="BodyMass_g_calc">&nbsp;</td>
+                        <td id="UterineMass_calc">&nbsp;</td>
+                        <td id="Uterine_mg_per_g_calc">&nbsp;</td>
+                        <td id="Date_of_birth_calc">&nbsp;</td>
+                        <td id="Recording_date_calc">&nbsp;</td>
+                        <td id="Age_in_days_calc">&nbsp;</td>
+                        <td id="Saved_pit_calc">&nbsp;</td>
+                        <td id="Daylight_Savings_calc">&nbsp;</td>
+                        <td id="Time_sac_calc">&nbsp;</td>
+                        <td id="Sac_hr_calc">&nbsp;</td>
+                        <td id="Who_calc">&nbsp;</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<div>&nbsp;</div>
-
-<div>Mouse ID # or Ear Tag</div>
-
-<div><input class="needForTable" id="MouseID" name="mouseid" required="" /></div>
-
-<div>Transgenic Line</div>
-
-<div><input class="needForTable" id="strain" name="strain" /></div>
-
-<div>Zygosity</div>
-
-<div><label for="zygosity">Select:</label> <select class="needForTable" id="zygosity" name="zygosity" required=""><option value="">[Select]</option><option value="homoPlus">+/+</option><option value="hetero">+/-</option><option value="homoNeg">-/-</option> </select></div>
-
-<div>Cage #</div>
-
-<div><input id="Cage" name="cagenum" /></div>
-
-<div>Date of Birth</div>
-
-<div><input class="needForTable" id="Date_of_birth" name="dob" required="" type="date" /></div>
-
-<div>Treatment</div>
-
-<div><select id="Treatment" name="treatment"><option value="">[Select]</option><option value="CON">Control</option><option value="CON_main">Main colony control</option><option value="VEH">Vehicle</option><option value="DHT">DHT</option> </select></div>
-
-<div>Sex</div>
-
-<div><label for="sex">Select:</label> <select class="needForTable" id="sex" name="sex" required=""><option value="">[Select]</option><option value="female">Female</option><option value="male">Male</option> </select></div>
-
-<div>Body mass (g)</div>
-
-<div><input class="needForTable" id="BodyMass_g" name="bodymass" step="0.1" type="number" /></div>
-
-<div>
-<div class="female">Uterine Mass (mg)</div>
-
-<div class="male" style="display: none;">Seminal Vesicle Mass (mg)</div>
-</div>
-
-<div><input class="needForTable" id="gonadMass" name="gonadmass" step="0.01" type="number" /></div>
-
-<div>Blood Glucose (mg/100mL)</div>
-
-<div><input id="glucose" name="glucose" step="0.001" type="number" /></div>
-</div>
-</div>
-
-<div class="column3">
-<div>
-<h3>Gonadal Status</h3>
-</div>
-
-<div class="container">
-<div>Gonad Status</div>
-
-<div><label for="gonadstatus">Status:</label> <select class="needForTable" id="gonadstatus" name="gonadstatus" required=""><option value="">[Select]</option><option value="intact">Intact</option><option value="gdx">Gonadectomized</option> </select></div>
-
-<div class="cycle">Cycle Stage</div>
-
-<div class="cycle"><label for="cyclestage">Select:</label> <select id="CycleStage" name="cyclestage"><option value="">[Select]</option><option value="NA">NA</option><option value="D">Diestrus</option><option value="P">Proestrus</option><option value="E">Estrus</option> </select><br />
-<label for="stagecomment">Comment:</label> <input name="stagecomment" /></div>
-
-<div class="gdx" style="display: none;">Date of surgery</div>
-
-<div class="gdx" style="display: none;"><input id="surgerydate" name="surgerydate" type="date" /></div>
-</div>
-
-<h3>Steroid Implants</h3>
-
-<div class="container">
-<div>Implant?</div>
-
-<div><label for="implant">Check if yes:</label> <input id="implantBox" name="implant" type="checkbox" /></div>
-
-<div class="implant">Type of implant</div>
-
-<div class="implant"><select id="implantType" name="implanttype"><option value="">[Select]</option><option value="e2">E2</option><option value="dht">DHT</option><option value="pira">P IRA</option><option value="other">Other</option> </select></div>
-
-<div class="implant">Implant Comment</div>
-
-<div class="implant"><input name="implantcomment" /></div>
-
-<div>
-<h3>Samples</h3>
-</div>
-
-<div>&nbsp;</div>
-
-<div>Serum Tube Label</div>
-
-<div><input class="needForTable" id="tubeLabel" name="tubelabel" /></div>
-
-<div>Pituitary</div>
-
-<div><label for="pituitary">Saved pituitary</label> <input id="Saved_pit" name="pituitary" type="checkbox" /></div>
-</div>
-</div>
-
-<div class="column3">
-<div>
-<h3>Slice Info</h3>
+<!-- Copy Div -->
+<div class="row">
+    <div class="col" id="forCopy">&nbsp;</div>
 </div>
 
 <div class="container">
-<div>Nucleus/Area of Interest</div>
-
-<div><input class="needForTable" id="nucleus" name="nucleus" /></div>
-
-<div>Slicing Orientation</div>
-
-<div><input class="needForTable" id="orientation" name="orientation" /></div>
-
-<div>Quality</div>
-
-<div><label for="slicequal">Select:</label> <select id="slicequal" name="slicequal"><option value="">[Select]</option><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option> </select><br />
-<label for="slicecomment">Comment:</label> <input name="slicecomment" /></div>
-
-<div>Fluorescent Quality</div>
-
-<div><label for="fluorqual">Select:</label> <select id="fluorqual" name="fluorqual"><option value="">[Select]</option><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option> </select><br />
-<label for="fluorcomment">Comment:</label> <input name="fluorcomment" /></div>
-
-<div>
-<h3>Solutions</h3>
+    <div class="row">
+        <div class="col-12">
+            <input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc" /> or 
+            <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">click here</a></big> 
+            to open the Google Sheet in a new window
+        </div>
+        <div class="col-12">
+            <label class="requiredLab" for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> 
+            <select id="enteredDatatoDoc" name="entereddatatodoc" required="">
+                <option value="">[Select]</option>
+                <option value="no">Not yet</option>
+                <option value="yes">Yes!</option> 
+            </select>
+        </div>
+        
+    </div>
 </div>
 
-<div>&nbsp;</div>
-
-<div>External and addition</div>
-
-<div><input id="externalsoln" name="externalsoln" /></div>
-
-<div>Internal Solution</div>
-
-<div><input id="externalsoln" name="internalsoln" /></div>
-
-<div>Internal Date</div>
-
-<div><input id="internaldate" name="internaldate" type="date" /></div>
-
-<div>Pipette</div>
-
-<div><input id="pipette" name="pipette" /></div>
-
-<div>Date of pipette solution</div>
-
-<div><input id="pipette" name="pipettedate" type="date" /></div>
-
-<div>Pipette Lot</div>
-
-<div><input id="pipettelot" name="pipettelot" /></div>
-
-<div>Internal Solution</div>
-
-<div><input id="internalsoln" name="internalsoln" /></div>
+<div class="container">
+    <div class="row">
+        <div class="col-12 iFrameDiv">
+            <iframe class="fullWidth" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" frameborder="0" height="600" scrolling="auto"></iframe>   
+        </div>
+    </div>
 </div>
-</div>
-</div>
-<!--End columns div-->
-
-<p>&nbsp;</p>
-
-<h2>Comments:</h2>
-
-<p><textarea cols="50%" name="comments" rows="5"></textarea><br />
-<br />
-<input id="toggleTable" name="toggletable" type="button" value="Show/Hide Table" /> <input id="calculate" name="calcvalues" type="button" value="Calculate Values" /> <input id="toCSV" name="tocsv" type="button" value="Save CSV" /> <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" /></p>
-
-<div id="errorMsg">&nbsp;</div>
-
-<div class="tableDiv" id="tableDiv" style="display:none">
-<table border="1pt" id="outTable">
-	<tbody>
-		<tr>
-			<th>MouseID</th>
-			<th>Cage</th>
-			<th>Treatment</th>
-			<th>GenTreatment</th>
-			<th>CycleStage</th>
-			<th>BodyMass_g</th>
-			<th>UterineMass</th>
-			<th>Uterine_mg_per_g</th>
-			<th>Date_of_birth</th>
-			<th>Recording_date</th>
-			<th>Age_in_days</th>
-			<th>Saved_pit</th>
-			<th>Daylight_Savings</th>
-			<th>Time_sac</th>
-			<th>Sac_hr</th>
-			<th>Who</th>
-		</tr>
-		<tr id="mouseDataRow">
-			<td id="MouseID_calc">&nbsp;</td>
-			<td id="Cage_calc">&nbsp;</td>
-			<td id="Treatment_calc">&nbsp;</td>
-			<td id="GenTreatment_calc">&nbsp;</td>
-			<td id="CycleStage_calc">&nbsp;</td>
-			<td id="BodyMass_g_calc">&nbsp;</td>
-			<td id="UterineMass_calc">&nbsp;</td>
-			<td id="Uterine_mg_per_g_calc">&nbsp;</td>
-			<td id="Date_of_birth_calc">&nbsp;</td>
-			<td id="Recording_date_calc">&nbsp;</td>
-			<td id="Age_in_days_calc">&nbsp;</td>
-			<td id="Saved_pit_calc">&nbsp;</td>
-			<td id="Daylight_Savings_calc">&nbsp;</td>
-			<td id="Time_sac_calc">&nbsp;</td>
-			<td id="Sac_hr_calc">&nbsp;</td>
-			<td id="Who_calc">&nbsp;</td>
-		</tr>
-	</tbody>
-</table>
-
-<p>&nbsp;</p>
-</div>
-
-<div><input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc" /> or <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">click here</a></big> to open the Google Sheet in a new window<br />
-<label for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> <select id="enteredDatatoDoc" name="entereddatatodoc" required=""><option value="">[Select]</option><option value="no">Not yet</option><option value="yes">Yes!</option> </select></div>
-
-<div class="iFrameDiv">
-<div id="labGoogleSheet"><iframe frameborder="0" height="600" scrolling="auto" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" style="border:0" width="800"></iframe></div>
-</div>
-
-<div id="hiddenDiv" style="display:none"><textarea id="forCopying" name="forcopying"></textarea></div>

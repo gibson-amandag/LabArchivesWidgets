@@ -274,7 +274,7 @@ $(document).ready(function () {
     addEventListeners: function () {
         //Show/hide the table
         $("#toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
-            var $table = $("#outTable");
+            var $table = $("#AmandaOutTable");
             my_widget_script.toggleTableFuncs($table);
         });
 
@@ -295,7 +295,7 @@ $(document).ready(function () {
         //When the copy button is clicked, run the copyTable function
         $("#copyDataButton").on("click", function () {
             var $copyHead = $("#copyHead");
-            var $tableToCopy = $("#outTable");
+            var $tableToCopy = $("#AmandaOutTable");
             var $tableDiv = $("#tableDiv");
             var $errorMsg = $("#errorMsg");
             var $divForCopy = $("#forCopy");
@@ -683,7 +683,7 @@ $(document).ready(function () {
         //Hours since lights on
         my_widget_script.calcHoursPostLightsOn();
 
-        $("#outTable tr").each(function () { //for each row
+        $(".outTable tr").each(function () { //for each row
             $("td", this).each(function () { //for each cell
                 var value = $(this).text(); //get the value of the text
                 if (value === "" || value === "NaN" || value === "___" || value === "Select daylight saving") { //if blank or NaN
@@ -1302,7 +1302,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
     <div class="row mt-2">
         <div class="col-12 table-responsive xsTableDiv" id="tableDiv">
-            <table id="outTable" class="table">
+            <table id="AmandaOutTable" class="outTable table">
                 <thead>
                     <tr>
                         <th>MouseID</th>
@@ -1324,7 +1324,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     </tr>
                 </thead>
                 <tbody>
-                    <tr id="mouseDataRow">
+                    <tr>
                         <td class="MouseID_calc">&nbsp;</td>
                         <td class="Cage_calc">&nbsp;</td>
                         <td class="Treatment_calc">&nbsp;</td>
@@ -1341,6 +1341,95 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <td class="Time_sac_calc">&nbsp;</td>
                         <td class="Sac_hr_calc">&nbsp;</td>
                         <td class="Who_calc">&nbsp;</td>
+                    </tr>
+                </tbody>
+            </table>
+        
+            <table id="labOutTable" class="outTable table">
+                <thead>
+                    <tr>
+                        <th>MouseID</th>
+                        <th>Cage</th>
+                        <th>Who</th>
+                        <th>Recording_date</th>
+                        <th>Date_of_birth</th>
+                        <th>Age_in_days</th>
+                        <th>Time_sac</th>
+                        <th>Daylight_Savings</th>
+                        <th>Sac_hr</th>
+                        <th>Strain</th>
+                        <th>Zygosity</th>
+                        <th>Sex</th>
+                        <th>BodyMass_g</th>
+                        <th>GonadMass_mg</th>
+                        <th>GonadMass_mg_per_BodyMass_g</th>
+                        <th>Gonad_Status</th>
+                        <th>CycleStage</th>
+                        <th>Stage_Comment</th>
+                        <th>Surgery_date</th>
+                        <th>Implant</th>
+                        <th>Implant_Type</th>
+                        <th>Implant_Comment</th>
+                        <th>SerumTube_Label</th>
+                        <th>Saved_Pituitary</th>
+                        <th>GenTreatment</th>
+                        <th>Treatment</th>
+                        <th>Glucose</th>
+                        <th>Nucleus</th>
+                        <th>Slice_Orientation</th>
+                        <th>Slice_Quality</th>
+                        <th>Slice_Comment</th>
+                        <th>Fluorescent_Quality</th>
+                        <th>Fluor_Comment</th>
+                        <th>External_Solution</th>
+                        <th>Internal_Solution</th>
+                        <th>Internal_date</th>
+                        <th>Pipette</th>
+                        <th>Pipette_date</th>
+                        <th>Pipette_lot</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="MouseID_calc">&nbsp;</td>
+                        <td class="Cage_calc">&nbsp;</td>
+                        <td class="Who_calc">&nbsp;</td>
+                        <td class="Recording_date_calc">&nbsp;</td>
+                        <td class="Date_of_birth_calc">&nbsp;</td>
+                        <td class="Age_in_days_calc">&nbsp;</td>
+                        <td class="Time_sac_calc">&nbsp;</td>
+                        <td class="Daylight_Savings_calc">&nbsp;</td>
+                        <td class="Sac_hr_calc">&nbsp;</td>
+                        <td class="strain_calc">&nbsp;</td>
+                        <td class="zygosity_calc">&nbsp;</td>
+                        <td class="sex_calc">&nbsp;</td>
+                        <td class="BodyMass_g_calc">&nbsp;</td>
+                        <td class="gonadMass_calc">&nbsp;</td>
+                        <td class="gonad_mg_per_g_calc">&nbsp;</td>
+                        <td class="gonadstatus_calc">&nbsp;</td>
+                        <td class="CycleStage_calc">&nbsp;</td>
+                        <td class="stageComment_calc">&nbsp;</td>
+                        <td class="surgerydate_calc">&nbsp;</td>
+                        <td class="implant_calc">&nbsp;</td>
+                        <td class="implantType_calc">&nbsp;</td>
+                        <td class="implantComment_calc">&nbsp;</td>
+                        <td class="tubeLabel_calc">&nbsp;</td>
+                        <td class="Saved_pit_calc">&nbsp;</td>
+                        <td class="GenTreatment_calc">&nbsp;</td>
+                        <td class="Treatment_calc">&nbsp;</td>
+                        <td class="glucose_calc">&nbsp;</td>
+                        <td class="nucleus_calc">&nbsp;</td>
+                        <td class="orientation_calc">&nbsp;</td>
+                        <td class="slicequal_calc">&nbsp;</td>
+                        <td class="slicecomment_calc">&nbsp;</td>
+                        <td class="fluorqual_calc">&nbsp;</td>
+                        <td class="fluorqualcomment_calc">&nbsp;</td>
+                        <td class="externalsoln_calc">&nbsp;</td>
+                        <td class="internalsoln_calc">&nbsp;</td>
+                        <td class="internaldate_calc">&nbsp;</td>
+                        <td class="pipette_calc">&nbsp;</td>
+                        <td class="pipettedate_calc">&nbsp;</td>
+                        <td class="pipettelot_calc">&nbsp;</td>
                     </tr>
                 </tbody>
             </table>
