@@ -262,6 +262,7 @@ $(document).ready(function () {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
+            $(".hideView").hide();
         }
     },
 
@@ -270,7 +271,20 @@ $(document).ready(function () {
      * This could include when buttons are clicked or when inputs change.
      */
     addEventListeners: function () {
-        
+        $("#showLinks").on("change", function () {
+            if ($(this).is(":checked")) {
+                $(".googleLinks").show();
+                $("#ckbxReminder").text("");
+            } else {
+                $(".googleLinks").hide();
+                my_widget_script.updateReminder($("#sheetLink").val());
+            }
+        })
+
+        $("#sheetLink").on("change", function () {
+            var srcLink = $(this).val();
+            my_widget_script.makeSheetIframe(srcLink);
+        })
     },
 
     /**
@@ -301,6 +315,15 @@ $(document).ready(function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
+        if ($("#showLinks").is(":checked")) {
+            $(".googleLinks").show();
+        } else {
+            $(".googleLinks").hide();
+            my_widget_script.updateReminder($("#sheetLink").val());
+        }
+
+        my_widget_script.makeSheetIframe($("#sheetLink").val());
+
         my_widget_script.resize();
     },
 
@@ -311,6 +334,14 @@ $(document).ready(function () {
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
+        
+        //Change height of frame
+        var frameHeight = window.innerHeight;
+
+        //Change width of frame
+        var frameWidth = window.innerWidth * .9;
+
+        $("#sheetFrame").prop("height", frameHeight).prop("width", frameWidth);
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -353,6 +384,28 @@ $(document).ready(function () {
         }
 
         return valid;
+    },
+
+    makeSheetIframe: function (srcLink) {
+        var frameHeight = window.innerHeight;
+        var frameWidth = window.innerWidth * .9;
+        if(srcLink.search(/https:\/\/(docs|drive)\.google\.com\//i) != -1){
+            var iframeHTML = '<iframe id="sheetFrame" width="' + frameWidth + 'px" height="' + frameHeight + 'px" src="' + srcLink + '&amp;single=true&amp;widget=true&amp;headers=false" frameborder="0"></iframe><p>&nbsp;</p>';
+            var refHTML = '<a href="' + srcLink + '" target="_blank" rel="noopener noreferrer">Direct link to your Google Sheet</a>'
+        } else {
+            var iframeHTML = '';
+            var refHTML = '<span style="color:red;">Enter Valid Google Link</span>';
+        }
+        $("#cyclesGoogleSheet").html(iframeHTML);
+        $("#personalLink").html(refHTML);
+    },
+
+    updateReminder: function (srcLink) {
+        if(srcLink.search(/https:\/\/(docs|drive)\.google\.com\//i) == -1){
+            $("#ckbxReminder").text("Check box above to access entry field");
+        } else {
+            $("#ckbxReminder").text("");
+        }
     }
 };
 
@@ -427,50 +480,55 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     .fullWidth {
         width: 90%
     }
+
+    .googleLinks {
+        display: none;
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
-        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-            style="color:blue">#</span></p>
-</div>
-
-<!-- One example container for two column input that is responsive to window width -->
-<div class="container">
-    <div class="row align-items-end">
-        <div class="myLeftCol">Left Column</div>
-        <!-- myLeftCol adds additional classes in init function-->
-
-        <div class="col"><input id="myButton" name="mybutton" type="button" value="Click Me!" class="fullWidth disableOnView" /></div>
-    </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol requiredLab">Row 2</div>
-
-        <div class="col"></div>
+<div class="container hideView">
+    <div class="row">
+        <div class="col">
+            <input type="checkbox" name="showlinks" id="showLinks"> Check to view template link and enter link to your Google sheet
+        </div>
     </div>
 </div>
 
-<!-- Error Message Div -->
-<div class="container" id="errorMsg">&nbsp;</div>
+<div class="container hideView googleLinks">
+    <div class="row">
+        <div class="col">
+            <h3>Google Drive Template Sheet</h3>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col"><a href="https://docs.google.com/spreadsheets/d/1r7JUhpmLjoQeN3A4ZYeKOm54-kzCYw1naDUKGttHGyY/copy" target="_blank" rel="noopener noreferrer">Click here to make a copy of Estrous Cycle Template Google Sheet</a></div>
+    </div>
 
-<!-- Example Table Container that is responsive to window width, including for xs -->
+    <div class="row mt-2">
+        <div class="col">
+            <h3>Enter Sharing Link for Your New Google Sheet:</h3>
+            <textarea class="fullWidth" name="sheetlink" id="sheetLink" rows="3"></textarea>
+        </div>
+    </div>
+</div>
+
 <div class="container mt-2">
-    <div class="table-responsive xsTableDiv">
-        <table class="table">
-            <thead>
-                <tr>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <p>&nbsp;</p>
+    <div class="row">
+        <div class="col">
+            <h2>Cycling Google Sheet</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col" id="personalLink">&nbsp;</div>
+    </div>
+    <div class="row hideView">
+        <div class="col" id="ckbxReminder"></div>
     </div>
 </div>
 
+<div class="container mt-2 iframeDiv" id="cyclesGoogleSheet"></div>
 
 <!-- #endregion -->
 <!------------------------------------------------------------------------------------------>

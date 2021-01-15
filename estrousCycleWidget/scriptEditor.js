@@ -1,66 +1,5 @@
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<!-- START:stylesheet
--->
-
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/stylesheets/labarchive.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery-ui.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/themes/base/ui.all.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/chosen/chosen.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/css/jquery.dataTables_themeroller.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/css/TableTools.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/css/ColVis.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.css">
-  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.css">
-          <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-1.7.2.min.js"></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-ui-1.9.1.custom.min.js"></script>
-                    <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/populate/jquery.populate.pack.js" defer="defer"></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/numeric/jquery.numeric.js" defer="defer"></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.js" defer="defer"></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/daepark-postmessage/postmessage.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/widget_proxy.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/parent_form_script.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/database_form_script.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/js/jquery.dataTables.min.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/TableTools.min.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/ZeroClipboard.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/js/ColVis.min.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColResize/ColReorderWithResize.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/chosen/chosen.jquery_modified.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/autoresize/jquery.autoresize.min.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.js" ></script>
-            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/freezerbox_form_script.js" ></script>
-    
-<title></title>
-</head>
-<body>
-<script>
-    // #region
-var form_script = null;
-try {
-$(document).ready(function () {
-      
-      
-      // Create window var to store the locale for the datepicker
-      window.datepicker_locale = '';
-//***************************************************************************
-//***************************************************************************
-//***************************************************************************
-//place your javascript code below and when you have it the way you want it
-//just paste it into the LA Dev tool
-//***************************************************************************
-//***************************************************************************
-//***************************************************************************
-// #endregion
-    form_script = 
-    my_widget_script =
-{
-    
+my_widget_script =
+{ 
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -262,6 +201,7 @@ $(document).ready(function () {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
+            $(".hideView").hide();
         }
     },
 
@@ -270,7 +210,20 @@ $(document).ready(function () {
      * This could include when buttons are clicked or when inputs change.
      */
     addEventListeners: function () {
-        
+        $("#showLinks").on("change", function () {
+            if ($(this).is(":checked")) {
+                $(".googleLinks").show();
+                $("#ckbxReminder").text("");
+            } else {
+                $(".googleLinks").hide();
+                my_widget_script.updateReminder($("#sheetLink").val());
+            }
+        })
+
+        $("#sheetLink").on("change", function () {
+            var srcLink = $(this).val();
+            my_widget_script.makeSheetIframe(srcLink);
+        })
     },
 
     /**
@@ -301,6 +254,15 @@ $(document).ready(function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
+        if ($("#showLinks").is(":checked")) {
+            $(".googleLinks").show();
+        } else {
+            $(".googleLinks").hide();
+            my_widget_script.updateReminder($("#sheetLink").val());
+        }
+
+        my_widget_script.makeSheetIframe($("#sheetLink").val());
+
         my_widget_script.resize();
     },
 
@@ -311,6 +273,14 @@ $(document).ready(function () {
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
+        
+        //Change height of frame
+        var frameHeight = window.innerHeight;
+
+        //Change width of frame
+        var frameWidth = window.innerWidth * .9;
+
+        $("#sheetFrame").prop("height", frameHeight).prop("width", frameWidth);
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -353,130 +323,27 @@ $(document).ready(function () {
         }
 
         return valid;
-    }
-};
+    },
 
-//**************************************************************************
-//End of your code
-//**************************************************************************
-//**************************************************************************
-      //the parent class functionality is added to your class below.
-      form_script.parent_class = parent_form_script;
-      //**************************************************************************
-      //**************************************************************************
-      //call to the init function in your script.  Note that you can change the mode in the call here.
-      //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("edit", function() {return form_script.test_data()});
+    makeSheetIframe: function (srcLink) {
+        var frameHeight = window.innerHeight;
+        var frameWidth = window.innerWidth * .9;
+        if(srcLink.search(/https:\/\/(docs|drive)\.google\.com\//i) != -1){
+            var iframeHTML = '<iframe id="sheetFrame" width="' + frameWidth + 'px" height="' + frameHeight + 'px" src="' + srcLink + '&amp;single=true&amp;widget=true&amp;headers=false" frameborder="0"></iframe><p>&nbsp;</p>';
+            var refHTML = '<a href="' + srcLink + '" target="_blank" rel="noopener noreferrer">Direct link to your Google Sheet</a>'
+        } else {
+            var iframeHTML = '';
+            var refHTML = '<span style="color:red;">Enter Valid Google Link</span>';
+        }
+        $("#cyclesGoogleSheet").html(iframeHTML);
+        $("#personalLink").html(refHTML);
+    },
 
-
-    }
-)
-
-}
-catch (e) {
-
-}
-
-parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00:23-05:00","last_modified_at":"2021-01-03T18:51:34-05:00","last_modified_by":"Amanda Gibson","owned_by":"unknown"};
-
-</script>
-<form id="the_form" style="display:table">
-<!------------------------------------------------------------------------------------------>
-<!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
-<!------------------------------------------------------------------------------------------>
-<!-- #region HTML -->
-<!-- Bootstrap CSS -->
-<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
-<!-- Load jQuery for Bootstrap -->
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"
-    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-<!-- Load bootstrap java -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
-<!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
-<script>
-    var $jq351 = jQuery.noConflict(true);
-</script>
-<style type="text/css">
-    /* TO DO Place css styling code here */
-
-    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
-    @media (max-width: 576px) {
-        .xsTableDiv {
-            width: 300px !important;
-            overflow-x: scroll;
+    updateReminder: function (srcLink) {
+        if(srcLink.search(/https:\/\/(docs|drive)\.google\.com\//i) == -1){
+            $("#ckbxReminder").text("Check box above to access entry field");
+        } else {
+            $("#ckbxReminder").text("");
         }
     }
-
-    table {
-        border: 2px solid black;
-    }
-
-    th {
-        padding: 5px;
-        border: 2px solid black;
-    }
-
-    td {
-        padding: 5px;
-        border: 1px solid black;
-    }
-
-    .fullWidth {
-        width: 90%
-    }
-</style>
-
-<!-- TO DO Begin typing your HTML code here -->
-<div class="container">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
-        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-            style="color:blue">#</span></p>
-</div>
-
-<!-- One example container for two column input that is responsive to window width -->
-<div class="container">
-    <div class="row align-items-end">
-        <div class="myLeftCol">Left Column</div>
-        <!-- myLeftCol adds additional classes in init function-->
-
-        <div class="col"><input id="myButton" name="mybutton" type="button" value="Click Me!" class="fullWidth disableOnView" /></div>
-    </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol requiredLab">Row 2</div>
-
-        <div class="col"></div>
-    </div>
-</div>
-
-<!-- Error Message Div -->
-<div class="container" id="errorMsg">&nbsp;</div>
-
-<!-- Example Table Container that is responsive to window width, including for xs -->
-<div class="container mt-2">
-    <div class="table-responsive xsTableDiv">
-        <table class="table">
-            <thead>
-                <tr>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <p>&nbsp;</p>
-    </div>
-</div>
-
-
-<!-- #endregion -->
-<!------------------------------------------------------------------------------------------>
-<!--end of your code-->
-<!------------------------------------------------------------------------------------------>
-
-</form>
-</body>
-</html>
+};

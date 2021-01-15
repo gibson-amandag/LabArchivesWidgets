@@ -1,6 +1,5 @@
 my_widget_script =
 {
-
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -43,7 +42,7 @@ my_widget_script =
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
     },
-
+    
     to_json: function () {
         //should return a json string containing the data entered into the form by the user
         //whatever is return from the method is persisted in LabArchives.  must not be binary data.
@@ -57,9 +56,9 @@ my_widget_script =
 
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
-        var output = {
-            widgetData: JSON.parse(widgetJsonString),
-            addedRows: dynamicContent.addedRows
+        var output = { 
+            widgetData: JSON.parse(widgetJsonString), 
+            addedRows: dynamicContent.addedRows 
         };
 
         //uncomment to check stringified output
@@ -194,7 +193,7 @@ my_widget_script =
         for (var i = 0; i < parsedJson.addedRows; i++) {
             var $table = $("#exampleTable");
             my_widget_script.createRow($table);
-        };
+        }
     },
 
     /**
@@ -250,7 +249,7 @@ my_widget_script =
             var data_valid = my_widget_script.data_valid_form();
             var fileName = "templateData";
             var tableID = "outTable"
-
+            
             if (data_valid) {
                 my_widget_script.calcValues();
                 my_widget_script.exportTableToCSV(fileName, tableID);
@@ -434,7 +433,7 @@ my_widget_script =
         // This cannot be something complex like a full <div>
 
         var addedRows = $("#exampleTable").find("tbody tr").length;
-        var dynamicContent = { addedRows: addedRows };
+        var dynamicContent = {addedRows: addedRows};
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -768,11 +767,11 @@ my_widget_script =
     /* ----
      * This takes the value of the input for the $elToWatch and then updates the text of 
      * $elToUpdate to match whenever watchValue is called
-     */
+     */  
     watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
         $elToUpdate.text(value);
-    },
+    }
 
     /* -----------------------------------------------------------------------------
     ** DEFINE ADDITIONAL METHODS HERE
