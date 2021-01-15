@@ -73,17 +73,17 @@
                     <h2>General Info</h2>
 
                     <div class="requiredLab needForTableLab">Experimenter</div>
-                    <div><input class="needForTable fullWidth" id="Who" name="who" required="" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc" id="Who" name="who" required="" /></div>
 
                     <div class="requiredLab needForTableLab mt-2">Date</div>
-                    <div><input class="needForTable fullWidth" id="Recording_date" name="slicedate" required="" type="date" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Recording_date" name="slicedate" required="" type="date" /></div>
 
                     <div class="needForTableLab mt-2">Time of Sacrifice</div>
-                    <div><input class="needForTable fullWidth" id="Time_sac" name="sactime" type="time" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc timeCalc" id="Time_sac" name="sactime" type="time" /></div>
 
                     <div class="requiredLab needForTableLab mt-2">Daylight Savings Time</div>
                     <div>
-                        <select class="needForTable fullWidth" id="Daylight_Savings" name="daylightsaving" required="">
+                        <select class="needForTable fullWidth simpleCalc timeCalc" id="Daylight_Savings" name="daylightsaving" required="">
                             <option value="">[Select]</option>
                             <option value="Y">Daylight Savings Time (summer)</option>
                             <option value="N">Standard Time (winter)</option> 
@@ -95,14 +95,14 @@
                     <h2>Mouse Information</h2>
 
                     <div class="requiredLab needForTableLab mt-2" >Mouse ID # or Ear Tag</div>
-                    <div><input class="needForTable fullWidth" id="MouseID" name="mouseid" required="" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc" id="MouseID" name="mouseid" required="" /></div>
 
                     <div class="requiredLab needForTableLab mt-2">Transgenic Line</div>
-                    <div><input class="needForTable fullWidth" id="strain" name="strain" required="" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc" id="strain" name="strain" required="" /></div>
 
                     <div class="requiredLab needForTableLab mt-2">Zygosity</div>
                     <div>
-                        <select class="needForTable fullWidth" id="zygosity" name="zygosity" required="">
+                        <select class="needForTable fullWidth simpleCalc" id="zygosity" name="zygosity" required="">
                             <option value="">[Select]</option>
                             <option value="homoPlus">+/+</option>
                             <option value="hetero">+/-</option>
@@ -111,14 +111,22 @@
                     </div>
 
                     <div class="mt-2">Cage #</div>
-                    <div><input id="Cage" name="cagenum" class="fullWidth"/></div>
+                    <div><input id="Cage" name="cagenum" class="fullWidth simpleCalc"/></div>
 
                     <div class="needForTableLab mt-2" >Date of Birth</div>
-                    <div><input class="needForTable fullWidth" id="Date_of_birth" name="dob" required="" type="date" /></div>
+                    <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Date_of_birth" name="dob" required="" type="date" /></div>
+
+                    <div class="mt-2">DOB Counts as...</div>
+                    <div>
+                        <select id="DOB_equals" name="dobequals" class="fullWidth ageCalc">
+                            <option value="0">PND 0</option>
+                            <option value="1" selected>PND 1</option>
+                        </select>
+                    </div>
 
                     <div class="mt-2">Treatment</div>
                     <div>
-                        <select id="Treatment" name="treatment" class="fullWidth">
+                        <select id="Treatment" name="treatment" class="fullWidth simpleCalc">
                             <option value="">[Select]</option>
                             <option value="CON">Control</option>
                             <option value="CON_main">Main colony control</option>
@@ -129,7 +137,7 @@
 
                     <div class="needForTableLab mt-2">Sex</div>
                     <div>
-                       <select class="needForTable fullWidth" id="sex" name="sex" required="">
+                       <select class="needForTable fullWidth simpleCalc massCalc cycleCalc" id="sex" name="sex" required="">
                            <option value="">[Select]</option>
                            <option value="female">Female</option>
                            <option value="male">Male</option> 
@@ -138,7 +146,7 @@
 
                     <div class="needForTableLab mt-2">Body mass (g)</div>
                     <div>
-                        <input class="needForTable fullWidth" id="BodyMass_g" name="bodymass" step="0.1" type="number" />
+                        <input class="needForTable fullWidth simpleCalc massCalc" id="BodyMass_g" name="bodymass" step="0.1" type="number" />
                     </div>
 
                     <!-- Change the event listener to only make the entry appear when one of the sexes is selected -->
@@ -146,12 +154,12 @@
                         <div class="female mt-2 needForTableLab">Uterine Mass (mg)</div>
                         <div class="male mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
                         <div>
-                            <input class="needForTable fullWidth anySex" id="gonadMass" name="gonadmass" step="0.01" type="number" />
+                            <input class="needForTable fullWidth anySex simpleCalc massCalc" id="gonadMass" name="gonadmass" step="0.01" type="number" />
                         </div>
                     </div>
 
                     <div class="mt-2">Blood Glucose (mg/100mL)</div>
-                    <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth"/></div>
+                    <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth simpleCalc"/></div>
 
                 </div>
             </div>
@@ -163,7 +171,7 @@
 
                     <div class="needForTableLab requiredLab">Gonad Status</div>
                     <div>
-                        <select class="needForTable fullWidth" id="gonadstatus" name="gonadstatus" required="">
+                        <select class="needForTable fullWidth simpleCalc cycleCalc" id="gonadstatus" name="gonadstatus" required="">
                             <option value="">[Select]</option>
                             <option value="intact">Intact</option>
                             <option value="gdx">Gonadectomized</option> 
@@ -173,7 +181,7 @@
                     <!-- Intact -->
                     <div class="cycle mt-2">Cycle Stage</div>
                     <div class="cycle">
-                        <select class="fullWidth" id="CycleStage" name="cyclestage">
+                        <select class="fullWidth cycleCalc" id="CycleStage" name="cyclestage">
                             <option value="">[Select]</option>
                             <option value="NA">NA</option>
                             <option value="D">Diestrus</option>
@@ -183,7 +191,7 @@
                     </div>
                     <div class="cycle">Comment:</div>
                     <div class="cycle">
-                        <textarea name="stagecomment" id="stageComment" rows="1" class="fullWidth"></textarea>
+                        <textarea name="stagecomment" id="stageComment" rows="1" class="fullWidth cycleCalc"></textarea>
                     </div>
 
                     <!-- GDX -->
@@ -198,7 +206,7 @@
 
                     <div class="mt-2">Implant?</div>
                     <div>
-                        <input id="implantBox" name="implant" type="checkbox" />
+                        <input id="implantBox" name="implant" type="checkbox" class="simpleCalc" />
                     </div>
 
                     <div class="implant mt-2">Type of implant</div>
@@ -223,7 +231,7 @@
 
                     <div class="mt-2 needForTableLab">Serum Tube Label</div>
                     <div>
-                        <input class="needForTable fullWidth" id="tubeLabel" name="tubelabel" />
+                        <input class="needForTable fullWidth simpleCalc" id="tubeLabel" name="tubelabel" />
                     </div>
                     
                     <div class="mt-2">Pituitary</div>
@@ -239,17 +247,17 @@
 
                     <div class="mt-2 needForTableLab" >Nucleus/Area of Interest</div>
                     <div>
-                        <input class="needForTable fullWidth" id="nucleus" name="nucleus" />
+                        <input class="needForTable fullWidth simpleCalc" id="nucleus" name="nucleus" />
                     </div>
                     
                     <div class="mt-2 needForTableLab">Slicing Orientation</div>
                     <div>
-                        <input class="needForTable fullWidth" id="orientation" name="orientation" />
+                        <input class="needForTable fullWidth simpleCalc" id="orientation" name="orientation" />
                     </div>
                     
                     <div class="mt-2">Quality</div>
                     <div>
-                        <select id="slicequal" name="slicequal" class="fullWidth">
+                        <select id="slicequal" name="slicequal" class="fullWidth simpleCalc">
                             <option value="">[Select]</option>
                             <option value="good">Good</option>
                             <option value="fair">Fair</option>
@@ -258,12 +266,12 @@
                     </div>
                     <div>Comment:</div>
                     <div>
-                        <textarea name="slicecomment" rows="1" class="fullWidth"></textarea>
+                        <textarea name="slicecomment" rows="1" class="fullWidth simpleCalc"></textarea>
                     </div>
                     
                     <div class="mt-2">Fluorescent Quality</div>
                     <div>
-                        <select id="fluorqual" name="fluorqual" class="fullWidth">
+                        <select id="fluorqual" name="fluorqual" class="fullWidth simpleCalc">
                             <option value="">[Select]</option>
                             <option value="good">Good</option>
                             <option value="fair">Fair</option>
@@ -272,7 +280,7 @@
                     </div>
                     <div>Comment:</div>
                     <div>
-                        <textarea name="fluorcomment" id="fluorcomment" rows="1" class="fullWidth"></textarea>
+                        <textarea name="fluorcomment" id="fluorcomment" rows="1" class="fullWidth simpleCalc"></textarea>
                     </div>
                 </div>
 
@@ -280,25 +288,22 @@
                     <h2>Solutions</h2>
 
                     <div class="mt-2">External and addition</div>
-                    <div><input id="externalsoln" name="externalsoln" class="fullWidth"/></div>
+                    <div><input id="externalsoln" name="externalsoln" class="fullWidth simpleCalc"/></div>
                     
                     <div class="mt-2">Internal Solution</div>
-                    <div><input id="internalsoln" name="internalsoln" class="fullWidth" /></div>
+                    <div><input id="internalsoln" name="internalsoln" class="fullWidth simpleCalc" /></div>
                     
                     <div class="mt-2">Internal Date</div>
-                    <div><input id="internaldate" name="internaldate" type="date" class="fullWidth" /></div>
+                    <div><input id="internaldate" name="internaldate" type="date" class="fullWidth simpleCalc" /></div>
                     
                     <div class="mt-2">Pipette</div>
-                    <div><input id="pipette" name="pipette" class="fullWidth" /></div>
+                    <div><input id="pipette" name="pipette" class="fullWidth simpleCalc" /></div>
                     
                     <div class="mt-2">Date of pipette solution</div>
-                    <div><input id="pipette" name="pipettedate" type="date" class="fullWidth" /></div>
+                    <div><input id="pipettedate" name="pipettedate" type="date" class="fullWidth simpleCalc" /></div>
                     
                     <div class="mt-2">Pipette Lot</div>
-                    <div><input id="pipettelot" name="pipettelot" class="fullWidth" /></div>
-                    
-                    <div class="mt-2">Internal Solution</div>
-                    <div><input id="internalsoln" name="internalsoln" class="fullWidth" /></div>
+                    <div><input id="pipettelot" name="pipettelot" class="fullWidth simpleCalc" /></div>
 
                 </div>
             </div>
@@ -349,7 +354,7 @@
 
     <div class="row mt-2">
         <div class="col-12 table-responsive xsTableDiv" id="tableDiv">
-            <table id="outTable" class="table">
+            <table id="AmandaOutTable" class="outTable table">
                 <thead>
                     <tr>
                         <th>MouseID</th>
@@ -371,23 +376,112 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr id="mouseDataRow">
-                        <td id="MouseID_calc">&nbsp;</td>
-                        <td id="Cage_calc">&nbsp;</td>
-                        <td id="Treatment_calc">&nbsp;</td>
-                        <td id="GenTreatment_calc">&nbsp;</td>
-                        <td id="CycleStage_calc">&nbsp;</td>
-                        <td id="BodyMass_g_calc">&nbsp;</td>
-                        <td id="UterineMass_calc">&nbsp;</td>
-                        <td id="Uterine_mg_per_g_calc">&nbsp;</td>
-                        <td id="Date_of_birth_calc">&nbsp;</td>
-                        <td id="Recording_date_calc">&nbsp;</td>
-                        <td id="Age_in_days_calc">&nbsp;</td>
-                        <td id="Saved_pit_calc">&nbsp;</td>
-                        <td id="Daylight_Savings_calc">&nbsp;</td>
-                        <td id="Time_sac_calc">&nbsp;</td>
-                        <td id="Sac_hr_calc">&nbsp;</td>
-                        <td id="Who_calc">&nbsp;</td>
+                    <tr>
+                        <td class="MouseID_calc">&nbsp;</td>
+                        <td class="Cage_calc">&nbsp;</td>
+                        <td class="Treatment_calc">&nbsp;</td>
+                        <td class="GenTreatment_calc">&nbsp;</td>
+                        <td class="CycleStage_calc">&nbsp;</td>
+                        <td class="BodyMass_g_calc">&nbsp;</td>
+                        <td class="uterineMass_calc">&nbsp;</td>
+                        <td class="uterine_mg_per_g_calc">&nbsp;</td>
+                        <td class="Date_of_birth_calc">&nbsp;</td>
+                        <td class="Recording_date_calc">&nbsp;</td>
+                        <td class="Age_in_days_calc">&nbsp;</td>
+                        <td class="Saved_pit_calc">&nbsp;</td>
+                        <td class="Daylight_Savings_calc">&nbsp;</td>
+                        <td class="Time_sac_calc">&nbsp;</td>
+                        <td class="Sac_hr_calc">&nbsp;</td>
+                        <td class="Who_calc">&nbsp;</td>
+                    </tr>
+                </tbody>
+            </table>
+        
+            <table id="labOutTable" class="outTable table">
+                <thead>
+                    <tr>
+                        <th>MouseID</th>
+                        <th>Cage</th>
+                        <th>Who</th>
+                        <th>Recording_date</th>
+                        <th>Date_of_birth</th>
+                        <th>Age_in_days</th>
+                        <th>Time_sac</th>
+                        <th>Daylight_Savings</th>
+                        <th>Sac_hr</th>
+                        <th>Strain</th>
+                        <th>Zygosity</th>
+                        <th>Sex</th>
+                        <th>BodyMass_g</th>
+                        <th>GonadMass_mg</th>
+                        <th>GonadMass_mg_per_BodyMass_g</th>
+                        <th>Gonad_Status</th>
+                        <th>CycleStage</th>
+                        <th>Stage_Comment</th>
+                        <th>Surgery_date</th>
+                        <th>Implant</th>
+                        <th>Implant_Type</th>
+                        <th>Implant_Comment</th>
+                        <th>SerumTube_Label</th>
+                        <th>Saved_Pituitary</th>
+                        <th>GenTreatment</th>
+                        <th>Treatment</th>
+                        <th>Glucose</th>
+                        <th>Nucleus</th>
+                        <th>Slice_Orientation</th>
+                        <th>Slice_Quality</th>
+                        <th>Slice_Comment</th>
+                        <th>Fluorescent_Quality</th>
+                        <th>Fluor_Comment</th>
+                        <th>External_Solution</th>
+                        <th>Internal_Solution</th>
+                        <th>Internal_date</th>
+                        <th>Pipette</th>
+                        <th>Pipette_date</th>
+                        <th>Pipette_lot</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="MouseID_calc">&nbsp;</td>
+                        <td class="Cage_calc">&nbsp;</td>
+                        <td class="Who_calc">&nbsp;</td>
+                        <td class="Recording_date_calc">&nbsp;</td>
+                        <td class="Date_of_birth_calc">&nbsp;</td>
+                        <td class="Age_in_days_calc">&nbsp;</td>
+                        <td class="Time_sac_calc">&nbsp;</td>
+                        <td class="Daylight_Savings_calc">&nbsp;</td>
+                        <td class="Sac_hr_calc">&nbsp;</td>
+                        <td class="strain_calc">&nbsp;</td>
+                        <td class="zygosity_calc">&nbsp;</td>
+                        <td class="sex_calc">&nbsp;</td>
+                        <td class="BodyMass_g_calc">&nbsp;</td>
+                        <td class="gonadMass_calc">&nbsp;</td>
+                        <td class="gonad_mg_per_g_calc">&nbsp;</td>
+                        <td class="gonadstatus_calc">&nbsp;</td>
+                        <td class="CycleStage_calc">&nbsp;</td>
+                        <td class="stageComment_calc">&nbsp;</td>
+                        <td class="surgerydate_calc">&nbsp;</td>
+                        <td class="implant_calc">&nbsp;</td>
+                        <td class="implantType_calc">&nbsp;</td>
+                        <td class="implantComment_calc">&nbsp;</td>
+                        <td class="tubeLabel_calc">&nbsp;</td>
+                        <td class="Saved_pit_calc">&nbsp;</td>
+                        <td class="GenTreatment_calc">&nbsp;</td>
+                        <td class="Treatment_calc">&nbsp;</td>
+                        <td class="glucose_calc">&nbsp;</td>
+                        <td class="nucleus_calc">&nbsp;</td>
+                        <td class="orientation_calc">&nbsp;</td>
+                        <td class="slicequal_calc">&nbsp;</td>
+                        <td class="slicecomment_calc">&nbsp;</td>
+                        <td class="fluorqual_calc">&nbsp;</td>
+                        <td class="fluorqualcomment_calc">&nbsp;</td>
+                        <td class="externalsoln_calc">&nbsp;</td>
+                        <td class="internalsoln_calc">&nbsp;</td>
+                        <td class="internaldate_calc">&nbsp;</td>
+                        <td class="pipette_calc">&nbsp;</td>
+                        <td class="pipettedate_calc">&nbsp;</td>
+                        <td class="pipettelot_calc">&nbsp;</td>
                     </tr>
                 </tbody>
             </table>

@@ -22,7 +22,7 @@ my_widget_script =
         //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
-        //this.initDynamicContent(parsedJson);
+        // this.initDynamicContent(parsedJson);
 
         //resize the content box when the window size changes
         window.onresize = this.resize;
@@ -213,7 +213,7 @@ my_widget_script =
     addEventListeners: function () {
         //Show/hide the table
         $("#toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
-            var $table = $("#outTable");
+            var $table = $("#AmandaOutTable");
             my_widget_script.toggleTableFuncs($table);
         });
 
@@ -234,7 +234,7 @@ my_widget_script =
         //When the copy button is clicked, run the copyTable function
         $("#copyDataButton").on("click", function () {
             var $copyHead = $("#copyHead");
-            var $tableToCopy = $("#outTable");
+            var $tableToCopy = $("#AmandaOutTable");
             var $tableDiv = $("#tableDiv");
             var $errorMsg = $("#errorMsg");
             var $divForCopy = $("#forCopy");
@@ -301,6 +301,40 @@ my_widget_script =
             } else {
                 $(".implant").hide()
             }
+        });
+
+
+        // Output table calculations
+        $(".simpleCalc").on("input", function () {
+            var elementID = this.id;
+            var calcID = "." + elementID + "_calc";
+            my_widget_script.watchValue($(this), $(calcID));
+        });
+
+        $("#Treatment").on("change", function () {
+            my_widget_script.calcGenTreatment();
+        });
+
+        $(".cycleCalc").on("change", function () {
+            my_widget_script.calcCycleStage();
+        });
+
+        $(".massCalc").on("input", function () {
+            my_widget_script.calcUterineMass();
+            my_widget_script.calcUterineMass_perBodyMass();
+            my_widget_script.calcGonadMass_perBodyMass();
+        });
+
+        $(".ageCalc").on("input", function () {
+            my_widget_script.calcAgeInDays();
+        });
+
+        $("#Saved_pit").on("change", function () {
+            my_widget_script.calcSavedPit();
+        });
+
+        $(".timeCalc").on("input", function () {
+            my_widget_script.calcHoursPostLightsOn();
         });
     },
 
@@ -376,7 +410,7 @@ my_widget_script =
         } else {
             $(".implant").hide()
         };
-
+        
         //Run the calculate values function to fill with the loaded data
         this.calcValues();
 
@@ -434,86 +468,102 @@ my_widget_script =
         return valid;
     },
 
-    calcValues: function () {
-        //Mouse ID
-        $("#MouseID_calc").text($("#MouseID").val());
+    calcGenTreatment: function () {
+        // for normal treatment
+        // if want text from selected, instead of value $("#Treatment").children("option:selected").text())
 
-        //Cage number
-        $("#Cage_calc").text($("#Cage").val());
-
-        //treatment
-        //if want text from selected, instead of value $("#Treatment").children("option:selected").text())
-        $("#Treatment_calc").text($("#Treatment").val());
-        //generic treatment
-        if ($("#Treatment_calc").text() === "CON" || //if Treatment_calc equals CON, CON_main, or VEH,
-            $("#Treatment_calc").text() === "CON_main" ||
-            $("#Treatment_calc").text() === "VEH") {
-            $("#GenTreatment_calc").text("Control"); //GenTreatment_calc equals "Control"
+        if (
+            $("#Treatment").val() === "CON" || //if Treatment_calc equals CON, CON_main, or VEH,
+            $("#Treatment").val() === "CON_main" ||
+            $("#Treatment").val() === "VEH"
+            ) {
+                $(".GenTreatment_calc").text("Control"); //GenTreatment_calc equals "Control"
+        } else if($("#Treatment").val() === "DHT") {
+            $(".GenTreatment_calc").text("PNA"); //else equals "PNA"
         } else {
-            $("#GenTreatment_calc").text("PNA") //else equals "PNA"
+            $(".GenTreatment_calc").text("NA");
         }
+    },
 
-        //Cycle stage
+    calcCycleStage: function () {
         if ($("#sex").val() === "female" && $("#gonadstatus").val() === "intact") { //only for intact females
-            $("#CycleStage_calc").text($("#CycleStage").val());
+            $(".CycleStage_calc").text($("#CycleStage").val());
+            my_widget_script.watchValue($("#stageComment"), $(".stageComment_calc"));
         } else {
-            $("#CycleStage_calc").text("NA");
+            $(".CycleStage_calc").text("NA");
+            $(".stageComment_calc").text("NA");
         }
+    },
 
-        //body mass
-        $("#BodyMass_g_calc").text($("#BodyMass_g").val());
-
-        //uterine mass
+    calcUterineMass: function () {
+        var gonadMass;
         if ($("#sex").val() === "female") {
-            $("#UterineMass_calc").text($("#gonadMass").val());
-        } else {
-            $("#UterineMass_calc").text("NA");
+            var gonadMass = $("#gonadMass").val();
         }
-        //uterine mass per body mass
+
+        if (isFinite(gonadMass) && gonadMass) {
+            $(".uterineMass_calc").text(gonadMass);
+        } else {
+            $(".uterineMass_calc").text("NA");
+        }
+    },
+
+    calcUterineMass_perBodyMass: function () {
+        var uterine_mg_per_g;
         if ($("#sex").val() === "female") {
             var uterine_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
-            $("#Uterine_mg_per_g_calc").text(uterine_mg_per_g.toFixed(4));
-        } else {
-            $("#Uterine_mg_per_g_calc").text("NA");
         }
 
-        //Date of birth
-        $("#Date_of_birth_calc").text($("#Date_of_birth").val());
+        if (isFinite(uterine_mg_per_g) && uterine_mg_per_g) {
+            $(".uterine_mg_per_g_calc").text(uterine_mg_per_g.toFixed(4));
+        } else {
+            $(".uterine_mg_per_g_calc").text("NA");
+        }
+    },
 
-        //Recording date
-        $("#Recording_date_calc").text($("#Recording_date").val());
+    calcGonadMass_perBodyMass: function () {
+        var gonad_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
+        if(isFinite(gonad_mg_per_g) && gonad_mg_per_g){
+            $("#gonad_mg_per_g_calc").text(gonad_mg_per_g.toFixed(4));
+        } else {
+            $("#gonad_mg_per_g_calc").text("NA");
+        }
+    },
 
-        //Age in days
+    calcAgeInDays: function () {
         //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
-        var DOBisDay = 1; //change to 0 if want DOB to be day 0
+        var DOBisDay = parseInt($("#DOB_equals").val());
         var Recording_date_as_ms = new Date($("#Recording_date").val()).getTime();
         var DOB_as_ms = new Date($("#Date_of_birth").val()).getTime();
         var Age_in_days = (Recording_date_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
-        $("#Age_in_days_calc").text(Age_in_days);
+        if(isFinite(Age_in_days)){
+            $(".Age_in_days_calc").text(Age_in_days);
+        } else {
+            $(".Age_in_days_calc").text("NA");
+        }
+    },
 
-        //saved pituitary
+    calcSavedPit: function () {
         if ($("#Saved_pit").is(":checked")) {
             var Saved_pit = "Y";
         } else {
             var Saved_pit = "N";
         }
-        $("#Saved_pit_calc").text(Saved_pit);
+        $(".Saved_pit_calc").text(Saved_pit);
+    },
 
-        //Daylight savings
-        $("#Daylight_Savings_calc").text($("#Daylight_Savings").val());
-
-        //Time of sacrifice
-        $("#Time_sac_calc").text($("#Time_sac").val());
-
-        //Hours since lights on
+    calcHoursPostLightsOn: function () {
         //http://jsfiddle.net/44NCk/4/
         var time_sac = $("#Time_sac").val().split(":");
         if ($("#Daylight_Savings").val() === "Y") { //if daylight savings time
             var lights_on = "04:00"; //lights on at 4am
             var lights_on_split = lights_on.split(":");
-        } else {
+        } else if ($("#Daylight_Savings").val() === "N") {
             var lights_on = "03:00" //otherwise, lights on at 3a
             var lights_on_split = lights_on.split(":");
+        } else {
+            $(".Sac_hr_calc").text("Select daylight saving");
+            return
         }
         var hours_sac = parseInt(time_sac[0], 10), //get the hours component for time sac
             hours_lights = parseInt(lights_on_split[0], 10),
@@ -531,13 +581,51 @@ my_widget_script =
         mins = mins / 60; //divide min by 60 to get decimal
         hours += mins; //add min to hours
         hours = hours.toFixed(3); //three decimal points
-        $("#Sac_hr_calc").text(hours);
-        $("#Who_calc").text($("#Who").val());
+        if (isFinite(hours)) {
+            $(".Sac_hr_calc").text(hours);
+        } else {
+            $(".Sac_hr_calc").text("NA");
+        }
+        
+    },
 
-        $("#outTable tr").each(function () { //for each row
+    calcValues: function () {
+
+        //Elements that just update based on input value
+        $(".simpleCalc").each(function () {
+            var elementID = this.id;
+            var calcID = "." + elementID + "_calc";
+            my_widget_script.watchValue($(this), $(calcID));
+        });
+
+        //generic treatment
+        my_widget_script.calcGenTreatment();
+
+        //Cycle stage
+        my_widget_script.calcCycleStage();
+
+        //uterine mass
+        my_widget_script.calcUterineMass();
+
+        //uterine mass per body mass
+        my_widget_script.calcUterineMass_perBodyMass();
+
+        //gonad mass per body mass
+        my_widget_script.calcGonadMass_perBodyMass();
+
+        //Age in days
+        my_widget_script.calcAgeInDays();
+
+        //saved pituitary
+        my_widget_script.calcSavedPit();
+
+        //Hours since lights on
+        my_widget_script.calcHoursPostLightsOn();
+
+        $(".outTable tr").each(function () { //for each row
             $("td", this).each(function () { //for each cell
                 var value = $(this).text(); //get the value of the text
-                if (value === "" || value === "NaN" || value === "___") { //if blank or NaN
+                if (value === "" || value === "NaN" || value === "___" || value === "Select daylight saving") { //if blank or NaN
                     $(this).text("NA"); //make NA
                 }
             })
@@ -754,5 +842,16 @@ my_widget_script =
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
+    },
+
+    /**
+     * This takes the value of the input for the $elToWatch and then updates the text of 
+     * $elToUpdate to match whenever watchValue is called
+     * @param {*} $elToWatch - jQuery object with the input element whose value will be used to update
+     * @param {*} $elToUpdate - jQuery object of the element whose text will be updated based on the element to watch
+     */
+    watchValue: function ($elToWatch, $elToUpdate) {
+        var value = $elToWatch.val();
+        $elToUpdate.text(value);
     }
 };
