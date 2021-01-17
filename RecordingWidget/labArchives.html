@@ -132,11 +132,12 @@
         <div class="col-12 massTables table-responsive xsTableDiv" id="seriesDiv">
             <table id="dataTable" class="table">
                 <thead>
-                    <tr>
+                    <tr style="font-size: .8rem;">
                         <th class="needForTableLab">Series</th>
                         <th class="needForTableLab">Resistance (MΩ)</th>
                         <th class="needForTableLab">Time</th>
                         <th class="needForTableLab">Series type</th>
+                        <th class="needForTableLab">Bath Temp (°C)</th>
                         <th>Notes</th>
                     </tr>
                 </thead>
@@ -194,6 +195,7 @@
     <div class="row mt-2">
         <div class="col-12 col-md-8 col-lg-6">
             <h4>Length of Spontaneous Recording:</h4>
+            <p><em>Calculate automatically?</em> <input type="checkbox" name="calcspont" id="calcSpont" checked/></p>
         </div>
         <div class="col">
             <input class="fullWidth" type="number" name="spontlength" id="spontLength" min="0" >
@@ -202,7 +204,7 @@
             Calculated: (<var>Series Length</var>) * (<var># of Spontaneous Series</var>)
         </div>
         <div class="col-12">
-            Note that this does not check if the spontaneous series marked were consecutive. You can edit manually
+            Note that this does not check if the spontaneous series marked were consecutive. Uncheck the box and edit manually if necessary
         </div>
     </div>
 
@@ -241,7 +243,7 @@
     <div class="row mt-2">
         <h3 class="col-12">Patchmaster Notebook:</h3>
         <p class="col-12">You can paste the contents of the Patchmaster Notebook here if you desire</p>
-        <div class="col-12"><textarea name="recordingcomments" id="recordingComments" rows="10" class="fullWidth"></textarea></div>
+        <div class="col-12"><textarea name="recordingcomments" id="recordingComments" rows="7" class="fullWidth"></textarea></div>
     </div>
 </div>
 

@@ -266,6 +266,14 @@ my_widget_script =
             );
             $("#eventLog").val($("#eventLog").val() + textToAdd);
         });
+
+        $("#calcSpont").on("change", function () {
+            if($(this).is(":checked")){
+                my_widget_script.calcSpontLength();
+            } else {
+                $("#spontLength").val("");
+            }
+        })
     },
 
     /**
@@ -462,7 +470,7 @@ my_widget_script =
         var addLine = "";
         if (copyHead) {
             //Completing this manually to avoid "#" in heading
-            $temp.text("Series\tResistance (MΩ)\tTime\tSeries type\tNotes");
+            $temp.text("Series\tResistance (MΩ)\tTime\tSeries type\tBath temp\tNotes");
             
             addLine = "\n";
         }
@@ -542,16 +550,18 @@ my_widget_script =
     },
 
     calcSpontLength: function () {
-        var spontSeriesNum = 0;
-        $("#dataTable tbody").find("select").each(function () {
-            if ($(this).val() === "Spontaneous") {
-                spontSeriesNum++;
+        if($("#calcSpont").is(':checked')){
+            var spontSeriesNum = 0;
+            $("#dataTable tbody").find("select").each(function () {
+                if ($(this).val() === "Spontaneous") {
+                    spontSeriesNum++;
+                }
+            })
+            var seriesLength = parseInt($("#seriesLength").val());
+            //alert("# spont series: " + spontSeriesNum + "; series length: " + seriesLength);
+            if(seriesLength){
+                $("#spontLength").val(spontSeriesNum * seriesLength);
             }
-        })
-        var seriesLength = parseInt($("#seriesLength").val());
-        //alert("# spont series: " + spontSeriesNum + "; series length: " + seriesLength);
-        if(seriesLength){
-            $("#spontLength").val(spontSeriesNum * seriesLength);
         }
     },
 
@@ -565,9 +575,10 @@ my_widget_script =
         var col3ID = "seriestime_" + rowCount;
         var col4ID = "seriestype_" + rowCount;
         var col5ID = "notes_" + rowCount;
+        var colTempID = "temp_" + rowCount;
 
         $(tableName).find("tbody").append(
-            $('<tr></tr>', { //add a new row
+            $('<tr style="font-size: 0.8rem"></tr>', { //add a new row
                 id: rowID //give this row the rowID
             }).append(
                 $('<td></td>').append( //append a new td to the row
@@ -616,6 +627,17 @@ my_widget_script =
                     })
                 )
             ).append(
+                $('<td></td>').append(
+                    $('<input/>', {
+                        id: colTempID,
+                        name: colTempID,
+                        type: "number",
+                        min: "0",
+                        step: "1",
+                        "class": "needForTable"
+                    }).css("width", "8ex")
+                )
+            ).append(
                 $('<td></td>').append( //append a new td to the row
                     //append a new text area to the script. this string has to be split to make LA happy
                     //the widget script entry is within a text area, and if it finds another here, it 
@@ -642,10 +664,13 @@ my_widget_script =
     },
 
     deleteRow: function (tableName) {
-        var lastRow = $(tableName).find("tbody tr").last();
-        $(lastRow).remove();
-
-        //resize the container
-        my_widget_script.resize();
+        var proceed = confirm("Are you sure you want to remove the row?");
+        if(proceed){
+            var lastRow = $(tableName).find("tbody tr").last();
+            $(lastRow).remove();
+    
+            //resize the container
+            my_widget_script.resize();
+        }
     }
 };

@@ -327,6 +327,14 @@ $(document).ready(function () {
             );
             $("#eventLog").val($("#eventLog").val() + textToAdd);
         });
+
+        $("#calcSpont").on("change", function () {
+            if($(this).is(":checked")){
+                my_widget_script.calcSpontLength();
+            } else {
+                $("#spontLength").val("");
+            }
+        })
     },
 
     /**
@@ -523,7 +531,7 @@ $(document).ready(function () {
         var addLine = "";
         if (copyHead) {
             //Completing this manually to avoid "#" in heading
-            $temp.text("Series\tResistance (MΩ)\tTime\tSeries type\tNotes");
+            $temp.text("Series\tResistance (MΩ)\tTime\tSeries type\tBath temp\tNotes");
             
             addLine = "\n";
         }
@@ -603,16 +611,18 @@ $(document).ready(function () {
     },
 
     calcSpontLength: function () {
-        var spontSeriesNum = 0;
-        $("#dataTable tbody").find("select").each(function () {
-            if ($(this).val() === "Spontaneous") {
-                spontSeriesNum++;
+        if($("#calcSpont").is(':checked')){
+            var spontSeriesNum = 0;
+            $("#dataTable tbody").find("select").each(function () {
+                if ($(this).val() === "Spontaneous") {
+                    spontSeriesNum++;
+                }
+            })
+            var seriesLength = parseInt($("#seriesLength").val());
+            //alert("# spont series: " + spontSeriesNum + "; series length: " + seriesLength);
+            if(seriesLength){
+                $("#spontLength").val(spontSeriesNum * seriesLength);
             }
-        })
-        var seriesLength = parseInt($("#seriesLength").val());
-        //alert("# spont series: " + spontSeriesNum + "; series length: " + seriesLength);
-        if(seriesLength){
-            $("#spontLength").val(spontSeriesNum * seriesLength);
         }
     },
 
@@ -626,9 +636,10 @@ $(document).ready(function () {
         var col3ID = "seriestime_" + rowCount;
         var col4ID = "seriestype_" + rowCount;
         var col5ID = "notes_" + rowCount;
+        var colTempID = "temp_" + rowCount;
 
         $(tableName).find("tbody").append(
-            $('<tr></tr>', { //add a new row
+            $('<tr style="font-size: 0.8rem"></tr>', { //add a new row
                 id: rowID //give this row the rowID
             }).append(
                 $('<td></td>').append( //append a new td to the row
@@ -677,6 +688,17 @@ $(document).ready(function () {
                     })
                 )
             ).append(
+                $('<td></td>').append(
+                    $('<input/>', {
+                        id: colTempID,
+                        name: colTempID,
+                        type: "number",
+                        min: "0",
+                        step: "1",
+                        "class": "needForTable"
+                    }).css("width", "8ex")
+                )
+            ).append(
                 $('<td></td>').append( //append a new td to the row
                     //append a new text area to the script. this string has to be split to make LA happy
                     //the widget script entry is within a text area, and if it finds another here, it 
@@ -703,12 +725,15 @@ $(document).ready(function () {
     },
 
     deleteRow: function (tableName) {
-        var lastRow = $(tableName).find("tbody tr").last();
-        $(lastRow).remove();
-
-        //resize the container
-        my_widget_script.resize();
-    },
+        var proceed = confirm("Are you sure you want to remove the row?");
+        if(proceed){
+            var lastRow = $(tableName).find("tbody tr").last();
+            $(lastRow).remove();
+    
+            //resize the container
+            my_widget_script.resize();
+        }
+    }
 
 
 };
@@ -876,11 +901,12 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="col-12 massTables table-responsive xsTableDiv" id="seriesDiv">
             <table id="dataTable" class="table">
                 <thead>
-                    <tr>
+                    <tr style="font-size: .8rem;">
                         <th class="needForTableLab">Series</th>
                         <th class="needForTableLab">Resistance (MΩ)</th>
                         <th class="needForTableLab">Time</th>
                         <th class="needForTableLab">Series type</th>
+                        <th class="needForTableLab">Bath Temp (°C)</th>
                         <th>Notes</th>
                     </tr>
                 </thead>
@@ -938,6 +964,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row mt-2">
         <div class="col-12 col-md-8 col-lg-6">
             <h4>Length of Spontaneous Recording:</h4>
+            <p><em>Calculate automatically?</em> <input type="checkbox" name="calcspont" id="calcSpont" checked/></p>
         </div>
         <div class="col">
             <input class="fullWidth" type="number" name="spontlength" id="spontLength" min="0" >
@@ -946,7 +973,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             Calculated: (<var>Series Length</var>) * (<var># of Spontaneous Series</var>)
         </div>
         <div class="col-12">
-            Note that this does not check if the spontaneous series marked were consecutive. You can edit manually
+            Note that this does not check if the spontaneous series marked were consecutive. Uncheck the box and edit manually if necessary
         </div>
     </div>
 
@@ -985,7 +1012,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row mt-2">
         <h3 class="col-12">Patchmaster Notebook:</h3>
         <p class="col-12">You can paste the contents of the Patchmaster Notebook here if you desire</p>
-        <div class="col-12"><textarea name="recordingcomments" id="recordingComments" rows="10" class="fullWidth"></textarea></div>
+        <div class="col-12"><textarea name="recordingcomments" id="recordingComments" rows="7" class="fullWidth"></textarea></div>
     </div>
 </div>
 
