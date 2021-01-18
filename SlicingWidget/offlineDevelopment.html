@@ -274,6 +274,7 @@ $(document).ready(function () {
             if ($("#gonadstatus").val() === "intact") {
                 $(".cycle").show(); //only show cycle if female and intact
                 $(".isIntact").show();  // show isIntact class elements
+                $(".gdx").hide();
             } else if($("#gonadstatus").val() === "gdx") {
                 $(".isIntact").hide();
                 $(".gdx").show();
@@ -289,6 +290,7 @@ $(document).ready(function () {
             $(".anySex:not(.isIntact)").show();
             if ($("#gonadstatus").val() === "intact") {
                 $(".isIntact").show();  // show isIntact class elements
+                $(".gdx").hide();
             } else if($("#gonadstatus").val() === "gdx") {
                 $(".isIntact").hide();
                 $(".gdx").show();
@@ -321,9 +323,14 @@ $(document).ready(function () {
      */
     addEventListeners: function () {
         //Show/hide the table
-        $("#toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
-            var $table = $("#AmandaOutTable");
-            my_widget_script.toggleTableFuncs($table);
+        $("#selectTable").on("change", function () { //when the showTable button is clicked. Run this function
+            var tableID = $(this).val();
+            if(tableID) {
+                my_widget_script.toggleTableFuncs(tableID);
+            } else {
+                $(".outTable").hide();
+                $("#errorMsg").text("");
+            }
         });
 
         //when the calculate button is clicked, run the calcValues function
@@ -353,9 +360,9 @@ $(document).ready(function () {
 
         //when the showGoogleDoc button is clicked, resize the containers, and toggle visability
         $("#showGoogleDoc").on("click", function () {
-            //alert("button pressed");
-            $(".iFrameDiv").toggle();
+            $("#labGoogleSheet").toggle();
             my_widget_script.resize();
+            $("#forFocus").focus();
         });
 
         //Show/hide elements based on sex
@@ -366,7 +373,12 @@ $(document).ready(function () {
         //Show/hide elements based on gonad status
         $("#gonadstatus").on("change", function () { //when gonad status is changed
             my_widget_script.checkSexAndGonadStatus();
+            my_widget_script.calcSurgeryDate();
         });
+
+        $("#surgerydate").on("input", function () {
+            my_widget_script.calcSurgeryDate();
+        })
 
         $("#implantBox").on("change", function () {
             if ($("#implantBox").is(":checked")) {
@@ -376,12 +388,23 @@ $(document).ready(function () {
             }
         });
 
+        $("#addToExternal").on("click", function () {
+            my_widget_script.addSoln("external");
+        });
 
+        $("#addToInternal").on("click", function () {
+            my_widget_script.addSoln("internal");
+        });
+        
         // Output table calculations
         $(".simpleCalc").on("input", function () {
             var elementID = this.id;
             var calcID = "." + elementID + "_calc";
             my_widget_script.watchValue($(this), $(calcID));
+        });
+        
+        $(".implantCalc").on("change", function () {
+            my_widget_script.calcImplant();
         });
 
         $("#Treatment").on("change", function () {
@@ -409,6 +432,8 @@ $(document).ready(function () {
         $(".timeCalc").on("input", function () {
             my_widget_script.calcHoursPostLightsOn();
         });
+
+        $("")
     },
 
     /**
@@ -450,6 +475,8 @@ $(document).ready(function () {
         //Run the calculate values function to fill with the loaded data
         this.calcValues();
 
+        $("#"+$("#selectTable").val()).show();
+
         my_widget_script.resize();
     },
 
@@ -460,6 +487,14 @@ $(document).ready(function () {
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
+
+        //Change height of frame
+        var frameHeight = window.innerHeight;
+
+        //Change width of frame
+        var frameWidth = window.innerWidth * .9;
+
+        $("#sheetFrame").prop("height", frameHeight).prop("width", frameWidth);
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -560,9 +595,9 @@ $(document).ready(function () {
     calcGonadMass_perBodyMass: function () {
         var gonad_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
         if(isFinite(gonad_mg_per_g) && gonad_mg_per_g){
-            $("#gonad_mg_per_g_calc").text(gonad_mg_per_g.toFixed(4));
+            $(".gonad_mg_per_g_calc").text(gonad_mg_per_g.toFixed(4));
         } else {
-            $("#gonad_mg_per_g_calc").text("NA");
+            $(".gonad_mg_per_g_calc").text("NA");
         }
     },
 
@@ -625,6 +660,26 @@ $(document).ready(function () {
         
     },
 
+    calcSurgeryDate: function () {
+        if($("#gonadstatus").val()==="gdx") {
+            my_widget_script.watchValue($("#surgerydate"), $(".surgerydate_calc"));
+        } else {
+            $(".surgerydate_calc").text("NA");
+        }
+    },
+
+    calcImplant: function () {
+        if ($("#implantBox").is(":checked")) {
+            $(".implant_calc").text("TRUE");
+            my_widget_script.watchValue($("#implantType"), $(".implantType_calc"));
+            my_widget_script.watchValue($("#implantcomment"), $(".implantcomment_calc"));
+        } else {
+            $(".implant_calc").text("FALSE");
+            $(".implantType_calc").text("NA");
+            $(".implantcomment_calc").text("NA");
+        }
+    },
+
     calcValues: function () {
 
         //Elements that just update based on input value
@@ -657,6 +712,12 @@ $(document).ready(function () {
 
         //Hours since lights on
         my_widget_script.calcHoursPostLightsOn();
+
+        //Surgery date
+        my_widget_script.calcSurgeryDate();
+
+        //Implant calculations
+        my_widget_script.calcImplant();
 
         $(".outTable tr").each(function () { //for each row
             $("td", this).each(function () { //for each cell
@@ -805,11 +866,13 @@ $(document).ready(function () {
      * 
      * @param {*} $table - jQuery object that is the table that will be shown/hidden
      */
-    toggleTableFuncs: function ($table) {
+    toggleTableFuncs: function (tableName) {
         my_widget_script.resize();
         my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
         my_widget_script.calcValues();
-        $table.toggle();
+        var $table = $("#"+tableName);
+        $table.show();
+        $(".outTable:not(#"+tableName).hide();
         my_widget_script.parent_class.resize_container();
     },
 
@@ -889,7 +952,92 @@ $(document).ready(function () {
     watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
         $elToUpdate.text(value);
-    }
+    },
+
+    makeSheetIframe: function (show) {
+        if(show){
+            var frameHeight = window.innerHeight;
+            var frameWidth = window.innerWidth * .9;
+            var iframeHTML = '<iframe id="sheetFrame" width="' + frameWidth + 'px" height="' + frameHeight + 'px" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing&amp;single=true&amp;widget=true&amp;headers=false" frameborder="0" scrolling="auto"></iframe><p>&nbsp;</p>'
+            $("#labGoogleSheet").html(iframeHTML).show();
+            $("#forCopy").focus();
+        } else {
+            $("#labGoogleSheet").html("").hide();
+        }
+    },
+
+    addSoln: function (internalOrExternal) {
+        var $solnDiv, basename
+        if(internalOrExternal === "internal") {
+            $solnDiv = $("#internalAdditionsDiv");
+            basename = "internal";
+        } else {
+            $solnDiv = $("#externalAdditionsDiv");
+            basename = "external";
+        }
+
+        var additionCount = $solnDiv.find(".addition").length + 1;
+        var additionID = basename + "_addition_" + additionCount;
+        var calcClass = additionID + "_calc"; 
+        var additionDateID = basename + "_additionDate_" + additionCount;
+        var dateCalcClass = additionDateID + "_calc";
+
+        var additionLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Name</div>';
+        var additionalDateLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Date</div>';
+
+        // TO DO - need to create some sort of ID that makes it easy to identify which th/td to remove from output table when running the remove last addition button
+        // Alternative (and maybe a better idea) is to create a separate "External Additions" output table and an "Internal Additions" output table and don't mess with the labOutTable
+        $solnDiv.append(
+            $('<div></div>', {
+                class: "addition",
+                id: additionID + "_div"
+            }).append(
+                additionLabelHTML
+            ).append(
+                $('<div></div>').append(
+                    $('<input/>', {
+                        id: additionID,
+                        name: additionID,
+                        class: "fullWidth simpleCalc"
+                    }).on("input", function () {
+                        var elementID = this.id;
+                        var calcID = "." + elementID + "_calc";
+                        my_widget_script.watchValue($(this), $(calcID));
+                    })
+                )
+            ).append(
+                additionalDateLabelHTML
+            ).append(
+                $('<div></div>').append(
+                    $('<input/>', {
+                        id: additionDateID,
+                        name: additionDateID,
+                        class: "fullWidth simpleCalc",
+                        type: "date"
+                    }).on("input", function () {
+                        var elementID = this.id;
+                        var calcID = "." + elementID + "_calc";
+                        my_widget_script.watchValue($(this), $(calcID));
+                    })
+                )
+            )
+        );
+
+        $("#labOutTable").find("thead tr").append(
+            '<th>' + additionID + '</th>'
+        ).append(
+            '<th>' + additionDateID + '</th>'
+        )
+
+        $("#labOutTable").find("tbody tr").append(
+            '<td class="' + calcClass + '">&nbsp;</td>'
+        ).append(
+            '<td class="' + dateCalcClass + '">&nbsp;</td>'
+        )
+
+        //resize the container
+        my_widget_script.resize();
+    },
 };
 
 //**************************************************************************
@@ -964,13 +1112,12 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         width: 90%
     }
 
-    .female, .male, .anySex, .cycle, .gdx, .iFrameDiv {
+    .female, .male, .anySex, .cycle, .gdx, .iFrameDiv, .outTable {
         display: none;
     }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-
 
 <div class="container">
     <div class="row">
@@ -1130,12 +1277,12 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
                     <div class="mt-2">Implant?</div>
                     <div>
-                        <input id="implantBox" name="implant" type="checkbox" class="simpleCalc" />
+                        <input id="implantBox" name="implant" type="checkbox" class="implantCalc" />
                     </div>
 
                     <div class="implant mt-2">Type of implant</div>
                     <div class="implant">
-                        <select id="implantType" name="implanttype" class="fullWidth">
+                        <select id="implantType" name="implanttype" class="fullWidth implantCalc">
                             <option value="">[Select]</option>
                             <option value="e2">E2</option>
                             <option value="dht">DHT</option>
@@ -1146,7 +1293,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
                     <div class="implant mt-2">Implant Comment</div>
                     <div class="implant">
-                        <textarea name="implantcomment" id="implantcomment" rows="1" class="fullWidth"></textarea>
+                        <textarea name="implantcomment" id="implantcomment" rows="1" class="fullWidth implantCalc"></textarea>
                     </div>
 
                 </div>
@@ -1190,7 +1337,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     </div>
                     <div>Comment:</div>
                     <div>
-                        <textarea name="slicecomment" rows="1" class="fullWidth simpleCalc"></textarea>
+                        <textarea name="slicecomment" id="slicecomment" rows="1" class="fullWidth simpleCalc"></textarea>
                     </div>
                     
                     <div class="mt-2">Fluorescent Quality</div>
@@ -1211,20 +1358,31 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <div class="col-12 col-md-6 col-lg-12 mt-2 mt-md-0 mt-lg-2">
                     <h2>Solutions</h2>
 
-                    <div class="mt-2">External and addition</div>
+                    <div class="mt-2">External Solution</div>
                     <div><input id="externalsoln" name="externalsoln" class="fullWidth simpleCalc"/></div>
+                    <div class="mt-2">External Date</div>
+                    <div><input type="date" name="externaldate" id="externaldate" class="fullWidth simpleCalc"></div>
+                    
+                    <div class="mt-2">
+                        <em>Additions to external solution:</em> <br/>
+                        <input type="button" value="Add sol'n" id="addToExternal" name="addtoexternal">
+                        <input type="button" value="Remove last addition" id="removeLastExternal" name="removelastexternal">
+                    </div>
+                    <div id="externalAdditionsDiv"></div>
                     
                     <div class="mt-2">Internal Solution</div>
                     <div><input id="internalsoln" name="internalsoln" class="fullWidth simpleCalc" /></div>
-                    
                     <div class="mt-2">Internal Date</div>
                     <div><input id="internaldate" name="internaldate" type="date" class="fullWidth simpleCalc" /></div>
+                    <div class="mt-2">
+                        <em>Additions to internal solution:</em><br/>
+                        <input type="button" value="Add sol'n" id="addToInternal" name="addtointernal">
+                        <input type="button" value="Remove last addition" id="removeLastInternal" name="removelastinternal">
+                    </div>
+                    <div id="internalAdditionsDiv"></div>
                     
-                    <div class="mt-2">Pipette</div>
+                    <div class="mt-2">Pipette Program</div>
                     <div><input id="pipette" name="pipette" class="fullWidth simpleCalc" /></div>
-                    
-                    <div class="mt-2">Date of pipette solution</div>
-                    <div><input id="pipettedate" name="pipettedate" type="date" class="fullWidth simpleCalc" /></div>
                     
                     <div class="mt-2">Pipette Lot</div>
                     <div><input id="pipettelot" name="pipettelot" class="fullWidth simpleCalc" /></div>
@@ -1250,22 +1408,44 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row mt-2">
         <h2 class="col">Output Table</h2>
     </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc"/> or 
+            <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">click here</a></big> 
+            to open the Google Sheet in a new window
+        </div>
+        <div class="col-12">
+            <label class="requiredLab" for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> 
+            <select id="enteredDatatoDoc" name="entereddatatodoc" required="">
+                <option value="">[Select]</option>
+                <option value="no">Not yet</option>
+                <option value="yes">Yes!</option> 
+            </select>
+        </div>
+        
+    </div>
 
     <!-- buttons -->
-    <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable" name="toggletable" type="button"
-                value="Show/Hide Table" class="fullWidth" />
+    <div class="row mt-2 align-items-top">
+        <div class="col-12 col-sm-6 col-md">
+            <select id="selectTable" name="selecttable" class="fullWidth">
+                <option value="">None</option>
+                <option value="AmandaOutTable">KNDy PNA project</option>
+                <option value="labOutTable">Standard Lab Output</option>
+            </select> <br/>
+            Select output table
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3"><input id="calculate" name="calcvalues" type="button"
+        <!-- <div class="col-12 col-sm-6 col-md"><input id="calculate" name="calcvalues" type="button"
                 value="Calculate Values" class="fullWidth disableOnView" />
-        </div>
+        </div> -->
 
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="col-12 col-sm-6 col-md">
             <input id="toCSV" name="tocsv" type="button" value="Save CSV" class="fullWidth" />
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="col-12 col-sm-6 col-md">
             <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
             <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" />
         </div>
@@ -1278,6 +1458,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
     <div class="row mt-2">
         <div class="col-12 table-responsive xsTableDiv" id="tableDiv">
+            <!-- Amanda Output Table -->
             <table id="AmandaOutTable" class="outTable table">
                 <thead>
                     <tr>
@@ -1320,7 +1501,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     </tr>
                 </tbody>
             </table>
-        
+            
+            <!-- Lab output table -->
             <table id="labOutTable" class="outTable table">
                 <thead>
                     <tr>
@@ -1388,7 +1570,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <td class="surgerydate_calc">&nbsp;</td>
                         <td class="implant_calc">&nbsp;</td>
                         <td class="implantType_calc">&nbsp;</td>
-                        <td class="implantComment_calc">&nbsp;</td>
+                        <td class="implantcomment_calc">&nbsp;</td>
                         <td class="tubeLabel_calc">&nbsp;</td>
                         <td class="Saved_pit_calc">&nbsp;</td>
                         <td class="GenTreatment_calc">&nbsp;</td>
@@ -1399,7 +1581,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <td class="slicequal_calc">&nbsp;</td>
                         <td class="slicecomment_calc">&nbsp;</td>
                         <td class="fluorqual_calc">&nbsp;</td>
-                        <td class="fluorqualcomment_calc">&nbsp;</td>
+                        <td class="fluorcomment_calc">&nbsp;</td>
                         <td class="externalsoln_calc">&nbsp;</td>
                         <td class="internalsoln_calc">&nbsp;</td>
                         <td class="internaldate_calc">&nbsp;</td>
@@ -1418,31 +1600,9 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="col" id="forCopy">&nbsp;</div>
 </div>
 
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc" /> or 
-            <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">click here</a></big> 
-            to open the Google Sheet in a new window
-        </div>
-        <div class="col-12">
-            <label class="requiredLab" for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> 
-            <select id="enteredDatatoDoc" name="entereddatatodoc" required="">
-                <option value="">[Select]</option>
-                <option value="no">Not yet</option>
-                <option value="yes">Yes!</option> 
-            </select>
-        </div>
-        
-    </div>
-</div>
-
-<div class="container">
-    <div class="row">
-        <div class="col-12 iFrameDiv">
-            <iframe class="fullWidth" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" frameborder="0" height="600" scrolling="auto"></iframe>   
-        </div>
-    </div>
+<div class="container mt-2 iFrameDiv" id="labGoogleSheet">
+    <div id="forFocus"></div>
+    <iframe id="sheetFrame" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" frameborder="0" scrolling="auto"></iframe>
 </div>
 
 
