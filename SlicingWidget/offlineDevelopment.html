@@ -267,6 +267,54 @@ $(document).ready(function () {
         }
     },
 
+    checkSexAndGonadStatus: function () {
+        if ($("#sex").val() === "female") { //if female
+            $(".female:not(.isIntact)").show(); //show female class elements that don't have isIntact class
+            $(".anySex:not(.isIntact)").show(); // show anySex class elements that don't have isIntact class
+            if ($("#gonadstatus").val() === "intact") {
+                $(".cycle").show(); //only show cycle if female and intact
+                $(".isIntact").show();  // show isIntact class elements
+            } else if($("#gonadstatus").val() === "gdx") {
+                $(".isIntact").hide();
+                $(".gdx").show();
+                $(".cycle").hide();
+            } else {
+                $(".isIntact").hide();
+                $(".gdx").hide();
+                $(".cycle").hide();
+            }
+            $(".male").hide(); //hide all male class elements. At end to resolve any isIntact male class elements
+        } else if ($("#sex").val() === "male") { //if male
+            $(".male:not(.isIntact)").show(); //show male class elements
+            $(".anySex:not(.isIntact)").show();
+            if ($("#gonadstatus").val() === "intact") {
+                $(".isIntact").show();  // show isIntact class elements
+            } else if($("#gonadstatus").val() === "gdx") {
+                $(".isIntact").hide();
+                $(".gdx").show();
+            } else {
+                $(".isIntact").hide();
+                $(".gdx").hide();
+            }
+            $(".female").hide(); //hide female class elements
+            $(".cycle").hide(); //hide cycles for male
+        } else { //if no sex
+            if ($("#gonadstatus").val() === "intact") {
+                $(".isIntact").show();  // show isIntact class elements
+            } else if($("#gonadstatus").val() === "gdx") {
+                $(".isIntact").hide();
+                $(".gdx").show();
+            } else {
+                $(".isIntact").hide();
+                $(".gdx").hide();
+            }
+            $(".female").hide(); //hide female class elements
+            $(".male").hide(); //hide male class elements
+            $(".cycle").hide(); //hide cycles
+            $(".anySex").hide(); //hide anySex
+        }
+    },
+
     /**
      * TO DO: edit this function to define behavior when the user interacts with the form.
      * This could include when buttons are clicked or when inputs change.
@@ -312,48 +360,12 @@ $(document).ready(function () {
 
         //Show/hide elements based on sex
         $("#sex").on("change", function () { //when sex is changed
-            if ($("#sex").val() === "female") {
-                $(".female").show(); //show female class elements
-                $(".male").hide(); //hide male class elements
-                $(".anySex").show();
-                if ($("#gonadstatus").val() === "intact") {
-                    $(".cycle").show(); //only show cycle if intact is also true
-                } else {
-                    $(".cycle").hide();
-                }
-            } else if ($("#sex").val() === "male") { //if male
-                $(".female").hide(); //hide female class elements
-                $(".male").show(); //show male class elements
-                $(".cycle").hide(); //hide cycles for male
-                $(".anySex").show();
-            } else { //if not selected, hide everything
-                $(".female").hide(); //hide female class elements
-                $(".male").hide(); //hide male class elements
-                $(".cycle").hide(); //hide cycles for male
-                $(".anySex").hide();
-            }
-
+            my_widget_script.checkSexAndGonadStatus();
         });
 
         //Show/hide elements based on gonad status
         $("#gonadstatus").on("change", function () { //when gonad status is changed
-            if ($("#gonadstatus").val() === "intact") {
-                $(".intact").show() //show intact class elements
-                $(".gdx").hide() //hide gdx class elements
-                if ($("#sex").val() === "female") {
-                    $(".cycle").show()
-                } else {
-                    $(".cycle").hide()
-                }
-            } else if ($("#gonadstatus").val() === "gdx") {
-                $(".intact").hide() //hide intact class elements
-                $(".gdx").show() //show gdx class elements
-                $(".cycle").hide()
-            } else {
-                $(".intact").hide() //hide intact class elements
-                $(".gdx").hide() //hide gdx class elements
-                $(".cycle").hide() //hide cycle
-            }
+            my_widget_script.checkSexAndGonadStatus();
         });
 
         $("#implantBox").on("change", function () {
@@ -427,44 +439,7 @@ $(document).ready(function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
-        if ($("#sex").val() === "female") {
-            $(".female").show(); //show female class elements
-            $(".male").hide(); //hide male class elements
-            $(".anySex").show();
-            if ($("#gonadstatus").val() === "intact") {
-                $(".cycle").show(); //only show cycle if intact is also true
-            } else {
-                $(".cycle").hide();
-            }
-        } else if ($("#sex").val() === "male") { //if male
-            $(".female").hide(); //hide female class elements
-            $(".male").show(); //show male class elements
-            $(".cycle").hide(); //hide cycles for male
-            $(".anySex").show();
-        } else { //if not selected, hide everything
-            $(".female").hide(); //hide female class elements
-            $(".male").hide(); //hide male class elements
-            $(".cycle").hide(); //hide cycles for male
-            $(".anySex").hide();
-        }
-
-        if ($("#gonadstatus").val() === "intact") {
-            $(".intact").show() //show intact class elements
-            $(".gdx").hide() //hide gdx class elements
-            if ($("#sex").val() === "female") {
-                $(".cycle").show()
-            } else {
-                $(".cycle").hide()
-            }
-        } else if ($("#gonadstatus").val() === "gdx") {
-            $(".intact").hide() //hide intact class elements
-            $(".gdx").show() //show gdx class elements
-            $(".cycle").hide()
-        } else {
-            $(".intact").hide() //hide intact class elements
-            $(".gdx").hide() //hide gdx class elements
-            $(".cycle").hide() //hide cycle
-        }
+        my_widget_script.checkSexAndGonadStatus();
 
         if ($("#implantBox").is(":checked")) {
             $(".implant").show() //show implant class elements
@@ -1098,11 +1073,12 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     </div>
 
                     <!-- Change the event listener to only make the entry appear when one of the sexes is selected -->
+                    <!-- Removed needForTable since it isn't needed if the animal is GDX. Could try to manually include a check for it -->
                     <div id="gonadMassDiv">
-                        <div class="female mt-2 needForTableLab">Uterine Mass (mg)</div>
-                        <div class="male mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
+                        <div class="female isIntact mt-2 needForTableLab">Uterine Mass (mg)</div>
+                        <div class="male isIntact mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
                         <div>
-                            <input class="needForTable fullWidth anySex simpleCalc massCalc" id="gonadMass" name="gonadmass" step="0.01" type="number" />
+                            <input class="fullWidth anySex isIntact simpleCalc massCalc" id="gonadMass" name="gonadmass" step="0.01" type="number" />
                         </div>
                     </div>
 
@@ -1479,3 +1455,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </form>
 </body>
 </html>
+
+<!-- TO DO -->
+<!-- Gonad mass disappears if GDX -->
+<!-- Resize when autoupdating table, or move the question about to Google Doc. It gets cut off -->
