@@ -83,7 +83,7 @@ $(document).ready(function () {
         //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
-        // this.initDynamicContent(parsedJson);
+        this.initDynamicContent(parsedJson);
 
         //resize the content box when the window size changes
         window.onresize = this.resize;
@@ -113,12 +113,14 @@ $(document).ready(function () {
         var widgetJsonString = this.parent_class.to_json();
 
         //Get information about any dynamic content that may have been created
-        // var dynamicContent = this.getDynamicContent();
+        var dynamicContent = this.getDynamicContent();
 
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
         var output = { 
-            widgetData: JSON.parse(widgetJsonString)
+            widgetData: JSON.parse(widgetJsonString),
+            numExtAdds: dynamicContent.numExtAdds,
+            numIntAdds: dynamicContent.numIntAdds
         };
 
         //uncomment to check stringified output
@@ -156,7 +158,11 @@ $(document).ready(function () {
         var testData = JSON.parse(this.parent_class.test_data());
 
         //If no additional dynamic content 
-        var output = { widgetData: testData };
+        var output = { 
+            widgetData: testData,
+            numExtAdds: 1,
+            numIntAdds: 1
+        };
 
         //Add additional content to match the objects in to_json
         //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
@@ -247,8 +253,13 @@ $(document).ready(function () {
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        // for (var i = 0; i < parsedJson.addedRows; i++) {
-        // };
+        for (var i = 0; i < parsedJson.numExtAdds; i++) {
+            my_widget_script.addSoln("external");
+        };
+
+        for (var i=0; i < parsedJson.numIntAdds; i++) {
+            my_widget_script.addSoln("internal");
+        }
     },
 
     /**
@@ -340,8 +351,37 @@ $(document).ready(function () {
 
         //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
         $('#toCSV').on("click", function () {
-            var fileName = "recordingNotes_" + $("#MouseID").val();
-            var tableID = "outTable";
+            var selectedTable = prompt(
+                "Which table would you like to copy?\n" +
+                "Enter '1' for KNDy PNA Extracellular Analysis Project\n" +
+                "Enter '2' for the standard lab output table\n" + 
+                "Enter '3' for the external additions table\n" + 
+                "Enter '4' for the internal additions table\n"
+            );
+            var tableID, fileName;
+            switch (selectedTable) {
+                case '1':
+                    tableID = "AmandaOutTable";
+                    fileName = "recordingNotes_" + $("#MouseID").val();
+                    break;
+                case '2':
+                    tableID = "labOutTable";
+                    fileName = "recordingNotes_" + $("#MouseID").val();
+                    break;
+                case '3':
+                    tableID = "externalAdditionsTable";
+                    fileName = "externalSolutionAdditions_" + $("#MouseID").val();
+                    break;
+                case '4': 
+                    tableID = "internalAdditionsTable";       
+                    fileName = "internalSolutionAdditions_" + $("#MouseID").val();
+                    break;     
+                default:
+                    tableID = "labOutTable";
+                    fileName = "recordingNotes_" + $("#MouseID").val();
+                    break;
+            }
+
             var $errorMsg = $("#errorMsg");
             
             my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
@@ -349,8 +389,33 @@ $(document).ready(function () {
 
         //When the copy button is clicked, run the copyTable function
         $("#copyDataButton").on("click", function () {
+            var selectedTable = prompt(
+                "Which table would you like to copy?\n" +
+                "Enter '1' for KNDy PNA Extracellular Analysis Project\n" +
+                "Enter '2' for the standard lab output table\n" + 
+                "Enter '3' for the external additions table\n" + 
+                "Enter '4' for the internal additions table\n"
+            );
+            
+            var $tableToCopy;
+            switch (selectedTable) {
+                case '1':
+                    $tableToCopy = $("#AmandaOutTable");
+                    break;
+                case '2':
+                    $tableToCopy = $("#labOutTable");
+                    break;
+                case '3':
+                    $tableToCopy = $("#externalAdditionsTable");
+                    break;
+                case '4': 
+                    $tableToCopy = $("#internalAdditionsTable");       
+                    break;     
+                default:
+                    $tableToCopy = $("#labOutTable");
+                    break;
+            }
             var $copyHead = $("#copyHead");
-            var $tableToCopy = $("#AmandaOutTable");
             var $tableDiv = $("#tableDiv");
             var $errorMsg = $("#errorMsg");
             var $divForCopy = $("#forCopy");
@@ -395,6 +460,14 @@ $(document).ready(function () {
         $("#addToInternal").on("click", function () {
             my_widget_script.addSoln("internal");
         });
+
+        $("#removeLastExternal").on("click", function () {
+            my_widget_script.removeSoln("external");
+        });
+
+        $("#removeLastInternal").on("click", function () {
+            my_widget_script.removeSoln("internal");
+        });
         
         // Output table calculations
         $(".simpleCalc").on("input", function () {
@@ -432,8 +505,6 @@ $(document).ready(function () {
         $(".timeCalc").on("input", function () {
             my_widget_script.calcHoursPostLightsOn();
         });
-
-        $("")
     },
 
     /**
@@ -475,7 +546,9 @@ $(document).ready(function () {
         //Run the calculate values function to fill with the loaded data
         this.calcValues();
 
-        $("#"+$("#selectTable").val()).show();
+        $("#selectTable").val("labOutTable");
+
+        $("#labOutTable").show();
 
         my_widget_script.resize();
     },
@@ -501,7 +574,12 @@ $(document).ready(function () {
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var dynamicContent = {};
+        numExtAdds = $("#externalAdditionsTable").find("tbody tr").length;
+        numIntAdds = $("#internalAdditionsTable").find("tbody tr").length;
+        var dynamicContent = {
+            numExtAdds: numExtAdds,
+            numIntAdds: numIntAdds
+        };
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -971,9 +1049,11 @@ $(document).ready(function () {
         if(internalOrExternal === "internal") {
             $solnDiv = $("#internalAdditionsDiv");
             basename = "internal";
+            $solnTable = $("#internalAdditionsTable");
         } else {
             $solnDiv = $("#externalAdditionsDiv");
             basename = "external";
+            $solnTable = $("#externalAdditionsTable");
         }
 
         var additionCount = $solnDiv.find(".addition").length + 1;
@@ -985,8 +1065,6 @@ $(document).ready(function () {
         var additionLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Name</div>';
         var additionalDateLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Date</div>';
 
-        // TO DO - need to create some sort of ID that makes it easy to identify which th/td to remove from output table when running the remove last addition button
-        // Alternative (and maybe a better idea) is to create a separate "External Additions" output table and an "Internal Additions" output table and don't mess with the labOutTable
         $solnDiv.append(
             $('<div></div>', {
                 class: "addition",
@@ -1023,21 +1101,37 @@ $(document).ready(function () {
             )
         );
 
-        $("#labOutTable").find("thead tr").append(
-            '<th>' + additionID + '</th>'
-        ).append(
-            '<th>' + additionDateID + '</th>'
-        )
-
-        $("#labOutTable").find("tbody tr").append(
-            '<td class="' + calcClass + '">&nbsp;</td>'
-        ).append(
-            '<td class="' + dateCalcClass + '">&nbsp;</td>'
+        $solnTable.find("tbody").append(
+            $('<tr></tr>').append(
+                $('<td></td>', {
+                    class: calcClass
+                })
+            ).append(
+                $('<td></td>', {
+                    class: dateCalcClass
+                })
+            )
         )
 
         //resize the container
         my_widget_script.resize();
     },
+
+    removeSoln: function (internalOrExternal) {
+        var $solnDiv, basename
+        if(internalOrExternal === "internal") {
+            $solnDiv = $("#internalAdditionsDiv");
+            basename = "internal";
+            $solnTable = $("#internalAdditionsTable");
+        } else {
+            $solnDiv = $("#externalAdditionsDiv");
+            basename = "external";
+            $solnTable = $("#externalAdditionsTable");
+        }
+
+        $solnDiv.find(".addition").last().remove();
+        $solnTable.find("tbody tr").last().remove();
+    }
 };
 
 //**************************************************************************
@@ -1137,258 +1231,275 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2">
     <div class="row">
-        <div class="col-12 col-lg container">
-            <div class="row">
-                <div class="col-12 col-md-6 col-lg-12">
-                    <h2>General Info</h2>
+        <h2 class="col">Mouse Information</h2>
+    </div>
+    <div class="row">
+        <div class="col-12 col-md-4">
+            <div class="requiredLab needForTableLab mt-2" >Mouse ID # or Ear Tag</div>
+            <div><input class="needForTable fullWidth simpleCalc" id="MouseID" name="mouseid" required="" /></div>
 
-                    <div class="requiredLab needForTableLab">Experimenter</div>
-                    <div><input class="needForTable fullWidth simpleCalc" id="Who" name="who" required="" /></div>
+            <div class="requiredLab needForTableLab mt-2">Transgenic Line</div>
+            <div><input class="needForTable fullWidth simpleCalc" id="strain" name="strain" required="" /></div>
 
-                    <div class="requiredLab needForTableLab mt-2">Date</div>
-                    <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Recording_date" name="slicedate" required="" type="date" /></div>
-
-                    <div class="needForTableLab mt-2">Time of Sacrifice</div>
-                    <div><input class="needForTable fullWidth simpleCalc timeCalc" id="Time_sac" name="sactime" type="time" /></div>
-
-                    <div class="requiredLab needForTableLab mt-2">Daylight Savings Time</div>
-                    <div>
-                        <select class="needForTable fullWidth simpleCalc timeCalc" id="Daylight_Savings" name="daylightsaving" required="">
-                            <option value="">[Select]</option>
-                            <option value="Y">Daylight Savings Time (summer)</option>
-                            <option value="N">Standard Time (winter)</option> 
-                        </select>
-                    </div>
-
-                </div>
-                <div class="col-12 col-md-6 col-lg-12 mt-2 mt-md-0 mt-lg-2">
-                    <h2>Mouse Information</h2>
-
-                    <div class="requiredLab needForTableLab mt-2" >Mouse ID # or Ear Tag</div>
-                    <div><input class="needForTable fullWidth simpleCalc" id="MouseID" name="mouseid" required="" /></div>
-
-                    <div class="requiredLab needForTableLab mt-2">Transgenic Line</div>
-                    <div><input class="needForTable fullWidth simpleCalc" id="strain" name="strain" required="" /></div>
-
-                    <div class="requiredLab needForTableLab mt-2">Zygosity</div>
-                    <div>
-                        <select class="needForTable fullWidth simpleCalc" id="zygosity" name="zygosity" required="">
-                            <option value="">[Select]</option>
-                            <option value="homoPlus">+/+</option>
-                            <option value="hetero">+/-</option>
-                            <option value="homoNeg">-/-</option> 
-                        </select>
-                    </div>
-
-                    <div class="mt-2">Cage #</div>
-                    <div><input id="Cage" name="cagenum" class="fullWidth simpleCalc"/></div>
-
-                    <div class="needForTableLab mt-2" >Date of Birth</div>
-                    <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Date_of_birth" name="dob" required="" type="date" /></div>
-
-                    <div class="mt-2">DOB Counts as...</div>
-                    <div>
-                        <select id="DOB_equals" name="dobequals" class="fullWidth ageCalc">
-                            <option value="0">PND 0</option>
-                            <option value="1" selected>PND 1</option>
-                        </select>
-                    </div>
-
-                    <div class="mt-2">Treatment</div>
-                    <div>
-                        <select id="Treatment" name="treatment" class="fullWidth simpleCalc">
-                            <option value="">[Select]</option>
-                            <option value="CON">Control</option>
-                            <option value="CON_main">Main colony control</option>
-                            <option value="VEH">Vehicle</option>
-                            <option value="DHT">DHT</option> 
-                        </select>
-                    </div>
-
-                    <div class="needForTableLab mt-2">Sex</div>
-                    <div>
-                       <select class="needForTable fullWidth simpleCalc massCalc cycleCalc" id="sex" name="sex" required="">
-                           <option value="">[Select]</option>
-                           <option value="female">Female</option>
-                           <option value="male">Male</option> 
-                        </select>
-                    </div>
-
-                    <div class="needForTableLab mt-2">Body mass (g)</div>
-                    <div>
-                        <input class="needForTable fullWidth simpleCalc massCalc" id="BodyMass_g" name="bodymass" step="0.1" type="number" />
-                    </div>
-
-                    <!-- Change the event listener to only make the entry appear when one of the sexes is selected -->
-                    <!-- Removed needForTable since it isn't needed if the animal is GDX. Could try to manually include a check for it -->
-                    <div id="gonadMassDiv">
-                        <div class="female isIntact mt-2 needForTableLab">Uterine Mass (mg)</div>
-                        <div class="male isIntact mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
-                        <div>
-                            <input class="fullWidth anySex isIntact simpleCalc massCalc" id="gonadMass" name="gonadmass" step="0.01" type="number" />
-                        </div>
-                    </div>
-
-                    <div class="mt-2">Blood Glucose (mg/100mL)</div>
-                    <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth simpleCalc"/></div>
-
-                </div>
+            <div class="requiredLab needForTableLab mt-2">Zygosity</div>
+            <div>
+                <select class="needForTable fullWidth simpleCalc" id="zygosity" name="zygosity" required="">
+                    <option value="">[Select]</option>
+                    <option value="homoPlus">+/+</option>
+                    <option value="hetero">+/-</option>
+                    <option value="homoNeg">-/-</option> 
+                </select>
             </div>
         </div>
-        <div class="col-12 col-lg mt-2 mt-lg-0 container">
-            <div class="row">
-                <div class="col-12 col-md-4 col-lg-12">
-                    <h2>Gonadal Status</h2>
 
-                    <div class="needForTableLab requiredLab">Gonad Status</div>
-                    <div>
-                        <select class="needForTable fullWidth simpleCalc cycleCalc" id="gonadstatus" name="gonadstatus" required="">
-                            <option value="">[Select]</option>
-                            <option value="intact">Intact</option>
-                            <option value="gdx">Gonadectomized</option> 
-                        </select>
-                    </div>
+        <div class="col-12 col-md-4">
+            <div class="mt-2">Cage #</div>
+            <div><input id="Cage" name="cagenum" class="fullWidth simpleCalc"/></div>
 
-                    <!-- Intact -->
-                    <div class="cycle mt-2">Cycle Stage</div>
-                    <div class="cycle">
-                        <select class="fullWidth cycleCalc" id="CycleStage" name="cyclestage">
-                            <option value="">[Select]</option>
-                            <option value="NA">NA</option>
-                            <option value="D">Diestrus</option>
-                            <option value="P">Proestrus</option>
-                            <option value="E">Estrus</option> 
-                        </select>
-                    </div>
-                    <div class="cycle">Comment:</div>
-                    <div class="cycle">
-                        <textarea name="stagecomment" id="stageComment" rows="1" class="fullWidth cycleCalc"></textarea>
-                    </div>
+            <div class="needForTableLab mt-2" >Date of Birth</div>
+            <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Date_of_birth" name="dob" required="" type="date" /></div>
 
-                    <!-- GDX -->
-                    <div class="gdx mt-2" >Date of surgery</div>
-                    <div class="gdx" >
-                        <input class="fullWidth" id="surgerydate" name="surgerydate" type="date" />
-                    </div>
+            <div class="mt-2">DOB Counts as...</div>
+            <div>
+                <select id="DOB_equals" name="dobequals" class="fullWidth ageCalc">
+                    <option value="0">PND 0</option>
+                    <option value="1" selected>PND 1</option>
+                </select>
+            </div>
 
-                </div>
-                <div class="col-12 col-md-4 col-lg-12 mt-2 mt-md-0 mt-lg-2">
-                    <h2>Steroid Implants</h2>
-
-                    <div class="mt-2">Implant?</div>
-                    <div>
-                        <input id="implantBox" name="implant" type="checkbox" class="implantCalc" />
-                    </div>
-
-                    <div class="implant mt-2">Type of implant</div>
-                    <div class="implant">
-                        <select id="implantType" name="implanttype" class="fullWidth implantCalc">
-                            <option value="">[Select]</option>
-                            <option value="e2">E2</option>
-                            <option value="dht">DHT</option>
-                            <option value="pira">P IRA</option>
-                            <option value="other">Other</option> 
-                        </select>
-                    </div>
-
-                    <div class="implant mt-2">Implant Comment</div>
-                    <div class="implant">
-                        <textarea name="implantcomment" id="implantcomment" rows="1" class="fullWidth implantCalc"></textarea>
-                    </div>
-
-                </div>
-                <div class="col-12 col-md-4 col-lg-12 mt-2 mt-md-0 mt-lg-2">
-                    <h2>Samples</h2>
-
-                    <div class="mt-2 needForTableLab">Serum Tube Label</div>
-                    <div>
-                        <input class="needForTable fullWidth simpleCalc" id="tubeLabel" name="tubelabel" />
-                    </div>
-                    
-                    <div class="mt-2">Pituitary</div>
-                    <div><label for="pituitary">Saved pituitary</label> <input id="Saved_pit" name="pituitary" type="checkbox" /></div>
-                    
-                </div>
+            <div class="mt-2">Treatment</div>
+            <div>
+                <select id="Treatment" name="treatment" class="fullWidth simpleCalc">
+                    <option value="">[Select]</option>
+                    <option value="CON">Control</option>
+                    <option value="CON_main">Main colony control</option>
+                    <option value="VEH">Vehicle</option>
+                    <option value="DHT">DHT</option> 
+                </select>
             </div>
         </div>
-        <div class="col-12 col-lg mt-2 mt-lg-0 container">
-            <div class="row">
-                <div class="col-12 col-md-6 col-lg-12">
-                    <h2>Slice Info</h2>
 
-                    <div class="mt-2 needForTableLab" >Nucleus/Area of Interest</div>
-                    <div>
-                        <input class="needForTable fullWidth simpleCalc" id="nucleus" name="nucleus" />
-                    </div>
-                    
-                    <div class="mt-2 needForTableLab">Slicing Orientation</div>
-                    <div>
-                        <input class="needForTable fullWidth simpleCalc" id="orientation" name="orientation" />
-                    </div>
-                    
-                    <div class="mt-2">Quality</div>
-                    <div>
-                        <select id="slicequal" name="slicequal" class="fullWidth simpleCalc">
-                            <option value="">[Select]</option>
-                            <option value="good">Good</option>
-                            <option value="fair">Fair</option>
-                            <option value="poor">Poor</option> 
-                        </select>
-                    </div>
-                    <div>Comment:</div>
-                    <div>
-                        <textarea name="slicecomment" id="slicecomment" rows="1" class="fullWidth simpleCalc"></textarea>
-                    </div>
-                    
-                    <div class="mt-2">Fluorescent Quality</div>
-                    <div>
-                        <select id="fluorqual" name="fluorqual" class="fullWidth simpleCalc">
-                            <option value="">[Select]</option>
-                            <option value="good">Good</option>
-                            <option value="fair">Fair</option>
-                            <option value="poor">Poor</option> 
-                        </select>
-                    </div>
-                    <div>Comment:</div>
-                    <div>
-                        <textarea name="fluorcomment" id="fluorcomment" rows="1" class="fullWidth simpleCalc"></textarea>
-                    </div>
-                </div>
+        <div class="col-12 col-md-4">
+            <div class="needForTableLab mt-2">Sex</div>
+            <div>
+                <select class="needForTable fullWidth simpleCalc massCalc cycleCalc" id="sex" name="sex" required="">
+                    <option value="">[Select]</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option> 
+                </select>
+            </div>
 
-                <div class="col-12 col-md-6 col-lg-12 mt-2 mt-md-0 mt-lg-2">
-                    <h2>Solutions</h2>
+            <div class="needForTableLab mt-2">Body mass (g)</div>
+            <div>
+                <input class="needForTable fullWidth simpleCalc massCalc" id="BodyMass_g" name="bodymass" step="0.1" type="number" />
+            </div>
 
-                    <div class="mt-2">External Solution</div>
-                    <div><input id="externalsoln" name="externalsoln" class="fullWidth simpleCalc"/></div>
-                    <div class="mt-2">External Date</div>
-                    <div><input type="date" name="externaldate" id="externaldate" class="fullWidth simpleCalc"></div>
-                    
-                    <div class="mt-2">
-                        <em>Additions to external solution:</em> <br/>
-                        <input type="button" value="Add sol'n" id="addToExternal" name="addtoexternal">
-                        <input type="button" value="Remove last addition" id="removeLastExternal" name="removelastexternal">
-                    </div>
-                    <div id="externalAdditionsDiv"></div>
-                    
-                    <div class="mt-2">Internal Solution</div>
-                    <div><input id="internalsoln" name="internalsoln" class="fullWidth simpleCalc" /></div>
-                    <div class="mt-2">Internal Date</div>
-                    <div><input id="internaldate" name="internaldate" type="date" class="fullWidth simpleCalc" /></div>
-                    <div class="mt-2">
-                        <em>Additions to internal solution:</em><br/>
-                        <input type="button" value="Add sol'n" id="addToInternal" name="addtointernal">
-                        <input type="button" value="Remove last addition" id="removeLastInternal" name="removelastinternal">
-                    </div>
-                    <div id="internalAdditionsDiv"></div>
-                    
-                    <div class="mt-2">Pipette Program</div>
-                    <div><input id="pipette" name="pipette" class="fullWidth simpleCalc" /></div>
-                    
-                    <div class="mt-2">Pipette Lot</div>
-                    <div><input id="pipettelot" name="pipettelot" class="fullWidth simpleCalc" /></div>
-
+            <!-- Change the event listener to only make the entry appear when one of the sexes is selected -->
+            <!-- Removed needForTable since it isn't needed if the animal is GDX. Could try to manually include a check for it -->
+            <div id="gonadMassDiv">
+                <div class="female isIntact mt-2 needForTableLab">Uterine Mass (mg)</div>
+                <div class="male isIntact mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
+                <div>
+                    <input class="fullWidth anySex isIntact simpleCalc massCalc" id="gonadMass" name="gonadmass" step="0.01" type="number" />
                 </div>
             </div>
+
+            <div class="mt-2">Blood Glucose (mg/100mL)</div>
+            <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth simpleCalc"/></div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <div class="col-12 col-md-6">
+            <h2>General Info</h2>
+
+            <div class="requiredLab needForTableLab">Experimenter</div>
+            <div><input class="needForTable fullWidth simpleCalc" id="Who" name="who" required="" /></div>
+
+            <div class="requiredLab needForTableLab mt-2">Date</div>
+            <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Recording_date" name="slicedate" required="" type="date" /></div>
+
+            <div class="needForTableLab mt-2">Time of Sacrifice</div>
+            <div><input class="needForTable fullWidth simpleCalc timeCalc" id="Time_sac" name="sactime" type="time" /></div>
+
+            <div class="requiredLab needForTableLab mt-2">Daylight Savings Time</div>
+            <div>
+                <select class="needForTable fullWidth simpleCalc timeCalc" id="Daylight_Savings" name="daylightsaving" required="">
+                    <option value="">[Select]</option>
+                    <option value="Y">Daylight Savings Time (summer)</option>
+                    <option value="N">Standard Time (winter)</option> 
+                </select>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 mt-2 mt-md-0">
+            <h2>Gonadal Status</h2>
+
+            <div class="needForTableLab requiredLab">Gonad Status</div>
+            <div>
+                <select class="needForTable fullWidth simpleCalc cycleCalc" id="gonadstatus" name="gonadstatus" required="">
+                    <option value="">[Select]</option>
+                    <option value="intact">Intact</option>
+                    <option value="gdx">Gonadectomized</option> 
+                </select>
+            </div>
+
+            <!-- Intact -->
+            <div class="cycle mt-2">Cycle Stage</div>
+            <div class="cycle">
+                <select class="fullWidth cycleCalc" id="CycleStage" name="cyclestage">
+                    <option value="">[Select]</option>
+                    <option value="NA">NA</option>
+                    <option value="D">Diestrus</option>
+                    <option value="P">Proestrus</option>
+                    <option value="E">Estrus</option> 
+                </select>
+            </div>
+            <div class="cycle">Comment:</div>
+            <div class="cycle">
+                <textarea name="stagecomment" id="stageComment" rows="1" class="fullWidth cycleCalc"></textarea>
+            </div>
+
+            <!-- GDX -->
+            <div class="gdx mt-2" >Date of surgery</div>
+            <div class="gdx" >
+                <input class="fullWidth" id="surgerydate" name="surgerydate" type="date" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <div class="col-12 col-md-6">
+            <h2>Steroid Implants</h2>
+
+            <div class="mt-2">Implant?</div>
+            <div>
+                <input id="implantBox" name="implant" type="checkbox" class="implantCalc" />
+            </div>
+
+            <div class="implant mt-2">Type of implant</div>
+            <div class="implant">
+                <select id="implantType" name="implanttype" class="fullWidth implantCalc">
+                    <option value="">[Select]</option>
+                    <option value="e2">E2</option>
+                    <option value="dht">DHT</option>
+                    <option value="pira">P IRA</option>
+                    <option value="other">Other</option> 
+                </select>
+            </div>
+
+            <div class="implant mt-2">Implant Comment</div>
+            <div class="implant">
+                <textarea name="implantcomment" id="implantcomment" rows="1" class="fullWidth implantCalc"></textarea>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 mt-2 mt-md-0">
+            <h2>Samples</h2>
+        
+            <div class="mt-2 needForTableLab">Serum Tube Label</div>
+            <div>
+                <input class="needForTable fullWidth simpleCalc" id="tubeLabel" name="tubelabel" />
+            </div>
+            
+            <div class="mt-2">Pituitary</div>
+            <div><label for="pituitary">Saved pituitary</label> <input id="Saved_pit" name="pituitary" type="checkbox" /></div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h2 class="col">Slice Info</h2>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-md-4">
+            <div class="mt-2 needForTableLab" >Nucleus/Area of Interest</div>
+            <div>
+                <input class="needForTable fullWidth simpleCalc" id="nucleus" name="nucleus" />
+            </div>
+            
+            <div class="mt-2 needForTableLab">Slicing Orientation</div>
+            <div>
+                <input class="needForTable fullWidth simpleCalc" id="orientation" name="orientation" />
+            </div>                    
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="mt-2">Quality</div>
+            <div>
+                <select id="slicequal" name="slicequal" class="fullWidth simpleCalc">
+                    <option value="">[Select]</option>
+                    <option value="good">Good</option>
+                    <option value="fair">Fair</option>
+                    <option value="poor">Poor</option> 
+                </select>
+            </div>
+            <div>Comment:</div>
+            <div>
+                <textarea name="slicecomment" id="slicecomment" rows="1" class="fullWidth simpleCalc"></textarea>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="mt-2">Fluorescent Quality</div>
+            <div>
+                <select id="fluorqual" name="fluorqual" class="fullWidth simpleCalc">
+                    <option value="">[Select]</option>
+                    <option value="good">Good</option>
+                    <option value="fair">Fair</option>
+                    <option value="poor">Poor</option> 
+                </select>
+            </div>
+            <div>Comment:</div>
+            <div>
+                <textarea name="fluorcomment" id="fluorcomment" rows="1" class="fullWidth simpleCalc"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h2 class="col">Solutions</h2>
+    </div>
+    <div class="row">
+        <div class="col-12 col-md-4">
+            <h5 class="mt-2">External</h5>
+            <div>External Solution</div>
+            <div><input id="externalsoln" name="externalsoln" class="fullWidth simpleCalc"/></div>
+            <div class="mt-2">External Date</div>
+            <div><input type="date" name="externaldate" id="externaldate" class="fullWidth simpleCalc"></div>
+            
+            <div class="mt-2">
+                <em>Additions to external solution:</em> <br/>
+                <input type="button" value="Add sol'n" id="addToExternal" name="addtoexternal" class="disableOnView">
+                <input type="button" value="Remove last addition" id="removeLastExternal" name="removelastexternal" class="disableOnView">
+            </div>
+            <div id="externalAdditionsDiv"></div>
+        </div>
+
+        <div class="col-12 col-md-4 mt-2 mt-md-0">
+            <h5 class="mt-2">Internal</h5>
+            <div>Internal Solution</div>
+            <div><input id="internalsoln" name="internalsoln" class="fullWidth simpleCalc" /></div>
+            <div class="mt-2">Internal Date</div>
+            <div><input id="internaldate" name="internaldate" type="date" class="fullWidth simpleCalc" /></div>
+            <div class="mt-2">
+                <em>Additions to internal solution:</em><br/>
+                <input type="button" value="Add sol'n" id="addToInternal" name="addtointernal" class="disableOnView">
+                <input type="button" value="Remove last addition" id="removeLastInternal" name="removelastinternal" class="disableOnView">
+            </div>
+            <div id="internalAdditionsDiv"></div>
+        </div>
+
+        <div class="col-12 col-md-4 mt-2 mt-md-0">
+            <h5 class="mt-2">Pipette</h5>
+            <div>Pipette Program</div>
+            <div><input id="pipette" name="pipette" class="fullWidth simpleCalc" /></div>
+            
+            <div class="mt-2">Pipette Lot</div>
+            <div><input id="pipettelot" name="pipettelot" class="fullWidth simpleCalc" /></div>
         </div>
     </div>
 </div>
@@ -1411,8 +1522,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     
     <div class="row">
         <div class="col-12">
-            <input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc"/> or 
-            <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">click here</a></big> 
+            <!-- <input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc"/> or  -->
+            <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Click here</a></big> 
             to open the Google Sheet in a new window
         </div>
         <div class="col-12">
@@ -1433,6 +1544,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <option value="">None</option>
                 <option value="AmandaOutTable">KNDy PNA project</option>
                 <option value="labOutTable">Standard Lab Output</option>
+                <option value="externalAdditionsTable">External Additions</option>
+                <option value="internalAdditionsTable">Internal Additions</option>
             </select> <br/>
             Select output table
         </div>
@@ -1540,10 +1653,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <th>Fluorescent_Quality</th>
                         <th>Fluor_Comment</th>
                         <th>External_Solution</th>
+                        <th>External_date</th>
                         <th>Internal_Solution</th>
                         <th>Internal_date</th>
-                        <th>Pipette</th>
-                        <th>Pipette_date</th>
+                        <th>Pipette_program</th>
                         <th>Pipette_lot</th>
                     </tr>
                 </thead>
@@ -1583,12 +1696,34 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <td class="fluorqual_calc">&nbsp;</td>
                         <td class="fluorcomment_calc">&nbsp;</td>
                         <td class="externalsoln_calc">&nbsp;</td>
+                        <td class="externaldate_calc">&nbsp;</td>
                         <td class="internalsoln_calc">&nbsp;</td>
                         <td class="internaldate_calc">&nbsp;</td>
                         <td class="pipette_calc">&nbsp;</td>
-                        <td class="pipettedate_calc">&nbsp;</td>
                         <td class="pipettelot_calc">&nbsp;</td>
                     </tr>
+                </tbody>
+            </table>
+
+            <table id="externalAdditionsTable" class="outTable table">
+                <thead>
+                    <tr>
+                        <th>Addition Name</th>
+                        <th>Addition Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+            <table id="internalAdditionsTable" class="outTable table">
+                <thead>
+                    <tr>
+                        <th>Addition Name</th>
+                        <th>Addition Date</th>
+                    </tr>
+                </thead>
+                <tbody>
                 </tbody>
             </table>
         </div>
@@ -1602,7 +1737,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2 iFrameDiv" id="labGoogleSheet">
     <div id="forFocus"></div>
-    <iframe id="sheetFrame" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" frameborder="0" scrolling="auto"></iframe>
+    <!-- <iframe id="sheetFrame" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" frameborder="0" scrolling="auto"></iframe> -->
 </div>
 
 
