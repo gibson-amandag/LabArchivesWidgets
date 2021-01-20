@@ -265,7 +265,18 @@ $(document).ready(function () {
             $(".disableOnView").prop("disabled", true);
             $(".hideView").hide();
             $(".massDiv").hide();
+            $("#showDates").prop("checked", true);
+            $("#datesList").show().after($("#outputDiv"));
+            $(".tableDiv").show();
         } else {
+            if($("#DOB").val()) {
+                $("#entryDiv").insertAfter("#titleDiv");
+                $("#editDemo").prop("checked", false);
+                $(".editDemoChecked").hide();
+            } else {
+                $("#editDemo").prop("checked", true);
+                $(".editDemoChecked").show();
+            }
             // $(".hideEdit").hide();
         }
     },
@@ -386,22 +397,85 @@ $(document).ready(function () {
                     my_widget_script.watchFor1E();
                 }
             }
-        })
+        });
 
         $("#VO_mass").on("input", function () {
             my_widget_script.watchVO_mass();
-        })
+        });
+
+        // Output Table Buttons
+
+        //Show/hide the table
+        $(".toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
+            var $tableDiv, $errorMsgDiv;
+            if($(this).hasClass("maturation")) {
+                $tableDiv = $(".tableDiv.maturation");
+                $errorMsgDiv = $(".errorMsg.maturation");
+            } else if($(this).hasClass("mass")){
+                $tableDiv = $(".tableDiv.mass");
+                $errorMsgDiv = $(".errorMsg.mass");
+            }
+
+            if($tableDiv && $errorMsgDiv){
+                my_widget_script.toggleTableFuncs($tableDiv, $errorMsgDiv);
+            }
+        });
+
+        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
+        $('.toCSV').on("click", function () {
+            var fileName; 
+            var tableID 
+            var $errorMsg 
+            if($(this).hasClass("maturation")) {
+                fileName = "maturation_" + $("#mouseID").val();
+                tableID = "maturationTable";
+                $errorMsg = $(".errorMsg.maturation");
+            } else if($(this).hasClass("mass")){
+                fileName = "mass_" + $("#mouseID").val();
+                tableID = "massTable";
+                $errorMsg = $(".errorMsg.mass");
+            }
+
+            if(fileName && tableID && $errorMsg){
+                my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
+            }
+        });
+
+        //When the copy button is clicked, run the copyTable function
+        $(".copyDataButton").on("click", function () {
+            var $copyHead //TO DO add table
+            var $tableToCopy //TO DO add table
+            var $tableDiv //TO DO add tableDiv
+            var $errorMsg //TO DO add error message
+            var $divForCopy //TO DO add div where the table copies to
+
+            if($(this).hasClass("maturation")) {
+                $copyHead = $(".copyHead.maturation");
+                $tableToCopy = $("#maturationTable");
+                $tableDiv = $(".tableDiv.maturation");
+                $errorMsg = $(".errorMsg.maturation");
+                $divForCopy = $(".forCopy.maturation");
+            } else if($(this).hasClass("mass")) {
+                $copyHead = $(".copyHead.mass");
+                $tableToCopy = $("#massTable");
+                $tableDiv = $(".tableDiv.mass");
+                $errorMsg = $(".errorMsg.mass");
+                $divForCopy = $(".forCopy.mass");
+            }
+            
+            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy);
+        });
     },
 
     /**
      * TO DO: edit this function to define the symbols that should be added to the HTML
      * page based on whether or not a field is required to save the widget to the page
      * 
-     * Here, the function adds a blue # before fields of the class "needForFormLab" and a 
+     * Here, the function adds a blue # before fields of the class "needForTableLab" and a 
      * red * before fields with the "requiredLab" property
      */
     addRequiredFieldIndicators: function () {
-        $('.needForTableLab').each(function () { //find element with class "needForFormLab"
+        $('.needForTableLab').each(function () { //find element with class "needForTableLab"
             //alert($(this).val());
             $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
         });
@@ -441,12 +515,24 @@ $(document).ready(function () {
             $("#datesList").hide();
         }
 
+        $(".addMatDate").val(my_widget_script.getLocalDateString());
+
         my_widget_script.printPND_days();
         my_widget_script.getPND_today();
         my_widget_script.watchForVO();
         my_widget_script.watchFor1E();
+        my_widget_script.calcValues();
 
         my_widget_script.resize();
+    },
+
+    getLocalDateString: function () {
+        var dateToday = new Date();
+        var dateTodayYear = dateToday.getFullYear();
+        var dateTodayMonth = dateToday.getMonth() + 1;
+        var dateTodayDay = dateToday.getDate();
+        var dateTodayString = dateTodayYear + "-" + dateTodayMonth.toString().padStart(2, 0) + "-" + dateTodayDay.toString().padStart(2, 0);
+        return(dateTodayString);
     },
 
     /**
@@ -482,12 +568,12 @@ $(document).ready(function () {
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      * -----------------------------------------------------------------------------
      */
-    data_valid_form: function () {
+    data_valid_form: function ($errorMsgDiv) {
         var valid = true; //begin with a valid value of true
         //var fail_log = ''; //begin with an empty fail log
         //var name; //create a name variable
 
-        //search the_form for all elements that are of class "needForForm"
+        //search the_form for all elements that are of class "needForTable"
         $('.needForTable').each(function () {
             if (!$(this).val()) { //if there is not a value for this input
                 valid = false; //change valid to false
@@ -497,9 +583,9 @@ $(document).ready(function () {
         });
 
         if (!valid) {
-            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+            $errorMsgDiv.html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
         } else {
-            $("#errorMsg").html("");
+            $errorMsgDiv.html("");
         }
 
         return valid;
@@ -951,6 +1037,148 @@ $(document).ready(function () {
             var $div = $("#firstE_div");
         }
         $div.find(".addedRow").last().remove();
+    },
+
+    calcValues: function () {
+        $(".tableDiv").find("tr").each(function () { //for each row
+            $("td", this).each(function () { //for each cell
+                var value = $(this).text(); //get the value of the text
+                if (value === "" || value === "NaN") { //if blank or NaN
+                    $(this).text("NA"); //make NA
+                }
+            })
+        });
+
+        //resize the tableDiv
+        my_widget_script.resize();
+    },
+
+    // source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+    downloadCSV: function (csv, filename) {
+        var csvFile;
+        var downloadLink;
+
+        // CSV file
+        csvFile = new Blob([csv], { type: "text/csv" });
+
+        // Download link
+        downloadLink = document.createElement("a");
+
+        // File name
+        downloadLink.download = filename;
+
+        // Create a link to the file
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+
+        // Hide download link
+        downloadLink.style.display = "none";
+
+        // Add the link to DOM
+        document.body.appendChild(downloadLink);
+
+        // Click download link
+        downloadLink.click();
+    },
+
+    exportTableToCSV: function (filename, table) {
+        var csv = [];
+        var datatable = document.getElementById(table);
+        var rows = datatable.querySelectorAll("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
+
+            for (var j = 0; j < cols.length; j++) {
+                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
+                row.push(cellText);
+            };
+
+            csv.push(row.join(","));
+        }
+
+        // Download CSV file
+        this.downloadCSV(csv.join("\n"), filename);
+    },
+
+    copyTable: function ($table, copyHead, $divForCopy) {
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addLine = "";
+        if (copyHead) {
+            $table.find("thead").children("tr").each(function () { //add each child of the row
+                var addTab = "";
+                $(this).children().each(function () {
+                    $temp.text($temp.text() + addTab + $(this).text());
+                    addTab = "\t";
+                });
+            });
+            addLine = "\n";
+        }
+
+        $table.find("tbody").children("tr").each(function () { //add each child of the row
+            $temp.text($temp.text() + addLine);
+            var addTab = "";
+            $(this).find("td").each(function () {
+                if ($(this).text()) {
+                    var addText = $(this).text();
+                } else {
+                    var addText = "NA"
+                }
+                $temp.text($temp.text() + addTab + addText);
+                addTab = "\t";
+                addLine = "\n";
+            });
+        });
+
+        // the div has to be showing in order to be copied
+        $divForCopy.show();
+        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $divForCopy.hide();
+        $temp.remove(); //remove temp
+    },
+
+    toggleTableFuncs: function ($tableDiv, $errorMsgDiv) {
+        my_widget_script.resize();
+        my_widget_script.data_valid_form($errorMsgDiv); //run to give error, but allow to calc regardless
+        my_widget_script.calcValues();
+        $tableDiv.toggle();
+        my_widget_script.parent_class.resize_container();
+    },
+
+    toCSVFuncs: function (fileName, tableID, $errorMsg) {
+        var data_valid = my_widget_script.data_valid_form($errorMsg);
+
+        if (data_valid) {
+            my_widget_script.calcValues();
+            my_widget_script.exportTableToCSV(fileName, tableID);
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
+        }
+    },
+
+    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy){
+        var data_valid = my_widget_script.data_valid_form($errorMsg);
+        var copyHead
+
+        //only copy the heading when the input box is checked
+        if ($copyHead.is(":checked")) {
+            copyHead = true;
+        } else {
+            copyHead = false;
+        }
+
+        my_widget_script.calcValues();
+
+        if (data_valid) { //if data is valid
+            $tableDiv.show(); //show the table
+            my_widget_script.resize(); //resize
+            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
     }
 };
 
@@ -964,7 +1192,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("edit", function() {return form_script.test_data()});
+      form_script.init("view", function() {return form_script.test_data()});
 
 
     }
@@ -1041,29 +1269,27 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         color: white;
     }
 
-    .massDiv {
-        display: none;
-    }
-
-    .ifOther {
+    .massDiv, .ifOther, .ifVO, .tableDiv, .forCopy {
         display: none;
     }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container">
-    <div class="row">
-        <div class="col">
-            <h1>LBN Offspring Female Tracking <span class="mouseID_calc"></span></h1>
+<div id="titleDiv">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1>LBN Offspring Female Tracking <span class="mouseID_calc">&nbsp;</span> <span class="tailMark_calc">&nbsp;</span></h1>
+            </div>
         </div>
     </div>
-</div>
-
-<div class="container">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
-        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-            style="color:blue">#</span></p>
+    
+    <div class="container">
+        <p>Elements that are required to save this page are marked with a red asterisk <span
+                style="color:red">*</span><br />
+            Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
+                style="color:blue">#</span></p>
+    </div>
 </div>
 
 <!-- Status Messages -->
@@ -1087,6 +1313,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="col-12 mt-2 col-md-6 col-lg mt-lg-0 ifVO">
             <h4>First Estrus</h4>
             Mouse <span class="mouseID_calc">__</span> <span class="firstE_status notReached">has NOT yet</span> had first estrus
+            <span class="if1E">on PND <span class="firstE_PND_calc">&nbsp;</span> with a mass of <span class="firstE_mass_calc">[enter mass]</span> g</span>
         </div>
     </div>
 </div>
@@ -1119,10 +1346,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="col-12 col-md-4 col-lg-2 container">
             <div class="row">
                 <div class="col-12">
-                    <h4>Mouse ID</h4>
+                    <h4 class="needForTableLab">Mouse ID</h4>
                 </div>
                 <div class="col-12 hideView editDemoChecked">
-                    <input type="text" class="simpleCalc fullWidth" id="mouseID" name="mouseid"/>
+                    <input type="text" class="simpleCalc fullWidth needForTable" id="mouseID" name="mouseid"/>
                 </div>
                 <div class="col-12 mouseID_calc"></div>
             </div>
@@ -1133,7 +1360,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <h4>DOB</h4>
                 </div>
                 <div class="col-12 hideView editDemoChecked">
-                    <input type="date" class="simpleCalc fullWidth" id="DOB" name="dob"/>
+                    <input type="date" class="simpleCalc fullWidth" id="DOB" name="dob" value="2020-12-27"/>
                 </div>
                 <div class="col-12 DOB_calc"></div>
             </div>
@@ -1216,425 +1443,423 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<!-- Mass and AGD Tables -->
-
-<div class="container mt-2 hideView">
-    <div class="row align-items-center">
-        <div class="myLeftCol">
-            <h3 style="margin-top: 0.5rem;">Mass and AGD</h3>
+<!-- Entry div to move to the top when editing -->
+<div id="entryDiv">
+    <!-- Mass and AGD Tables -->
+    
+    <div class="container mt-2 hideView">
+        <div class="row align-items-center">
+            <div class="myLeftCol">
+                <h3 style="margin-top: 0.5rem;">Mass and AGD</h3>
+            </div>
+            <div class="col">
+                <select name="mass_select" id="massSelect" class="fullWidth">
+                    <option value="">[Select]</option>
+                    <option value="pnd22">PND 22</option>
+                    <option value="pnd23">PND 23</option>
+                    <option value="pnd24">PND 24</option>
+                    <option value="pnd28">PND 28</option>
+                    <option value="pnd35">PND 35</option>
+                    <option value="pnd42">PND 42</option>
+                    <option value="pnd49">PND 49</option>
+                    <option value="pnd56">PND 56</option>
+                    <option value="pnd63">PND 63</option>
+                    <option value="pnd70">PND 70</option>
+                    <option value="pnd71">PND 71</option>
+                    <option value="pnd72">PND 72</option>
+                </select>
+            </div>
         </div>
-        <div class="col">
-            <select name="mass_select" id="massSelect" class="fullWidth">
-                <option value="">[Select]</option>
-                <option value="pnd22">PND 22</option>
-                <option value="pnd23">PND 23</option>
-                <option value="pnd24">PND 24</option>
-                <option value="pnd28">PND 28</option>
-                <option value="pnd35">PND 35</option>
-                <option value="pnd42">PND 42</option>
-                <option value="pnd49">PND 49</option>
-                <option value="pnd56">PND 56</option>
-                <option value="pnd63">PND 63</option>
-                <option value="pnd70">PND 70</option>
-                <option value="pnd71">PND 71</option>
-                <option value="pnd72">PND 72</option>
-            </select>
+    </div>
+    
+    <!-- PND 22 -->
+    <div class="container mt-2 _pnd22 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 22:</div>
+    
+            <div class="col pnd22">&nbsp;</div>
         </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd22" id="mass_pnd22" class="simpleCalc fullWidth"></div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">AGD:</div>
+            <div class="col"><input type="number" name="agd_pnd22" id="AGD_pnd22" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 23 -->
+    <div class="container mt-2 _pnd23 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 23:</div>
+    
+            <div class="col pnd23">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd23" id="mass_pnd23" class="simpleCalc fullWidth"></div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">AGD:</div>
+            <div class="col"><input type="number" name="agd_pnd23" id="AGD_pnd23" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 24 -->
+    <div class="container mt-2 _pnd24 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 24:</div>
+    
+            <div class="col pnd24">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd24" id="mass_pnd24" class="simpleCalc fullWidth"></div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">AGD:</div>
+            <div class="col"><input type="number" name="agd_pnd24" id="AGD_pnd24" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 28 -->
+    <div class="container mt-2 _pnd28 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 28:</div>
+    
+            <div class="col pnd28">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd28" id="mass_pnd28" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 35 -->
+    <div class="container mt-2 _pnd35 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 35:</div>
+    
+            <div class="col pnd35">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd35" id="mass_pnd35" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 42 -->
+    <div class="container mt-2 _pnd42 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 42:</div>
+    
+            <div class="col pnd42">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd42" id="mass_pnd42" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 49 -->
+    <div class="container mt-2 _pnd49 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 49:</div>
+    
+            <div class="col pnd49">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd49" id="mass_pnd49" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 56 -->
+    <div class="container mt-2 _pnd56 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 56:</div>
+    
+            <div class="col pnd56">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd56" id="mass_pnd56" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 63 -->
+    <div class="container mt-2 _pnd63 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 63:</div>
+    
+            <div class="col pnd63">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd63" id="mass_pnd63" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 70 -->
+    <div class="container mt-2 _pnd70 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 70:</div>
+    
+            <div class="col pnd70">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd70" id="mass_pnd70" class="simpleCalc fullWidth"></div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">AGD:</div>
+            <div class="col"><input type="number" name="agd_pnd70" id="AGD_pnd70" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 71 -->
+    <div class="container mt-2 _pnd71 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 71:</div>
+    
+            <div class="col pnd71">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd71" id="mass_pnd71" class="simpleCalc fullWidth"></div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">AGD:</div>
+            <div class="col"><input type="number" name="agd_pnd71" id="AGD_pnd71" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- PND 72 -->
+    <div class="container mt-2 _pnd72 massDiv">
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 72:</div>
+    
+            <div class="col pnd72">&nbsp;</div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">Mass (g):</div>
+            <div class="col"><input type="number" name="mass_pnd72" id="mass_pnd72" class="simpleCalc fullWidth"></div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol font-weight-bold">AGD:</div>
+            <div class="col"><input type="number" name="agd_pnd72" id="AGD_pnd72" class="simpleCalc fullWidth"></div>
+        </div>
+    </div>
+    
+    <!-- Watching for VO -->
+    <!-- Add / Remove -->
+    <!-- Date / PND (print) / VO_state / ifVO, mass -->
+    <div class="container mt-2 VO" id="VO_div">
+        <div class="row">
+            <div class="col">
+                <h3>Vaginal Opening</h3>
+            </div>
+        </div>
+    
+        <div class="row VO mt-2 hideView" id="VO_buttons">
+            <div class="col-12 col-md-6 col-lg">
+                <input type="button" value="Add VO For Date..." name="vo_addbutton" id="VO_addButton" class="addMatCheck VO fullWidth disableOnView"/>
+            </div>
+            <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 VO">
+                <input type="date" name="vo_addDate" id="VO_addDate" class="addMatDate fullWidth"/>
+            </div>
+            <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 VO">
+                <input type="button" value="Remove Last VO Date" name="vo_removebutton" class="removeMatCheck VO fullWidth disableOnView">
+            </div>
+        </div>
+    
+        <!-- Headings -->
+        <div class="row mt-2">
+            <div class="col font-weight-bold">VO Status</div>
+            <div class="col font-weight-bold">Date</div>
+            <div class="col font-weight-bold">PND</div>
+        </div>
+        <!-- Each day will get added here -->
+    
+    </div>
+    
+    <div class="container mt-2 VO ifVO">
+        <div class="row">
+            <div class="myLeftCol">Mass at VO (g):</div>
+            <div class="col"><input type="number" name="vo_mass" id="VO_mass" class="fullWidth"/></div>
+        </div>
+    </div>
+    
+    <!-- Watching for First Estrus -->
+    <!-- Add / Remove -->
+    <!-- Date / PND (print) / firstE_state / if1E, mass -->
+    
+    <div class="container mt-2 firstE ifVO" id="firstE_div">
+        <div class="row">
+            <div class="col">
+                <h3>First Estrus</h3>
+            </div>
+        </div>
+    
+        <div class="row firstE mt-2 hideView" id="firstE_buttons">
+            <div class="col-12 col-md-6 col-lg">
+                <input type="button" value="Add Estrus Check For Date..." name="firstE_addbutton" id="firstE_addButton" class="addMatCheck firstE fullWidth disableOnView"/>
+            </div>
+            <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 firstE">
+                <input type="date" name="firstE_addDate" id="firstE_addDate" class="addMatDate fullWidth"/>
+            </div>
+            <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 firstE">
+                <input type="button" value="Remove Last Estrus Check Date" name="firstE_removebutton" class="removeMatCheck firstE fullWidth disableOnView">
+            </div>
+        </div>
+    
+        <!-- Headings -->
+        <div class="row mt-2">
+            <div class="col font-weight-bold">Cycle Stage</div>
+            <div class="col font-weight-bold">Mass</div>
+            <div class="col font-weight-bold">Date</div>
+            <div class="col font-weight-bold">PND</div>
+        </div>
+        <!-- Each day will get added here -->
+    
     </div>
 </div>
 
-<!-- PND 22 -->
-<div class="container mt-2 _pnd22 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 22:</div>
-
-        <div class="col pnd22">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd22" id="mass_pnd22" class="simpleCalc fullWidth"></div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">AGD:</div>
-        <div class="col"><input type="number" name="agd_pnd22" id="AGD_pnd22" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 23 -->
-<div class="container mt-2 _pnd23 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 23:</div>
-
-        <div class="col pnd23">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd23" id="mass_pnd23" class="simpleCalc fullWidth"></div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">AGD:</div>
-        <div class="col"><input type="number" name="agd_pnd23" id="AGD_pnd23" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 24 -->
-<div class="container mt-2 _pnd24 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 24:</div>
-
-        <div class="col pnd24">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd24" id="mass_pnd24" class="simpleCalc fullWidth"></div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">AGD:</div>
-        <div class="col"><input type="number" name="agd_pnd24" id="AGD_pnd24" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 28 -->
-<div class="container mt-2 _pnd28 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 28:</div>
-
-        <div class="col pnd28">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd28" id="mass_pnd28" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 35 -->
-<div class="container mt-2 _pnd35 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 35:</div>
-
-        <div class="col pnd35">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd35" id="mass_pnd35" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 42 -->
-<div class="container mt-2 _pnd42 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 42:</div>
-
-        <div class="col pnd42">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd42" id="mass_pnd42" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 49 -->
-<div class="container mt-2 _pnd49 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 49:</div>
-
-        <div class="col pnd49">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd49" id="mass_pnd49" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 56 -->
-<div class="container mt-2 _pnd56 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 56:</div>
-
-        <div class="col pnd56">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd56" id="mass_pnd56" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 63 -->
-<div class="container mt-2 _pnd63 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 63:</div>
-
-        <div class="col pnd63">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd63" id="mass_pnd63" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 70 -->
-<div class="container mt-2 _pnd70 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 70:</div>
-
-        <div class="col pnd70">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd70" id="mass_pnd70" class="simpleCalc fullWidth"></div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">AGD:</div>
-        <div class="col"><input type="number" name="agd_pnd70" id="AGD_pnd70" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 71 -->
-<div class="container mt-2 _pnd71 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 71:</div>
-
-        <div class="col pnd71">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd71" id="mass_pnd71" class="simpleCalc fullWidth"></div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">AGD:</div>
-        <div class="col"><input type="number" name="agd_pnd71" id="AGD_pnd71" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- PND 72 -->
-<div class="container mt-2 _pnd72 massDiv">
-    <div class="row align-items-end mt-2 blackBackground">
-        <div class="myLeftCol2">PND 72:</div>
-
-        <div class="col pnd72">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">Mass (g):</div>
-        <div class="col"><input type="number" name="mass_pnd72" id="mass_pnd72" class="simpleCalc fullWidth"></div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol font-weight-bold">AGD:</div>
-        <div class="col"><input type="number" name="agd_pnd72" id="AGD_pnd72" class="simpleCalc fullWidth"></div>
-    </div>
-</div>
-
-<!-- Watching for VO -->
-<!-- Add / Remove -->
-<!-- Date / PND (print) / VO_state / ifVO, mass -->
-<div class="container mt-2 VO" id="VO_div">
-    <div class="row">
-        <div class="col">
-            <h3>Vaginal Opening</h3>
+<!-- Output - Move toward Top when Viewing -->
+<div id="outputDiv">
+    <div class="container mt-2">
+        <div class="row">
+            <div class="col">
+                <h3>Maturation Table</h3>
+            </div>
+        </div>
+    
+        <!-- Buttons -->
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md"><input id="toggleTable_mat" name="toggletable_mat" type="button"
+                    value="Show/Hide Table" class="fullWidth toggleTable maturation" />
+            </div>
+    
+            <div class="col-12 col-sm-6 col-md"><input id="toCSV_mat" name="tocsv_mat" type="button" value="Save CSV"
+                    class="fullWidth toCSV maturation" /></div>
+    
+            <div class="col-12 col-sm-6 col-md">
+                <input id="copyDataButton_mat" name="copydatabutton_mat" type="button" value="Copy Data" class="fullWidth copyDataButton maturation" />
+                <br />Copy Table Head? <input id="copyHead_mat" name="copyhead" type="checkbox" class="copyHead maturation"/>
+            </div>
+        </div>
+    
+        <div id="forCopy_mat" class="forCopy maturation">&nbsp;</div>
+        <!-- Error Message Div -->
+        <div class="container errorMsg maturation" id="errorMsg_mat">&nbsp;</div>
+    
+        <div class="row mt-2">
+            <div class="col-12 table-responsive xsTableDiv tableDiv maturation" id="maturationTableDiv">
+                <table id="maturationTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>Mouse_ID</th>
+                            <th>VO_day</th>
+                            <th>VO_mass</th>
+                            <th>Estrus_day</th>
+                            <th>Estrus_mass</th>
+                            <th>PreputialSep_day</th>
+                            <th>PreputialSep_mass</th>
+                            <th>AGD_P22</th>
+                            <th>AGD_P23</th>
+                            <th>AGD_P24</th>
+                            <th>AGD_P70</th>
+                            <th>AGD_P71</th>
+                            <th>AGD_P72</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="mouseID_calc">&nbsp;</td>
+                            <td class="VO_date_calc">&nbsp;</td>
+                            <td class="VO_mass_calc">&nbsp;</td>
+                            <td class="firstE_date_calc">&nbsp;</td>
+                            <td class="firstE_mass_calc">&nbsp;</td>
+                            <td>NA</td>
+                            <td>NA</td>
+                            <td class="AGD_pnd22_calc">&nbsp;</td>
+                            <td class="AGD_pnd23_calc">&nbsp;</td>
+                            <td class="AGD_pnd24_calc">&nbsp;</td>
+                            <td class="AGD_pnd70_calc">&nbsp;</td>
+                            <td class="AGD_pnd71_calc">&nbsp;</td>
+                            <td class="AGD_pnd72_calc">&nbsp;</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
-    <div class="row VO mt-2" id="VO_buttons">
-        <div class="col-12 col-md-6 col-lg">
-            <input type="button" value="Add VO For Date..." name="vo_addbutton" id="VO_addButton" class="addMatCheck VO fullWidth disableOnView"/>
+    
+    <!-- output for mass-->
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h3>Mass Table</h3>
+            </div>
         </div>
-        <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 VO">
-            <input type="date" name="vo_addDate" id="VO_addDate" class="addMatDate fullWidth"/>
+    
+        <!-- Buttons -->
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md"><input id="toggleTable_mass" name="toggletable_mass" type="button"
+                    value="Show/Hide Table" class="fullWidth toggleTable mass" />
+            </div>
+    
+            <div class="col-12 col-sm-6 col-md"><input id="toCSV_mass" name="tocsv_mass" type="button" value="Save CSV"
+                    class="fullWidth toCSV mass" /></div>
+    
+            <div class="col-12 col-sm-6 col-md">
+                <input id="copyDataButton_mass" name="copydatabutton_mass" type="button" value="Copy Data" class="fullWidth copyDataButton mass" />
+                <br />Copy Table Head? <input id="copyHead_mass" name="copyhead" type="checkbox" class="copyHead mass"/>
+            </div>
         </div>
-        <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 VO">
-            <input type="button" value="Remove Last VO Date" name="vo_removebutton" class="removeMatCheck VO fullWidth disableOnView">
-        </div>
-    </div>
-
-    <!-- Headings -->
-    <div class="row mt-2">
-        <div class="col font-weight-bold">VO Status</div>
-        <div class="col font-weight-bold">Date</div>
-        <div class="col font-weight-bold">PND</div>
-    </div>
-    <!-- Each day will get added here -->
-
-</div>
-
-<div class="container mt-2 VO ifVO">
-    <div class="row">
-        <div class="myLeftCol">Mass at VO (g):</div>
-        <div class="col"><input type="number" name="vo_mass" id="VO_mass" class="fullWidth"/></div>
-    </div>
-</div>
-
-<!-- Watching for First Estrus -->
-<!-- Add / Remove -->
-<!-- Date / PND (print) / firstE_state / if1E, mass -->
-
-<div class="container mt-2 firstE ifVO" id="firstE_div">
-    <div class="row">
-        <div class="col">
-            <h3>First Estrus</h3>
-        </div>
-    </div>
-
-    <div class="row firstE mt-2" id="firstE_buttons">
-        <div class="col-12 col-md-6 col-lg">
-            <input type="button" value="Add Estrus Check For Date..." name="firstE_addbutton" id="firstE_addButton" class="addMatCheck firstE fullWidth disableOnView"/>
-        </div>
-        <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 firstE">
-            <input type="date" name="firstE_addDate" id="firstE_addDate" class="addMatDate fullWidth"/>
-        </div>
-        <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 firstE">
-            <input type="button" value="Remove Last Estrus Check Date" name="firstE_removebutton" class="removeMatCheck firstE fullWidth disableOnView">
-        </div>
-    </div>
-
-    <!-- Headings -->
-    <div class="row mt-2">
-        <div class="col font-weight-bold">Cycle Stage</div>
-        <div class="col font-weight-bold">Mass</div>
-        <div class="col font-weight-bold">Date</div>
-        <div class="col font-weight-bold">PND</div>
-    </div>
-    <!-- Each day will get added here -->
-
-</div>
-
-<div class="VO_PND_calc">&nbsp;</div>
-<div class="VO_date_calc">&nbsp;</div>
-<div class="VO_mass_calc">&nbsp;</div>
-
-<div class="firstE_PND_calc">&nbsp;</div>
-<div class="firstE_date_calc">&nbsp;</div>
-<div class="firstE_mass_calc">&nbsp;</div>
-
-
-
-<!-- Error Message Div -->
-<div class="container" id="errorMsg">&nbsp;</div>
-
-<!-- output for maturation - match excel sheet -->
-<!-- add buttons -->
-<div class="container">
-    <div class="row">
-        <div class="col">
-            <h3>Maturation Table</h3>
-        </div>
-    </div>
-
-    <!-- Buttons -->
-    <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable_mat" name="toggletable_mat" type="button"
-                value="Show/Hide Table" class="fullWidth" />
-        </div>
-
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV_mat" name="tocsv_mat" type="button" value="Save CSV"
-                class="fullWidth" /></div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton_mat" name="copydatabutton_mat" type="button" value="Copy Data" class="fullWidth" />
-            <br />Copy Table Head? <input id="copyHead_mat" name="copyhead" type="checkbox" />
-        </div>
-    </div>
-
-    <div class="row mt-2">
-        <div class="col-12 table-responsive xsTableDiv" id="maturationTableDiv">
-            <table id="maturationTable" class="table">
-                <thead>
-                    <tr>
-                        <th>Mouse_ID</th>
-                        <th>VO_day</th>
-                        <th>VO_mass</th>
-                        <th>Estrus_day</th>
-                        <th>Estrus_mass</th>
-                        <th>PreputialSep_day</th>
-                        <th>PreputialSep_mass</th>
-                        <th>AGD_P22</th>
-                        <th>AGD_P23</th>
-                        <th>AGD_P24</th>
-                        <th>AGD_P70</th>
-                        <th>AGD_P71</th>
-                        <th>AGD_P72</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="mouseID_calc">&nbsp;</td>
-                        <td class="VO_date_calc">&nbsp;</td>
-                        <td class="VO_mass_calc">&nbsp;</td>
-                        <td class="firstE_date_calc">&nbsp;</td>
-                        <td class="firstE_mass_calc">&nbsp;</td>
-                        <td>NA</td>
-                        <td>NA</td>
-                        <td class="AGD_pnd22_calc">&nbsp;</td>
-                        <td class="AGD_pnd23_calc">&nbsp;</td>
-                        <td class="AGD_pnd24_calc">&nbsp;</td>
-                        <td class="AGD_pnd70_calc">&nbsp;</td>
-                        <td class="AGD_pnd71_calc">&nbsp;</td>
-                        <td class="AGD_pnd72_calc">&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- output for mass - match excel sheet -->
-<!-- add buttons -->
-<div class="container">
-    <div class="row">
-        <div class="col">
-            <h3>Mass Table</h3>
-        </div>
-    </div>
-
-    <!-- Buttons -->
-    <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable_mass" name="toggletable_mass" type="button"
-                value="Show/Hide Table" class="fullWidth" />
-        </div>
-
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV_mass" name="tocsv_mass" type="button" value="Save CSV"
-                class="fullWidth" /></div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton_mass" name="copydatabutton_mass" type="button" value="Copy Data" class="fullWidth" />
-            <br />Copy Table Head? <input id="copyHead_mass" name="copyhead" type="checkbox" />
-        </div>
-    </div>
-
-    <div class="row mt-2">
-        <div class="col-12 table-responsive xsTableDiv" id="massTableDiv">
-            <table id="massTable" class="table">
-                <thead>
-                    <tr>
-                        <th>Mass_P22</th>
-                        <th>Mass_P23</th>
-                        <th>Mass_P24</th>
-                        <th>Mass_P28</th>
-                        <th>Mass_P35</th>
-                        <th>Mass_P42</th>
-                        <th>Mass_P49</th>
-                        <th>Mass_P56</th>
-                        <th>Mass_P63</th>
-                        <th>Mass_P70</th>
-                        <th>Mass_P71</th>
-                        <th>Mass_P72</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="mass_pnd22_calc">&nbsp;</td>
-                        <td class="mass_pnd23_calc">&nbsp;</td>
-                        <td class="mass_pnd24_calc">&nbsp;</td>
-                        <td class="mass_pnd28_calc">&nbsp;</td>
-                        <td class="mass_pnd35_calc">&nbsp;</td>
-                        <td class="mass_pnd42_calc">&nbsp;</td>
-                        <td class="mass_pnd49_calc">&nbsp;</td>
-                        <td class="mass_pnd56_calc">&nbsp;</td>
-                        <td class="mass_pnd63_calc">&nbsp;</td>
-                        <td class="mass_pnd70_calc">&nbsp;</td>
-                        <td class="mass_pnd71_calc">&nbsp;</td>
-                        <td class="mass_pnd72_calc">&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
+    
+        <div id="forCopy_mass" class="forCopy mass">&nbsp;</div>
+        <!-- Error Message Div -->
+        <div class="container errorMsg mass" id="errorMsg_mass">&nbsp;</div>
+    
+        <div class="row mt-2">
+            <div class="col-12 table-responsive xsTableDiv tableDiv mass" id="massTableDiv">
+                <table id="massTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>Mass_P22</th>
+                            <th>Mass_P23</th>
+                            <th>Mass_P24</th>
+                            <th>Mass_P28</th>
+                            <th>Mass_P35</th>
+                            <th>Mass_P42</th>
+                            <th>Mass_P49</th>
+                            <th>Mass_P56</th>
+                            <th>Mass_P63</th>
+                            <th>Mass_P70</th>
+                            <th>Mass_P71</th>
+                            <th>Mass_P72</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="mass_pnd22_calc">&nbsp;</td>
+                            <td class="mass_pnd23_calc">&nbsp;</td>
+                            <td class="mass_pnd24_calc">&nbsp;</td>
+                            <td class="mass_pnd28_calc">&nbsp;</td>
+                            <td class="mass_pnd35_calc">&nbsp;</td>
+                            <td class="mass_pnd42_calc">&nbsp;</td>
+                            <td class="mass_pnd49_calc">&nbsp;</td>
+                            <td class="mass_pnd56_calc">&nbsp;</td>
+                            <td class="mass_pnd63_calc">&nbsp;</td>
+                            <td class="mass_pnd70_calc">&nbsp;</td>
+                            <td class="mass_pnd71_calc">&nbsp;</td>
+                            <td class="mass_pnd72_calc">&nbsp;</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
