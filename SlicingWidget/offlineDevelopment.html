@@ -1030,6 +1030,7 @@ $(document).ready(function () {
     watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
         $elToUpdate.text(value);
+        my_widget_script.resize();
     },
 
     makeSheetIframe: function (show) {
@@ -1522,6 +1523,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     
     <div class="row">
         <div class="col-12">
+            <!-- took out the iFrame Google Doc since it was slow and was causing errors -->
             <!-- <input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc"/> or  -->
             <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Click here</a></big> 
             to open the Google Sheet in a new window
@@ -1750,7 +1752,3 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </form>
 </body>
 </html>
-
-<!-- TO DO -->
-<!-- Gonad mass disappears if GDX -->
-<!-- Resize when autoupdating table, or move the question about to Google Doc. It gets cut off -->
