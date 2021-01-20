@@ -263,7 +263,8 @@ $(document).ready(function () {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
-            // $(".hideView").hide();
+            $(".hideView").hide();
+            $(".massDiv").hide();
         } else {
             // $(".hideEdit").hide();
         }
@@ -323,7 +324,10 @@ $(document).ready(function () {
 
         $("#DOB").on("change", function () {
             my_widget_script.printPND_days();
-            my_widget_script.getPND();
+            my_widget_script.getPND_today();
+            my_widget_script.updateMatPND();
+            my_widget_script.watchForVO();
+            my_widget_script.watchFor1E();
         });
 
         $("#showDates").on("change", function () {
@@ -332,15 +336,61 @@ $(document).ready(function () {
             } else {
                 $("#datesList").hide();
             }
-        }); 
-
-        $(".VO_state").on("change", function (){
-            my_widget_script.watchForVO();
         });
+        
+        $("#massSelect").on("change", function () {
+            var pnd = $(this).val();
+            if (pnd) {
+                my_widget_script.switchMassTable(pnd);
+            } else {
+                $(".massDiv").hide();
+            }
+        })
+
+        // $(".VO_state").on("change", function (){
+        //     $this = $(this);
+        //     my_widget_script.watchForVO();
+        //     if($this.val() === "Other") {
+        //         $this.next(".ifOther").show();
+        //     } else {
+        //         $this.next(".ifOther").hide();
+        //     }
+        // });
 
         $(".firstE_state").on("change", function (){
             my_widget_script.watchFor1E();
         });
+
+        $(".addMatCheck").on("click", function () {
+            var $dateVal = $(this).parent().next().children(".addMatDate").val();
+            if ($dateVal) {
+                if($(this).hasClass("VO")) {
+                    my_widget_script.createMaturationRow_VO($dateVal);
+                } else if($(this).hasClass("firstE")){
+                    my_widget_script.createMaturationRow_1E($dateVal);
+                }
+
+            } else {
+                alert("Enter a Date");
+            }
+        });
+
+        $(".removeMatCheck").on("click", function () {
+            var proceed = confirm("Are you sure that you want to remove the last date?");
+            if(proceed){
+                if($(this).hasClass("VO")){
+                    my_widget_script.removeMaturationRow("VO");
+                    my_widget_script.watchForVO();
+                } else if($(this).hasClass("firstE")){
+                    my_widget_script.removeMaturationRow("firstE");
+                    my_widget_script.watchFor1E();
+                }
+            }
+        })
+
+        $("#VO_mass").on("input", function () {
+            my_widget_script.watchVO_mass();
+        })
     },
 
     /**
@@ -370,6 +420,7 @@ $(document).ready(function () {
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
+        $('.myLeftCol2').addClass("col-6 col-md-4 col-lg-3 text-right");
 
         if($("#editDemo").is(":checked")){
             $(".editDemoChecked").show();
@@ -391,10 +442,10 @@ $(document).ready(function () {
         }
 
         my_widget_script.printPND_days();
-        my_widget_script.getPND();
+        my_widget_script.getPND_today();
         my_widget_script.watchForVO();
         my_widget_script.watchFor1E();
-        
+
         my_widget_script.resize();
     },
 
@@ -411,7 +462,11 @@ $(document).ready(function () {
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        // TO DO - get tail mark
+        // TO-DO - 
+        // get tail mark
+        // get addedRows for VO and first estrus divs
+
+
         var dynamicContent = {};
         return dynamicContent;
     },
@@ -459,9 +514,10 @@ $(document).ready(function () {
      watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
         $elToUpdate.text(value);
+        my_widget_script.resize();
     },
 
-    getPND: function () {
+    getPND_today: function () {
         // var offset = new Date().getTimezoneOffset();
         var $DOBVal = $("#DOB").val();
 
@@ -492,6 +548,7 @@ $(document).ready(function () {
     
             $(".pndToday").text(dateDiff_days);
 
+            // This prints at the top what needs to be done today and switches the Mass and AGD selector 
             my_widget_script.updateToDoStatus(dateDiff_days);
             my_widget_script.updateCycleStatus(dateDiff_days);
     
@@ -508,17 +565,57 @@ $(document).ready(function () {
             //     "Diff in ms: " + dateDiff_ms + "\n" +
             //     "Diff in days: " + dateDiff_days
             // )
+        } else {
+            my_widget_script.switchMassTable($("#massSelect").val());
         }
+    },
+
+    getPND: function (dateInputVal) {
+        //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
+        var DOBisDay = 0;
+        var compDate_as_ms = new Date(dateInputVal).getTime();
+        var textOutput;
+        if($("#DOB").val()){
+            if(dateInputVal){
+                var DOB_as_ms = new Date($("#DOB").val()).getTime();
+                var pnd = (compDate_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
+                textOutput = pnd;
+            } else {
+                textOutput = "[Enter Date of VO Check]";
+            }
+        } else {
+            textOutput = "[Enter DOB]";
+        }
+        
+        return textOutput;
+    },
+
+    updateMatPND: function () {
+        $(".mat_pnd").each(function () {
+            var dateVal = $(this).prev(".mat_date").text();
+            var pnd = my_widget_script.getPND(dateVal);
+            $(this).text(pnd);
+        });
     },
 
     updateToDoStatus: function (PND_today) {
         var $toDoStatus = $(".toDo_status");
-        if ($.inArray(PND_today, [21, 28, 35, 42, 49, 56, 63]) !== -1)  {
+        if ($.inArray(PND_today, [28, 35, 42, 49, 56, 63]) !== -1)  {
             $toDoStatus.html("<span style='color:blue'>Take mass today</span>");
+            // Set massSelect to today's date
+            $("#massSelect").val("pnd"+PND_today);
+            my_widget_script.switchMassTable("pnd"+PND_today);
         } else if ($.inArray(PND_today, [22, 23, 24, 70, 71, 72]) !== -1) {
             $toDoStatus.html("<span style='color:blue'>Take mass and AGD today</span>");
+            // Set massSelect to today's date
+            $("#massSelect").val("pnd"+PND_today);
+            my_widget_script.switchMassTable("pnd"+PND_today);
+        } else if (PND_today === 21) {
+            $toDoStatus.html("<span style='color:blue'>Wean and take mass today - enter in litter widget</span>");
+            my_widget_script.switchMassTable($("#massSelect").val());
         } else {
             $toDoStatus.html("<em>No mass or AGD today</em>");
+            my_widget_script.switchMassTable($("#massSelect").val());
         }
     },
 
@@ -584,47 +681,277 @@ $(document).ready(function () {
     },
 
     watchForVO: function () {
-        // Function here to check if VO has happened
+        // Function to check if VO has happened, and find what the earliest date with open VO marked is
 
         var hasReachedVO = false;
+        var thisPndAtVO, thisVODate;
+        var pndAtVO, dateAtVO;
 
         $(".VO_state").each(function () {
-            // if the state is true
-            if($(this).val()==="VO") {
+            var $this = $(this);
+            // if the state is VO
+            if($this.val()==="VO") {
                 $(".ifVO").show();
                 hasReachedVO = true;
-                return false;
+                thisPndAtVO = $this.closest(".addedRow").find(".mat_pnd").text();
+                thisVODate = $this.closest(".addedRow").find(".mat_date").text();
+
+                if(dateAtVO) { //if there's a value for dateAtVO
+                    if(new Date(thisVODate).getTime() < new Date(dateAtVO).getTime()) { //if this date is earlier than current dateAtVO
+                        dateAtVO = thisVODate;
+                        pndAtVO = thisPndAtVO;
+                    }
+                } else { //if no dateAtVO
+                    dateAtVO = thisVODate;
+                    pndAtVO = thisPndAtVO;
+                }
+
+                $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow"); 
             } else {
-                $(".ifVO").hide();
+                $this.css("background-color", "").closest(".row").css("background-color", ""); 
             }
         });
 
         if(hasReachedVO){
             $(".VO_status").removeClass("notReached").addClass("reached").text("has");
+            $(".VO_PND_calc").text(pndAtVO);
+            $(".VO_date_calc").text(dateAtVO);
+            my_widget_script.watchVO_mass(true);
         } else {
+            $(".ifVO").hide();
             $(".VO_status").removeClass("reached").addClass("notReached").text("has NOT yet");
+            $(".VO_PND_calc").text("NA");
+            $(".VO_mass_calc").text("NA");
+            $(".VO_date_calc").text("NA");
+        }
+    },
+
+    watchVO_mass: function (knownStatus) {
+        var hasReachedVO = false;
+        
+        if(knownStatus === true) {
+            hasReachedVO = true;
+        } else {
+            $(".VO_state").each(function () {
+                $this = $(this);
+                // if the state is VO
+                if($this.val()==="VO") {
+                    hasReachedVO = true;
+                    return false;
+                }
+            });
+        }
+
+        if(hasReachedVO){
+            var $VO_massVal = $("#VO_mass").val();
+            if($VO_massVal) {
+                $(".VO_mass_calc").text($VO_massVal);
+            } else {
+                $(".VO_mass_calc").text("[Enter VO Mass]")
+            }
+        } else {
+            $(".VO_mass_calc").text("NA");
         }
     },
 
     watchFor1E: function () {
-        // Function here to check if VO has happened
-
         var hasReached1E = false;
+        var thisPndAt1E, this1EDate, this1EMass;
+        var pndAt1E, dateAt1E, massAt1E;
+
         $(".firstE_state").each(function () {
-            // if the state is true
-            if($(this).val()==="firstE") {
+            var $this = $(this);
+            // if the state is E
+            if($this.val()==="E") {
+                $(".if1E").show();
                 hasReached1E = true;
-                return false;
+                thisPndAt1E = $this.closest(".addedRow").find(".mat_pnd").text();
+                this1EDate = $this.closest(".addedRow").find(".mat_date").text();
+                this1EMass = $this.closest(".addedRow").find(".firstE_mass").val();
+
+                if(dateAt1E) { //if there's a value for dateAt1E
+                    if(new Date(this1EDate).getTime() < new Date(dateAt1E).getTime()) { //if this date is earlier than current dateAt1E
+                        dateAt1E = this1EDate;
+                        pndAt1E = thisPndAt1E;
+                        massAt1E = this1EMass;
+                    }
+                } else { //if no dateAt1E
+                    dateAt1E = this1EDate;
+                    pndAt1E = thisPndAt1E;
+                    massAt1E = this1EMass;
+                }
+
+                $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow").find(".firstE_mass").css("background-color", "yellow"); 
             } else {
+                $this.css("background-color", "").closest(".row").css("background-color", "").find(".firstE_mass").css("background-color", ""); 
             }
         });
 
         if(hasReached1E){
             $(".firstE_status").removeClass("notReached").addClass("reached").text("has");
+            $(".firstE_PND_calc").text(pndAt1E);
+            $(".firstE_date_calc").text(dateAt1E);
+            $(".firstE_mass_calc").text(massAt1E);
         } else {
+            $(".if1E").hide();
             $(".firstE_status").removeClass("reached").addClass("notReached").text("has NOT yet");
+            $(".firstE_PND_calc").text("NA");
+            $(".firstE_mass_calc").text("NA");
+            $(".firstE_date_calc").text("NA");
         }
     },
+
+    switchMassTable: function (pnd) {
+        if(pnd){
+            var $massDiv = $("._"+pnd);
+            $massDiv.show();
+            $(".massDiv:not(._"+pnd).hide();
+            my_widget_script.resize();
+        } else {
+            $(".massDiv").hide();
+        }
+    },
+
+    createMaturationRow_VO: function (dateInputVal) {
+        var $div, selectBaseName, textareaBaseName, rowCount, selectName, textareaName, pndValue;
+        $div = $("#VO_div");
+        selectBaseName = "vocheck_";
+        textareaBaseName = "vocheck_other_";
+
+        rowCount = $div.find(".addedRow").length + 1;
+        selectName = selectBaseName + rowCount;
+        textareaName = textareaBaseName + rowCount;
+        
+        pndValue = my_widget_script.getPND(dateInputVal);
+
+
+        $div.append(
+            $("<div/>", {
+                "class": "row mt-2 addedRow"
+            }).append(
+                $("<div/>", {
+                    "class": "col"
+                }).append(
+                    $("<select/>", {
+                        name: selectName,
+                        id: selectName,
+                        "class": "VO_state fullWidth VO"
+                    }).append(
+                        '<option value="No">No</option>',
+                        '<option value="|">Line |</option>',
+                        '<option value="T">&#8869;</option>',
+                        '<option value="Almost">Almost</option>',
+                        '<option value="VO">Open</option>',
+                        '<option value="Other">Other</option>'
+                    ).on("change", function () {
+                        my_widget_script.watchForVO();
+                        if($(this).val() === "Other") {
+                            $(this).next(".ifOther").show();
+                        } else {
+                            $(this).next(".ifOther").hide();
+                        }
+                    })
+                ).append(
+                    $("<text" + "area></text" + "area>", {
+                        name: textareaName,
+                        id: textareaName,
+                        rows: 2,
+                        "class": "VO fullWidth ifOther"
+                    })
+                )
+            ).append(
+                $("<div/>", {
+                    "class": "col mat_date"
+                }).append(dateInputVal)
+            ).append(
+                $("<div/>", {
+                    "class": "col mat_pnd"
+                }).append(pndValue)
+            )
+        );
+    },
+
+    createMaturationRow_1E: function (dateInputVal) {
+        var $div, selectBaseName, textareaBaseName, massBaseName, rowCount, selectName, textareaName, massName, pndValue;
+        $div = $("#firstE_div");
+        selectBaseName = "firstEcheck_";
+        textareaBaseName = "firstEcheck_other_";
+        massBaseName = "firstEmass_"
+
+        rowCount = $div.find(".addedRow").length + 1;
+        selectName = selectBaseName + rowCount;
+        textareaName = textareaBaseName + rowCount;
+        massName = massBaseName + rowCount
+        
+        pndValue = my_widget_script.getPND(dateInputVal);
+
+
+        $div.append(
+            $("<div/>", {
+                "class": "row mt-2 addedRow"
+            }).append(
+                $("<div/>", {
+                    "class": "col"
+                }).append(
+                    $("<select/>", {
+                        name: selectName,
+                        id: selectName,
+                        "class": "firstE_state fullWidth firstE"
+                    }).append(
+                        '<option value="">[Select]</option>',
+                        '<option value="D">Diestrus</option>',
+                        '<option value="P">Proestrus</option>',
+                        '<option value="E">Estrus</option>',
+                        '<option value="Other">Other</option>'
+                    ).on("change", function () {
+                        my_widget_script.watchFor1E();
+                        if($(this).val() === "Other") {
+                            $(this).next(".ifOther").show();
+                        } else {
+                            $(this).next(".ifOther").hide();
+                        }
+                    })
+                ).append(
+                    $("<text" + "area></text" + "area>", {
+                        name: textareaName,
+                        id: textareaName,
+                        rows: 2,
+                        "class": "firstE fullWidth ifOther"
+                    })
+                )
+            ).append(
+                $("<div/>", {
+                    "class": "col"
+                }).append(
+                    $("<input/>", {
+                        name: massName,
+                        id: massName,
+                        type: "number",
+                        "class": "firstE fullWidth firstE_mass"
+                    }).on("input", function (){
+                        my_widget_script.watchFor1E();
+                    })
+                )
+            ).append(
+                $("<div/>", {
+                    "class": "col mat_date"
+                }).append(dateInputVal)
+            ).append(
+                $("<div/>", {
+                    "class": "col mat_pnd"
+                }).append(pndValue)
+            )
+        );
+    },
+
+    removeMaturationRow: function (whichPheno) {
+        if(whichPheno === "VO"){
+            var $div = $("#VO_div");
+        } else if(whichPheno === "firstE"){
+            var $div = $("#firstE_div");
+        }
+        $div.find(".addedRow").last().remove();
+    }
 };
 
 //**************************************************************************
@@ -708,6 +1035,19 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         color: blue;
         font-style: italic;
     }
+
+    .blackBackground {
+        background-color: black;
+        color: white;
+    }
+
+    .massDiv {
+        display: none;
+    }
+
+    .ifOther {
+        display: none;
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
@@ -741,7 +1081,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="col-12 mt-2 col-md-6 col-lg mt-lg-0">
             <h4>Vaginal Opening</h4>
-            Mouse <span class="mouseID_calc">__</span> <span class="VO_status notReached">has NOT yet</span> had vaginal opening
+            Mouse <span class="mouseID_calc">__</span> <span class="VO_status notReached">has NOT yet</span> had vaginal opening 
+            <span class="ifVO">on PND <span class="VO_PND_calc">&nbsp;</span> with a mass of <span class="VO_mass_calc">&nbsp;</span> g</span>
         </div>
         <div class="col-12 mt-2 col-md-6 col-lg mt-lg-0 ifVO">
             <h4>First Estrus</h4>
@@ -838,10 +1179,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </div>
 
 <div class="container mt-2">
-    <div class="row align-items-center">
-        <div class="col-6 col-md-4 col-lg-3">Show PND Dates:</div>
-
-        <div class="col"><input id="showDates" name="showdates" type="checkbox" /></div>
+    <div class="row">
+        <div class="col align-items-center">Show PND Dates: <input id="showDates" name="showdates" type="checkbox" /></div>
     </div>
 </div>
 
@@ -878,51 +1217,292 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </div>
 
 <!-- Mass and AGD Tables -->
-<!-- match litter tracking formatting -->
-<!-- selector box - maybe a function to select based on today -->
-<!-- will need a switch statement -->
 
+<div class="container mt-2 hideView">
+    <div class="row align-items-center">
+        <div class="myLeftCol">
+            <h3 style="margin-top: 0.5rem;">Mass and AGD</h3>
+        </div>
+        <div class="col">
+            <select name="mass_select" id="massSelect" class="fullWidth">
+                <option value="">[Select]</option>
+                <option value="pnd22">PND 22</option>
+                <option value="pnd23">PND 23</option>
+                <option value="pnd24">PND 24</option>
+                <option value="pnd28">PND 28</option>
+                <option value="pnd35">PND 35</option>
+                <option value="pnd42">PND 42</option>
+                <option value="pnd49">PND 49</option>
+                <option value="pnd56">PND 56</option>
+                <option value="pnd63">PND 63</option>
+                <option value="pnd70">PND 70</option>
+                <option value="pnd71">PND 71</option>
+                <option value="pnd72">PND 72</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- PND 22 -->
+<div class="container mt-2 _pnd22 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 22:</div>
+
+        <div class="col pnd22">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd22" id="mass_pnd22" class="simpleCalc fullWidth"></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">AGD:</div>
+        <div class="col"><input type="number" name="agd_pnd22" id="AGD_pnd22" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 23 -->
+<div class="container mt-2 _pnd23 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 23:</div>
+
+        <div class="col pnd23">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd23" id="mass_pnd23" class="simpleCalc fullWidth"></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">AGD:</div>
+        <div class="col"><input type="number" name="agd_pnd23" id="AGD_pnd23" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 24 -->
+<div class="container mt-2 _pnd24 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 24:</div>
+
+        <div class="col pnd24">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd24" id="mass_pnd24" class="simpleCalc fullWidth"></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">AGD:</div>
+        <div class="col"><input type="number" name="agd_pnd24" id="AGD_pnd24" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 28 -->
+<div class="container mt-2 _pnd28 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 28:</div>
+
+        <div class="col pnd28">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd28" id="mass_pnd28" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 35 -->
+<div class="container mt-2 _pnd35 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 35:</div>
+
+        <div class="col pnd35">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd35" id="mass_pnd35" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 42 -->
+<div class="container mt-2 _pnd42 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 42:</div>
+
+        <div class="col pnd42">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd42" id="mass_pnd42" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 49 -->
+<div class="container mt-2 _pnd49 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 49:</div>
+
+        <div class="col pnd49">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd49" id="mass_pnd49" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 56 -->
+<div class="container mt-2 _pnd56 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 56:</div>
+
+        <div class="col pnd56">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd56" id="mass_pnd56" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 63 -->
+<div class="container mt-2 _pnd63 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 63:</div>
+
+        <div class="col pnd63">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd63" id="mass_pnd63" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 70 -->
+<div class="container mt-2 _pnd70 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 70:</div>
+
+        <div class="col pnd70">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd70" id="mass_pnd70" class="simpleCalc fullWidth"></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">AGD:</div>
+        <div class="col"><input type="number" name="agd_pnd70" id="AGD_pnd70" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 71 -->
+<div class="container mt-2 _pnd71 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 71:</div>
+
+        <div class="col pnd71">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd71" id="mass_pnd71" class="simpleCalc fullWidth"></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">AGD:</div>
+        <div class="col"><input type="number" name="agd_pnd71" id="AGD_pnd71" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
+
+<!-- PND 72 -->
+<div class="container mt-2 _pnd72 massDiv">
+    <div class="row align-items-end mt-2 blackBackground">
+        <div class="myLeftCol2">PND 72:</div>
+
+        <div class="col pnd72">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">Mass (g):</div>
+        <div class="col"><input type="number" name="mass_pnd72" id="mass_pnd72" class="simpleCalc fullWidth"></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol font-weight-bold">AGD:</div>
+        <div class="col"><input type="number" name="agd_pnd72" id="AGD_pnd72" class="simpleCalc fullWidth"></div>
+    </div>
+</div>
 
 <!-- Watching for VO -->
 <!-- Add / Remove -->
 <!-- Date / PND (print) / VO_state / ifVO, mass -->
+<div class="container mt-2 VO" id="VO_div">
+    <div class="row">
+        <div class="col">
+            <h3>Vaginal Opening</h3>
+        </div>
+    </div>
+
+    <div class="row VO mt-2" id="VO_buttons">
+        <div class="col-12 col-md-6 col-lg">
+            <input type="button" value="Add VO For Date..." name="vo_addbutton" id="VO_addButton" class="addMatCheck VO fullWidth disableOnView"/>
+        </div>
+        <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 VO">
+            <input type="date" name="vo_addDate" id="VO_addDate" class="addMatDate fullWidth"/>
+        </div>
+        <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 VO">
+            <input type="button" value="Remove Last VO Date" name="vo_removebutton" class="removeMatCheck VO fullWidth disableOnView">
+        </div>
+    </div>
+
+    <!-- Headings -->
+    <div class="row mt-2">
+        <div class="col font-weight-bold">VO Status</div>
+        <div class="col font-weight-bold">Date</div>
+        <div class="col font-weight-bold">PND</div>
+    </div>
+    <!-- Each day will get added here -->
+
+</div>
+
+<div class="container mt-2 VO ifVO">
+    <div class="row">
+        <div class="myLeftCol">Mass at VO (g):</div>
+        <div class="col"><input type="number" name="vo_mass" id="VO_mass" class="fullWidth"/></div>
+    </div>
+</div>
 
 <!-- Watching for First Estrus -->
 <!-- Add / Remove -->
 <!-- Date / PND (print) / firstE_state / if1E, mass -->
 
-<!-- Cycling -->
-<!-- link to Google Doc/put in own widget -->
+<div class="container mt-2 firstE ifVO" id="firstE_div">
+    <div class="row">
+        <div class="col">
+            <h3>First Estrus</h3>
+        </div>
+    </div>
 
-<!-- These will likely be defined in a function, but testing for watching and modifying form -->
-<div>
-    <select name="vo_state1" id="VO_state_1" class="VO_state">
-        <option value="">[Select]</option>
-        <option value="not yet">Not yet</option>
-        <option value="VO">VO</option>
-    </select>
+    <div class="row firstE mt-2" id="firstE_buttons">
+        <div class="col-12 col-md-6 col-lg">
+            <input type="button" value="Add Estrus Check For Date..." name="firstE_addbutton" id="firstE_addButton" class="addMatCheck firstE fullWidth disableOnView"/>
+        </div>
+        <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 firstE">
+            <input type="date" name="firstE_addDate" id="firstE_addDate" class="addMatDate fullWidth"/>
+        </div>
+        <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 firstE">
+            <input type="button" value="Remove Last Estrus Check Date" name="firstE_removebutton" class="removeMatCheck firstE fullWidth disableOnView">
+        </div>
+    </div>
 
-    <select name="vo_state2" id="VO_state_2" class="VO_state">
-        <option value="">[Select]</option>
-        <option value="not yet">Not yet</option>
-        <option value="VO">VO</option>
-    </select>
+    <!-- Headings -->
+    <div class="row mt-2">
+        <div class="col font-weight-bold">Cycle Stage</div>
+        <div class="col font-weight-bold">Mass</div>
+        <div class="col font-weight-bold">Date</div>
+        <div class="col font-weight-bold">PND</div>
+    </div>
+    <!-- Each day will get added here -->
+
 </div>
 
-<div>
-    <select name="firstE_state1" id="firstE_state_1" class="firstE_state">
-        <option value="">[Select]</option>
-        <option value="not yet">Not yet</option>
-        <option value="firstE">First E</option>
-    </select>
+<div class="VO_PND_calc">&nbsp;</div>
+<div class="VO_date_calc">&nbsp;</div>
+<div class="VO_mass_calc">&nbsp;</div>
 
-    <select name="firstE_state2" id="firstE_state_2" class="firstE_state">
-        <option value="">[Select]</option>
-        <option value="not yet">Not yet</option>
-        <option value="firstE">First E</option>
-    </select>
-</div>
-
+<div class="firstE_PND_calc">&nbsp;</div>
+<div class="firstE_date_calc">&nbsp;</div>
+<div class="firstE_mass_calc">&nbsp;</div>
 
 
 
@@ -933,13 +1513,63 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!-- add buttons -->
 <div class="container">
     <div class="row">
+        <div class="col">
+            <h3>Maturation Table</h3>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable_mat" name="toggletable_mat" type="button"
+                value="Show/Hide Table" class="fullWidth" />
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV_mat" name="tocsv_mat" type="button" value="Save CSV"
+                class="fullWidth" /></div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton_mat" name="copydatabutton_mat" type="button" value="Copy Data" class="fullWidth" />
+            <br />Copy Table Head? <input id="copyHead_mat" name="copyhead" type="checkbox" />
+        </div>
+    </div>
+
+    <div class="row mt-2">
         <div class="col-12 table-responsive xsTableDiv" id="maturationTableDiv">
             <table id="maturationTable" class="table">
                 <thead>
                     <tr>
+                        <th>Mouse_ID</th>
+                        <th>VO_day</th>
+                        <th>VO_mass</th>
+                        <th>Estrus_day</th>
+                        <th>Estrus_mass</th>
+                        <th>PreputialSep_day</th>
+                        <th>PreputialSep_mass</th>
+                        <th>AGD_P22</th>
+                        <th>AGD_P23</th>
+                        <th>AGD_P24</th>
+                        <th>AGD_P70</th>
+                        <th>AGD_P71</th>
+                        <th>AGD_P72</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    <tr>
+                        <td class="mouseID_calc">&nbsp;</td>
+                        <td class="VO_date_calc">&nbsp;</td>
+                        <td class="VO_mass_calc">&nbsp;</td>
+                        <td class="firstE_date_calc">&nbsp;</td>
+                        <td class="firstE_mass_calc">&nbsp;</td>
+                        <td>NA</td>
+                        <td>NA</td>
+                        <td class="AGD_pnd22_calc">&nbsp;</td>
+                        <td class="AGD_pnd23_calc">&nbsp;</td>
+                        <td class="AGD_pnd24_calc">&nbsp;</td>
+                        <td class="AGD_pnd70_calc">&nbsp;</td>
+                        <td class="AGD_pnd71_calc">&nbsp;</td>
+                        <td class="AGD_pnd72_calc">&nbsp;</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
@@ -949,13 +1579,61 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!-- add buttons -->
 <div class="container">
     <div class="row">
+        <div class="col">
+            <h3>Mass Table</h3>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable_mass" name="toggletable_mass" type="button"
+                value="Show/Hide Table" class="fullWidth" />
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV_mass" name="tocsv_mass" type="button" value="Save CSV"
+                class="fullWidth" /></div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton_mass" name="copydatabutton_mass" type="button" value="Copy Data" class="fullWidth" />
+            <br />Copy Table Head? <input id="copyHead_mass" name="copyhead" type="checkbox" />
+        </div>
+    </div>
+
+    <div class="row mt-2">
         <div class="col-12 table-responsive xsTableDiv" id="massTableDiv">
             <table id="massTable" class="table">
                 <thead>
                     <tr>
+                        <th>Mass_P22</th>
+                        <th>Mass_P23</th>
+                        <th>Mass_P24</th>
+                        <th>Mass_P28</th>
+                        <th>Mass_P35</th>
+                        <th>Mass_P42</th>
+                        <th>Mass_P49</th>
+                        <th>Mass_P56</th>
+                        <th>Mass_P63</th>
+                        <th>Mass_P70</th>
+                        <th>Mass_P71</th>
+                        <th>Mass_P72</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    <tr>
+                        <td class="mass_pnd22_calc">&nbsp;</td>
+                        <td class="mass_pnd23_calc">&nbsp;</td>
+                        <td class="mass_pnd24_calc">&nbsp;</td>
+                        <td class="mass_pnd28_calc">&nbsp;</td>
+                        <td class="mass_pnd35_calc">&nbsp;</td>
+                        <td class="mass_pnd42_calc">&nbsp;</td>
+                        <td class="mass_pnd49_calc">&nbsp;</td>
+                        <td class="mass_pnd56_calc">&nbsp;</td>
+                        <td class="mass_pnd63_calc">&nbsp;</td>
+                        <td class="mass_pnd70_calc">&nbsp;</td>
+                        <td class="mass_pnd71_calc">&nbsp;</td>
+                        <td class="mass_pnd72_calc">&nbsp;</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
