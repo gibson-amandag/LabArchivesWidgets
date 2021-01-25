@@ -123,11 +123,11 @@ $(document).ready(function () {
         // Will be accessed within the init and from_json methods
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
-            tailMark: dynamicContent.tailMark,
-            addedRows_VO: dynamicContent.addedRows_VO,
-            addedRows_1E: dynamicContent.addedRows_1E,
-            dates_VO: dynamicContent.dates_VO,
-            dates_1E: dynamicContent.dates_1E
+            tailMarks: dynamicContent.tailMarks,
+            addedRows_VOs: dynamicContent.addedRows_VOs,
+            addedRows_1Es: dynamicContent.addedRows_1Es,
+            allVO_dates: dynamicContent.allVO_dates,
+            all1E_dates: dynamicContent.all1E_dates
         };
 
         //uncomment to check stringified output
@@ -167,11 +167,28 @@ $(document).ready(function () {
         //If no additional dynamic content 
         var output = { 
             widgetData: testData,
-            tailMark: "<span style='color:blue'>|||</span>",
-            addedRows_VO: 2,
-            addedRows_1E: 1,
-            dates_VO: ["2021-01-31", "2021-02-04"],
-            dates_1E: ["2021-02-14"]
+            tailMarks: [
+                "<span style='color:black'>|</span>",
+                "<span style='color:green'>||</span>", 
+                "<span style='color:red'>|||</span>", 
+                "<span style='color:blue'>||||</span>",
+                "<span style='color:grey'>|||||</span>"],
+            addedRows_VOs: [1, 2, 3, 4, 5],
+            addedRows_1Es: [2, 3, 4, 5, 6],
+            allVO_dates: [
+                ["2021-01-01"],
+                ["2021-01-01", "2021-01-02"], 
+                ["2021-01-01", "2021-01-02", "2021-01-03"], 
+                ["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04"],
+                ["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04", "2021-01-05"]
+            ],
+            all1E_dates: [
+                ["2021-01-01", "2021-01-02"], 
+                ["2021-01-01", "2021-01-02", "2021-01-03"], 
+                ["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04"],
+                ["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04", "2021-01-05"],
+                ["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04", "2021-01-05", "2021-01-06"]
+            ]
         };
 
         //Add additional content to match the objects in to_json
@@ -264,15 +281,28 @@ $(document).ready(function () {
      */
     initDynamicContent: function (parsedJson) {
         // TO DO - lots of work to update with tail marks and making for the right mice (for < numOffspring)
-        $(".tailMark").html(parsedJson.tailMark);
-        $(".tailMark_calc").html(parsedJson.tailMark);
 
-        for (var i = 0; i < parsedJson.addedRows_VO; i++) {
-            my_widget_script.createMaturationRow_VO(parsedJson.dates_VO[i]);
-        };
+        var maxOffspring = 5;
 
-        for(var i=0; i < parsedJson.addedRows_1E; i++ ) {
-            my_widget_script.createMaturationRow_1E(parsedJson.dates_1E[i]);
+        for (var j = 0; j < maxOffspring; j++) {
+            var mouseNum = j + 1;
+            var dataSearch = "[data-num='" + mouseNum + "']";
+
+            var $tailMark = $("#tailMark" + mouseNum);
+            $tailMark.html(parsedJson.tailMarks[j]);
+            var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
+            $tailMarkCalc.html(parsedJson.tailMarks[j]);
+
+            var dates_VO = parsedJson.allVO_dates[j];
+            for (var i = 0; i < parsedJson.addedRows_VOs[j]; i++) {
+                my_widget_script.createMaturationRow_VO(dates_VO[i], mouseNum);
+            }
+
+            var dates_1E = parsedJson.all1E_dates[j];
+            for(var i=0; i < parsedJson.addedRows_1Es[j]; i++ ) {
+                my_widget_script.createMaturationRow_1E(dates_1E[i], mouseNum);
+            }
+
         }
     },
 
@@ -704,7 +734,7 @@ $(document).ready(function () {
         allVO_dates = [];
         all1E_dates = [];
 
-        for( var j = 0; j < maxOffspring; j++) {
+        for (var j = 0; j < maxOffspring; j++) {
             var mouseNum = j + 1;
             var dataSearch = "[data-num='" + mouseNum + "']";
             var tailMark = $(".tailMark" + mouseNum).html();
@@ -736,11 +766,11 @@ $(document).ready(function () {
         }
 
         var dynamicContent = {
-            tailMarks: tailMark,
-            addedRows_VO: addedRows_VO,
-            dates_VO: dates_VO,
-            addedRows_1E: addedRows_1E,
-            dates_1E: dates_1E
+            tailMarks: tailMarks,
+            addedRows_VOs: addedRows_VOs,
+            allVO_dates: allVO_dates,
+            addedRows_1Es: addedRows_1Es,
+            all1E_dates: all1E_dates
         };
 
         return dynamicContent;
@@ -1041,11 +1071,11 @@ $(document).ready(function () {
             dateAtVO = null;
 
             var mouseNum = i + 1;
-            console.log("Mouse Number is " + mouseNum);
+            // console.log("Mouse Number is " + mouseNum);
             var dataSearch = "[data-num='" + mouseNum + "']";
 
             $(".VO_state" + dataSearch).each(function () {
-                console.log("within .VO_state function");
+                // console.log("within .VO_state function");
                 var $this = $(this);
                 
                 // if the state is VO
@@ -1072,13 +1102,13 @@ $(document).ready(function () {
                 }
 
                 if(hasReachedVO){
-                    console.log(mouseNum + "has reached VO");
+                    // console.log(mouseNum + "has reached VO");
                     $(".VO_status" + dataSearch).removeClass("notReached").addClass("reached").text("has");
                     $(".VO_PND" + mouseNum + "_calc").text(pndAtVO);
                     $(".VO_date" + mouseNum + "_calc").text(dateAtVO);
                     my_widget_script.watchVO_mass(mouseNum, true);
                 } else {
-                    console.log(mouseNum + "has not reached VO");
+                    // console.log(mouseNum + "has not reached VO");
                     $(".ifVO" + dataSearch).hide();
                     $(".VO_status" + dataSearch).removeClass("reached").addClass("notReached").text("has NOT yet");
                     $(".VO_PND" + mouseNum + "_calc").text("NA");
@@ -1143,7 +1173,7 @@ $(document).ready(function () {
 
             var mouseNum = i + 1;
             var dataSearch = "[data-num='" + mouseNum + "']";
-            console.log("Watching " + mouseNum + " for 1E");
+            // console.log("Watching " + mouseNum + " for 1E");
 
             $(".firstE_state" + dataSearch).each(function () {
                 var $this = $(this);
@@ -1176,13 +1206,13 @@ $(document).ready(function () {
             });
     
             if(hasReached1E){
-                console.log("This mouse has reached 1E");
+                // console.log("This mouse has reached 1E");
                 $(".firstE_status" + dataSearch).removeClass("notReached").addClass("reached").text("has");
                 $(".firstE_PND" + mouseNum + "_calc").text(pndAt1E);
                 $(".firstE_date" + mouseNum + "_calc").text(dateAt1E);
                 $(".firstE_mass" + mouseNum + "_calc").text(massAt1E);
             } else {
-                console.log("This mouse has not reached 1E");
+                // console.log("This mouse has not reached 1E");
                 $(".if1E" + dataSearch).hide();
                 $(".firstE_status" + dataSearch).removeClass("reached").addClass("notReached").text("has NOT yet");
                 $(".firstE_PND" + mouseNum + "_calc").text("NA");
