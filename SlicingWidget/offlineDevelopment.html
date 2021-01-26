@@ -59,8 +59,7 @@ $(document).ready(function () {
 // #endregion
     form_script = 
     my_widget_script =
-{
-    
+{  
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -101,7 +100,15 @@ $(document).ready(function () {
         this.setUpInitialState();
 
         //adjust form design and buttons based on mode
-        this.adjustForMode(mode);
+        this.adjustForMode(mode, parsedJson);
+
+        // uncomment to print name log to check for uppercase letters
+        // var name_log = ''
+        // $("body").find("[name]").each(function () {
+        //     var thisName = this.getAttribute("name");
+        //     name_log += thisName + "\n";
+        // });
+        // console.log(name_log);
     },
     
     to_json: function () {
@@ -269,7 +276,7 @@ $(document).ready(function () {
      * Here, a subset of buttons are disabled when the widget is not being edited.
      * There may be other elements that should be shown/hidden based on the mode
      */
-    adjustForMode: function (mode) {
+    adjustForMode: function (mode, parsedJson) {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
@@ -750,10 +757,12 @@ $(document).ready(function () {
         if ($("#implantBox").is(":checked")) {
             $(".implant_calc").text("TRUE");
             my_widget_script.watchValue($("#implantType"), $(".implantType_calc"));
+            my_widget_script.watchValue($("#implantDate"), $(".implantDate_calc"));
             my_widget_script.watchValue($("#implantcomment"), $(".implantcomment_calc"));
         } else {
             $(".implant_calc").text("FALSE");
             $(".implantType_calc").text("NA");
+            $(".implantDate_calc").text("NA");
             $(".implantcomment_calc").text("NA");
         }
     },
@@ -914,13 +923,13 @@ $(document).ready(function () {
             addLine = "\n";
         }
 
-        console.log("temp after head: " + $temp.text());
+        // console.log("temp after head: " + $temp.text());
 
         $table.find("tbody").children("tr").each(function () { //add each child of the row
             $temp.text($temp.text() + addLine);
             var addTab = "";
             $(this).find("td").each(function () {
-                console.log($(this).text());
+                // console.log($(this).text());
                 if ($(this).text()) {
                     var addText = $(this).text();
                 } else {
@@ -931,7 +940,7 @@ $(document).ready(function () {
                 addLine = "\n";
             });
         });
-        console.log($temp.text());
+        // console.log($temp.text());
         $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
         document.execCommand("copy"); //copy the "selected" text
         $temp.remove(); //remove temp
@@ -1060,7 +1069,7 @@ $(document).ready(function () {
         var additionCount = $solnDiv.find(".addition").length + 1;
         var additionID = basename + "_addition_" + additionCount;
         var calcClass = additionID + "_calc"; 
-        var additionDateID = basename + "_additionDate_" + additionCount;
+        var additionDateID = basename + "_additiondate_" + additionCount;
         var dateCalcClass = additionDateID + "_calc";
 
         var additionLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Name</div>';
@@ -1295,13 +1304,12 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <input class="needForTable fullWidth simpleCalc massCalc" id="BodyMass_g" name="bodymass" step="0.1" type="number" />
             </div>
 
-            <!-- Change the event listener to only make the entry appear when one of the sexes is selected -->
-            <!-- Removed needForTable since it isn't needed if the animal is GDX. Could try to manually include a check for it -->
+            <!-- If only want this to appear when animals are intact, add "isIntact" label -->
             <div id="gonadMassDiv">
-                <div class="female isIntact mt-2 needForTableLab">Uterine Mass (mg)</div>
-                <div class="male isIntact mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
+                <div class="female mt-2 needForTableLab">Uterine Mass (mg)</div>
+                <div class="male mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
                 <div>
-                    <input class="fullWidth anySex isIntact simpleCalc massCalc" id="gonadMass" name="gonadmass" step="0.01" type="number" />
+                    <input class="fullWidth anySex simpleCalc massCalc needForTable" id="gonadMass" name="gonadmass" step="0.01" type="number" />
                 </div>
             </div>
 
@@ -1391,6 +1399,9 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <option value="other">Other</option> 
                 </select>
             </div>
+
+            <div class="implant mt-2">Implant Date</div>
+            <div class="implant"><input type="date" name="implantdate" id="implantDate" class="fullWidth implantCalc"></div>
 
             <div class="implant mt-2">Implant Comment</div>
             <div class="implant">
@@ -1642,6 +1653,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <th>Surgery_date</th>
                         <th>Implant</th>
                         <th>Implant_Type</th>
+                        <th>Implant_date</th>
                         <th>Implant_Comment</th>
                         <th>SerumTube_Label</th>
                         <th>Saved_Pituitary</th>
@@ -1685,6 +1697,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <td class="surgerydate_calc">&nbsp;</td>
                         <td class="implant_calc">&nbsp;</td>
                         <td class="implantType_calc">&nbsp;</td>
+                        <td class="implantDate_calc">&nbsp;</td>
                         <td class="implantcomment_calc">&nbsp;</td>
                         <td class="tubeLabel_calc">&nbsp;</td>
                         <td class="Saved_pit_calc">&nbsp;</td>

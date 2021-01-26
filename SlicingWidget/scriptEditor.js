@@ -1,5 +1,5 @@
 my_widget_script =
-{
+{  
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -22,7 +22,7 @@ my_widget_script =
         //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
-        // this.initDynamicContent(parsedJson);
+        this.initDynamicContent(parsedJson);
 
         //resize the content box when the window size changes
         window.onresize = this.resize;
@@ -40,7 +40,15 @@ my_widget_script =
         this.setUpInitialState();
 
         //adjust form design and buttons based on mode
-        this.adjustForMode(mode);
+        this.adjustForMode(mode, parsedJson);
+
+        // uncomment to print name log to check for uppercase letters
+        // var name_log = ''
+        // $("body").find("[name]").each(function () {
+        //     var thisName = this.getAttribute("name");
+        //     name_log += thisName + "\n";
+        // });
+        // console.log(name_log);
     },
     
     to_json: function () {
@@ -52,12 +60,14 @@ my_widget_script =
         var widgetJsonString = this.parent_class.to_json();
 
         //Get information about any dynamic content that may have been created
-        // var dynamicContent = this.getDynamicContent();
+        var dynamicContent = this.getDynamicContent();
 
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
         var output = { 
-            widgetData: JSON.parse(widgetJsonString)
+            widgetData: JSON.parse(widgetJsonString),
+            numExtAdds: dynamicContent.numExtAdds,
+            numIntAdds: dynamicContent.numIntAdds
         };
 
         //uncomment to check stringified output
@@ -95,7 +105,11 @@ my_widget_script =
         var testData = JSON.parse(this.parent_class.test_data());
 
         //If no additional dynamic content 
-        var output = { widgetData: testData };
+        var output = { 
+            widgetData: testData,
+            numExtAdds: 1,
+            numIntAdds: 1
+        };
 
         //Add additional content to match the objects in to_json
         //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
@@ -186,8 +200,13 @@ my_widget_script =
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        // for (var i = 0; i < parsedJson.addedRows; i++) {
-        // };
+        for (var i = 0; i < parsedJson.numExtAdds; i++) {
+            my_widget_script.addSoln("external");
+        };
+
+        for (var i=0; i < parsedJson.numIntAdds; i++) {
+            my_widget_script.addSoln("internal");
+        }
     },
 
     /**
@@ -197,12 +216,62 @@ my_widget_script =
      * Here, a subset of buttons are disabled when the widget is not being edited.
      * There may be other elements that should be shown/hidden based on the mode
      */
-    adjustForMode: function (mode) {
+    adjustForMode: function (mode, parsedJson) {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
 
             $("#tableDiv").show();
+        }
+    },
+
+    checkSexAndGonadStatus: function () {
+        if ($("#sex").val() === "female") { //if female
+            $(".female:not(.isIntact)").show(); //show female class elements that don't have isIntact class
+            $(".anySex:not(.isIntact)").show(); // show anySex class elements that don't have isIntact class
+            if ($("#gonadstatus").val() === "intact") {
+                $(".cycle").show(); //only show cycle if female and intact
+                $(".isIntact").show();  // show isIntact class elements
+                $(".gdx").hide();
+            } else if($("#gonadstatus").val() === "gdx") {
+                $(".isIntact").hide();
+                $(".gdx").show();
+                $(".cycle").hide();
+            } else {
+                $(".isIntact").hide();
+                $(".gdx").hide();
+                $(".cycle").hide();
+            }
+            $(".male").hide(); //hide all male class elements. At end to resolve any isIntact male class elements
+        } else if ($("#sex").val() === "male") { //if male
+            $(".male:not(.isIntact)").show(); //show male class elements
+            $(".anySex:not(.isIntact)").show();
+            if ($("#gonadstatus").val() === "intact") {
+                $(".isIntact").show();  // show isIntact class elements
+                $(".gdx").hide();
+            } else if($("#gonadstatus").val() === "gdx") {
+                $(".isIntact").hide();
+                $(".gdx").show();
+            } else {
+                $(".isIntact").hide();
+                $(".gdx").hide();
+            }
+            $(".female").hide(); //hide female class elements
+            $(".cycle").hide(); //hide cycles for male
+        } else { //if no sex
+            if ($("#gonadstatus").val() === "intact") {
+                $(".isIntact").show();  // show isIntact class elements
+            } else if($("#gonadstatus").val() === "gdx") {
+                $(".isIntact").hide();
+                $(".gdx").show();
+            } else {
+                $(".isIntact").hide();
+                $(".gdx").hide();
+            }
+            $(".female").hide(); //hide female class elements
+            $(".male").hide(); //hide male class elements
+            $(".cycle").hide(); //hide cycles
+            $(".anySex").hide(); //hide anySex
         }
     },
 
@@ -212,9 +281,14 @@ my_widget_script =
      */
     addEventListeners: function () {
         //Show/hide the table
-        $("#toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
-            var $table = $("#AmandaOutTable");
-            my_widget_script.toggleTableFuncs($table);
+        $("#selectTable").on("change", function () { //when the showTable button is clicked. Run this function
+            var tableID = $(this).val();
+            if(tableID) {
+                my_widget_script.toggleTableFuncs(tableID);
+            } else {
+                $(".outTable").hide();
+                $("#errorMsg").text("");
+            }
         });
 
         //when the calculate button is clicked, run the calcValues function
@@ -224,8 +298,37 @@ my_widget_script =
 
         //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
         $('#toCSV').on("click", function () {
-            var fileName = "recordingNotes_" + $("#MouseID").val();
-            var tableID = "outTable";
+            var selectedTable = prompt(
+                "Which table would you like to copy?\n" +
+                "Enter '1' for KNDy PNA Extracellular Analysis Project\n" +
+                "Enter '2' for the standard lab output table\n" + 
+                "Enter '3' for the external additions table\n" + 
+                "Enter '4' for the internal additions table\n"
+            );
+            var tableID, fileName;
+            switch (selectedTable) {
+                case '1':
+                    tableID = "AmandaOutTable";
+                    fileName = "recordingNotes_" + $("#MouseID").val();
+                    break;
+                case '2':
+                    tableID = "labOutTable";
+                    fileName = "recordingNotes_" + $("#MouseID").val();
+                    break;
+                case '3':
+                    tableID = "externalAdditionsTable";
+                    fileName = "externalSolutionAdditions_" + $("#MouseID").val();
+                    break;
+                case '4': 
+                    tableID = "internalAdditionsTable";       
+                    fileName = "internalSolutionAdditions_" + $("#MouseID").val();
+                    break;     
+                default:
+                    tableID = "labOutTable";
+                    fileName = "recordingNotes_" + $("#MouseID").val();
+                    break;
+            }
+
             var $errorMsg = $("#errorMsg");
             
             my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
@@ -233,8 +336,33 @@ my_widget_script =
 
         //When the copy button is clicked, run the copyTable function
         $("#copyDataButton").on("click", function () {
+            var selectedTable = prompt(
+                "Which table would you like to copy?\n" +
+                "Enter '1' for KNDy PNA Extracellular Analysis Project\n" +
+                "Enter '2' for the standard lab output table\n" + 
+                "Enter '3' for the external additions table\n" + 
+                "Enter '4' for the internal additions table\n"
+            );
+            
+            var $tableToCopy;
+            switch (selectedTable) {
+                case '1':
+                    $tableToCopy = $("#AmandaOutTable");
+                    break;
+                case '2':
+                    $tableToCopy = $("#labOutTable");
+                    break;
+                case '3':
+                    $tableToCopy = $("#externalAdditionsTable");
+                    break;
+                case '4': 
+                    $tableToCopy = $("#internalAdditionsTable");       
+                    break;     
+                default:
+                    $tableToCopy = $("#labOutTable");
+                    break;
+            }
             var $copyHead = $("#copyHead");
-            var $tableToCopy = $("#AmandaOutTable");
             var $tableDiv = $("#tableDiv");
             var $errorMsg = $("#errorMsg");
             var $divForCopy = $("#forCopy");
@@ -244,56 +372,25 @@ my_widget_script =
 
         //when the showGoogleDoc button is clicked, resize the containers, and toggle visability
         $("#showGoogleDoc").on("click", function () {
-            //alert("button pressed");
-            $(".iFrameDiv").toggle();
+            $("#labGoogleSheet").toggle();
             my_widget_script.resize();
+            $("#forFocus").focus();
         });
 
         //Show/hide elements based on sex
         $("#sex").on("change", function () { //when sex is changed
-            if ($("#sex").val() === "female") {
-                $(".female").show(); //show female class elements
-                $(".male").hide(); //hide male class elements
-                $(".anySex").show();
-                if ($("#gonadstatus").val() === "intact") {
-                    $(".cycle").show(); //only show cycle if intact is also true
-                } else {
-                    $(".cycle").hide();
-                }
-            } else if ($("#sex").val() === "male") { //if male
-                $(".female").hide(); //hide female class elements
-                $(".male").show(); //show male class elements
-                $(".cycle").hide(); //hide cycles for male
-                $(".anySex").show();
-            } else { //if not selected, hide everything
-                $(".female").hide(); //hide female class elements
-                $(".male").hide(); //hide male class elements
-                $(".cycle").hide(); //hide cycles for male
-                $(".anySex").hide();
-            }
-
+            my_widget_script.checkSexAndGonadStatus();
         });
 
         //Show/hide elements based on gonad status
         $("#gonadstatus").on("change", function () { //when gonad status is changed
-            if ($("#gonadstatus").val() === "intact") {
-                $(".intact").show() //show intact class elements
-                $(".gdx").hide() //hide gdx class elements
-                if ($("#sex").val() === "female") {
-                    $(".cycle").show()
-                } else {
-                    $(".cycle").hide()
-                }
-            } else if ($("#gonadstatus").val() === "gdx") {
-                $(".intact").hide() //hide intact class elements
-                $(".gdx").show() //show gdx class elements
-                $(".cycle").hide()
-            } else {
-                $(".intact").hide() //hide intact class elements
-                $(".gdx").hide() //hide gdx class elements
-                $(".cycle").hide() //hide cycle
-            }
+            my_widget_script.checkSexAndGonadStatus();
+            my_widget_script.calcSurgeryDate();
         });
+
+        $("#surgerydate").on("input", function () {
+            my_widget_script.calcSurgeryDate();
+        })
 
         $("#implantBox").on("change", function () {
             if ($("#implantBox").is(":checked")) {
@@ -303,12 +400,31 @@ my_widget_script =
             }
         });
 
+        $("#addToExternal").on("click", function () {
+            my_widget_script.addSoln("external");
+        });
 
+        $("#addToInternal").on("click", function () {
+            my_widget_script.addSoln("internal");
+        });
+
+        $("#removeLastExternal").on("click", function () {
+            my_widget_script.removeSoln("external");
+        });
+
+        $("#removeLastInternal").on("click", function () {
+            my_widget_script.removeSoln("internal");
+        });
+        
         // Output table calculations
         $(".simpleCalc").on("input", function () {
             var elementID = this.id;
             var calcID = "." + elementID + "_calc";
             my_widget_script.watchValue($(this), $(calcID));
+        });
+        
+        $(".implantCalc").on("change", function () {
+            my_widget_script.calcImplant();
         });
 
         $("#Treatment").on("change", function () {
@@ -366,44 +482,7 @@ my_widget_script =
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
-        if ($("#sex").val() === "female") {
-            $(".female").show(); //show female class elements
-            $(".male").hide(); //hide male class elements
-            $(".anySex").show();
-            if ($("#gonadstatus").val() === "intact") {
-                $(".cycle").show(); //only show cycle if intact is also true
-            } else {
-                $(".cycle").hide();
-            }
-        } else if ($("#sex").val() === "male") { //if male
-            $(".female").hide(); //hide female class elements
-            $(".male").show(); //show male class elements
-            $(".cycle").hide(); //hide cycles for male
-            $(".anySex").show();
-        } else { //if not selected, hide everything
-            $(".female").hide(); //hide female class elements
-            $(".male").hide(); //hide male class elements
-            $(".cycle").hide(); //hide cycles for male
-            $(".anySex").hide();
-        }
-
-        if ($("#gonadstatus").val() === "intact") {
-            $(".intact").show() //show intact class elements
-            $(".gdx").hide() //hide gdx class elements
-            if ($("#sex").val() === "female") {
-                $(".cycle").show()
-            } else {
-                $(".cycle").hide()
-            }
-        } else if ($("#gonadstatus").val() === "gdx") {
-            $(".intact").hide() //hide intact class elements
-            $(".gdx").show() //show gdx class elements
-            $(".cycle").hide()
-        } else {
-            $(".intact").hide() //hide intact class elements
-            $(".gdx").hide() //hide gdx class elements
-            $(".cycle").hide() //hide cycle
-        }
+        my_widget_script.checkSexAndGonadStatus();
 
         if ($("#implantBox").is(":checked")) {
             $(".implant").show() //show implant class elements
@@ -413,6 +492,10 @@ my_widget_script =
         
         //Run the calculate values function to fill with the loaded data
         this.calcValues();
+
+        $("#selectTable").val("labOutTable");
+
+        $("#labOutTable").show();
 
         my_widget_script.resize();
     },
@@ -424,13 +507,26 @@ my_widget_script =
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
+
+        //Change height of frame
+        var frameHeight = window.innerHeight;
+
+        //Change width of frame
+        var frameWidth = window.innerWidth * .9;
+
+        $("#sheetFrame").prop("height", frameHeight).prop("width", frameWidth);
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var dynamicContent = {};
+        numExtAdds = $("#externalAdditionsTable").find("tbody tr").length;
+        numIntAdds = $("#internalAdditionsTable").find("tbody tr").length;
+        var dynamicContent = {
+            numExtAdds: numExtAdds,
+            numIntAdds: numIntAdds
+        };
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -524,9 +620,9 @@ my_widget_script =
     calcGonadMass_perBodyMass: function () {
         var gonad_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
         if(isFinite(gonad_mg_per_g) && gonad_mg_per_g){
-            $("#gonad_mg_per_g_calc").text(gonad_mg_per_g.toFixed(4));
+            $(".gonad_mg_per_g_calc").text(gonad_mg_per_g.toFixed(4));
         } else {
-            $("#gonad_mg_per_g_calc").text("NA");
+            $(".gonad_mg_per_g_calc").text("NA");
         }
     },
 
@@ -589,6 +685,28 @@ my_widget_script =
         
     },
 
+    calcSurgeryDate: function () {
+        if($("#gonadstatus").val()==="gdx") {
+            my_widget_script.watchValue($("#surgerydate"), $(".surgerydate_calc"));
+        } else {
+            $(".surgerydate_calc").text("NA");
+        }
+    },
+
+    calcImplant: function () {
+        if ($("#implantBox").is(":checked")) {
+            $(".implant_calc").text("TRUE");
+            my_widget_script.watchValue($("#implantType"), $(".implantType_calc"));
+            my_widget_script.watchValue($("#implantDate"), $(".implantDate_calc"));
+            my_widget_script.watchValue($("#implantcomment"), $(".implantcomment_calc"));
+        } else {
+            $(".implant_calc").text("FALSE");
+            $(".implantType_calc").text("NA");
+            $(".implantDate_calc").text("NA");
+            $(".implantcomment_calc").text("NA");
+        }
+    },
+
     calcValues: function () {
 
         //Elements that just update based on input value
@@ -621,6 +739,12 @@ my_widget_script =
 
         //Hours since lights on
         my_widget_script.calcHoursPostLightsOn();
+
+        //Surgery date
+        my_widget_script.calcSurgeryDate();
+
+        //Implant calculations
+        my_widget_script.calcImplant();
 
         $(".outTable tr").each(function () { //for each row
             $("td", this).each(function () { //for each cell
@@ -739,13 +863,13 @@ my_widget_script =
             addLine = "\n";
         }
 
-        console.log("temp after head: " + $temp.text());
+        // console.log("temp after head: " + $temp.text());
 
         $table.find("tbody").children("tr").each(function () { //add each child of the row
             $temp.text($temp.text() + addLine);
             var addTab = "";
             $(this).find("td").each(function () {
-                console.log($(this).text());
+                // console.log($(this).text());
                 if ($(this).text()) {
                     var addText = $(this).text();
                 } else {
@@ -756,7 +880,7 @@ my_widget_script =
                 addLine = "\n";
             });
         });
-        console.log($temp.text());
+        // console.log($temp.text());
         $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
         document.execCommand("copy"); //copy the "selected" text
         $temp.remove(); //remove temp
@@ -769,11 +893,13 @@ my_widget_script =
      * 
      * @param {*} $table - jQuery object that is the table that will be shown/hidden
      */
-    toggleTableFuncs: function ($table) {
+    toggleTableFuncs: function (tableName) {
         my_widget_script.resize();
         my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
         my_widget_script.calcValues();
-        $table.toggle();
+        var $table = $("#"+tableName);
+        $table.show();
+        $(".outTable:not(#"+tableName).hide();
         my_widget_script.parent_class.resize_container();
     },
 
@@ -853,5 +979,107 @@ my_widget_script =
     watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
         $elToUpdate.text(value);
+        my_widget_script.resize();
+    },
+
+    makeSheetIframe: function (show) {
+        if(show){
+            var frameHeight = window.innerHeight;
+            var frameWidth = window.innerWidth * .9;
+            var iframeHTML = '<iframe id="sheetFrame" width="' + frameWidth + 'px" height="' + frameHeight + 'px" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing&amp;single=true&amp;widget=true&amp;headers=false" frameborder="0" scrolling="auto"></iframe><p>&nbsp;</p>'
+            $("#labGoogleSheet").html(iframeHTML).show();
+            $("#forCopy").focus();
+        } else {
+            $("#labGoogleSheet").html("").hide();
+        }
+    },
+
+    addSoln: function (internalOrExternal) {
+        var $solnDiv, basename
+        if(internalOrExternal === "internal") {
+            $solnDiv = $("#internalAdditionsDiv");
+            basename = "internal";
+            $solnTable = $("#internalAdditionsTable");
+        } else {
+            $solnDiv = $("#externalAdditionsDiv");
+            basename = "external";
+            $solnTable = $("#externalAdditionsTable");
+        }
+
+        var additionCount = $solnDiv.find(".addition").length + 1;
+        var additionID = basename + "_addition_" + additionCount;
+        var calcClass = additionID + "_calc"; 
+        var additionDateID = basename + "_additiondate_" + additionCount;
+        var dateCalcClass = additionDateID + "_calc";
+
+        var additionLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Name</div>';
+        var additionalDateLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Date</div>';
+
+        $solnDiv.append(
+            $('<div></div>', {
+                class: "addition",
+                id: additionID + "_div"
+            }).append(
+                additionLabelHTML
+            ).append(
+                $('<div></div>').append(
+                    $('<input/>', {
+                        id: additionID,
+                        name: additionID,
+                        class: "fullWidth simpleCalc"
+                    }).on("input", function () {
+                        var elementID = this.id;
+                        var calcID = "." + elementID + "_calc";
+                        my_widget_script.watchValue($(this), $(calcID));
+                    })
+                )
+            ).append(
+                additionalDateLabelHTML
+            ).append(
+                $('<div></div>').append(
+                    $('<input/>', {
+                        id: additionDateID,
+                        name: additionDateID,
+                        class: "fullWidth simpleCalc",
+                        type: "date"
+                    }).on("input", function () {
+                        var elementID = this.id;
+                        var calcID = "." + elementID + "_calc";
+                        my_widget_script.watchValue($(this), $(calcID));
+                    })
+                )
+            )
+        );
+
+        $solnTable.find("tbody").append(
+            $('<tr></tr>').append(
+                $('<td></td>', {
+                    class: calcClass
+                })
+            ).append(
+                $('<td></td>', {
+                    class: dateCalcClass
+                })
+            )
+        )
+
+        //resize the container
+        my_widget_script.resize();
+    },
+
+    removeSoln: function (internalOrExternal) {
+        var $solnDiv, basename
+        if(internalOrExternal === "internal") {
+            $solnDiv = $("#internalAdditionsDiv");
+            basename = "internal";
+            $solnTable = $("#internalAdditionsTable");
+        } else {
+            $solnDiv = $("#externalAdditionsDiv");
+            basename = "external";
+            $solnTable = $("#externalAdditionsTable");
+        }
+
+        $solnDiv.find(".addition").last().remove();
+        $solnTable.find("tbody tr").last().remove();
     }
 };
