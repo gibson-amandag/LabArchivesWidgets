@@ -279,6 +279,7 @@ $(document).ready(function () {
                 $(".googleLinks").hide();
                 my_widget_script.updateReminder($("#sheetLink").val());
             }
+            my_widget_script.resize();
         })
 
         $("#sheetLink").on("change", function () {
@@ -336,7 +337,7 @@ $(document).ready(function () {
         my_widget_script.parent_class.resize_container();
         
         //Change height of frame
-        var frameHeight = window.innerHeight;
+        var frameHeight = window.outerHeight * .9;
 
         //Change width of frame
         var frameWidth = window.innerWidth * .9;
@@ -387,7 +388,7 @@ $(document).ready(function () {
     },
 
     makeSheetIframe: function (srcLink) {
-        var frameHeight = window.innerHeight;
+        var frameHeight = window.outerHeight * .9;
         var frameWidth = window.innerWidth * .9;
         if(srcLink.search(/https:\/\/(docs|drive)\.google\.com\//i) != -1){
             var iframeHTML = '<iframe id="sheetFrame" width="' + frameWidth + 'px" height="' + frameHeight + 'px" src="' + srcLink + '&amp;single=true&amp;widget=true&amp;headers=false" frameborder="0"></iframe><p>&nbsp;</p>';
@@ -398,6 +399,7 @@ $(document).ready(function () {
         }
         $("#cyclesGoogleSheet").html(iframeHTML);
         $("#personalLink").html(refHTML);
+        my_widget_script.resize();
     },
 
     updateReminder: function (srcLink) {
