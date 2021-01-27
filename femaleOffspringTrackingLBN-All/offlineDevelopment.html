@@ -61,19 +61,11 @@ $(document).ready(function () {
     my_widget_script =
 {
     init: function (mode, json_data) {
-        //this method is called when the form is being constructed
-        // parameters
-        // mode = if it equals 'view' than it should not be editable
-        //        if it equals 'edit' then it will be used for entry
-        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
-        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
-
-        // json_data will contain the data to populate the form with, it will be in the form of the data
-        // returned from a call to to_json or empty if this is a new form.
-        //By default it calls the parent_class's init.
-
         //uncomment to inspect and view code while developing
         //debugger;
+
+        //Make HTML for five animals
+        this.makeHTMLforMice(5);
 
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
@@ -109,10 +101,6 @@ $(document).ready(function () {
     },
     
     to_json: function () {
-        //should return a json string containing the data entered into the form by the user
-        //whatever is return from the method is persisted in LabArchives.  must not be binary data.
-        //called when the user hits the save button, when adding or editing an entry
-
         //Acquire input data from the form using the parent_class.to_json() function
         var widgetJsonString = this.parent_class.to_json();
 
@@ -148,19 +136,7 @@ $(document).ready(function () {
         this.parent_class.from_json(JSON.stringify(parsedJson.widgetData));
     },
 
-    /**
-     * In preview, the form is populated with test data when the
-     * parent_class.test_data() function is called. This randomly selects options for 
-     * dropdown select menus, radio buttons, and checkboxes.
-     */
     test_data: function () {
-        //during development this method is called to populate your form while in preview mode
-
-        // ORIGINAL LABARCHIVES RETURN FOR TEST DATA
-        //return this.parent_class.test_data();
-
-        // CUSTOM TEST DATA
-
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
 
@@ -168,28 +144,14 @@ $(document).ready(function () {
         var output = { 
             widgetData: testData,
             tailMarks: [
-                // "",
-                // "",
-                // "<span style='color:red'>|||</span>",
-                // "",
-                // ""],
                 "<span style='color:black'>|</span>",
                 "<span style='color:green'>||</span>", 
                 "<span style='color:red'>|||</span>", 
                 "<span style='color:blue'>||||</span>",
                 "<span style='color:grey'>|||||</span>"],
-            addedRows_VOs: 
-            // [0,0,0,0,0],
-            [1, 2, 3, 4, 5],
-            addedRows_1Es: 
-            // [0,0,0,0,0],
-            [2, 3, 4, 5, 6],
+            addedRows_VOs: [1, 2, 3, 4, 5],
+            addedRows_1Es: [2, 3, 4, 5, 6],
             allVO_dates: [
-                // [""],
-                // [""],
-                // [""],
-                // [""],
-                // [""]
                 ["2021-01-01"],
                 ["2021-01-01", "2021-01-02"], 
                 ["2021-01-01", "2021-01-02", "2021-01-03"], 
@@ -197,11 +159,6 @@ $(document).ready(function () {
                 ["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04", "2021-01-05"]
             ],
             all1E_dates: [
-                // [""],
-                // [""],
-                // [""],
-                // [""],
-                // [""]
                 ["2021-01-01", "2021-01-02"], 
                 ["2021-01-01", "2021-01-02", "2021-01-03"], 
                 ["2021-01-01", "2021-01-02", "2021-01-03", "2021-01-04"],
@@ -210,33 +167,14 @@ $(document).ready(function () {
             ]
         };
 
-        //Add additional content to match the objects in to_json
-        //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
-
         //return the stringified output for use by the init function
         return JSON.stringify(output);
     },
 
     /**
-     * This function determines whether or not the user is allowed to save the widget to the page
-     * 
-     * The original LabArchives function checks for fields that have _mandatory appended to the name attribute
-     * 
-     * The custom function checks for fields with the required attribute. If any of these fields are blank, 
-     * an alert is returns that provides a fail log with the ids of the elements that are missing. If there are
-     * no blank required fields, an empty array is returned.
-     * 
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      */
     is_valid: function (b_suppress_message) {
-        //called when the user hits the save button, to allow for form validation.
-        //returns an array of dom elements that are not valid - default is those elements marked as mandatory
-        // that have no data in them.
-        //You can modify this method, to highlight bad form elements etc...
-        //LA calls this method with b_suppress_message and relies on your code to communicate issues to the user
-        //Returning an empty array [] or NULL equals no error
-        //TO DO write code specific to your form
-
         //ORIGINAL LABARCHIVES IS_VALID FUNCTION
         //return this.parent_class.is_valid(b_suppress_message);
 
@@ -292,15 +230,7 @@ $(document).ready(function () {
         return (parsedJson);
     },
 
-    /**
-     * TO DO: edit this function to reinitialize any dynamic content that is not explicity
-     * defined within the HTML code. 
-     * 
-     * This function requires the parsedJson object.
-     */
     initDynamicContent: function (parsedJson) {
-        // TO DO - lots of work to update with tail marks and making for the right mice (for < numOffspring)
-
         var maxOffspring = 5;
         // console.log("Parsed Json");
         // console.log(parsedJson);
@@ -314,8 +244,6 @@ $(document).ready(function () {
 
         //The first time that this runs when making a new widget, tailMarks (and the other components) are undefined
         //parsedJson (json_data) is just an object with various methods, but it doesn't have these parameters yet
-        //Normally, I think that this doesn't present a problem because you're not trying to get things "within" these parameters
-        //But here, we're trying to get items within arrays, but this array is undefined, so it throws an error
         if(parsedJson.tailMarks) {
             // console.log("Found tail marks and proceeding to add data for each mouse");
             for (var j = 0; j < maxOffspring; j++) {
@@ -342,13 +270,6 @@ $(document).ready(function () {
 
     },
 
-    /**
-     * TO DO: edit this function to define how the HTML elements should be adjusted
-     * based on the current mode.
-     * 
-     * Here, a subset of buttons are disabled when the widget is not being edited.
-     * There may be other elements that should be shown/hidden based on the mode
-     */
     adjustForMode: function (mode) {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
@@ -356,7 +277,14 @@ $(document).ready(function () {
             $(".hideView").hide();
             $(".massDiv").hide();
             $("#showDates").prop("checked", true).closest(".container").hide();
-            $("#datesList").show().after($("#outputDiv"));
+            $("#datesList").show();
+            $("#outputDiv").insertAfter($(".fullDemoDiv"));
+            $(".entry.mat").each(function () {
+                var mouseNum = parseInt($(this).data("num"));
+                if(mouseNum <= parseInt($("#numOffspring").val())){
+                    $(this).show();
+                }
+            });
             $(".tableDiv").show();
         } else {
             if($("#DOB").val()) {
@@ -373,10 +301,31 @@ $(document).ready(function () {
         }
     },
 
-    /**
-     * TO DO: edit this function to define behavior when the user interacts with the form.
-     * This could include when buttons are clicked or when inputs change.
-     */
+    updateTailMarkButton: function ($tailMark) {
+        if($tailMark.hasClass("mouse1")) {
+            $(".tailMark1_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        } else if($tailMark.hasClass("mouse2")) {
+            $(".tailMark2_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        } else if($tailMark.hasClass("mouse3")) {
+            $(".tailMark3_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        } else if($tailMark.hasClass("mouse4")) {
+            $(".tailMark4_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        } else if($tailMark.hasClass("mouse5")) {
+            $(".tailMark5_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        }
+        my_widget_script.resize();
+    },
+
     addEventListeners: function () {
         // Add red tail mark
         $(".redButton").on("click", function () {
@@ -384,29 +333,7 @@ $(document).ready(function () {
                 "<span style='color:red'>|</span>"
             );
 
-            if($(this).hasClass("mouse1")) {
-                $(".tailMark1_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse2")) {
-                $(".tailMark2_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse3")) {
-                $(".tailMark3_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse4")) {
-                $(".tailMark4_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse5")) {
-                $(".tailMark5_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            }
-
-            my_widget_script.resize();
+            my_widget_script.updateTailMarkButton($(this));
         });
 
         $(".blackButton").on("click", function () {
@@ -414,29 +341,7 @@ $(document).ready(function () {
                 "<span style='color:black'>|</span>"
             );
 
-            if($(this).hasClass("mouse1")) {
-                $(".tailMark1_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse2")) {
-                $(".tailMark2_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse3")) {
-                $(".tailMark3_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse4")) {
-                $(".tailMark4_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse5")) {
-                $(".tailMark5_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            }
-
-            my_widget_script.resize();
+            my_widget_script.updateTailMarkButton($(this));
         });
 
         $(".clearButton").on("click", function () {
@@ -444,29 +349,7 @@ $(document).ready(function () {
                 ""
             );
             
-            if($(this).hasClass("mouse1")) {
-                $(".tailMark1_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse2")) {
-                $(".tailMark2_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse3")) {
-                $(".tailMark3_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse4")) {
-                $(".tailMark4_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse5")) {
-                $(".tailMark5_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            }
-
-            my_widget_script.resize();
+            my_widget_script.updateTailMarkButton($(this));
         });
 
         // Output table calculations
@@ -499,7 +382,7 @@ $(document).ready(function () {
         $("#numOffspring").on("change", function () {
             my_widget_script.adjustForNumOffspring();
             my_widget_script.switchMouseForEntry();
-            my_widget_script.resize();
+            var numMice = parseInt($(this).val());
         });
 
         $(".mouseID").on("input", function () {
@@ -521,10 +404,8 @@ $(document).ready(function () {
             var pnd = $(this).val();
             if (pnd) {
                 my_widget_script.switchMassTable(pnd);
-                $(".selectMouse").show();
             } else {
                 $(".massDiv").hide();
-                $(".selectMouse").hide();
             }
             my_widget_script.resize();
         });
@@ -668,13 +549,6 @@ $(document).ready(function () {
         my_widget_script.resize();
     },
 
-    /**
-     * TO DO: edit this function to define the symbols that should be added to the HTML
-     * page based on whether or not a field is required to save the widget to the page
-     * 
-     * Here, the function adds a blue # before fields of the class "needForTableLab" and a 
-     * red * before fields with the "requiredLab" property
-     */
     addRequiredFieldIndicators: function () {
         $('.needForTableLab').each(function () { //find element with class "needForTableLab"
             //alert($(this).val());
@@ -687,20 +561,33 @@ $(document).ready(function () {
         });
     },
 
-    /**
-     * TO DO: edit this function to define how the form should be initilized based 
-     * on the existing form values. This is particularly important for when the 
-     * widget already has data entered, such as when saved to a page.
-     */
+    updateTailMarkCalc: function ($tailMark) {
+        var mouseNum = $tailMark.data("num");
+        var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
+        $tailMarkCalc.html($tailMark.html());
+        
+        my_widget_script.resize();
+    },
+
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
         $('.myLeftCol2').addClass("col-6 col-md-4 col-lg-3 text-right");
+        $('.myLeftCol3').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right font-weight-bold");
+        $(".med2").addClass("col-12 col-md-6 col-lg");
+        $(".med3").addClass("col-12 col-sm-6 col-md-4");
+        // $(".calcFull").addClass("simpleCalc fullWidth");
 
         if($("#editDemo").is(":checked")){
             $(".editDemoChecked").show();
         } else {
             $(".editDemoChecked").hide();
+        }
+        
+        if($("#showDates").is(":checked")){
+            $("#datesList").show();
+        } else {
+            $("#datesList").hide();
         }
 
         $(".simpleCalc").each(function () {
@@ -709,27 +596,14 @@ $(document).ready(function () {
             my_widget_script.watchValue($(this), $(calcID));
         });
 
-        
-        if($("#showDates").is(":checked")){
-            $("#datesList").show();
-        } else {
-            $("#datesList").hide();
-        }
-
         $(".addMatDate").val(my_widget_script.getLocalDateString());
-
-        if($("#massSelect").val()) {
-           $(".selectMouse").show();
-        } else {
-            $(".selectMouse").hide();
-        }
 
         $(".mouseID").each(function () {
             var mouseNum = $(this).data("num");
 
             $("#mouseSelect option.mouse" + mouseNum).text($(this).val());
         });
-
+        
         my_widget_script.adjustForNumOffspring();
         my_widget_script.switchMouseForEntry();
         my_widget_script.printPND_days();
@@ -739,7 +613,6 @@ $(document).ready(function () {
         my_widget_script.watchForVO();
         my_widget_script.watchFor1E();
         my_widget_script.calcValues();
-
         my_widget_script.resize();
     },
 
@@ -752,10 +625,6 @@ $(document).ready(function () {
         return(dateTodayString);
     },
 
-    /**
-     * TO DO: edit this function to define which <div>s or other elements
-     * should be adjusted based on the current width of the window
-     */
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
@@ -766,13 +635,6 @@ $(document).ready(function () {
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
         var tailMarks, addedRows_VOs, addedRows_1Es, allVO_dates, all1E_dates;
-        // var tailMark1, addedRows_VO1, addedRows_1E1;
-        // var tailMark2, addedRows_VO2, addedRows_1E2;
-        // var tailMark3, addedRows_VO3, addedRows_1E3;
-        // var tailMark4, addedRows_VO4, addedRows_1E4;
-        // var tailMark5, addedRows_VO5, addedRows_1E5;
-
-        // TO-DO for each numOffspring
         var maxOffspring = 5;
 
         tailMarks = [];
@@ -840,12 +702,6 @@ $(document).ready(function () {
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
     /** -----------------------------------------------------------------------------
-     * VALIDATE FORM ENTRY BEFORE COPYING OR SAVING TABLE TO CSV
-     *
-     * This function will check that elements with a class "needForTable"
-     * are not blank. If there are blank elements, it will return false
-     * and will post an error message "Please fill out all elements marked by a blue #"
-     *
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      * -----------------------------------------------------------------------------
      */
@@ -872,13 +728,7 @@ $(document).ready(function () {
         return valid;
     },
 
-    /**
-     * This takes the value of the input for the $elToWatch and then updates the text of 
-     * $elToUpdate to match whenever watchValue is called
-     * @param {*} $elToWatch - jQuery object with the input element whose value will be used to update
-     * @param {*} $elToUpdate - jQuery object of the element whose text will be updated based on the element to watch
-     */
-     watchValue: function ($elToWatch, $elToUpdate) {
+    watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
         $elToUpdate.text(value);
         my_widget_script.resize();
@@ -972,23 +822,19 @@ $(document).ready(function () {
             // Set massSelect to today's date
             $("#massSelect").val("pnd"+PND_today);
             my_widget_script.switchMassTable("pnd"+PND_today);
-            $(".selectMouse").show();
         } else if ($.inArray(PND_today, [22, 23, 24, 70, 71, 72]) !== -1) {
             $toDoStatus.html("<span style='color:blue'>Take mass and AGD today</span>");
             // Set massSelect to today's date
             $("#massSelect").val("pnd"+PND_today);
             my_widget_script.switchMassTable("pnd"+PND_today);
-            $(".selectMouse").show();
         } else if (PND_today === 21) {
             $toDoStatus.html("<span style='color:blue'>Wean and take mass today - enter in litter widget</span>");
             $("#massSelect").val("");
             my_widget_script.switchMassTable("");
-            $(".selectMouse").hide();
         } else {
             $toDoStatus.html("<em>No mass or AGD today</em>");
             $("#massSelect").val("");
             my_widget_script.switchMassTable($("#massSelect").val());
-            $(".selectMouse").hide();
         }
     },
 
@@ -1144,49 +990,56 @@ $(document).ready(function () {
             // console.log("Mouse Number is " + mouseNum);
             var dataSearch = "[data-num='" + mouseNum + "']";
 
-            $(".VO_state" + dataSearch).each(function () {
-                // console.log("within .VO_state function");
-                var $this = $(this);
-                
-                // if the state is VO
-                if($this.val()==="VO") {
-                    $(".ifVO" + dataSearch).show();
-                    anyHasReachedVO = true;
-                    hasReachedVO = true;
-                    thisPndAtVO = $this.closest(".addedRow").find(".mat_pnd").text();
-                    thisVODate = $this.closest(".addedRow").find(".mat_date").text();
-
-                    if(dateAtVO) { //if there's a value for dateAtVO
-                        if(new Date(thisVODate).getTime() < new Date(dateAtVO).getTime()) { //if this date is earlier than current dateAtVO
+            if($(".VO_state" + dataSearch).length === 0){
+                $(".ifVO" + dataSearch).hide();
+                $(".VO_status" + dataSearch).removeClass("reached").addClass("notReached").text("has NOT yet");
+                $(".VO_PND" + mouseNum + "_calc").text("NA");
+                $(".VO_mass" + mouseNum + "_calc").text("NA");
+                $(".VO_date" + mouseNum + "_calc").text("NA");
+            } else {
+                $(".VO_state" + dataSearch).each(function () {
+                    // console.log("within .VO_state function");
+                    var $this = $(this);
+                    
+                    // if the state is VO
+                    if($this.val()==="VO") {
+                        $(".ifVO" + dataSearch).show();
+                        anyHasReachedVO = true;
+                        hasReachedVO = true;
+                        thisPndAtVO = $this.closest(".addedRow").find(".mat_pnd").text();
+                        thisVODate = $this.closest(".addedRow").find(".mat_date").text();
+    
+                        if(dateAtVO) { //if there's a value for dateAtVO
+                            if(new Date(thisVODate).getTime() < new Date(dateAtVO).getTime()) { //if this date is earlier than current dateAtVO
+                                dateAtVO = thisVODate;
+                                pndAtVO = thisPndAtVO;
+                            }
+                        } else { //if no dateAtVO
                             dateAtVO = thisVODate;
                             pndAtVO = thisPndAtVO;
                         }
-                    } else { //if no dateAtVO
-                        dateAtVO = thisVODate;
-                        pndAtVO = thisPndAtVO;
+    
+                        $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow"); 
+                    } else {
+                        $this.css("background-color", "").closest(".row").css("background-color", ""); 
                     }
-
-                    $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow"); 
-                } else {
-                    $this.css("background-color", "").closest(".row").css("background-color", ""); 
-                }
-
-                if(hasReachedVO){
-                    // console.log(mouseNum + "has reached VO");
-                    $(".VO_status" + dataSearch).removeClass("notReached").addClass("reached").text("has");
-                    $(".VO_PND" + mouseNum + "_calc").text(pndAtVO);
-                    $(".VO_date" + mouseNum + "_calc").text(dateAtVO);
-                    my_widget_script.watchVO_mass(mouseNum, true);
-                } else {
-                    // console.log(mouseNum + "has not reached VO");
-                    $(".ifVO" + dataSearch).hide();
-                    $(".VO_status" + dataSearch).removeClass("reached").addClass("notReached").text("has NOT yet");
-                    $(".VO_PND" + mouseNum + "_calc").text("NA");
-                    $(".VO_mass" + mouseNum + "_calc").text("NA");
-                    $(".VO_date" + mouseNum + "_calc").text("NA");
-                }
-            });
-
+    
+                    if(hasReachedVO){
+                        // console.log(mouseNum + "has reached VO");
+                        $(".VO_status" + dataSearch).removeClass("notReached").addClass("reached").text("has");
+                        $(".VO_PND" + mouseNum + "_calc").text(pndAtVO);
+                        $(".VO_date" + mouseNum + "_calc").text(dateAtVO);
+                        my_widget_script.watchVO_mass(mouseNum, true);
+                    } else {
+                        // console.log(mouseNum + "has not reached VO");
+                        $(".ifVO" + dataSearch).hide();
+                        $(".VO_status" + dataSearch).removeClass("reached").addClass("notReached").text("has NOT yet");
+                        $(".VO_PND" + mouseNum + "_calc").text("NA");
+                        $(".VO_mass" + mouseNum + "_calc").text("NA");
+                        $(".VO_date" + mouseNum + "_calc").text("NA");
+                    }
+                });
+            }
         }
 
         if (anyHasReachedVO) {
@@ -1291,9 +1144,6 @@ $(document).ready(function () {
             }
 
         }
-
-
-
         my_widget_script.resize();
     },
 
@@ -1306,7 +1156,6 @@ $(document).ready(function () {
         } else {
             $(".massDiv").hide();
         }
-
         my_widget_script.resize();
     },
 
@@ -1615,6 +1464,152 @@ $(document).ready(function () {
         }
 
         my_widget_script.resize();
+    },
+
+    makeHTMLforMice: function (numMice) {
+        my_widget_script.makeVOStatusMsg(numMice);
+        my_widget_script.make1EStatusMsg(numMice);
+        my_widget_script.makeDemoEntries(numMice);
+    },
+
+    makeVOStatusMsg: function (numMice) {
+        var $VOmsgDiv = $("#VOmsgDiv");
+        $VOmsgDiv.html(""); //clear
+        for(i = 0; i < numMice; i ++ ) {
+            var mouseNum = i + 1;
+            $VOmsgDiv.append(
+                $("<div/>", {
+                    "class": "mouse" + mouseNum
+                }).append(
+                    'Mouse <span class="mouseID' + mouseNum + '_calc">__</span> ' +  
+                    '<span class="tailMark' + mouseNum + '_calc">&nbsp;</span> <span class="VO_status notReached" data-num="'+mouseNum+'">has NOT yet</span> had vaginal opening ' +
+                    '<span class="ifVO" data-num="'+mouseNum+'">on PND <span class="VO_PND'+mouseNum+'_calc">&nbsp;</span> with a mass of <span class="VO_mass'+mouseNum+'_calc">&nbsp;</span> g</span>'
+                )
+            );
+        }
+    },
+
+    make1EStatusMsg: function (numMice) {
+        var $firstEmsgDiv = $("#firstEmsgDiv");
+        $firstEmsgDiv.html(""); //clear
+        for(i = 0; i < numMice; i ++ ) {
+            var mouseNum = i + 1;
+            $firstEmsgDiv.append(
+                $("<div/>", {
+                    "class": "mouse" + mouseNum + " ifVO",
+                    "data-num": mouseNum
+                }).append(
+                    'Mouse <span class="mouseID' + mouseNum + '_calc">__</span> ' +  
+                    '<span class="tailMark' + mouseNum + '_calc">&nbsp;</span> <span class="firstE_status notReached" data-num="'+mouseNum+'">has NOT yet</span> had first estrus ' +
+                    '<span class="if1E" data-num="'+mouseNum+'">on PND <span class="firstE_PND'+mouseNum+'_calc">&nbsp;</span> with a mass of <span class="firstE_mass'+mouseNum+'_calc">&nbsp;</span> g</span>'
+                )
+            );
+        }
+    },
+
+    makeDemoEntries: function (numMice) {
+        var $demoEntryDiv = $("#demoEntryDiv");
+        $demoEntryDiv.html(""); //clear
+
+        var showChecked = "col-12 hideView editDemoChecked";
+
+        for(i = 0; i < numMice; i ++ ) {
+            var mouseNum = i + 1;
+            $demoEntryDiv.append(
+                $("<div/>", {
+                    "class": "mouse" + mouseNum + " row mt-2"
+                }).append(
+                    $("<div/>", {
+                        "class": "col-4 container"
+                    }).append(
+                        $("<div/>", {
+                            "class": "row"
+                        }).append(
+                            $("<div/>", {
+                                "class": "col-12"
+                            }).append(
+                                "<h4 class='needForTableLab'>Mouse " + mouseNum + " ID</h4"
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": showChecked + " mouse" + mouseNum
+                            }).append(
+                                '<input type="text" class="simpleCalc mouseID" id="mouseID'+mouseNum+'" name="mouseid'+mouseNum+'" data-num="'+mouseNum+'"/>'
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": "col-12 mouseID"+mouseNum+"_calc mouse"+mouseNum
+                            })
+                        )
+                    )
+                ).append(
+                    $("<div/>", {
+                        "class": "col-4 container"
+                    }).append(
+                        $("<div/>", {
+                            "class": "row"
+                        }).append(
+                            $("<div/>", {
+                                "class": "col-12"
+                            }).append(
+                                "<h4>Ear Tag " + mouseNum + "</h4"
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": showChecked + " mouse" + mouseNum
+                            }).append(
+                                $("<select/>", {
+                                    name: "eartag" + mouseNum,
+                                    id: "earTag" + mouseNum,
+                                    "class": "simpleCalc"
+                                }).append(
+                                    "<option value=''>[Select]</option>"+
+                                    "<option value='04'>04</option>"+
+                                    "<option value='06'>06</option>"+
+                                    "<option value='40'>40</option>"+
+                                    "<option value='60'>60</option>"+
+                                    "<option value='44'>44</option>"+
+                                    "<option value='66'>66</option>"+
+                                    "<option value='46'>46</option>"+
+                                    "<option value='64'>64</option>"
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": "col-12 earTag"+mouseNum+"_calc mouse"+mouseNum
+                            })
+                        )
+                    )
+                ).append(
+                    $("<div/>", {
+                        "class": "col-4 container"
+                    }).append(
+                        $("<div/>", {
+                            "class": "row"
+                        }).append(
+                            $("<div/>", {
+                                "class": "col-12"
+                            }).append(
+                                "<h4>Tail Mark " + mouseNum + "</h4"
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": showChecked
+                            }).append(
+                                '<input type="button" value="Red |" id="redButton'+mouseNum+'" name="redbutton'+mouseNum+'" class="redButton mouse'+mouseNum+'"/> '+
+                                '<input type="button" value="Black |" id="blackButton'+mouseNum+'" name="blackbutton'+mouseNum+'" class="blackButton mouse'+mouseNum+'"/> '+
+                                '<input type="button" value="Clear" id="clearButton'+mouseNum+'" name="clearbutton'+mouseNum+'" class="clearButton mouse'+mouseNum+'"/> '+
+                                '<span class="tailMark" id="tailMark'+mouseNum+'" data-num="'+mouseNum+'">&nbsp;</span>'
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": "col-12 tailMark"+mouseNum+"_calc mouse"+mouseNum
+                            })
+                        )
+                    )
+                )
+            )
+        }
     }
 };
 
@@ -1647,70 +1642,54 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
 <!------------------------------------------------------------------------------------------>
 <!-- #region HTML -->
-<!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
-<!-- Load jQuery for Bootstrap -->
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"
     integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-<!-- Load bootstrap java -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
-<!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
 <script>
     var $jq351 = jQuery.noConflict(true);
 </script>
 <style type="text/css">
-    /* TO DO Place css styling code here */
-
-    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
     @media (max-width: 576px) {
         .xsTableDiv {
             width: 300px !important;
             overflow-x: scroll;
         }
     }
-
     table {
         border: 2px solid black;
     }
-
     th {
         padding: 5px;
         border: 2px solid black;
     }
-
     td {
         padding: 5px;
         border: 1px solid black;
     }
-
-    .fullWidth {
+    .fullWidth, .simpleCalc {
         width: 90%
     }
-
     .notReached {
         color: red;
         font-weight: bold;
     }
-
     .reached {
         color: blue;
         font-style: italic;
     }
-
     .blackBackground {
         background-color: black;
         color: white;
     }
-
     .massDiv, .ifOther, .ifVO, .tableDiv, .forCopy {
         display: none;
     }
 </style>
 
-<!-- TO DO Begin typing your HTML code here -->
 <div id="titleDiv">
     <div class="container">
         <div class="row">
@@ -1719,73 +1698,27 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         </div>
     </div>
-    
-    <div class="container hideView">
-        <p>Elements that are required to save this page are marked with a red asterisk <span
-                style="color:red">*</span><br />
-            Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-                style="color:blue">#</span></p>
-    </div>
 </div>
 
-<!-- Status Messages -->
 <div class="container">
     <div class="row mt-2">
-        <div class="col-12 col-md-6 col-lg">
+        <div class="med2">
             <h4>Today is PND <span class="pndToday">[Enter DOB]</span></h4>
             <div class="toDo_status">Enter DOB to identify tasks for today</div>
         </div>
-        <div class="col-12 mt-2 col-md-6 mt-md-0 col-lg">
+        <div class="med2 mt-2 mt-md-0">
             <h4>Estrus Cycle</h4>
             <span class="cycling_status">
                 Cycle from <span class="pnd pnd70">[enter DOB]</span> to <span class="pnd pnd91">[enter DOB]</span>
             </span>
         </div>
-        <div class="col-12 mt-2 col-md-6 col-lg mt-lg-0">
+        <div class="med2 mt-2 mt-lg-0">
             <h4>Vaginal Opening</h4>
-            <div class="mouse1">
-                Mouse <span class="mouseID1_calc">__</span> <span class="tailMark1_calc">&nbsp;</span> <span class="VO_status notReached" data-num="1">has NOT yet</span> had vaginal opening 
-                <span class="ifVO" data-num="1">on PND <span class="VO_PND1_calc">&nbsp;</span> with a mass of <span class="VO_mass1_calc">&nbsp;</span> g</span>
-            </div>
-            <div class="mouse2">
-                Mouse <span class="mouseID2_calc">__</span> <span class="tailMark2_calc">&nbsp;</span> <span class="VO_status notReached" data-num="2">has NOT yet</span> had vaginal opening 
-                <span class="ifVO" data-num="2">on PND <span class="VO_PND2_calc">&nbsp;</span> with a mass of <span class="VO_mass2_calc">&nbsp;</span> g</span>
-            </div>
-            <div class="mouse3">
-                Mouse <span class="mouseID3_calc">__</span> <span class="tailMark3_calc">&nbsp;</span> <span class="VO_status notReached" data-num="3">has NOT yet</span> had vaginal opening 
-                <span class="ifVO" data-num="3">on PND <span class="VO_PND3_calc">&nbsp;</span> with a mass of <span class="VO_mass3_calc">&nbsp;</span> g</span>
-            </div>
-            <div class="mouse4">
-                Mouse <span class="mouseID4_calc">__</span> <span class="tailMark4_calc">&nbsp;</span> <span class="VO_status notReached" data-num="4">has NOT yet</span> had vaginal opening 
-                <span class="ifVO" data-num="4">on PND <span class="VO_PND4_calc">&nbsp;</span> with a mass of <span class="VO_mass4_calc">&nbsp;</span> g</span>
-            </div>
-            <div class="mouse5">
-                Mouse <span class="mouseID5_calc">__</span> <span class="tailMark5_calc">&nbsp;</span> <span class="VO_status notReached" data-num="5">has NOT yet</span> had vaginal opening 
-                <span class="ifVO" data-num="5">on PND <span class="VO_PND5_calc">&nbsp;</span> with a mass of <span class="VO_mass5_calc">&nbsp;</span> g</span>
-            </div>
+            <div id="VOmsgDiv">&nbsp;</div>
         </div>
-        <div class="col-12 mt-2 col-md-6 col-lg mt-lg-0 ifVO msg">
+        <div class="med2 mt-2 mt-lg-0 ifVO msg">
             <h4>First Estrus</h4>
-            <div class="mouse1">
-                Mouse <span class="mouseID1_calc">__</span> <span class="tailMark1_calc">&nbsp;</span> <span class="firstE_status notReached" data-num="1">has NOT yet</span> had first estrus
-                <span class="if1E" data-num="1">on PND <span class="firstE_PND1_calc">&nbsp;</span> with a mass of <span class="firstE_mass1_calc">[enter mass]</span> g</span>
-            </div>
-            <div class="mouse2">
-                Mouse <span class="mouseID2_calc">__</span> <span class="tailMark2_calc">&nbsp;</span> <span class="firstE_status notReached" data-num="2">has NOT yet</span> had first estrus
-                <span class="if1E" data-num="2">on PND <span class="firstE_PND2_calc">&nbsp;</span> with a mass of <span class="firstE_mass2_calc">[enter mass]</span> g</span>
-            </div>
-            <div class="mouse3">
-                Mouse <span class="mouseID3_calc">__</span> <span class="tailMark3_calc">&nbsp;</span> <span class="firstE_status notReached" data-num="3">has NOT yet</span> had first estrus
-                <span class="if1E" data-num="3">on PND <span class="firstE_PND3_calc">&nbsp;</span> with a mass of <span class="firstE_mass3_calc">[enter mass]</span> g</span>
-            </div>
-            <div class="mouse4">
-                Mouse <span class="mouseID4_calc">__</span> <span class="tailMark4_calc">&nbsp;</span> <span class="firstE_status notReached" data-num="4">has NOT yet</span> had first estrus
-                <span class="if1E" data-num="4">on PND <span class="firstE_PND4_calc">&nbsp;</span> with a mass of <span class="firstE_mass4_calc">[enter mass]</span> g</span>
-            </div>
-            <div class="mouse5">
-                Mouse <span class="mouseID5_calc">__</span> <span class="tailMark5_calc">&nbsp;</span> <span class="firstE_status notReached" data-num="5">has NOT yet</span> had first estrus
-                <span class="if1E" data-num="5">on PND <span class="firstE_PND5_calc">&nbsp;</span> with a mass of <span class="firstE_mass5_calc">[enter mass]</span> g</span>
-            </div>
+            <div id="firstEmsgDiv">&nbsp;</div>
         </div>
     </div>
 </div>
@@ -1801,9 +1734,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<!-- Demographic Info -->
-<div class="container mt-2">
-    <!-- Dam Cage Number and DOB -->
+<div class="container mt-2 fullDemoDiv">
     <div class="row">
         <div class="col-6 col-xl-3 container">
             <div class="row">
@@ -1811,7 +1742,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <h4>Dam ID</h4>
                 </div>
                 <div class="col-12 hideView editDemoChecked">
-                    <input class="simpleCalc fullWidth" id="damID" name="damid"/>
+                    <input class="simpleCalc" id="damID" name="damid"/>
                 </div>
                 <div class="col-12 damID_calc"></div>
             </div>
@@ -1823,7 +1754,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <h4 class="needForTableLab">DOB</h4>
                 </div>
                 <div class="col-12 hideView editDemoChecked">
-                    <input type="date" class="simpleCalc fullWidth needForTable" id="DOB" name="dob"/>
+                    <input type="date" class="simpleCalc needForTable" id="DOB" name="dob"/>
                 </div>
                 <div class="col-12 DOB_calc"></div>
             </div>
@@ -1835,7 +1766,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <h4>Cage #</h4>
                 </div>
                 <div class="col-12 hideView editDemoChecked">
-                    <input type="number" class="simpleCalc fullWidth" id="cageNum" name="cagenum"/>
+                    <input type="number" class="simpleCalc" id="cageNum" name="cagenum"/>
                 </div>
                 <div class="col-12 cageNum_calc"></div>
             </div>
@@ -1847,279 +1778,13 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <h4># of Females</h4>
                 </div>
                 <div class="col-12 hideView editDemoChecked">
-                    <input type="number" class="simpleCalc fullWidth" id="numOffspring" name="numoffspring" min="1" max="5"/>
+                    <input type="number" class="simpleCalc" id="numOffspring" name="numoffspring" min="1" max="5"/>
                 </div>
                 <div class="col-12 numOffspring_calc"></div>
             </div>
         </div>
     </div>
-
-    <!-- Mouse 1 -->
-    <div class="mouse1 row mt-2">
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4 class="needForTableLab">Mouse 1 ID</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked mouse1">
-                    <input type="text" class="simpleCalc fullWidth mouseID" id="mouseID1" name="mouseid1" data-num="1"/>
-                </div>
-                <div class="col-12 mouseID1_calc mouse1">&nbsp;</div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Ear Tag 1</h4>
-                </div>
-
-                <div class="col-12 hideView editDemoChecked mouse1">
-                    <select name="eartag1" id="earTag1" class="simpleCalc fullWidth">
-                        <option value=''>[Select]</option>
-                        <option value='04'>04</option>
-                        <option value='06'>06</option>
-                        <option value='40'>40</option>
-                        <option value='60'>60</option>
-                        <option value='44'>44</option>
-                        <option value='66'>66</option>
-                        <option value='46'>46</option>
-                        <option value='64'>64</option>
-                    </select>
-                </div>
-                <div class="col-12 earTag1_calc mouse1"></div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Tail Mark 1</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked">
-                    <input type="button" value="Red |" id="redButton1" name="redbutton1" class="redButton mouse1"/> 
-                    <input type="button" value="Black |" id="blackButton1" name="blackbutton1" class="blackButton mouse1"/>
-                    <input type="button" value="Clear" id="clearButton1" name="clearbutton1" class="clearButton mouse1"/>
-                    <span class="tailMark" id="tailMark1">&nbsp;</span>
-                </div>
-                <div class="col-12 tailMark1_calc"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mouse 2 -->
-    <div class="mouse2 row mt-2">
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4 class="needForTableLab">Mouse 2 ID</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked mouse2">
-                    <input type="text" class="simpleCalc fullWidth mouseID" id="mouseID2" name="mouseid2" data-num="2"/>
-                </div>
-                <div class="col-12 mouseID2_calc mouse2">&nbsp;</div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Ear Tag 2</h4>
-                </div>
-
-                <div class="col-12 hideView editDemoChecked mouse2">
-                    <select name="eartag2" id="earTag2" class="simpleCalc fullWidth">
-                        <option value=''>[Select]</option>
-                        <option value='04'>04</option>
-                        <option value='06'>06</option>
-                        <option value='40'>40</option>
-                        <option value='60'>60</option>
-                        <option value='44'>44</option>
-                        <option value='66'>66</option>
-                        <option value='46'>46</option>
-                        <option value='64'>64</option>
-                    </select>
-                </div>
-                <div class="col-12 earTag2_calc mouse2"></div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Tail Mark 2</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked">
-                    <input type="button" value="Red |" id="redButton2" name="redbutton2" class="redButton mouse2"/> 
-                    <input type="button" value="Black |" id="blackButton2" name="blackbutton2" class="blackButton mouse2"/>
-                    <input type="button" value="Clear" id="clearButton2" name="clearbutton2" class="clearButton mouse2"/>
-                    <span class="tailMark" id="tailMark2">&nbsp;</span>
-                </div>
-                <div class="col-12 tailMark2_calc"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mouse 3 -->
-    <div class="mouse3 row mt-2">
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4 class="needForTableLab">Mouse 3 ID</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked mouse3">
-                    <input type="text" class="simpleCalc fullWidth mouseID" id="mouseID3" name="mouseid3" data-num="3"/>
-                </div>
-                <div class="col-12 mouseID3_calc mouse3">&nbsp;</div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Ear Tag 3</h4>
-                </div>
-
-                <div class="col-12 hideView editDemoChecked mouse3">
-                    <select name="eartag3" id="earTag3" class="simpleCalc fullWidth">
-                        <option value=''>[Select]</option>
-                        <option value='04'>04</option>
-                        <option value='06'>06</option>
-                        <option value='40'>40</option>
-                        <option value='60'>60</option>
-                        <option value='44'>44</option>
-                        <option value='66'>66</option>
-                        <option value='46'>46</option>
-                        <option value='64'>64</option>
-                    </select>
-                </div>
-                <div class="col-12 earTag3_calc mouse3"></div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Tail Mark 3</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked">
-                    <input type="button" value="Red |" id="redButton3" name="redbutton3" class="redButton mouse3"/> 
-                    <input type="button" value="Black |" id="blackButton3" name="blackbutton3" class="blackButton mouse3"/>
-                    <input type="button" value="Clear" id="clearButton3" name="clearbutton3" class="clearButton mouse3"/>
-                    <span class="tailMark" id="tailMark3">&nbsp;</span>
-                </div>
-                <div class="col-12 tailMark3_calc"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mouse 4 -->
-    <div class="mouse4 row mt-2">
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4 class="needForTableLab">Mouse 4 ID</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked mouse4">
-                    <input type="text" class="simpleCalc fullWidth mouseID" id="mouseID4" name="mouseid4" data-num="4"/>
-                </div>
-                <div class="col-12 mouseID4_calc mouse4">&nbsp;</div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Ear Tag 4</h4>
-                </div>
-
-                <div class="col-12 hideView editDemoChecked mouse4">
-                    <select name="eartag4" id="earTag4" class="simpleCalc fullWidth">
-                        <option value=''>[Select]</option>
-                        <option value='04'>04</option>
-                        <option value='06'>06</option>
-                        <option value='40'>40</option>
-                        <option value='60'>60</option>
-                        <option value='44'>44</option>
-                        <option value='66'>66</option>
-                        <option value='46'>46</option>
-                        <option value='64'>64</option>
-                    </select>
-                </div>
-                <div class="col-12 earTag4_calc mouse4"></div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Tail Mark 4</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked">
-                    <input type="button" value="Red |" id="redButton4" name="redbutton4" class="redButton mouse4"/> 
-                    <input type="button" value="Black |" id="blackButton4" name="blackbutton4" class="blackButton mouse4"/>
-                    <input type="button" value="Clear" id="clearButton4" name="clearbutton4" class="clearButton mouse4"/>
-                    <span class="tailMark" id="tailMark4">&nbsp;</span>
-                </div>
-                <div class="col-12 tailMark4_calc"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mouse 5 -->
-    <div class="mouse5 row mt-2">
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4 class="needForTableLab">Mouse 5 ID</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked mouse5">
-                    <input type="text" class="simpleCalc fullWidth mouseID" id="mouseID5" name="mouseid5" data-num="5"/>
-                </div>
-                <div class="col-12 mouseID5_calc mouse5">&nbsp;</div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Ear Tag 5</h4>
-                </div>
-
-                <div class="col-12 hideView editDemoChecked mouse5">
-                    <select name="eartag5" id="earTag5" class="simpleCalc fullWidth">
-                        <option value=''>[Select]</option>
-                        <option value='04'>04</option>
-                        <option value='06'>06</option>
-                        <option value='40'>40</option>
-                        <option value='60'>60</option>
-                        <option value='44'>44</option>
-                        <option value='66'>66</option>
-                        <option value='46'>46</option>
-                        <option value='64'>64</option>
-                    </select>
-                </div>
-                <div class="col-12 earTag5_calc mouse5"></div>
-            </div>
-        </div>
-
-        <div class="col-4 container">
-            <div class="row">
-                <div class="col-12">
-                    <h4>Tail Mark 5</h4>
-                </div>
-                <div class="col-12 hideView editDemoChecked">
-                    <input type="button" value="Red |" id="redButton5" name="redbutton5" class="redButton mouse5"/> 
-                    <input type="button" value="Black |" id="blackButton5" name="blackbutton5" class="blackButton mouse5"/>
-                    <input type="button" value="Clear" id="clearButton5" name="clearbutton5" class="clearButton mouse5"/>
-                    <span class="tailMark" id="tailMark5">&nbsp;</span>
-                </div>
-                <div class="col-12 tailMark5_calc"></div>
-            </div>
-        </div>
-    </div>  
-
-    </div>
+    <div id="demoEntryDiv"></div>
     
 </div>
 
@@ -2131,40 +1796,24 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2" id="datesList">
     <div class="row">
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 21: </strong><span class="pnd pnd21">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 22: </strong><span class="pnd pnd22">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 23: </strong><span class="pnd pnd23">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 24: </strong><span class="pnd pnd24">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 28: </strong><span class="pnd pnd28">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 35: </strong><span class="pnd pnd35">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 42: </strong><span class="pnd pnd42">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 49: </strong><span class="pnd pnd49">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 56: </strong><span class="pnd pnd56">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 63: </strong><span class="pnd pnd63">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 70: </strong><span class="pnd pnd70">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 71: </strong><span class="pnd pnd71">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 72: </strong><span class="pnd pnd72">&nbsp;</span></div>
-
-        <div class="col-12 col-sm-6 col-md-4"><strong>PND 91: </strong><span class="pnd pnd91">&nbsp;</span></div>
+        <div class="med3"><strong>PND 21: </strong><span class="pnd pnd21">&nbsp;</span></div>
+        <div class="med3"><strong>PND 22: </strong><span class="pnd pnd22">&nbsp;</span></div>
+        <div class="med3"><strong>PND 23: </strong><span class="pnd pnd23">&nbsp;</span></div>
+        <div class="med3"><strong>PND 24: </strong><span class="pnd pnd24">&nbsp;</span></div>
+        <div class="med3"><strong>PND 28: </strong><span class="pnd pnd28">&nbsp;</span></div>
+        <div class="med3"><strong>PND 35: </strong><span class="pnd pnd35">&nbsp;</span></div>
+        <div class="med3"><strong>PND 42: </strong><span class="pnd pnd42">&nbsp;</span></div>
+        <div class="med3"><strong>PND 49: </strong><span class="pnd pnd49">&nbsp;</span></div>
+        <div class="med3"><strong>PND 56: </strong><span class="pnd pnd56">&nbsp;</span></div>
+        <div class="med3"><strong>PND 63: </strong><span class="pnd pnd63">&nbsp;</span></div>
+        <div class="med3"><strong>PND 70: </strong><span class="pnd pnd70">&nbsp;</span></div>
+        <div class="med3"><strong>PND 71: </strong><span class="pnd pnd71">&nbsp;</span></div>
+        <div class="med3"><strong>PND 72: </strong><span class="pnd pnd72">&nbsp;</span></div>
+        <div class="med3"><strong>PND 91: </strong><span class="pnd pnd91">&nbsp;</span></div>
     </div>
 </div>
 
-<!-- Entry div to move to the top when editing -->
 <div id="entryDiv">
-    <!-- Mass and AGD Tables -->
-    
     <div class="container mt-2 hideView">
         <div class="row align-items-center">
             <div class="myLeftCol">
@@ -2206,7 +1855,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
     </div>
     
-    <!-- PND 22 -->
     <div class="container mt-2 _pnd22 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 22:</div>
@@ -2215,57 +1863,56 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd22_1" id="mass_pnd22_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd22_1" id="mass_pnd22_1" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd22_1" id="AGD_pnd22_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd22_1" id="AGD_pnd22_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd22_2" id="mass_pnd22_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd22_2" id="mass_pnd22_2" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd22_2" id="AGD_pnd22_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd22_2" id="AGD_pnd22_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd22_3" id="mass_pnd22_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd22_3" id="mass_pnd22_3" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd22_3" id="AGD_pnd22_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd22_3" id="AGD_pnd22_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd22_4" id="mass_pnd22_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd22_4" id="mass_pnd22_4" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd22_4" id="AGD_pnd22_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd22_4" id="AGD_pnd22_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd22_5" id="mass_pnd22_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd22_5" id="mass_pnd22_5" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd22_5" id="AGD_pnd22_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd22_5" id="AGD_pnd22_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 23 -->
     <div class="container mt-2 _pnd23 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 23:</div>
@@ -2274,57 +1921,56 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd23_1" id="mass_pnd23_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd23_1" id="mass_pnd23_1" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd23_1" id="AGD_pnd23_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd23_1" id="AGD_pnd23_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd23_2" id="mass_pnd23_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd23_2" id="mass_pnd23_2" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd23_2" id="AGD_pnd23_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd23_2" id="AGD_pnd23_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd23_3" id="mass_pnd23_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd23_3" id="mass_pnd23_3" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd23_3" id="AGD_pnd23_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd23_3" id="AGD_pnd23_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd23_4" id="mass_pnd23_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd23_4" id="mass_pnd23_4" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd23_4" id="AGD_pnd23_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd23_4" id="AGD_pnd23_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd23_5" id="mass_pnd23_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd23_5" id="mass_pnd23_5" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd23_5" id="AGD_pnd23_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd23_5" id="AGD_pnd23_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 24 -->
     <div class="container mt-2 _pnd24 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 24:</div>
@@ -2333,57 +1979,56 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd24_1" id="mass_pnd24_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd24_1" id="mass_pnd24_1" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd24_1" id="AGD_pnd24_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd24_1" id="AGD_pnd24_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd24_2" id="mass_pnd24_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd24_2" id="mass_pnd24_2" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd24_2" id="AGD_pnd24_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd24_2" id="AGD_pnd24_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd24_3" id="mass_pnd24_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd24_3" id="mass_pnd24_3" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd24_3" id="AGD_pnd24_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd24_3" id="AGD_pnd24_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd24_4" id="mass_pnd24_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd24_4" id="mass_pnd24_4" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd24_4" id="AGD_pnd24_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd24_4" id="AGD_pnd24_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd24_5" id="mass_pnd24_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd24_5" id="mass_pnd24_5" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd24_5" id="AGD_pnd24_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd24_5" id="AGD_pnd24_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 28 -->
     <div class="container mt-2 _pnd28 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 28:</div>
@@ -2392,37 +2037,36 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd28_1" id="mass_pnd28_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd28_1" id="mass_pnd28_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd28_2" id="mass_pnd28_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd28_2" id="mass_pnd28_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd28_3" id="mass_pnd28_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd28_3" id="mass_pnd28_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd28_4" id="mass_pnd28_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd28_4" id="mass_pnd28_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd28_5" id="mass_pnd28_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd28_5" id="mass_pnd28_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 35 -->
     <div class="container mt-2 _pnd35 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 35:</div>
@@ -2431,37 +2075,36 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd35_1" id="mass_pnd35_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd35_1" id="mass_pnd35_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd35_2" id="mass_pnd35_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd35_2" id="mass_pnd35_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd35_3" id="mass_pnd35_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd35_3" id="mass_pnd35_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd35_4" id="mass_pnd35_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd35_4" id="mass_pnd35_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd35_5" id="mass_pnd35_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd35_5" id="mass_pnd35_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 42 -->
     <div class="container mt-2 _pnd42 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 42:</div>
@@ -2470,37 +2113,36 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd42_1" id="mass_pnd42_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd42_1" id="mass_pnd42_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd42_2" id="mass_pnd42_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd42_2" id="mass_pnd42_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd42_3" id="mass_pnd42_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd42_3" id="mass_pnd42_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd42_4" id="mass_pnd42_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd42_4" id="mass_pnd42_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd42_5" id="mass_pnd42_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd42_5" id="mass_pnd42_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 49 -->
     <div class="container mt-2 _pnd49 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 49:</div>
@@ -2509,37 +2151,36 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd49_1" id="mass_pnd49_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd49_1" id="mass_pnd49_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd49_2" id="mass_pnd49_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd49_2" id="mass_pnd49_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd49_3" id="mass_pnd49_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd49_3" id="mass_pnd49_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd49_4" id="mass_pnd49_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd49_4" id="mass_pnd49_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd49_5" id="mass_pnd49_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd49_5" id="mass_pnd49_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 56 -->
     <div class="container mt-2 _pnd56 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 56:</div>
@@ -2548,37 +2189,36 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd56_1" id="mass_pnd56_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd56_1" id="mass_pnd56_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd56_2" id="mass_pnd56_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd56_2" id="mass_pnd56_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd56_3" id="mass_pnd56_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd56_3" id="mass_pnd56_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd56_4" id="mass_pnd56_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd56_4" id="mass_pnd56_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd56_5" id="mass_pnd56_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd56_5" id="mass_pnd56_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 63 -->
     <div class="container mt-2 _pnd63 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 63:</div>
@@ -2587,38 +2227,37 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd63_1" id="mass_pnd63_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd63_1" id="mass_pnd63_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd63_2" id="mass_pnd63_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd63_2" id="mass_pnd63_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd63_3" id="mass_pnd63_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd63_3" id="mass_pnd63_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd63_4" id="mass_pnd63_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd63_4" id="mass_pnd63_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd63_5" id="mass_pnd63_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd63_5" id="mass_pnd63_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 70 -->
-    <div class="container mt-2 _pnd70 massDiv">
+   <div class="container mt-2 _pnd70 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 70:</div>
     
@@ -2626,57 +2265,56 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd70_1" id="mass_pnd70_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd70_1" id="mass_pnd70_1" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd70_1" id="AGD_pnd70_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd70_1" id="AGD_pnd70_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd70_2" id="mass_pnd70_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd70_2" id="mass_pnd70_2" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd70_2" id="AGD_pnd70_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd70_2" id="AGD_pnd70_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd70_3" id="mass_pnd70_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd70_3" id="mass_pnd70_3" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd70_3" id="AGD_pnd70_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd70_3" id="AGD_pnd70_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd70_4" id="mass_pnd70_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd70_4" id="mass_pnd70_4" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd70_4" id="AGD_pnd70_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd70_4" id="AGD_pnd70_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd70_5" id="mass_pnd70_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd70_5" id="mass_pnd70_5" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd70_5" id="AGD_pnd70_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd70_5" id="AGD_pnd70_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 71 -->
     <div class="container mt-2 _pnd71 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 71:</div>
@@ -2685,57 +2323,56 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd71_1" id="mass_pnd71_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd71_1" id="mass_pnd71_1" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd71_1" id="AGD_pnd71_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd71_1" id="AGD_pnd71_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd71_2" id="mass_pnd71_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd71_2" id="mass_pnd71_2" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd71_2" id="AGD_pnd71_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd71_2" id="AGD_pnd71_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd71_3" id="mass_pnd71_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd71_3" id="mass_pnd71_3" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd71_3" id="AGD_pnd71_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd71_3" id="AGD_pnd71_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd71_4" id="mass_pnd71_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd71_4" id="mass_pnd71_4" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd71_4" id="AGD_pnd71_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd71_4" id="AGD_pnd71_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd71_5" id="mass_pnd71_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd71_5" id="mass_pnd71_5" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd71_5" id="AGD_pnd71_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd71_5" id="AGD_pnd71_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
-    <!-- PND 72 -->
     <div class="container mt-2 _pnd72 massDiv">
         <div class="row align-items-end mt-2 blackBackground">
             <div class="myLeftCol2">PND 72:</div>
@@ -2744,89 +2381,85 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         <div class="entry" data-num="1">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd72_1" id="mass_pnd72_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd72_1" id="mass_pnd72_1" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd72_1" id="AGD_pnd72_1" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd72_1" id="AGD_pnd72_1" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="2">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd72_2" id="mass_pnd72_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd72_2" id="mass_pnd72_2" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd72_2" id="AGD_pnd72_2" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd72_2" id="AGD_pnd72_2" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="3">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd72_3" id="mass_pnd72_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd72_3" id="mass_pnd72_3" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd72_3" id="AGD_pnd72_3" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd72_3" id="AGD_pnd72_3" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="4">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd72_4" id="mass_pnd72_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd72_4" id="mass_pnd72_4" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd72_4" id="AGD_pnd72_4" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd72_4" id="AGD_pnd72_4" class="simpleCalc"/></div>
             </div>
         </div>
         <div class="entry" data-num="5">
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">Mass (g):</div>
-                <div class="col"><input type="number" name="mass_pnd72_5" id="mass_pnd72_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">Mass (g):</div>
+                <div class="col"><input type="number" name="mass_pnd72_5" id="mass_pnd72_5" class="simpleCalc"/></div>
             </div>
             <div class="row mt-2">
-                <div class="myLeftCol font-weight-bold">AGD:</div>
-                <div class="col"><input type="number" name="agd_pnd72_5" id="AGD_pnd72_5" class="simpleCalc fullWidth"/></div>
+                <div class="myLeftCol3">AGD:</div>
+                <div class="col"><input type="number" name="agd_pnd72_5" id="AGD_pnd72_5" class="simpleCalc"/></div>
             </div>
         </div>
     </div>
     
     <!-- Mouse 1 -->
-    <div class="entry" data-num="1">
-        <!-- VO -->
-        <div class="container mt-2 VO VO_div" data-num="1">
+    <div class="entry mat" data-num="1">
+       <div class="container mt-2 VO VO_div" data-num="1">
             <div class="row">
                 <div class="col">
-                    <h3>Vaginal Opening</h3>
+                    <h3>Vaginal Opening <span class="mouseID1_calc">__</span> <span class="tailMark1_calc">&nbsp;</span></h3>
                 </div>
             </div>
         
             <div class="row VO mt-2 hideView" id="VO_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add VO For Date..." name="vo_addbutton1" id="VO_addButton1" class="addMatCheck VO fullWidth disableOnView" data-num="1"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 VO">
+                <div class="med2 mt-2 mt-md-0 VO">
                     <input type="date" name="vo_adddate1" id="VO_addDate1" class="addMatDate fullWidth" data-num="1"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 VO">
+                <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton1" id="VO_removeButton1" class="removeMatCheck VO fullWidth disableOnView" data-num="1"/>
                 </div>
             </div>
         
-            <!-- Headings -->
             <div class="row mt-2">
                 <div class="col font-weight-bold">VO Status</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
             </div>
-            <!-- Each day will get added here -->
         
         </div>
         
-        <!-- VO Mass -->
         <div class="container mt-2 VO ifVO" data-num="1">
             <div class="row">
                 <div class="myLeftCol">Mass at VO (g):</div>
@@ -2834,7 +2467,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         </div>
 
-        <!-- First Estrus -->
         <div class="container mt-2 firstE ifVO firstE_div" data-num="1">
             <div class="row">
                 <div class="col">
@@ -2843,63 +2475,55 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         
             <div class="row firstE mt-2 hideView" id="firstE_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton1" id="firstE_addButton1" class="addMatCheck firstE fullWidth disableOnView" data-num="1"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 firstE">
+                <div class="med2 mt-2 mt-md-0 firstE">
                     <input type="date" name="firste_adddate1" id="firstE_addDate1" class="addMatDate fullWidth" data-num="1"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 firstE">
+                <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton1" id="firstE_removeButton1" class="removeMatCheck firstE fullWidth disableOnView" data-num="1"/>
                 </div>
             </div>
         
-            <!-- Headings -->
             <div class="row mt-2">
                 <div class="col font-weight-bold">Cycle Stage</div>
                 <div class="col font-weight-bold">Mass</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
             </div>
-            <!-- Each day will get added here -->
-        
         </div>
-        
     </div>
 
     <!-- Mouse 2 -->
-    <div class="entry" data-num="2">
-        <!-- VO -->
+    <div class="entry mat" data-num="2">
         <div class="container mt-2 VO VO_div" data-num="2">
             <div class="row">
                 <div class="col">
-                    <h3>Vaginal Opening</h3>
+                    <h3>Vaginal Opening <span class="mouseID2_calc">__</span> <span class="tailMark2_calc">&nbsp;</span></h3>
                 </div>
             </div>
         
             <div class="row VO mt-2 hideView" id="VO_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add VO For Date..." name="vo_addbutton2" id="VO_addButton2" class="addMatCheck VO fullWidth disableOnView" data-num="2"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 VO">
+                <div class="med2 mt-2 mt-md-0 VO">
                     <input type="date" name="vo_adddate2" id="VO_addDate2" class="addMatDate fullWidth" data-num="2"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 VO">
+                <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton2" id="VO_removeButton2" class="removeMatCheck VO fullWidth disableOnView" data-num="2"/>
                 </div>
             </div>
         
-            <!-- Headings -->
             <div class="row mt-2">
                 <div class="col font-weight-bold">VO Status</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
             </div>
-            <!-- Each day will get added here -->
         
         </div>
         
-        <!-- VO mass -->
         <div class="container mt-2 VO ifVO" data-num="2">
             <div class="row">
                 <div class="myLeftCol">Mass at VO (g):</div>
@@ -2907,7 +2531,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         </div>
 
-        <!-- Estrus -->
         <div class="container mt-2 firstE ifVO firstE_div" data-num="2">
             <div class="row">
                 <div class="col">
@@ -2916,62 +2539,55 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         
             <div class="row firstE mt-2 hideView" id="firstE_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton2" id="firstE_addButton2" class="addMatCheck firstE fullWidth disableOnView" data-num="2"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 firstE">
+                <div class="med2 mt-2 mt-md-0 firstE">
                     <input type="date" name="firste_adddate2" id="firstE_addDate2" class="addMatDate fullWidth" data-num="2"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 firstE">
+                <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton2" id="firstE_removeButton2" class="removeMatCheck firstE fullWidth disableOnView" data-num="2"/>
                 </div>
             </div>
         
-            <!-- Headings -->
             <div class="row mt-2">
                 <div class="col font-weight-bold">Cycle Stage</div>
                 <div class="col font-weight-bold">Mass</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
             </div>
-            <!-- Each day will get added here -->
-        
         </div>
     </div>
 
     <!-- Mouse 3 -->
-    <div class="entry" data-num="3">
-        <!-- VO -->
+    <div class="entry mat" data-num="3">
         <div class="container mt-2 VO VO_div" data-num="3">
             <div class="row">
                 <div class="col">
-                    <h3>Vaginal Opening</h3>
+                    <h3>Vaginal Opening <span class="mouseID3_calc">__</span> <span class="tailMark3_calc">&nbsp;</span></h3>
                 </div>
             </div>
         
             <div class="row VO mt-2 hideView" id="VO_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add VO For Date..." name="vo_addbutton3" id="VO_addButton3" class="addMatCheck VO fullWidth disableOnView" data-num="3"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 VO">
+                <div class="med2 mt-2 mt-md-0 VO">
                     <input type="date" name="vo_adddate1" id="VO_addDate3" class="addMatDate fullWidth" data-num="3"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 VO">
+                <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton3" id="VO_removeButton3" class="removeMatCheck VO fullWidth disableOnView" data-num="3"/>
                 </div>
             </div>
         
-            <!-- Headings -->
             <div class="row mt-2">
                 <div class="col font-weight-bold">VO Status</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
             </div>
-            <!-- Each day will get added here -->
-        
+       
         </div>
         
-        <!-- VO Mass -->
         <div class="container mt-2 VO ifVO" data-num="3">
             <div class="row">
                 <div class="myLeftCol">Mass at VO (g):</div>
@@ -2979,7 +2595,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         </div>
         
-        <!-- Estrus -->
         <div class="container mt-2 firstE ifVO firstE_div" data-num="3">
             <div class="row">
                 <div class="col">
@@ -2988,62 +2603,55 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         
             <div class="row firstE mt-2 hideView" id="firstE_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton3" id="firstE_addButton3" class="addMatCheck firstE fullWidth disableOnView" data-num="3"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 firstE">
+                <div class="med2 mt-2 mt-md-0 firstE">
                     <input type="date" name="firste_adddate3" id="firstE_addDate3" class="addMatDate fullWidth" data-num="3"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 firstE">
+                <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton3" id="firstE_removeButton3" class="removeMatCheck firstE fullWidth disableOnView" data-num="3"/>
                 </div>
             </div>
         
-            <!-- Headings -->
-            <div class="row mt-2">
+           <div class="row mt-2">
                 <div class="col font-weight-bold">Cycle Stage</div>
                 <div class="col font-weight-bold">Mass</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
             </div>
-            <!-- Each day will get added here -->
-        
         </div>
     </div>
 
     <!-- Mouse 4-->
-    <div class="entry" data-num="4">
-        <!-- VO -->
+    <div class="entry mat" data-num="4">
         <div class="container mt-2 VO VO_div" data-num="4">
             <div class="row">
                 <div class="col">
-                    <h3>Vaginal Opening</h3>
+                    <h3>Vaginal Opening <span class="mouseID4_calc">__</span> <span class="tailMark4_calc">&nbsp;</span></h3>
                 </div>
             </div>
         
             <div class="row VO mt-2 hideView" id="VO_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add VO For Date..." name="vo_addbutton4" id="VO_addButton4" class="addMatCheck VO fullWidth disableOnView" data-num="4"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 VO">
+                <div class="med2 mt-2 mt-md-0 VO">
                     <input type="date" name="vo_adddate4" id="VO_addDate4" class="addMatDate fullWidth" data-num="4"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 VO">
+                <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton4" id="VO_removeButton4" class="removeMatCheck VO fullWidth disableOnView" data-num="4"/>
                 </div>
             </div>
         
-            <!-- Headings -->
             <div class="row mt-2">
                 <div class="col font-weight-bold">VO Status</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
             </div>
-            <!-- Each day will get added here -->
-        
+
         </div>
         
-        <!-- VO Mass -->
         <div class="container mt-2 VO ifVO" data-num="4">
             <div class="row">
                 <div class="myLeftCol">Mass at VO (g):</div>
@@ -3051,7 +2659,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         </div>
 
-        <!-- Estrus -->
         <div class="container mt-2 firstE ifVO firstE_div" data-num="4">
             <div class="row">
                 <div class="col">
@@ -3060,62 +2667,55 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         
             <div class="row firstE mt-2 hideView" id="firstE_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton4" id="firstE_addButton4" class="addMatCheck firstE fullWidth disableOnView" data-num="4"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 firstE">
+                <div class="med2 mt-2 mt-md-0 firstE">
                     <input type="date" name="firste_adddate1" id="firstE_addDate4" class="addMatDate fullWidth" data-num="4"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 firstE">
+                <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton4" id="firstE_removeButton4" class="removeMatCheck firstE fullWidth disableOnView" data-num="4"/>
                 </div>
             </div>
         
-            <!-- Headings -->
             <div class="row mt-2">
                 <div class="col font-weight-bold">Cycle Stage</div>
                 <div class="col font-weight-bold">Mass</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
             </div>
-            <!-- Each day will get added here -->
-        
         </div>
     </div>
 
     <!-- Mouse 5 -->
-    <div class="entry" data-num="5">
-        <!-- VO -->
+    <div class="entry mat" data-num="5">
         <div class="container mt-2 VO VO_div" data-num="5">
             <div class="row">
                 <div class="col">
-                    <h3>Vaginal Opening</h3>
+                    <h3>Vaginal Opening <span class="mouseID5_calc">__</span> <span class="tailMark5_calc">&nbsp;</span></h3>
                 </div>
             </div>
         
             <div class="row VO mt-2 hideView" id="VO_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add VO For Date..." name="vo_addbutton5" id="VO_addButton5" class="addMatCheck VO fullWidth disableOnView" data-num="5"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 VO">
+                <div class="med2 mt-2 mt-md-0 VO">
                     <input type="date" name="vo_adddate5" id="VO_addDate5" class="addMatDate fullWidth" data-num="5"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 VO">
+                <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton5" id="VO_removeButton5" class="removeMatCheck VO fullWidth disableOnView" data-num="5"/>
                 </div>
             </div>
         
-            <!-- Headings -->
             <div class="row mt-2">
                 <div class="col font-weight-bold">VO Status</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
             </div>
-            <!-- Each day will get added here -->
         
         </div>
         
-        <!-- VO Mass -->
         <div class="container mt-2 VO ifVO" data-num="5">
             <div class="row">
                 <div class="myLeftCol">Mass at VO (g):</div>
@@ -3123,7 +2723,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         </div>
 
-        <!-- Estrus -->
         <div class="container mt-2 firstE ifVO firstE_div" data-num="5">
             <div class="row">
                 <div class="col">
@@ -3132,40 +2731,27 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
         
             <div class="row firstE mt-2 hideView" id="firstE_buttons">
-                <div class="col-12 col-md-6 col-lg">
+                <div class="med2">
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton5" id="firstE_addButton5" class="addMatCheck firstE fullWidth disableOnView" data-num="5"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-md-0 firstE">
+                <div class="med2 mt-2 mt-md-0 firstE">
                     <input type="date" name="firste_adddate1" id="firstE_addDate5" class="addMatDate fullWidth" data-num="5"/>
                 </div>
-                <div class="col-12 col-md-6 col-lg mt-2 mt-lg-0 firstE">
+                <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton5" id="firstE_removeButton5" class="removeMatCheck firstE fullWidth disableOnView" data-num="5"/>
                 </div>
             </div>
         
-            <!-- Headings -->
             <div class="row mt-2">
                 <div class="col font-weight-bold">Cycle Stage</div>
                 <div class="col font-weight-bold">Mass</div>
                 <div class="col font-weight-bold">Date</div>
                 <div class="col font-weight-bold">PND</div>
-            </div>
-            <!-- Each day will get added here -->
-        
+            </div>        
         </div>
-
     </div>
-    
-    <!-- Watching for First Estrus -->
-
-
-
-
-
-    
 </div>
 
-<!-- Output - Move toward Top when Viewing -->
 <div id="outputDiv">
     <div class="container mt-2">
         <div class="row">
@@ -3173,8 +2759,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <h3>Maturation Table</h3>
             </div>
         </div>
-    
-        <!-- Buttons -->
+
         <div class="row mt-2">
             <div class="col-12 col-sm-6 col-md"><input id="toggleTable_mat" name="toggletable_mat" type="button"
                     value="Show/Hide Table" class="fullWidth toggleTable maturation" />
@@ -3295,15 +2880,13 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
     </div>
     
-    <!-- output for mass-->
     <div class="container">
         <div class="row">
             <div class="col">
                 <h3>Mass Table</h3>
             </div>
         </div>
-    
-        <!-- Buttons -->
+
         <div class="row mt-2">
             <div class="col-12 col-sm-6 col-md"><input id="toggleTable_mass" name="toggletable_mass" type="button"
                     value="Show/Hide Table" class="fullWidth toggleTable mass" />

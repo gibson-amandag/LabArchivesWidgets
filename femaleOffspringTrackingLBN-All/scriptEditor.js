@@ -1,19 +1,11 @@
 my_widget_script =
 {
     init: function (mode, json_data) {
-        //this method is called when the form is being constructed
-        // parameters
-        // mode = if it equals 'view' than it should not be editable
-        //        if it equals 'edit' then it will be used for entry
-        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
-        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
-
-        // json_data will contain the data to populate the form with, it will be in the form of the data
-        // returned from a call to to_json or empty if this is a new form.
-        //By default it calls the parent_class's init.
-
         //uncomment to inspect and view code while developing
         //debugger;
+
+        //Make HTML for five animals
+        this.makeHTMLforMice(5);
 
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
@@ -49,10 +41,6 @@ my_widget_script =
     },
     
     to_json: function () {
-        //should return a json string containing the data entered into the form by the user
-        //whatever is return from the method is persisted in LabArchives.  must not be binary data.
-        //called when the user hits the save button, when adding or editing an entry
-
         //Acquire input data from the form using the parent_class.to_json() function
         var widgetJsonString = this.parent_class.to_json();
 
@@ -71,7 +59,7 @@ my_widget_script =
         };
 
         //uncomment to check stringified output
-        //console.log("to JSON", JSON.stringify(output));
+        // console.log("to JSON", JSON.stringify(output));
 
         // return stringified output
         return JSON.stringify(output);
@@ -88,19 +76,7 @@ my_widget_script =
         this.parent_class.from_json(JSON.stringify(parsedJson.widgetData));
     },
 
-    /**
-     * In preview, the form is populated with test data when the
-     * parent_class.test_data() function is called. This randomly selects options for 
-     * dropdown select menus, radio buttons, and checkboxes.
-     */
     test_data: function () {
-        //during development this method is called to populate your form while in preview mode
-
-        // ORIGINAL LABARCHIVES RETURN FOR TEST DATA
-        //return this.parent_class.test_data();
-
-        // CUSTOM TEST DATA
-
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
 
@@ -131,33 +107,14 @@ my_widget_script =
             ]
         };
 
-        //Add additional content to match the objects in to_json
-        //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
-
         //return the stringified output for use by the init function
         return JSON.stringify(output);
     },
 
     /**
-     * This function determines whether or not the user is allowed to save the widget to the page
-     * 
-     * The original LabArchives function checks for fields that have _mandatory appended to the name attribute
-     * 
-     * The custom function checks for fields with the required attribute. If any of these fields are blank, 
-     * an alert is returns that provides a fail log with the ids of the elements that are missing. If there are
-     * no blank required fields, an empty array is returned.
-     * 
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      */
     is_valid: function (b_suppress_message) {
-        //called when the user hits the save button, to allow for form validation.
-        //returns an array of dom elements that are not valid - default is those elements marked as mandatory
-        // that have no data in them.
-        //You can modify this method, to highlight bad form elements etc...
-        //LA calls this method with b_suppress_message and relies on your code to communicate issues to the user
-        //Returning an empty array [] or NULL equals no error
-        //TO DO write code specific to your form
-
         //ORIGINAL LABARCHIVES IS_VALID FUNCTION
         //return this.parent_class.is_valid(b_suppress_message);
 
@@ -213,46 +170,46 @@ my_widget_script =
         return (parsedJson);
     },
 
-    /**
-     * TO DO: edit this function to reinitialize any dynamic content that is not explicity
-     * defined within the HTML code. 
-     * 
-     * This function requires the parsedJson object.
-     */
     initDynamicContent: function (parsedJson) {
-        // TO DO - lots of work to update with tail marks and making for the right mice (for < numOffspring)
-
         var maxOffspring = 5;
+        // console.log("Parsed Json");
+        // console.log(parsedJson);
+        // console.log(
+        //     "Tail Marks: "  + parsedJson.tailMarks + "\n" + 
+        //     "addedRows_VOs: " + parsedJson.addedRows_VOs + "\n" + 
+        //     "addedRows_1Es: " + parsedJson.addedRows_1Es + "\n" +
+        //     "allVO_dates: " + parsedJson.allVO_dates + "\n" + 
+        //     "all1E_dates: " + parsedJson.all1E_dates
+        // );
 
-        for (var j = 0; j < maxOffspring; j++) {
-            var mouseNum = j + 1;
-            var dataSearch = "[data-num='" + mouseNum + "']";
-
-            var $tailMark = $("#tailMark" + mouseNum);
-            $tailMark.html(parsedJson.tailMarks[j]);
-            var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
-            $tailMarkCalc.html(parsedJson.tailMarks[j]);
-
-            var dates_VO = parsedJson.allVO_dates[j];
-            for (var i = 0; i < parsedJson.addedRows_VOs[j]; i++) {
-                my_widget_script.createMaturationRow_VO(dates_VO[i], mouseNum);
+        //The first time that this runs when making a new widget, tailMarks (and the other components) are undefined
+        //parsedJson (json_data) is just an object with various methods, but it doesn't have these parameters yet
+        if(parsedJson.tailMarks) {
+            // console.log("Found tail marks and proceeding to add data for each mouse");
+            for (var j = 0; j < maxOffspring; j++) {
+                var mouseNum = j + 1;
+                var dataSearch = "[data-num='" + mouseNum + "']";
+    
+                var $tailMark = $("#tailMark" + mouseNum);
+                $tailMark.html(parsedJson.tailMarks[j]);
+                var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
+                $tailMarkCalc.html(parsedJson.tailMarks[j]);
+    
+                var dates_VO = parsedJson.allVO_dates[j];
+                for (var i = 0; i < parsedJson.addedRows_VOs[j]; i++) {
+                    my_widget_script.createMaturationRow_VO(dates_VO[i], mouseNum);
+                }
+    
+                var dates_1E = parsedJson.all1E_dates[j];
+                for(var i=0; i < parsedJson.addedRows_1Es[j]; i++ ) {
+                    my_widget_script.createMaturationRow_1E(dates_1E[i], mouseNum);
+                }
+    
             }
-
-            var dates_1E = parsedJson.all1E_dates[j];
-            for(var i=0; i < parsedJson.addedRows_1Es[j]; i++ ) {
-                my_widget_script.createMaturationRow_1E(dates_1E[i], mouseNum);
-            }
-
         }
+
     },
 
-    /**
-     * TO DO: edit this function to define how the HTML elements should be adjusted
-     * based on the current mode.
-     * 
-     * Here, a subset of buttons are disabled when the widget is not being edited.
-     * There may be other elements that should be shown/hidden based on the mode
-     */
     adjustForMode: function (mode) {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
@@ -260,7 +217,14 @@ my_widget_script =
             $(".hideView").hide();
             $(".massDiv").hide();
             $("#showDates").prop("checked", true).closest(".container").hide();
-            $("#datesList").show().after($("#outputDiv"));
+            $("#datesList").show();
+            $("#outputDiv").insertAfter($(".fullDemoDiv"));
+            $(".entry.mat").each(function () {
+                var mouseNum = parseInt($(this).data("num"));
+                if(mouseNum <= parseInt($("#numOffspring").val())){
+                    $(this).show();
+                }
+            });
             $(".tableDiv").show();
         } else {
             if($("#DOB").val()) {
@@ -277,10 +241,31 @@ my_widget_script =
         }
     },
 
-    /**
-     * TO DO: edit this function to define behavior when the user interacts with the form.
-     * This could include when buttons are clicked or when inputs change.
-     */
+    updateTailMarkButton: function ($tailMark) {
+        if($tailMark.hasClass("mouse1")) {
+            $(".tailMark1_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        } else if($tailMark.hasClass("mouse2")) {
+            $(".tailMark2_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        } else if($tailMark.hasClass("mouse3")) {
+            $(".tailMark3_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        } else if($tailMark.hasClass("mouse4")) {
+            $(".tailMark4_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        } else if($tailMark.hasClass("mouse5")) {
+            $(".tailMark5_calc").html(
+                $tailMark.parent().find(".tailMark").html()
+            );
+        }
+        my_widget_script.resize();
+    },
+
     addEventListeners: function () {
         // Add red tail mark
         $(".redButton").on("click", function () {
@@ -288,27 +273,7 @@ my_widget_script =
                 "<span style='color:red'>|</span>"
             );
 
-            if($(this).hasClass("mouse1")) {
-                $(".tailMark1_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse2")) {
-                $(".tailMark2_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse3")) {
-                $(".tailMark3_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse4")) {
-                $(".tailMark4_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse5")) {
-                $(".tailMark5_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            }
+            my_widget_script.updateTailMarkButton($(this));
         });
 
         $(".blackButton").on("click", function () {
@@ -316,27 +281,7 @@ my_widget_script =
                 "<span style='color:black'>|</span>"
             );
 
-            if($(this).hasClass("mouse1")) {
-                $(".tailMark1_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse2")) {
-                $(".tailMark2_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse3")) {
-                $(".tailMark3_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse4")) {
-                $(".tailMark4_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse5")) {
-                $(".tailMark5_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            }
+            my_widget_script.updateTailMarkButton($(this));
         });
 
         $(".clearButton").on("click", function () {
@@ -344,27 +289,7 @@ my_widget_script =
                 ""
             );
             
-            if($(this).hasClass("mouse1")) {
-                $(".tailMark1_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse2")) {
-                $(".tailMark2_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse3")) {
-                $(".tailMark3_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse4")) {
-                $(".tailMark4_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            } else if($(this).hasClass("mouse5")) {
-                $(".tailMark5_calc").html(
-                    $(this).parent().find(".tailMark").html()
-                );
-            }
+            my_widget_script.updateTailMarkButton($(this));
         });
 
         // Output table calculations
@@ -381,14 +306,15 @@ my_widget_script =
             } else {
                 $(".editDemoChecked").hide();
             }
+            my_widget_script.resize();
         });
 
         $("#DOB").on("change", function () {
             my_widget_script.adjustForNumOffspring();
-            my_widget_script.switchMouseForEntry();
             my_widget_script.printPND_days();
             my_widget_script.getPND_today();
             my_widget_script.updateMatPND();
+            my_widget_script.switchMouseForEntry();
             my_widget_script.watchForVO();
             my_widget_script.watchFor1E();
         });
@@ -396,6 +322,7 @@ my_widget_script =
         $("#numOffspring").on("change", function () {
             my_widget_script.adjustForNumOffspring();
             my_widget_script.switchMouseForEntry();
+            var numMice = parseInt($(this).val());
         });
 
         $(".mouseID").on("input", function () {
@@ -417,19 +344,20 @@ my_widget_script =
             var pnd = $(this).val();
             if (pnd) {
                 my_widget_script.switchMassTable(pnd);
-                $(".selectMouse").show();
             } else {
                 $(".massDiv").hide();
-                $(".selectMouse").hide();
             }
+            my_widget_script.resize();
         });
 
         $("#mouseSelect").on("change", function () {
             my_widget_script.switchMouseForEntry();
+            my_widget_script.resize();
         });
 
         $(".firstE_state").on("change", function (){
             my_widget_script.watchFor1E();
+            my_widget_script.resize();
         });
 
         $(".addMatCheck").on("click", function () {
@@ -561,13 +489,6 @@ my_widget_script =
         my_widget_script.resize();
     },
 
-    /**
-     * TO DO: edit this function to define the symbols that should be added to the HTML
-     * page based on whether or not a field is required to save the widget to the page
-     * 
-     * Here, the function adds a blue # before fields of the class "needForTableLab" and a 
-     * red * before fields with the "requiredLab" property
-     */
     addRequiredFieldIndicators: function () {
         $('.needForTableLab').each(function () { //find element with class "needForTableLab"
             //alert($(this).val());
@@ -580,20 +501,33 @@ my_widget_script =
         });
     },
 
-    /**
-     * TO DO: edit this function to define how the form should be initilized based 
-     * on the existing form values. This is particularly important for when the 
-     * widget already has data entered, such as when saved to a page.
-     */
+    updateTailMarkCalc: function ($tailMark) {
+        var mouseNum = $tailMark.data("num");
+        var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
+        $tailMarkCalc.html($tailMark.html());
+        
+        my_widget_script.resize();
+    },
+
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
         $('.myLeftCol2').addClass("col-6 col-md-4 col-lg-3 text-right");
+        $('.myLeftCol3').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right font-weight-bold");
+        $(".med2").addClass("col-12 col-md-6 col-lg");
+        $(".med3").addClass("col-12 col-sm-6 col-md-4");
+        // $(".calcFull").addClass("simpleCalc fullWidth");
 
         if($("#editDemo").is(":checked")){
             $(".editDemoChecked").show();
         } else {
             $(".editDemoChecked").hide();
+        }
+        
+        if($("#showDates").is(":checked")){
+            $("#datesList").show();
+        } else {
+            $("#datesList").hide();
         }
 
         $(".simpleCalc").each(function () {
@@ -602,27 +536,14 @@ my_widget_script =
             my_widget_script.watchValue($(this), $(calcID));
         });
 
-        
-        if($("#showDates").is(":checked")){
-            $("#datesList").show();
-        } else {
-            $("#datesList").hide();
-        }
-
         $(".addMatDate").val(my_widget_script.getLocalDateString());
-
-        if($("#massSelect").val()) {
-           $(".selectMouse").show();
-        } else {
-            $(".selectMouse").hide();
-        }
 
         $(".mouseID").each(function () {
             var mouseNum = $(this).data("num");
 
             $("#mouseSelect option.mouse" + mouseNum).text($(this).val());
         });
-
+        
         my_widget_script.adjustForNumOffspring();
         my_widget_script.switchMouseForEntry();
         my_widget_script.printPND_days();
@@ -632,7 +553,6 @@ my_widget_script =
         my_widget_script.watchForVO();
         my_widget_script.watchFor1E();
         my_widget_script.calcValues();
-
         my_widget_script.resize();
     },
 
@@ -645,10 +565,6 @@ my_widget_script =
         return(dateTodayString);
     },
 
-    /**
-     * TO DO: edit this function to define which <div>s or other elements
-     * should be adjusted based on the current width of the window
-     */
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
@@ -659,13 +575,6 @@ my_widget_script =
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
         var tailMarks, addedRows_VOs, addedRows_1Es, allVO_dates, all1E_dates;
-        // var tailMark1, addedRows_VO1, addedRows_1E1;
-        // var tailMark2, addedRows_VO2, addedRows_1E2;
-        // var tailMark3, addedRows_VO3, addedRows_1E3;
-        // var tailMark4, addedRows_VO4, addedRows_1E4;
-        // var tailMark5, addedRows_VO5, addedRows_1E5;
-
-        // TO-DO for each numOffspring
         var maxOffspring = 5;
 
         tailMarks = [];
@@ -677,7 +586,7 @@ my_widget_script =
         for (var j = 0; j < maxOffspring; j++) {
             var mouseNum = j + 1;
             var dataSearch = "[data-num='" + mouseNum + "']";
-            var tailMark = $(".tailMark" + mouseNum).html();
+            var tailMark = $("#tailMark" + mouseNum).html();
             var addedRows_VO = $(".VO_div" + dataSearch).find(".addedRow").length;
             var addedRows_1E = $(".firstE_div" + dataSearch).find(".addedRow").length;
             
@@ -698,11 +607,26 @@ my_widget_script =
             }
 
 
-            tailMarks[j] = tailMark;
+            // console.log(
+            //     "Tail Mark: "  + tailMark + "\n" + 
+            //     "addedRows_VO: " + addedRows_VO + "\n" + 
+            //     "addedRows_1E: " + addedRows_1E + "\n" +
+            //     "dates_VO: " + dates_VO + "\n" + 
+            //     "dates_1E: " + dates_1E
+            // );
+            if(tailMark) {
+                tailMarks[j] = tailMark;
+            } else {
+                tailMarks[j] = "";
+            }
             addedRows_VOs[j] = addedRows_VO;
             addedRows_1Es[j] = addedRows_1E;
-            allVO_dates[j] = dates_VO;
-            all1E_dates[j] = dates_1E;
+            if(dates_VO) {
+                allVO_dates[j] = dates_VO;
+            } else {allVO_dates[j] = [""];}
+            if(dates_1E) {
+                all1E_dates[j] = dates_1E;
+            } else {all1E_dates[j] = [""];}
         }
 
         var dynamicContent = {
@@ -718,12 +642,6 @@ my_widget_script =
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
     /** -----------------------------------------------------------------------------
-     * VALIDATE FORM ENTRY BEFORE COPYING OR SAVING TABLE TO CSV
-     *
-     * This function will check that elements with a class "needForTable"
-     * are not blank. If there are blank elements, it will return false
-     * and will post an error message "Please fill out all elements marked by a blue #"
-     *
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      * -----------------------------------------------------------------------------
      */
@@ -750,13 +668,7 @@ my_widget_script =
         return valid;
     },
 
-    /**
-     * This takes the value of the input for the $elToWatch and then updates the text of 
-     * $elToUpdate to match whenever watchValue is called
-     * @param {*} $elToWatch - jQuery object with the input element whose value will be used to update
-     * @param {*} $elToUpdate - jQuery object of the element whose text will be updated based on the element to watch
-     */
-     watchValue: function ($elToWatch, $elToUpdate) {
+    watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
         $elToUpdate.text(value);
         my_widget_script.resize();
@@ -925,6 +837,8 @@ my_widget_script =
             my_widget_script.addDays($("#DOB").val(), $(".pnd90"), 90);
             my_widget_script.addDays($("#DOB").val(), $(".pnd91"), 91);
         }
+
+        my_widget_script.resize();
     },
 
     adjustForNumOffspring: function () {
@@ -993,6 +907,8 @@ my_widget_script =
                 $(".numOffspring_calc").html("<span style='color:red'>Enter a number from 1-5</span>");
                 break;
         }
+
+        my_widget_script.resize();
     },
 
     watchForVO: function () {
@@ -1014,49 +930,56 @@ my_widget_script =
             // console.log("Mouse Number is " + mouseNum);
             var dataSearch = "[data-num='" + mouseNum + "']";
 
-            $(".VO_state" + dataSearch).each(function () {
-                // console.log("within .VO_state function");
-                var $this = $(this);
-                
-                // if the state is VO
-                if($this.val()==="VO") {
-                    $(".ifVO" + dataSearch).show();
-                    anyHasReachedVO = true;
-                    hasReachedVO = true;
-                    thisPndAtVO = $this.closest(".addedRow").find(".mat_pnd").text();
-                    thisVODate = $this.closest(".addedRow").find(".mat_date").text();
-
-                    if(dateAtVO) { //if there's a value for dateAtVO
-                        if(new Date(thisVODate).getTime() < new Date(dateAtVO).getTime()) { //if this date is earlier than current dateAtVO
+            if($(".VO_state" + dataSearch).length === 0){
+                $(".ifVO" + dataSearch).hide();
+                $(".VO_status" + dataSearch).removeClass("reached").addClass("notReached").text("has NOT yet");
+                $(".VO_PND" + mouseNum + "_calc").text("NA");
+                $(".VO_mass" + mouseNum + "_calc").text("NA");
+                $(".VO_date" + mouseNum + "_calc").text("NA");
+            } else {
+                $(".VO_state" + dataSearch).each(function () {
+                    // console.log("within .VO_state function");
+                    var $this = $(this);
+                    
+                    // if the state is VO
+                    if($this.val()==="VO") {
+                        $(".ifVO" + dataSearch).show();
+                        anyHasReachedVO = true;
+                        hasReachedVO = true;
+                        thisPndAtVO = $this.closest(".addedRow").find(".mat_pnd").text();
+                        thisVODate = $this.closest(".addedRow").find(".mat_date").text();
+    
+                        if(dateAtVO) { //if there's a value for dateAtVO
+                            if(new Date(thisVODate).getTime() < new Date(dateAtVO).getTime()) { //if this date is earlier than current dateAtVO
+                                dateAtVO = thisVODate;
+                                pndAtVO = thisPndAtVO;
+                            }
+                        } else { //if no dateAtVO
                             dateAtVO = thisVODate;
                             pndAtVO = thisPndAtVO;
                         }
-                    } else { //if no dateAtVO
-                        dateAtVO = thisVODate;
-                        pndAtVO = thisPndAtVO;
+    
+                        $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow"); 
+                    } else {
+                        $this.css("background-color", "").closest(".row").css("background-color", ""); 
                     }
-
-                    $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow"); 
-                } else {
-                    $this.css("background-color", "").closest(".row").css("background-color", ""); 
-                }
-
-                if(hasReachedVO){
-                    // console.log(mouseNum + "has reached VO");
-                    $(".VO_status" + dataSearch).removeClass("notReached").addClass("reached").text("has");
-                    $(".VO_PND" + mouseNum + "_calc").text(pndAtVO);
-                    $(".VO_date" + mouseNum + "_calc").text(dateAtVO);
-                    my_widget_script.watchVO_mass(mouseNum, true);
-                } else {
-                    // console.log(mouseNum + "has not reached VO");
-                    $(".ifVO" + dataSearch).hide();
-                    $(".VO_status" + dataSearch).removeClass("reached").addClass("notReached").text("has NOT yet");
-                    $(".VO_PND" + mouseNum + "_calc").text("NA");
-                    $(".VO_mass" + mouseNum + "_calc").text("NA");
-                    $(".VO_date" + mouseNum + "_calc").text("NA");
-                }
-            });
-
+    
+                    if(hasReachedVO){
+                        // console.log(mouseNum + "has reached VO");
+                        $(".VO_status" + dataSearch).removeClass("notReached").addClass("reached").text("has");
+                        $(".VO_PND" + mouseNum + "_calc").text(pndAtVO);
+                        $(".VO_date" + mouseNum + "_calc").text(dateAtVO);
+                        my_widget_script.watchVO_mass(mouseNum, true);
+                    } else {
+                        // console.log(mouseNum + "has not reached VO");
+                        $(".ifVO" + dataSearch).hide();
+                        $(".VO_status" + dataSearch).removeClass("reached").addClass("notReached").text("has NOT yet");
+                        $(".VO_PND" + mouseNum + "_calc").text("NA");
+                        $(".VO_mass" + mouseNum + "_calc").text("NA");
+                        $(".VO_date" + mouseNum + "_calc").text("NA");
+                    }
+                });
+            }
         }
 
         if (anyHasReachedVO) {
@@ -1161,9 +1084,6 @@ my_widget_script =
             }
 
         }
-
-
-
         my_widget_script.resize();
     },
 
@@ -1176,7 +1096,6 @@ my_widget_script =
         } else {
             $(".massDiv").hide();
         }
-
         my_widget_script.resize();
     },
 
@@ -1337,6 +1256,8 @@ my_widget_script =
             var $div = $(".firstE_div");
         }
         $div.find(".addedRow").last().remove();
+
+        my_widget_script.resize();
     },
 
     calcValues: function () {
@@ -1456,6 +1377,8 @@ my_widget_script =
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
         }
+
+        my_widget_script.resize();
     },
 
     copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy){
@@ -1478,6 +1401,154 @@ my_widget_script =
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+
+        my_widget_script.resize();
+    },
+
+    makeHTMLforMice: function (numMice) {
+        my_widget_script.makeVOStatusMsg(numMice);
+        my_widget_script.make1EStatusMsg(numMice);
+        my_widget_script.makeDemoEntries(numMice);
+    },
+
+    makeVOStatusMsg: function (numMice) {
+        var $VOmsgDiv = $("#VOmsgDiv");
+        $VOmsgDiv.html(""); //clear
+        for(i = 0; i < numMice; i ++ ) {
+            var mouseNum = i + 1;
+            $VOmsgDiv.append(
+                $("<div/>", {
+                    "class": "mouse" + mouseNum
+                }).append(
+                    'Mouse <span class="mouseID' + mouseNum + '_calc">__</span> ' +  
+                    '<span class="tailMark' + mouseNum + '_calc">&nbsp;</span> <span class="VO_status notReached" data-num="'+mouseNum+'">has NOT yet</span> had vaginal opening ' +
+                    '<span class="ifVO" data-num="'+mouseNum+'">on PND <span class="VO_PND'+mouseNum+'_calc">&nbsp;</span> with a mass of <span class="VO_mass'+mouseNum+'_calc">&nbsp;</span> g</span>'
+                )
+            );
+        }
+    },
+
+    make1EStatusMsg: function (numMice) {
+        var $firstEmsgDiv = $("#firstEmsgDiv");
+        $firstEmsgDiv.html(""); //clear
+        for(i = 0; i < numMice; i ++ ) {
+            var mouseNum = i + 1;
+            $firstEmsgDiv.append(
+                $("<div/>", {
+                    "class": "mouse" + mouseNum + " ifVO",
+                    "data-num": mouseNum
+                }).append(
+                    'Mouse <span class="mouseID' + mouseNum + '_calc">__</span> ' +  
+                    '<span class="tailMark' + mouseNum + '_calc">&nbsp;</span> <span class="firstE_status notReached" data-num="'+mouseNum+'">has NOT yet</span> had first estrus ' +
+                    '<span class="if1E" data-num="'+mouseNum+'">on PND <span class="firstE_PND'+mouseNum+'_calc">&nbsp;</span> with a mass of <span class="firstE_mass'+mouseNum+'_calc">&nbsp;</span> g</span>'
+                )
+            );
+        }
+    },
+
+    makeDemoEntries: function (numMice) {
+        var $demoEntryDiv = $("#demoEntryDiv");
+        $demoEntryDiv.html(""); //clear
+
+        var showChecked = "col-12 hideView editDemoChecked";
+
+        for(i = 0; i < numMice; i ++ ) {
+            var mouseNum = i + 1;
+            $demoEntryDiv.append(
+                $("<div/>", {
+                    "class": "mouse" + mouseNum + " row mt-2"
+                }).append(
+                    $("<div/>", {
+                        "class": "col-4 container"
+                    }).append(
+                        $("<div/>", {
+                            "class": "row"
+                        }).append(
+                            $("<div/>", {
+                                "class": "col-12"
+                            }).append(
+                                "<h4 class='needForTableLab'>Mouse " + mouseNum + " ID</h4"
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": showChecked + " mouse" + mouseNum
+                            }).append(
+                                '<input type="text" class="simpleCalc mouseID" id="mouseID'+mouseNum+'" name="mouseid'+mouseNum+'" data-num="'+mouseNum+'"/>'
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": "col-12 mouseID"+mouseNum+"_calc mouse"+mouseNum
+                            })
+                        )
+                    )
+                ).append(
+                    $("<div/>", {
+                        "class": "col-4 container"
+                    }).append(
+                        $("<div/>", {
+                            "class": "row"
+                        }).append(
+                            $("<div/>", {
+                                "class": "col-12"
+                            }).append(
+                                "<h4>Ear Tag " + mouseNum + "</h4"
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": showChecked + " mouse" + mouseNum
+                            }).append(
+                                $("<select/>", {
+                                    name: "eartag" + mouseNum,
+                                    id: "earTag" + mouseNum,
+                                    "class": "simpleCalc"
+                                }).append(
+                                    "<option value=''>[Select]</option>"+
+                                    "<option value='04'>04</option>"+
+                                    "<option value='06'>06</option>"+
+                                    "<option value='40'>40</option>"+
+                                    "<option value='60'>60</option>"+
+                                    "<option value='44'>44</option>"+
+                                    "<option value='66'>66</option>"+
+                                    "<option value='46'>46</option>"+
+                                    "<option value='64'>64</option>"
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": "col-12 earTag"+mouseNum+"_calc mouse"+mouseNum
+                            })
+                        )
+                    )
+                ).append(
+                    $("<div/>", {
+                        "class": "col-4 container"
+                    }).append(
+                        $("<div/>", {
+                            "class": "row"
+                        }).append(
+                            $("<div/>", {
+                                "class": "col-12"
+                            }).append(
+                                "<h4>Tail Mark " + mouseNum + "</h4"
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": showChecked
+                            }).append(
+                                '<input type="button" value="Red |" id="redButton'+mouseNum+'" name="redbutton'+mouseNum+'" class="redButton mouse'+mouseNum+'"/> '+
+                                '<input type="button" value="Black |" id="blackButton'+mouseNum+'" name="blackbutton'+mouseNum+'" class="blackButton mouse'+mouseNum+'"/> '+
+                                '<input type="button" value="Clear" id="clearButton'+mouseNum+'" name="clearbutton'+mouseNum+'" class="clearButton mouse'+mouseNum+'"/> '+
+                                '<span class="tailMark" id="tailMark'+mouseNum+'" data-num="'+mouseNum+'">&nbsp;</span>'
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": "col-12 tailMark"+mouseNum+"_calc mouse"+mouseNum
+                            })
+                        )
+                    )
+                )
+            )
         }
     }
 };
