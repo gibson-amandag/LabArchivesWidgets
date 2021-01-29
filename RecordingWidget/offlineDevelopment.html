@@ -325,7 +325,11 @@ $(document).ready(function () {
                 $("#eventName").val() +
                 "\n ---------"
             );
-            $("#eventLog").val($("#eventLog").val() + textToAdd);
+            $("#eventLog").val($("#eventLog").val() + textToAdd).each(function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+                my_widget_script.resize();
+            });
         });
 
         $("#calcSpont").on("change", function () {
@@ -376,6 +380,14 @@ $(document).ready(function () {
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
+
+        $('textarea.autoAdjust').each(function () {
+            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            my_widget_script.resize();
+        });
 
         my_widget_script.resize();
     },
@@ -705,7 +717,13 @@ $(document).ready(function () {
                     //thinks that it has reached the end of the script
                     $('<text' + 'area></text' + 'area>', {
                         id: col5ID,
-                        name: col5ID
+                        name: col5ID,
+                        "rows": 1,
+                        "class": "autoAdjust"
+                    }).on('input', function () {
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
+                        my_widget_script.resize();
                     })
                 )
             )
@@ -952,7 +970,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 
     <div class="row mt-2">
-        <div class="col"><textarea name="eventlog" id="eventLog" rows="10" class="fullWidth"></textarea></div>
+        <div class="col"><textarea name="eventlog" id="eventLog" rows="1" class="fullWidth autoAdjust"></textarea></div>
     </div>
 
 </div>
@@ -988,21 +1006,21 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <div class="row">
                 <strong class="col-12">Spontaneous Activity?</strong>
                 <div class="col-12"><label for="spontfiring">Check if events</label> <input id="spontfiring" name="spontfiring" type="checkbox" /></div>
-                <div class="col-12"><textarea name="firingdesc" class="fullWidth" >Describe firing</textarea></div>
+                <div class="col-12"><textarea name="firingdesc" class="fullWidth autoAdjust" rows="1">Describe firing</textarea></div>
             </div>
         </div>
         <div class="col-12 col-md">
             <div class="row">
                 <strong class="col-12">Noise during recording?</strong>
                 <div class="col-12"><label for="noise">Check if noise</label> <input id="noise" name="noise" type="checkbox" /></div>
-                <div class="col-12"><textarea name="noisedesc" class="fullWidth">Describe noise</textarea></div>
+                <div class="col-12"><textarea name="noisedesc" class="fullWidth autoAdjust" rows="1">Describe noise</textarea></div>
             </div>
         </div>
         <div class="col-12 col-md">
             <div class="row">
                 <strong class="col-12">Movement during recording?</strong>
                 <div class="col-12"><label for="movement">Check if movement</label> <input id="movement" name="movement" type="checkbox" /></div>
-                <div class="col-12"><textarea name="movedesc" class="fullWidth">Describe movement</textarea></div>
+                <div class="col-12"><textarea name="movedesc" class="fullWidth autoAdjust" rows="1">Describe movement</textarea></div>
             </div>
         </div>
     </div>
@@ -1022,7 +1040,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <h3>Other Comments:</h3>
         </div>
         <div class="col-12">
-            <textarea name="finalcomments" id="finalComments" rows="10" class="fullWidth"></textarea>
+            <textarea name="finalcomments" id="finalComments" rows="1" class="fullWidth autoAdjust"></textarea>
         </div>
     </div>
 </div>

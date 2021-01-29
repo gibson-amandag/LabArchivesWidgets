@@ -1,5 +1,6 @@
 my_widget_script =
 {
+    
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -264,7 +265,11 @@ my_widget_script =
                 $("#eventName").val() +
                 "\n ---------"
             );
-            $("#eventLog").val($("#eventLog").val() + textToAdd);
+            $("#eventLog").val($("#eventLog").val() + textToAdd).each(function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+                my_widget_script.resize();
+            });
         });
 
         $("#calcSpont").on("change", function () {
@@ -315,6 +320,14 @@ my_widget_script =
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
+
+        $('textarea.autoAdjust').each(function () {
+            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            my_widget_script.resize();
+        });
 
         my_widget_script.resize();
     },
@@ -644,7 +657,13 @@ my_widget_script =
                     //thinks that it has reached the end of the script
                     $('<text' + 'area></text' + 'area>', {
                         id: col5ID,
-                        name: col5ID
+                        name: col5ID,
+                        "rows": 1,
+                        "class": "autoAdjust"
+                    }).on('input', function () {
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
+                        my_widget_script.resize();
                     })
                 )
             )
