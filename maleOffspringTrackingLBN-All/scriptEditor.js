@@ -385,11 +385,11 @@ my_widget_script =
             var tableID 
             var $errorMsg 
             if($(this).hasClass("maturation")) {
-                fileName = "maturation_" + $("#mouseID").val();
+                fileName = "maturation_" + $("#damID").val() + "_males";
                 tableID = "maturationTable";
                 $errorMsg = $(".errorMsg.maturation");
             } else if($(this).hasClass("mass")){
-                fileName = "mass_" + $("#mouseID").val();
+                fileName = "mass_" + $("#damID").val() + "_females";
                 tableID = "massTable";
                 $errorMsg = $(".errorMsg.mass");
             }
@@ -1099,7 +1099,7 @@ my_widget_script =
         var datatable = document.getElementById(table);
         var rows = datatable.querySelectorAll("tr");
 
-        for (var i = 0; i < rows.length; i++) {
+        for (var i = 0; i <= $("#numOffspring").val() && i < rows.length; i++) {
             var row = [], cols = rows[i].querySelectorAll("td, th");
 
             for (var j = 0; j < cols.length; j++) {
@@ -1129,7 +1129,7 @@ my_widget_script =
             addLine = "\n";
         }
 
-        $table.find("tbody").children("tr").each(function () { //add each child of the row
+        $table.find("tbody").children("tr").slice(0, parseInt($("#numOffspring").val())).each(function () { //add each child of the row
             $temp.text($temp.text() + addLine);
             var addTab = "";
             $(this).find("td").each(function () {
