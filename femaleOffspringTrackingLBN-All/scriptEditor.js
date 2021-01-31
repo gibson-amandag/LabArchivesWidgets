@@ -355,9 +355,7 @@ my_widget_script =
         // $(".calcFull").addClass("simpleCalc fullWidth");
 
         $('textarea.autoAdjust').each(function () {
-            if(! $(this).css("display", "none")) { //only adjust if shown
-                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-            }
+            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
         }).on('input', function () {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
