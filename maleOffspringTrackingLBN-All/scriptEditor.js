@@ -19,9 +19,6 @@ my_widget_script =
         //resize the content box when the window size changes
         window.onresize = this.resize;
 
-        //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners();
-
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
@@ -167,7 +164,7 @@ my_widget_script =
         // console.log(
         //     "Tail Marks: "  + parsedJson.tailMarks + "\n" + 
         //     "addedRows_PPSs: " + parsedJson.addedRows_PPSs + "\n" + 
-        //     "allPPS_dates: " + parsedJson.allPPS_dates + "\n"
+        //     "allPPS_dates: " + parsedJson.allPPS_dates + "\n" 
         // );
 
         //The first time that this runs when making a new widget, tailMarks (and the other components) are undefined
@@ -176,7 +173,7 @@ my_widget_script =
             // console.log("Found tail marks and proceeding to add data for each mouse");
             for (var j = 0; j < maxOffspring; j++) {
                 var mouseNum = j + 1;
-                var dataSearch = "[data-num='" + mouseNum + "']";
+                var dataSearch = my_widget_script.dataSearch("num", mouseNum);
     
                 var $tailMark = $("#tailMark" + mouseNum);
                 $tailMark.html(parsedJson.tailMarks[j]);
@@ -208,6 +205,7 @@ my_widget_script =
                     $(this).show();
                 }
             });
+            my_widget_script.adjustifOther();
             $(".tableDiv").show();
         } else {
             if($("#DOB").val()) {
@@ -249,49 +247,109 @@ my_widget_script =
         my_widget_script.resize();
     },
 
-    addEventListeners: function () {
-        // Add red tail mark
-        $(".redButton").on("click", function () {
-            $(this).parent().find(".tailMark").append(
-                "<span style='color:red'>|</span>"
-            );
-
-            my_widget_script.updateTailMarkButton($(this));
+    addRequiredFieldIndicators: function () {
+        $('.needForTableLab').each(function () { //find element with class "needForTableLab"
+            //alert($(this).val());
+            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
         });
 
-        $(".blackButton").on("click", function () {
-            $(this).parent().find(".tailMark").append(
-                "<span style='color:black'>|</span>"
-            );
-
-            my_widget_script.updateTailMarkButton($(this));
+        $('.requiredLab').each(function () { //find element with class "requiredLab"
+            //alert($(this).val());
+            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
         });
+    },
 
-        $(".clearButton").on("click", function () {
-            $(this).parent().find(".tailMark").text(
-                ""
-            );
-            
-            my_widget_script.updateTailMarkButton($(this));
+    updateTailMarkCalc: function ($tailMark) {
+        var mouseNum = $tailMark.data("num");
+        var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
+        $tailMarkCalc.html($tailMark.html());
+        
+        my_widget_script.resize();
+    },
+
+    switchMouseForEntry: function () {
+        // Comes out as number, not string
+        var selectedMouse = $("#mouseSelect :selected").data("num");
+        if (($.inArray(selectedMouse, [1, 2, 3, 4, 5]) !== -1)) {
+            $(".entry[data-num='" + selectedMouse + "']").show();
+            $(".entry[data-num!='" + selectedMouse + "']").hide();
+        } else {
+            $(".entry").hide();
+        }
+        my_widget_script.resize();
+    },
+
+    showWithCheck: function ($chbx, $toToggle) {
+        if($chbx.is(":checked")){
+            $toToggle.show();
+        } else {
+            $toToggle.hide();
+        }
+        my_widget_script.resize();
+    },
+
+    hideWithCheck: function ($chbx, $toToggle) {
+        if($chbx.is(":checked")){
+            $toToggle.hide();
+        } else {
+            $toToggle.show();
+        }
+        my_widget_script.resize();
+    },
+
+    showOther: function ($this) {
+        if($this.val() === "Other") {
+            var $other = $this.next(".ifOther").show();
+            // Adjust height
+            var thisScrollHeight = $other.prop("scrollHeight");
+            $other.css("height", thisScrollHeight).css("overflow-y", "hidden");
+        } else {
+            $this.next(".ifOther").hide();
+        }
+        my_widget_script.resize();
+    },
+
+    getLocalDateString: function () {
+        var dateToday = new Date();
+        var dateTodayYear = dateToday.getFullYear();
+        var dateTodayMonth = dateToday.getMonth() + 1;
+        var dateTodayDay = dateToday.getDate();
+        var dateTodayString = dateTodayYear + "-" + dateTodayMonth.toString().padStart(2, 0) + "-" + dateTodayDay.toString().padStart(2, 0);
+        return(dateTodayString);
+    },
+
+    adjustifOther: function () {
+        $(".PPS_state").each(function () {
+           my_widget_script.showOther($(this));
         });
+    },
 
-        // Output table calculations
-        $(".simpleCalc").on("input", function () {
-            var elementID = this.id;
-            var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
-        });
+    setUpInitialState: function () {
+        //Add classes to add bootstrap styles for left column in form
+        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
+        $('.myLeftCol2').addClass("col-6 col-md-4 col-lg-3 text-right");
+        $('.myLeftCol3').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right font-weight-bold");
+        $(".med2").addClass("col-12 col-md-6 col-lg");
+        $(".med3").addClass("col-12 col-sm-6 col-md-4");
+        // $(".calcFull").addClass("simpleCalc fullWidth");
 
-        // Show the demographics input boxes when checked
-        $("#editDemo").on("change", function () {
-            if($(this).is(":checked")){
-                $(".editDemoChecked").show();
-            } else {
-                $(".editDemoChecked").hide();
+        $('textarea.autoAdjust').each(function () {
+            if(! $(this).css("display", "none")) { //only adjust if shown
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
             }
+        }).on('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
             my_widget_script.resize();
         });
 
+        
+        $("#editDemo").each(function () {
+            my_widget_script.showWithCheck($(this), $(".editDemoChecked"));
+        }).on("change", function () {
+            my_widget_script.showWithCheck($(this), $(".editDemoChecked"));
+        });
+        
         $("#DOB").on("change", function () {
             my_widget_script.adjustForNumOffspring();
             my_widget_script.printPND_days();
@@ -304,37 +362,56 @@ my_widget_script =
         $("#numOffspring").on("change", function () {
             my_widget_script.adjustForNumOffspring();
             my_widget_script.switchMouseForEntry();
-            var numMice = parseInt($(this).val());
+            // var numMice = parseInt($(this).val());
         });
 
-        $(".mouseID").on("input", function () {
+        // Change mouseID in select list
+        $(".mouseID").each(function () {
             var mouseNum = $(this).data("num");
-
             $("#mouseSelect option.mouse" + mouseNum).text($(this).val());
-        });
-
-        $("#showDates").on("change", function () {
-            if($(this).is(":checked")){
-                $("#datesList").show();
-            } else {
-                $("#datesList").hide();
-            }
-            my_widget_script.resize();
-        });
-        
-        $("#massSelect").on("change", function () {
-            var pnd = $(this).val();
-            if (pnd) {
-                my_widget_script.switchMassTable(pnd);
-            } else {
-                $(".massDiv").hide();
-            }
+        }).on("input", function () {
+            var mouseNum = $(this).data("num");
+            $("#mouseSelect option.mouse" + mouseNum).text($(this).val());
             my_widget_script.resize();
         });
 
-        $("#mouseSelect").on("change", function () {
-            my_widget_script.switchMouseForEntry();
-            my_widget_script.resize();
+        // Add tail mark
+        $(".redButton").on("click", function () {
+            $(this).parent().find(".tailMark").append(
+                "<span style='color:red'>|</span>"
+            );
+            my_widget_script.updateTailMarkButton($(this));
+        });
+
+        $(".blackButton").on("click", function () {
+            $(this).parent().find(".tailMark").append(
+                "<span style='color:black'>|</span>"
+            );
+            my_widget_script.updateTailMarkButton($(this));
+        });
+
+        $(".clearButton").on("click", function () {
+            $(this).parent().find(".tailMark").text(
+                ""
+            );
+            my_widget_script.updateTailMarkButton($(this));
+        });
+
+        $("#showDates").each(function () {
+            my_widget_script.showWithCheck($(this), $("#datesList"));
+        }).on("change", function () {
+            my_widget_script.showWithCheck($(this), $("#datesList"));
+        });
+
+        // Output table calculations
+        $(".simpleCalc").each(function () {
+            var elementID = this.id;
+            var calcID = "." + elementID + "_calc";
+            my_widget_script.watchValue($(this), $(calcID));
+        }).on("input", function () {
+            var elementID = this.id;
+            var calcID = "." + elementID + "_calc";
+            my_widget_script.watchValue($(this), $(calcID));
         });
 
         $(".addMatCheck").on("click", function () {
@@ -347,13 +424,31 @@ my_widget_script =
             }
         });
 
+        $(".addMatDate").val(my_widget_script.getLocalDateString());
+
         $(".removeMatCheck").on("click", function () {
             var proceed = confirm("Are you sure that you want to remove the last date?");
             if(proceed){
                 var mouseNum = $(this).data("num");
-                my_widget_script.removeMaturationRow(mouseNum);
+                my_widget_script.removeMaturationRow("PPS", mouseNum);
                 my_widget_script.watchForPPS();
             }
+        });
+
+        $("#massSelect").on("change", function () {
+            var pnd = $(this).val();
+            if (pnd) {
+                my_widget_script.switchMassTable(pnd);
+            } else {
+                $(".massDiv").hide();
+            }
+            my_widget_script.resize();
+        });
+
+        $("#mouseSelect").on("change", function () {
+            my_widget_script.switchMouseForEntry();
+            my_widget_script.adjustifOther();
+            my_widget_script.resize();
         });
 
         $(".PPS_mass").on("input", function () {
@@ -389,7 +484,7 @@ my_widget_script =
                 tableID = "maturationTable";
                 $errorMsg = $(".errorMsg.maturation");
             } else if($(this).hasClass("mass")){
-                fileName = "mass_" + $("#damID").val() + "_females";
+                fileName = "mass_" + $("#damID").val() + "_males";
                 tableID = "massTable";
                 $errorMsg = $(".errorMsg.mass");
             }
@@ -423,93 +518,6 @@ my_widget_script =
             
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy);
         });
-    },
-
-    switchMouseForEntry: function () {
-        var selectedMouse = $("#mouseSelect").val();
-        switch (selectedMouse) {
-            case "mouse1":
-                $(".entry[data-num='1']").show();
-                $(".entry[data-num!='1']").hide();
-                break;
-            case "mouse2":
-                $(".entry[data-num='2']").show();
-                $(".entry[data-num!='2']").hide();
-                break;
-            case "mouse3":
-                $(".entry[data-num='3']").show();
-                $(".entry[data-num!='3']").hide();
-                break;
-            case "mouse4":
-                $(".entry[data-num='4']").show();
-                $(".entry[data-num!='4']").hide();
-                break;
-            case "mouse5":
-                $(".entry[data-num='5']").show();
-                $(".entry[data-num!='5']").hide();
-                break;
-        
-            default:
-                $(".entry").hide();
-                break;
-        }
-        my_widget_script.resize();
-    },
-
-    addRequiredFieldIndicators: function () {
-        $('.needForTableLab').each(function () { //find element with class "needForTableLab"
-            //alert($(this).val());
-            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
-        });
-
-        $('.requiredLab').each(function () { //find element with class "requiredLab"
-            //alert($(this).val());
-            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
-        });
-    },
-
-    updateTailMarkCalc: function ($tailMark) {
-        var mouseNum = $tailMark.data("num");
-        var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
-        $tailMarkCalc.html($tailMark.html());
-        
-        my_widget_script.resize();
-    },
-
-    setUpInitialState: function () {
-        //Add classes to add bootstrap styles for left column in form
-        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
-        $('.myLeftCol2').addClass("col-6 col-md-4 col-lg-3 text-right");
-        $('.myLeftCol3').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right font-weight-bold");
-        $(".med2").addClass("col-12 col-md-6 col-lg");
-        $(".med3").addClass("col-12 col-sm-6 col-md-4");
-        // $(".calcFull").addClass("simpleCalc fullWidth");
-
-        if($("#editDemo").is(":checked")){
-            $(".editDemoChecked").show();
-        } else {
-            $(".editDemoChecked").hide();
-        }
-        
-        if($("#showDates").is(":checked")){
-            $("#datesList").show();
-        } else {
-            $("#datesList").hide();
-        }
-
-        $(".simpleCalc").each(function () {
-            var elementID = this.id;
-            var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
-        });
-
-        $(".addMatDate").val(my_widget_script.getLocalDateString());
-
-        $(".mouseID").each(function () {
-            var mouseNum = $(this).data("num");
-
-            $("#mouseSelect option.mouse" + mouseNum).text($(this).val());
-        });
         
         my_widget_script.adjustForNumOffspring();
         my_widget_script.switchMouseForEntry();
@@ -519,16 +527,8 @@ my_widget_script =
         my_widget_script.updateMatPND();
         my_widget_script.watchForPPS();
         my_widget_script.calcValues();
+        my_widget_script.adjustifOther();
         my_widget_script.resize();
-    },
-
-    getLocalDateString: function () {
-        var dateToday = new Date();
-        var dateTodayYear = dateToday.getFullYear();
-        var dateTodayMonth = dateToday.getMonth() + 1;
-        var dateTodayDay = dateToday.getDate();
-        var dateTodayString = dateTodayYear + "-" + dateTodayMonth.toString().padStart(2, 0) + "-" + dateTodayDay.toString().padStart(2, 0);
-        return(dateTodayString);
     },
 
     resize: function () {
@@ -549,7 +549,7 @@ my_widget_script =
 
         for (var j = 0; j < maxOffspring; j++) {
             var mouseNum = j + 1;
-            var dataSearch = "[data-num='" + mouseNum + "']";
+            var dataSearch = my_widget_script.dataSearch("num", mouseNum);
             var tailMark = $("#tailMark" + mouseNum).html();
             var addedRows_PPS = $(".PPS_div" + dataSearch).find(".addedRow").length;
             
@@ -564,8 +564,8 @@ my_widget_script =
 
             // console.log(
             //     "Tail Mark: "  + tailMark + "\n" + 
-            //     "addedRows_PPS: " + addedRows_PPS + "\n" +
-            //     "dates_PPS: " + dates_PPS + "\n"
+            //     "addedRows_PPS: " + addedRows_PPS + "\n" + 
+            //     "dates_PPS: " + dates_PPS + "\n" 
             // );
             if(tailMark) {
                 tailMarks[j] = tailMark;
@@ -587,6 +587,11 @@ my_widget_script =
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
+
+    dataSearch: function (dataName, dataValue) {
+        var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
+        return dataSearch
+    },
 
     /** -----------------------------------------------------------------------------
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
@@ -751,108 +756,37 @@ my_widget_script =
 
     printPND_days: function () {
         if($("#DOB").val()){
-            my_widget_script.addDays($("#DOB").val(), $(".pnd21"), 21);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd22"), 22);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd23"), 23);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd24"), 24);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd28"), 28);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd35"), 35);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd42"), 42);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd49"), 49);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd56"), 56);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd63"), 63);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd70"), 70);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd71"), 71);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd72"), 72);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd73"), 73);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd74"), 74);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd75"), 75);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd76"), 76);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd77"), 77);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd78"), 78);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd79"), 79);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd80"), 80);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd81"), 81);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd82"), 82);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd83"), 83);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd84"), 84);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd85"), 85);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd86"), 86);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd87"), 87);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd88"), 88);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd89"), 89);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd90"), 90);
-            my_widget_script.addDays($("#DOB").val(), $(".pnd91"), 91);
+            var pndDays = [21, 22, 23, 24, 28, 35, 42, 49, 56, 63, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91]
+            
+            for(i = 0; i < pndDays.length; i ++ ) {
+                var pnd = pndDays[i];
+                my_widget_script.addDays($("#DOB").val(), $(".pnd"+pnd), pnd);
+            }
         }
 
         my_widget_script.resize();
     },
 
     adjustForNumOffspring: function () {
-        var numOffspring;
+        var numOffspring = parseInt($("#numOffspring").val());
 
-        numOffspring = parseInt($("#numOffspring").val());
-        
-        switch (numOffspring) {
-            case 1:
-                $(".mouse1").show();
-                $(".mouse2").hide();
-                $(".mouse3").hide();
-                $(".mouse4").hide();
-                $(".mouse5").hide();
-                $(".invalid").hide();
-                $("#mouseSelect").val("mouse1");
-                break;
-            case 2:
-                $(".mouse1").show();
-                $(".mouse2").show();
-                $(".mouse3").hide();
-                $(".mouse4").hide();
-                $(".mouse5").hide();
-                $(".invalid").hide();
-                $("#mouseSelect").val("mouse1");
-                break;
+        // Hide everything, then show only the relevant ones
+        $(".mouse1").hide();
+        $(".mouse2").hide();
+        $(".mouse3").hide();
+        $(".mouse4").hide();
+        $(".mouse5").hide();
+        $(".invalid").hide();
 
-            case 3:
-                $(".mouse1").show();
-                $(".mouse2").show();
-                $(".mouse3").show();
-                $(".mouse4").hide();
-                $(".mouse5").hide();
-                $(".invalid").hide();
-                $("#mouseSelect").val("mouse1");
-                break;
-
-            case 4:
-                $(".mouse1").show();
-                $(".mouse2").show();
-                $(".mouse3").show();
-                $(".mouse4").show();
-                $(".mouse5").hide();
-                $(".invalid").hide();
-                $("#mouseSelect").val("mouse1");
-                break;
-
-            case 5:
-                $(".mouse1").show();
-                $(".mouse2").show();
-                $(".mouse3").show();
-                $(".mouse4").show();
-                $(".mouse5").show();
-                $(".invalid").hide();
-                $("#mouseSelect").val("mouse1");
-                break;
-
-            default:
-                $(".mouse1").hide();
-                $(".mouse2").hide();
-                $(".mouse3").hide();
-                $(".mouse4").hide();
-                $(".mouse5").hide();
-                $(".invalid").show();
-                $("#mouseSelect").val("");
-                $(".numOffspring_calc").html("<span style='color:red'>Enter a number from 1-5</span>");
-                break;
+        if(numOffspring >= 1 && numOffspring <= 5){
+            for(i = 0; i < numOffspring; i++){
+                $(".mouse" + (i+1)).show();
+            }
+            $("#mouseSelect").val("mouse1");
+        } else {
+            $(".invalid").show();
+            $("#mouseSelect").val("");
+            $(".numOffspring_calc").html("<span style='color:red'>Enter a number from 1-5</span>");
         }
 
         my_widget_script.resize();
@@ -875,7 +809,7 @@ my_widget_script =
 
             var mouseNum = i + 1;
             // console.log("Mouse Number is " + mouseNum);
-            var dataSearch = "[data-num='" + mouseNum + "']";
+            var dataSearch = my_widget_script.dataSearch("num", mouseNum);
 
             if($(".PPS_state" + dataSearch).length === 0){
                 $(".ifPPS" + dataSearch).hide();
@@ -931,6 +865,7 @@ my_widget_script =
 
         if (anyHasReachedPPS) {
             $(".ifPPS.msg").show();
+            my_widget_script.adjustifOther();
         } else {
             $(".ifPPS.msg").hide();
         }
@@ -940,7 +875,7 @@ my_widget_script =
 
     watchPPS_mass: function (mouseNum, knownStatus) {
         var hasReachedPPS = false;
-        var dataSearch = "[data-num='" + mouseNum + "']";
+        var dataSearch = my_widget_script.dataSearch("num", mouseNum);
         
         if(knownStatus === true) {
             hasReachedPPS = true;
@@ -981,7 +916,7 @@ my_widget_script =
 
     createMaturationRow_PPS: function (dateInputVal, mouseNum) {
         var $div, selectBaseName, textareaBaseName, rowCount, selectName, textareaName, pndValue;
-        var dataSearch = "[data-num='" + mouseNum + "']";
+        var dataSearch = my_widget_script.dataSearch("num", mouseNum);
         $div = $(".PPS_div" + dataSearch);
         selectBaseName = "ppscheck" + mouseNum + "_";
         textareaBaseName = "ppscheck_other" + mouseNum + "_";
@@ -1015,19 +950,19 @@ my_widget_script =
                         '<option value="Other">Other</option>'
                     ).on("change", function () {
                         my_widget_script.watchForPPS();
-                        if($(this).val() === "Other") {
-                            $(this).next(".ifOther").show();
-                        } else {
-                            $(this).next(".ifOther").hide();
-                        }
+                        my_widget_script.showOther($(this));
                     })
                 ).append(
                     $("<text" + "area></text" + "area>", {
                         name: textareaName,
                         id: textareaName,
-                        rows: 2,
-                        "class": "PPS fullWidth ifOther",
-                        "data-num": mouseNum
+                        rows: 1,
+                        "class": "PPS fullWidth ifOther autoAdjust",
+                        "data-num": mouseNum,
+                    }).on('input', function () {
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
+                        my_widget_script.resize();
                     })
                 )
             ).append(
@@ -1046,10 +981,13 @@ my_widget_script =
         my_widget_script.resize();
     },
 
-    removeMaturationRow: function (mouseNum) {
-        var dataSearch = "[data-num='" + mouseNum + "']";
-        var $div = $(".PPS_div" + dataSearch);
+    removeMaturationRow: function (whichPheno, mouseNum) {
+        var dataSearch = my_widget_script.dataSearch("num", mouseNum);
+        if(whichPheno === "PPS"){
+            var $div = $(".PPS_div" + dataSearch);
+        }
         $div.find(".addedRow").last().remove();
+
         my_widget_script.resize();
     },
 
@@ -1202,6 +1140,7 @@ my_widget_script =
     makeHTMLforMice: function (numMice) {
         my_widget_script.makePPSStatusMsg(numMice);
         my_widget_script.makeDemoEntries(numMice);
+        my_widget_script.makeMassRows(numMice);
     },
 
     makePPSStatusMsg: function (numMice) {
@@ -1323,6 +1262,24 @@ my_widget_script =
                     )
                 )
             )
+        }
+    },
+
+    makeMassRows: function (numMice) {
+        var $massTable = $("#massTable");
+        var pnds = [22, 23, 24, 28, 35, 42, 49, 56, 63, 70, 71, 72]
+
+        for(i=0; i < numMice; i++) {
+            var mouseNum = i + 1;
+            var $tr = $massTable.find("tr.mouse"+mouseNum).html("");
+            for (j = 0; j < pnds.length; j ++ ){
+                var pnd = pnds[j];
+                $tr.append(
+                    $("<td/>", {
+                        "class": "mass_pnd" + pnd + "_" + mouseNum + "_calc"
+                    })
+                )
+            }
         }
     }
 };
