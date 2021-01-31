@@ -260,7 +260,7 @@ my_widget_script =
             } else {
                 $(".ifLast").hide()
             }
-            my_widget_script.reszie();
+            my_widget_script.resize();
         });
 
         my_widget_script.resize();
