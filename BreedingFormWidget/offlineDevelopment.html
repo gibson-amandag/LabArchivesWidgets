@@ -297,16 +297,10 @@ $(document).ready(function () {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
-            //TO DO add class to these
-
-            // addPlugCheck1.disabled = true;
-            // removePlugCheck1.disabled = true;
-            // addPlugCheck2.disabled = true;
-            // removePlugCheck2.disabled = true;
-            // addMass1.disabled = true;
-            // addMass2.disabled = true;
-            // removeMass1.disabled = true;
-            // removeMass2.disabled = true;
+        } else {
+            if($("#breedDate").val()) {
+                $(".entry").insertAfter($(".myTitle"));
+            }
         }
     },
 
@@ -325,6 +319,8 @@ $(document).ready(function () {
                 $(".dam2").hide();
                 $("#sireDiv").addClass("mt-md-0").removeClass("mt-xl-0");
             };
+
+            my_widget_script.adjustForDaysPostBreedingAndPlug();
 
             //resize the container
             my_widget_script.parent_class.resize_container();
@@ -363,6 +359,8 @@ $(document).ready(function () {
             var tableName = $("#dam1PlugTable");
 
             my_widget_script.deleteRow(tableName);
+
+            my_widget_script.adjustForDaysPostBreedingAndPlug();
         });
 
         $("#addPlugCheck2").on("click", function () {
@@ -375,6 +373,7 @@ $(document).ready(function () {
         $("#removePlugCheck2").on("click", function () {
             var tableName = $("#dam2PlugTable");
             my_widget_script.deleteRow(tableName);
+            my_widget_script.adjustForDaysPostBreedingAndPlug();
         });
 
         $("#addMass1").on("click", function () {
@@ -401,8 +400,17 @@ $(document).ready(function () {
 
             my_widget_script.deleteRow(tableName);
         });
-    },
 
+        $("#breedDate").on("input", function () {
+            my_widget_script.adjustForDaysPostBreedingAndPlug();
+        })
+
+        $(".updateWatch").on("input", function () {
+            my_widget_script.adjustForDaysPostBreedingAndPlug();
+        })
+
+    },
+    
     /**
      * TO DO: edit this function to define the symbols that should be added to the HTML
      * page based on whether or not a field is required to save the widget to the page
@@ -418,6 +426,15 @@ $(document).ready(function () {
             }
         });
     },
+    
+    updateTextarea: function () {
+        $('textarea').each(function () {
+            if(! $(this).is(":hidden")) {
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            } 
+        });
+        my_widget_script.resize();
+    },
 
     /**
      * TO DO: edit this function to define how the form should be initilized based 
@@ -427,6 +444,16 @@ $(document).ready(function () {
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
+
+        $("textarea").on("input", function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            my_widget_script.resize();
+        });
+
+        $(".checkText").on("change", function () {
+            my_widget_script.updateTextarea();
+        });
 
         //Check if the dam2Check checkbox is checked and adjust visibility
         if ($('#dam2Check').is(":checked")) {
@@ -448,6 +475,8 @@ $(document).ready(function () {
             my_widget_script.calcPercMass($(this), $("#dammass_2"));
         });
 
+        my_widget_script.adjustForDaysPostBreedingAndPlug();
+        my_widget_script.updateTextarea();
         my_widget_script.resize();
     },
 
@@ -541,14 +570,18 @@ $(document).ready(function () {
                     $('<input/>', { //append a new input to the td
                         id: col1ID,
                         name: col1ID,
-                        type: "date" //make it type "date"
+                        type: "date", //make it type "date"
+                        "class": "plugDate"
+                    }).on("change", function () {
+                        my_widget_script.adjustForDaysPostBreedingAndPlug()
                     })
                 )
             ).append(
                 $('<td></td>').append( //append a new td to the row
                     $('<select></select>', { //append a new select to the td
                         id: col2ID,
-                        name: col2ID
+                        name: col2ID,
+                        "class": "plugStatus"
                     }).append( //append options to the select tag
                         "<option value='0'>-/-</option>",
                         "<option value='1'>?</option>",
@@ -556,13 +589,24 @@ $(document).ready(function () {
                         "<option value='3'>+/+</option>",
                         "<option value='4'>Red</option>",
                         "<option value='5'>Closed VO</option>"
-                    )
+                    ).on("change", function () {
+                        my_widget_script.adjustForDaysPostBreedingAndPlug()
+                    })
                 )
             ).append(
                 $('<td></td>').append( //append a new td to the row
                     $('<text' + 'area></text' + 'area>', { //append a new input to the td. For some reason, adding a textarea breaks LA
                         id: col3ID,
-                        name: col3ID
+                        name: col3ID,
+                        "rows": 1,
+                        "cols": 12,
+                    }).css(
+                        "height", this.scrollHeight + "px"
+                    ).css(
+                        "overflow-y", "hidden"
+                    ).on('input', function () {
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
                     })
                 )
             )
@@ -637,7 +681,440 @@ $(document).ready(function () {
             $(newMass).parent().next(".change").text("Enter Initial Mass");
         };
         
-    }
+    },
+
+    addDays: function ($startDateVal, $newDateClass, numDays) {
+        // console.log("in addDays. Going to replace" + $newDateClass.text());
+        var dateString = $startDateVal; //get the date string from the input
+
+        var startDate = new Date(dateString);
+
+        var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
+        // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
+        // for locales with different time zones, this means that the Date displayed could be the previous day
+
+        //Add the number of days (in ms) and offset (in ms) to the start Date (in ms) and make it a new date object
+        var newDate = new Date(startDate.getTime() + numDays * 24 * 60 * 60 * 1000 + offset * 60 * 1000);
+
+        $newDateClass.text(newDate.toDateString());
+    },
+
+    watchForPlug: function (whichDam) {
+        // console.log("in watchForPlug");
+        var hasPotentialPlug = false;
+        var thisGestDayAtPotentialPlug, thisPlugPotentialDate;
+        var gestDayAtPotentialPlug, dateAtPotentialPlug;
+        var hasLikelyPlug = false;
+        var thisGestDayAtLikelyPlug, thisPlugLikelyDate;
+        var gestDayAtLikelyPlug, dateAtLikelyPlug;
+        var hasGoodPlug = false;
+        var thisGestDayAtGoodPlug, thisPlugGoodDate;
+        var gestDayAtGoodPlug, dateAtGoodPlug;
+
+        var dataSearch = my_widget_script.dataSearch("dam", whichDam);
+        $(".table.plug" + dataSearch).find(".plugStatus").each(function () {
+            var $this = $(this);
+
+            //if the state is 1, 2, 3 (? +/- +/+)
+            if($this.val()==="1" || $this.val()==="2" || $this.val()==="3"){
+                hasPotentialPlug = true;
+                thisPlugPotentialDate = $this.closest("tr").find(".plugDate").val(); 
+                thisGestDayAtPotentialPlug = my_widget_script.getGestDay(thisPlugPotentialDate);
+
+                if(dateAtPotentialPlug) { //if there's a value for dateAtPotentialPlug
+                    if(new Date(thisPlugPotentialDate).getTime() < new Date(dateAtPotentialPlug).getTime()) { // if this is earlier
+                        dateAtPotentialPlug = thisPlugPotentialDate;
+                        gestDayAtPotentialPlug = thisGestDayAtPotentialPlug;
+                    }
+                } else { //if no current date
+                    dateAtPotentialPlug = thisPlugPotentialDate;
+                    gestDayAtPotentialPlug = thisGestDayAtPotentialPlug;
+                }
+            }
+
+            if($this.val()==="2" || $this.val()==="3"){
+                hasLikelyPlug = true;
+                thisPlugLikelyDate = $this.closest("tr").find(".plugDate").val(); 
+                thisGestDayAtLikelyPlug = my_widget_script.getGestDay(thisPlugLikelyDate);
+
+                if(dateAtLikelyPlug) { //if there's a value for dateAtLikelyPlug
+                    if(new Date(thisPlugLikelyDate).getTime() < new Date(dateAtLikelyPlug).getTime()) { // if this is earlier
+                        dateAtLikelyPlug = thisPlugLikelyDate;
+                        gestDayAtLikelyPlug = thisGestDayAtLikelyPlug;
+                    }
+                } else { //if no current date
+                    dateAtLikelyPlug = thisPlugLikelyDate;
+                    gestDayAtLikelyPlug = thisGestDayAtLikelyPlug;
+                }
+            }
+
+            if($this.val()==="3"){
+                hasGoodPlug = true;
+                thisPlugGoodDate = $this.closest("tr").find(".plugDate").val(); 
+                thisGestDayAtGoodPlug = my_widget_script.getGestDay(thisPlugGoodDate);
+
+                if(dateAtGoodPlug) { //if there's a value for dateAtGoodPlug
+                    if(new Date(thisPlugGoodDate).getTime() < new Date(dateAtGoodPlug).getTime()) { // if this is earlier
+                        dateAtGoodPlug = thisPlugGoodDate;
+                        gestDayAtGoodPlug = thisGestDayAtGoodPlug;
+                    }
+                } else { //if no current date
+                    dateAtGoodPlug = thisPlugGoodDate;
+                    gestDayAtGoodPlug = thisGestDayAtGoodPlug;
+                }
+            }
+        })
+
+        var plugDates = {
+            hasPotentialPlug: hasPotentialPlug,
+            earliestPotential: dateAtPotentialPlug,
+            hasLikelyPlug: hasLikelyPlug,
+            earliestLikely: dateAtLikelyPlug,
+            hasGoodPlug: hasGoodPlug,
+            earliestGood: dateAtGoodPlug
+        }
+        // console.log(plugDates)
+        return plugDates
+    },
+
+    dataSearch: function (dataName, dataValue) {
+        var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
+        return dataSearch
+    },
+
+    adjustForDaysPostBreedingAndPlug: function () {
+        // console.log("In adjustForDaysPostBreedingAndPlug");
+        if($("#breedDate").val()) {
+            // Get days post breeding
+            var daysPostBreeding = my_widget_script.getDaysPostEvent($("#breedDate").val());
+            // Print days post breeding
+            $(".postBreedDays").text(daysPostBreeding);
+            // 12 days after breeding
+            my_widget_script.addDays($("#breedDate").val(), $(".bd12"), 12);
+            // 19 days after breeding
+            my_widget_script.addDays($("#breedDate").val(), $(".bd19"), 19);
+
+            // If today is 12 days after breeding, make red
+            if (daysPostBreeding === 12) {
+                // andSelf() is deprecated for newer versions. addBack() is new method
+                $(".bd12").parent().andSelf().css("color", "red");
+            }
+            // If today is more than 12 days after breeding, make blue
+            else if(daysPostBreeding > 12) {
+                $(".bd12").parent().andSelf().css("color", "blue");
+            } 
+            // Otherwise, make it black
+            else {
+                $(".bd12").parent().andSelf().css("color", "black");
+            }
+
+            if (daysPostBreeding === 19) {
+                $(".bd19").parent().andSelf().css("color", "red");
+            }
+            else if(daysPostBreeding >= 19) {
+                $(".bd19").parent().andSelf().css("color", "blue");
+            } else {
+                $(".bd19").parent().andSelf().css("color", "black");
+            }
+
+        } else {
+            $(".postBreedDays").text("[Enter breed date]");
+            $(".bd12").text("[Enter breed date]").parent().andSelf().css("color", "black");
+            $(".bd19").text("[Enter breed date]").parent().andSelf().css("color", "black");
+
+        }
+
+        if ($("#dam2Check").is(":checked")) {
+            var max = 2
+        } else {
+            var max = 1
+        }
+        for(i = 0; i < max; i ++) {
+            damNum = "" + (i + 1);
+            // console.log("in for loop with dam " + damNum);
+            // Get plug dates
+            var plugDates = my_widget_script.watchForPlug(damNum);
+            var dataSearch = my_widget_script.dataSearch("dam", damNum);
+
+            // Get days post plug
+            // after earliest potential
+            if(plugDates.hasPotentialPlug) {
+                $(".ifPlug" + dataSearch).show();
+
+                // console.log(plugDates.earliestPotential);
+                if(plugDates.earliestPotential){ //if there's a date entered
+                    var daysEarliestPotentialPlug = my_widget_script.getDaysPostEvent(plugDates.earliestPotential);
+                    $(".postEarliestPotentialPlug" + dataSearch).text(daysEarliestPotentialPlug);
+                    
+                    my_widget_script.addDays(plugDates.earliestPotential, $(".plug11" + dataSearch), 11);
+                    my_widget_script.addDays(plugDates.earliestPotential, $(".plug18" + dataSearch), 18);
+                    // If today is 12 days after plug, make red
+                    if (daysEarliestPotentialPlug === 11) {
+                        $(".plug11" + dataSearch).parent().andSelf().css("color", "red");
+                    }
+                    // If today is more than 12 days after breeding, make blue
+                    else if(daysEarliestPotentialPlug > 11) {
+                        if($("#sepDam"+damNum).is(":not(:checked)")){
+                            $(".plug11" + dataSearch).parent().andSelf().css("color", "blue");
+                        } else {
+                            $(".plug11" + dataSearch).parent().andSelf().css("color", "black");
+                        }
+                    } 
+                    // Otherwise, make it black
+                    else {
+                        $(".plug11" + dataSearch).parent().andSelf().css("color", "black");
+                    }
+
+                    if (daysEarliestPotentialPlug === 18) {
+                        $(".plug18" + dataSearch).parent().andSelf().css("color", "red");
+                    }
+                    else if(daysEarliestPotentialPlug >= 18) {
+                        if($("#birthDam"+damNum).is(":not(:checked)")){
+                            $(".plug18" + dataSearch).parent().andSelf().css("color", "blue");
+                            $(".ifBirth" + dataSearch).hide();
+                        } else {
+                            $(".plug18" + dataSearch).parent().andSelf().css("color", "black");
+                            $(".ifBirth" + dataSearch).show();
+                        }
+                    } else {
+                        $(".plug18" + dataSearch).parent().andSelf().css("color", "black");
+                    }
+                } else {
+                    $(".postEarliestPotentialPlug" + dataSearch).text("[enter plug date]");
+                    $(".plug11" + dataSearch).text("[enter plug date]").children().andSelf().css("color", "black");
+                    $(".plug18" + dataSearch).text("[enter plug date]").children().andSelf().css("color", "black");
+                }            
+                
+            } else { // if had not had potential plug
+                $(".ifPlug" + dataSearch).hide();
+                $(".postEarliestPotentialPlug" + dataSearch).text("[enter plug date]");
+                $(".plug11" + dataSearch).text("[enter plug date]").children().andSelf().css("color", "black");
+                $(".plug18" + dataSearch).text("[enter plug date]").children().andSelf().css("color", "black");
+
+            }
+
+            // after earliest likely
+            if(plugDates.hasLikelyPlug) {
+                $(".ifLikelyPlug" + dataSearch).show();
+
+                if(plugDates.earliestLikely){ //if there's a date entered
+                    var daysEarliestLikelyPlug = my_widget_script.getDaysPostEvent(plugDates.earliestLikely);
+                    $(".postEarliestLikelyPlug" + dataSearch).text(daysEarliestLikelyPlug);          
+                } else {
+                    $(".postEarliestLikelyPlug" + dataSearch).text("[enter plug date]");
+                }
+            } else { // if had not had likely plug
+                $(".ifLikelyPlug" + dataSearch).hide();
+                $(".postEarliestLikelyPlug" + dataSearch).text("[enter plug date]");
+            }
+
+            // after earliest good
+            if(plugDates.hasGoodPlug) {
+                $(".ifGoodPlug" + dataSearch).show();
+
+                if(plugDates.earliestGood){ //if there's a date entered
+                    var daysEarliestGoodPlug = my_widget_script.getDaysPostEvent(plugDates.earliestGood);
+                    $(".postEarliestGoodPlug" + dataSearch).text(daysEarliestGoodPlug);          
+                } else {
+                    $(".postEarliestGoodPlug" + dataSearch).text("[enter plug date]");
+                }
+            } else { // if had not had good plug
+                $(".ifGoodPlug" + dataSearch).hide();
+                $(".postEarliestGoodPlug" + dataSearch).text("[enter plug date]");
+            }
+
+        if($("#sepDam"+damNum).is(":not(:checked)")){
+            $(".ifSep" + dataSearch).hide();
+        } else {
+            $(".ifSep" + dataSearch).show();
+        }
+
+        if($("#birthDam"+damNum).is(":not(:checked)")){
+            $(".ifBirth" + dataSearch).hide();
+        } else {
+            $(".ifBirth" + dataSearch).show();
+        }
+        }
+    },
+
+    getDaysPostEvent: function ($originDateVal) {
+        if($originDateVal) {
+            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
+            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
+            // for locales with different time zones, this means that the Date displayed could be the previous day
+    
+            var currentYear = new Date().getFullYear();
+            var currentMonth = new Date().getMonth();
+            var currentDay = new Date().getDate();
+
+            var originDate_asDate = new Date($originDateVal);
+
+            //Adjust for offset
+            var originDate_asDate_adj = new Date(originDate_asDate.getTime() + offset * 60 * 1000);
+            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
+            var dateDiff_ms = today_asDate.getTime() - originDate_asDate_adj.getTime();
+    
+            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
+    
+            return(dateDiff_days);
+    
+            // console.log(
+            //     "Current Year: " + currentYear +"\n" +
+            //     "Current Month: " + currentMonth + "\n" +
+            //     "Current Day: " + currentDay + "\n" +
+            //     "DOB String: " + $DOBVal + "\n" +
+            //     "DOB Date Obj: " + DOB_asDate + "\n" +
+            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
+            //     "Today Date Obj: " + today_asDate + "\n" +
+            //     "Diff in ms: " + dateDiff_ms + "\n" +
+            //     "Diff in days: " + dateDiff_days
+            // )
+        }
+    },
+
+    getDaysPostBreeding: function() {
+        var $breedDateVal = $("#breeddate").val();
+
+        if($breedDateVal) {
+            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
+            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
+            // for locales with different time zones, this means that the Date displayed could be the previous day
+    
+            var currentYear = new Date().getFullYear();
+            var currentMonth = new Date().getMonth();
+            var currentDay = new Date().getDate();
+
+            var breedDate_asDate = new Date($breedDate_val);
+
+            //Adjust for offset
+            var breedDate_asDate_adj = new Date(breedDate_asDate.getTime() + offset * 60 * 1000);
+            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
+            var dateDiff_ms = today_asDate.getTime() - breedDate_asDate_adj.getTime();
+    
+            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
+    
+            var breedDayTodayString = ".bd.bd" + dateDiff_days;
+            var breedDayNotTodayString = ".bd:not(.bd" + dateDiff_days + ")";
+    
+            $(breedDayTodayString).css("color", "red");
+            $(breedDayNotTodayString).css("color", "black");
+    
+            $(".bdToday").text(dateDiff_days);
+
+            // This prints at the top what needs to be done today
+            my_widget_script.updateToDoStatus(dateDiff_days);
+    
+            return(dateDiff_days);
+    
+            // console.log(
+            //     "Current Year: " + currentYear +"\n" +
+            //     "Current Month: " + currentMonth + "\n" +
+            //     "Current Day: " + currentDay + "\n" +
+            //     "DOB String: " + $DOBVal + "\n" +
+            //     "DOB Date Obj: " + DOB_asDate + "\n" +
+            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
+            //     "Today Date Obj: " + today_asDate + "\n" +
+            //     "Diff in ms: " + dateDiff_ms + "\n" +
+            //     "Diff in days: " + dateDiff_days
+            // )
+        } else {
+            my_widget_script.switchMassTable($("#massSelect").val());
+        }
+    },
+
+
+    getPND_today: function () {
+        // var offset = new Date().getTimezoneOffset();
+        var $DOBVal = $("#DOB").val();
+
+        if($DOBVal){
+            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
+            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
+            // for locales with different time zones, this means that the Date displayed could be the previous day
+    
+            var currentYear = new Date().getFullYear();
+            var currentMonth = new Date().getMonth();
+            var currentDay = new Date().getDate();
+            
+            var DOB_asDate = new Date($DOBVal);
+    
+            //Adjust for offset
+            var DOB_asDate_adj = new Date(DOB_asDate.getTime() + offset * 60 * 1000);
+            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
+    
+            var dateDiff_ms = today_asDate.getTime() - DOB_asDate_adj.getTime();
+    
+            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
+    
+            var pndTodayString = ".pnd.pnd" + dateDiff_days;
+            var pndNotTodayString = ".pnd:not(.pnd" + dateDiff_days + ")";
+    
+            $(pndTodayString).css("color", "red");
+            $(pndNotTodayString).css("color", "black");
+    
+            $(".pndToday").text(dateDiff_days);
+
+            // This prints at the top what needs to be done today and switches the Mass and AGD selector 
+            my_widget_script.updateToDoStatus(dateDiff_days);
+            my_widget_script.updateCycleStatus(dateDiff_days);
+    
+            return(dateDiff_days);
+    
+            // console.log(
+            //     "Current Year: " + currentYear +"\n" +
+            //     "Current Month: " + currentMonth + "\n" +
+            //     "Current Day: " + currentDay + "\n" +
+            //     "DOB String: " + $DOBVal + "\n" +
+            //     "DOB Date Obj: " + DOB_asDate + "\n" +
+            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
+            //     "Today Date Obj: " + today_asDate + "\n" +
+            //     "Diff in ms: " + dateDiff_ms + "\n" +
+            //     "Diff in days: " + dateDiff_days
+            // )
+        } else {
+            my_widget_script.switchMassTable($("#massSelect").val());
+        }
+    },
+
+    getGestDay: function (dateInputVal) {
+        //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
+        var breedDateisDay = 0;
+        var compDate_as_ms = new Date(dateInputVal).getTime();
+        var textOutput;
+        if($("#breedDate").val()){
+            if(dateInputVal){
+                var breedDate_as_ms = new Date($("#DOB").val()).getTime();
+                var gestDay = (compDate_as_ms - breedDate_as_ms) / (1000 * 3600 * 24) + breedDateisDay;
+                textOutput = gestDay;
+            } else {
+                textOutput = "[Enter Date of Plug Check]";
+            }
+        } else {
+            textOutput = "[Enter Breed Date]";
+        }
+        
+        return textOutput;
+    },
+
+    getPND: function (dateInputVal) {
+        //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
+        var DOBisDay = 0;
+        var compDate_as_ms = new Date(dateInputVal).getTime();
+        var textOutput;
+        if($("#DOB").val()){
+            if(dateInputVal){
+                var DOB_as_ms = new Date($("#DOB").val()).getTime();
+                var pnd = (compDate_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
+                textOutput = pnd;
+            } else {
+                textOutput = "[Enter Date of VO Check]";
+            }
+        } else {
+            textOutput = "[Enter DOB]";
+        }
+        
+        return textOutput;
+    },
 };
 
 //**************************************************************************
@@ -650,7 +1127,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("view", function() {return form_script.test_data()});
+      form_script.init("edit", function() {return form_script.test_data()});
 
 
     }
@@ -724,31 +1201,74 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         /* flex-wrap: wrap; */
     }
 
-    /* .mouseDiv>div {
-        flex: 0 50%;
-        margin-bottom: 5px;
-    } */
+    .ifPlug, .ifLikelyPlug, .ifGoodPlug, .dam2, .ifSep, .ifBirth {
+        display: none;
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
-        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-            style="color:blue">#</span></p>
+<div class="container myTitle">
+    <div class="row">
+        <h1 class="col">Breeding Cage</h1>
+    </div>
 </div>
 
-<!-- One example container for two column input that is responsive to window width -->
+<!-- Status Messages -->
 <div class="container">
-    <div class="row">
-        <h1 class="col">Setting up Breeding Cage</h1>
-    </div>
+    <div class="row demo">
+        
+        <h3 class="col-12">Today is: <span class="postBreedDays">[Enter breed date]</span> days post-breeding</h3>
+        <div class="ifPlug col-12 col-sm-6" data-dam="1">
+            <h4><span class="dam1_calc">Dam 1</span></h4>
+            <div>Today is <span class="postEarliestPotentialPlug" data-dam="1">[enter plug date]</span> days after the earliest <strong>potential</strong> plug (or better)</div>
+            <div class="ifLikelyPlug" data-dam="1">Today is <span class="postEarliestLikelyPlug" data-dam="1">[enter plug date]</span> days after the earliest <strong>likely</strong> plug (or better)</div>
+            <div class="ifGoodPlug" data-dam="1">Today is <span class="postEarliestGoodPlug" data-dam="1">[enter plug date]</span> days after the earliest <strong>good</strong> (+/+) plug</div>
+        </div>
+        <div class="ifPlug col-12 col-sm-6" data-dam="2">
+            <h4><span class="dam2_calc">Dam 2</span></h4>
+            <div>Today is <span class="postEarliestPotentialPlug" data-dam="2">[enter plug date]</span> days after the earliest <strong>potential</strong> plug (or better)</div>
+            <div class="ifLikelyPlug" data-dam="2">Today is <span class="postEarliestLikelyPlug" data-dam="2">[enter plug date]</span> days after the earliest <strong>likely</strong> plug (or better)</div>
+            <div class="ifGoodPlug" data-dam="2">Today is <span class="postEarliestGoodPlug" data-dam="2">[enter plug date]</span> days after the earliest <strong>good</strong> (+/+) plug</div>
+        </div>
+    </div>   
 
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6">
+            <h4>Check Mass and Separate</h4>
+            <div>12 days after breeding is on <span class="bd12">[enter breed date]</span></div>
+            <div class="ifPlug" data-dam="1">
+                <h5><span class="dam1_calc">Dam 1</span></h5>
+                <div>11 days after earliest potential plug is on <span class="plug11" data-dam="1">[enter plug date]</span></div>
+            </div>
+            <div class="ifPlug" data-dam="2">
+                <h5><span class="dam2_calc">Dam 2</span></h5>
+                <div>11 days after earliest potential plug is on <span class="plug11" data-dam="2">[enter plug date</span></div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 mt-2 mt-sm-0">
+            <h4>Watch for births</h4>
+            <div>19 days after breeding is on <span class="bd19">[enter breed date]</span></div>
+            <div class="ifPlug" data-dam="1">
+                <h5><span class="dam1_calc">Dam 1</span></h5>
+                <div>18 days after earliest potential plug is on <span class="plug18" data-dam="1">[enter plug date]</span></div>
+            </div>
+            <div class="ifPlug" data-dam="2">
+                <h5><span class="dam2_calc">Dam 2</span></h5>
+                <div>18 days after earliest potential plug is on <span class="plug18" data-dam="2">[enter plug date]</span></div>
+            </div>
+            
+            
+        </div>
+    </div>
+</div>
+
+<div class="container">
     <div class="row align-items-end mt-2">
         <div class="myLeftCol">Breeding Date: </div>
         <!-- myLeftCol adds additional classes in init function-->
 
-        <div class="col"><input id="breeddate" name="breeddate" type="date" class="fullWidth" /></div>
+        <div class="col"><input id="breedDate" name="breeddate" type="date" class="fullWidth" value="2021-01-29"/></div>
     </div>
 
     <div class="row align-items-end mt-2">
@@ -763,11 +1283,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
     <div class="row align-items-center mt-2">
         <div class="myLeftCol">Add a second dam: </div>
-        <div class="col"><input type="checkbox" name="dam2check" id="dam2Check" /></div>
+        <div class="col"><input type="checkbox" name="dam2check" id="dam2Check" class="checkText"/></div>
     </div>
 </div>
 
-<div class="container mt-2" id="mouseInfo">
+<div class="container mt-2" class="mouseInfo">
     <div class="row" id="mouseInfo">
         <!-- Dam 1 -->
         <div class="col-12 col-md-6 col-xl-4" id="dam1Div">
@@ -788,11 +1308,19 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <div class="col text-left">Dam 1 Mass:</div>
                     <div class="col text-right"><input id="dammass_1" min="0" name="dammass_1" step="0.1" type="number" class="fullWidth"/></div>
                 </div>
+                <div class="row align-items-center mt-2">
+                    <div class="col-6 text-left">Separated from male? <input type="checkbox" name="sepdam1" id="sepDam1" class="updateWatch"></div>
+                    <div class="col-6 text-right ifSep" data-dam="1"><input type="date" id="dam1SepDate" name="dam1sepdate" class="fullWidth"></div>
+                </div>
+                <div class="row align-items-center mt-2">
+                    <div class="col text-left">Given birth? <input type="checkbox" name="birthdam1" id="birthDam1" class="updateWatch"></div>
+                    <div class="col text-right ifBirth" data-dam="1"><input type="date" id="dam1BirthDate" name="dam1birthdate" class="fullWidth"></div>
+                </div>
             </div>
         </div>
         
         <!-- Dam 2 -->
-        <div class="col-12 col-md-6 col-xl-4 mt-2 mt-md-0 dam2" id="dam2Div" style="display: none;">
+        <div class="col-12 col-md-6 col-xl-4 mt-2 mt-md-0 dam2" id="dam2Div">
             <div class="container mouseDiv ">
                 <div class="row align-items-end">
                     <div class="col text-left">Dam 2 ID: </div>
@@ -809,6 +1337,14 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <div class="row align-items-end mt-2">
                     <div class="col text-left">Dam 2 Mass:</div>
                     <div class="col text-right"><input id="dammass_2" min="0" name="dammass_2" step="0.1" type="number" class="fullWidth"/></div>
+                </div>
+                <div class="row align-items-end mt-2">
+                    <div class="col text-left">Separated from male? <input type="checkbox" name="sepdam2" id="sepDam2" class="updateWatch"></div>
+                    <div class="col text-right ifSep" data-dam="2"><input type="date" id="dam2SepDate" name="dam2sepdate"></div>
+                </div>
+                <div class="row align-items-end mt-2">
+                    <div class="col text-left">Given birth? <input type="checkbox" name="birthdam2" id="birthDam2" class="updateWatch"></div>
+                    <div class="col text-right ifBirth" data-dam="2"><input type="date" id="dam2BirthDate" name="dam2birthdate"></div>
                 </div>
             </div>
             
@@ -839,7 +1375,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<div class="container">
+<div class="container entry">
     <div class="row">
         <div class="col-12 col-lg-6">
             <!-- Dam 1 Plug Check -->
@@ -852,7 +1388,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <div class="row mt-2">
                     <div class="col-12"><h3>Plug check for <span class="dam1_calc">__</span></h3></div>
                     <div class="col-12 plugCheckTables table-responsive xsTableDiv" id="dam1PlugChecks">
-                        <table id="dam1PlugTable" class="table">
+                        <table id="dam1PlugTable" class="table plug" data-dam="1">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -876,7 +1412,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <div class="row mt-2">
                     <div class="col-12"><h3>Plug check for <span class="dam2_calc">__</span></h3></div>
                     <div class="col-12 plugCheckTables table-responsive xsTableDiv" id="dam2PlugChecks">
-                        <table id="dam2PlugTable" class="table">
+                        <table id="dam2PlugTable" class="table plug" data-dam="2">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -942,36 +1478,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
     </div>
 </div>
-
-<!-- <div class="container mt-2 dam2">
-    <div class="plugCheckTables table-responsive xsTableDiv" id="dam2PlugChecks">
-        <table id="dam2PlugTable" class="table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Plug</th>
-                    <th>Comment</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div> -->
-
-<!-- Example Table Container that is responsive to window width, including for xs -->
-<!-- <div class="container mt-2">
-    <div class="table-responsive xsTableDiv">
-        <table class="table">
-            <thead>
-                <tr>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <p>&nbsp;</p>
-    </div>
-</div> -->
 
 <!-- #endregion -->
 <!------------------------------------------------------------------------------------------>

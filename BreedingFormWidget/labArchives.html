@@ -53,31 +53,74 @@
         /* flex-wrap: wrap; */
     }
 
-    /* .mouseDiv>div {
-        flex: 0 50%;
-        margin-bottom: 5px;
-    } */
+    .ifPlug, .ifLikelyPlug, .ifGoodPlug, .dam2, .ifSep, .ifBirth {
+        display: none;
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
-        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-            style="color:blue">#</span></p>
+<div class="container myTitle">
+    <div class="row">
+        <h1 class="col">Breeding Cage</h1>
+    </div>
 </div>
 
-<!-- One example container for two column input that is responsive to window width -->
+<!-- Status Messages -->
 <div class="container">
-    <div class="row">
-        <h1 class="col">Setting up Breeding Cage</h1>
-    </div>
+    <div class="row demo">
+        
+        <h3 class="col-12">Today is: <span class="postBreedDays">[Enter breed date]</span> days post-breeding</h3>
+        <div class="ifPlug col-12 col-sm-6" data-dam="1">
+            <h4><span class="dam1_calc">Dam 1</span></h4>
+            <div>Today is <span class="postEarliestPotentialPlug" data-dam="1">[enter plug date]</span> days after the earliest <strong>potential</strong> plug (or better)</div>
+            <div class="ifLikelyPlug" data-dam="1">Today is <span class="postEarliestLikelyPlug" data-dam="1">[enter plug date]</span> days after the earliest <strong>likely</strong> plug (or better)</div>
+            <div class="ifGoodPlug" data-dam="1">Today is <span class="postEarliestGoodPlug" data-dam="1">[enter plug date]</span> days after the earliest <strong>good</strong> (+/+) plug</div>
+        </div>
+        <div class="ifPlug col-12 col-sm-6" data-dam="2">
+            <h4><span class="dam2_calc">Dam 2</span></h4>
+            <div>Today is <span class="postEarliestPotentialPlug" data-dam="2">[enter plug date]</span> days after the earliest <strong>potential</strong> plug (or better)</div>
+            <div class="ifLikelyPlug" data-dam="2">Today is <span class="postEarliestLikelyPlug" data-dam="2">[enter plug date]</span> days after the earliest <strong>likely</strong> plug (or better)</div>
+            <div class="ifGoodPlug" data-dam="2">Today is <span class="postEarliestGoodPlug" data-dam="2">[enter plug date]</span> days after the earliest <strong>good</strong> (+/+) plug</div>
+        </div>
+    </div>   
 
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6">
+            <h4>Check Mass and Separate</h4>
+            <div>12 days after breeding is on <span class="bd12">[enter breed date]</span></div>
+            <div class="ifPlug" data-dam="1">
+                <h5><span class="dam1_calc">Dam 1</span></h5>
+                <div>11 days after earliest potential plug is on <span class="plug11" data-dam="1">[enter plug date]</span></div>
+            </div>
+            <div class="ifPlug" data-dam="2">
+                <h5><span class="dam2_calc">Dam 2</span></h5>
+                <div>11 days after earliest potential plug is on <span class="plug11" data-dam="2">[enter plug date</span></div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 mt-2 mt-sm-0">
+            <h4>Watch for births</h4>
+            <div>19 days after breeding is on <span class="bd19">[enter breed date]</span></div>
+            <div class="ifPlug" data-dam="1">
+                <h5><span class="dam1_calc">Dam 1</span></h5>
+                <div>18 days after earliest potential plug is on <span class="plug18" data-dam="1">[enter plug date]</span></div>
+            </div>
+            <div class="ifPlug" data-dam="2">
+                <h5><span class="dam2_calc">Dam 2</span></h5>
+                <div>18 days after earliest potential plug is on <span class="plug18" data-dam="2">[enter plug date]</span></div>
+            </div>
+            
+            
+        </div>
+    </div>
+</div>
+
+<div class="container">
     <div class="row align-items-end mt-2">
         <div class="myLeftCol">Breeding Date: </div>
         <!-- myLeftCol adds additional classes in init function-->
 
-        <div class="col"><input id="breeddate" name="breeddate" type="date" class="fullWidth" /></div>
+        <div class="col"><input id="breedDate" name="breeddate" type="date" class="fullWidth" value="2021-01-29"/></div>
     </div>
 
     <div class="row align-items-end mt-2">
@@ -96,7 +139,7 @@
     </div>
 </div>
 
-<div class="container mt-2" id="mouseInfo">
+<div class="container mt-2" class="mouseInfo">
     <div class="row" id="mouseInfo">
         <!-- Dam 1 -->
         <div class="col-12 col-md-6 col-xl-4" id="dam1Div">
@@ -117,11 +160,19 @@
                     <div class="col text-left">Dam 1 Mass:</div>
                     <div class="col text-right"><input id="dammass_1" min="0" name="dammass_1" step="0.1" type="number" class="fullWidth"/></div>
                 </div>
+                <div class="row align-items-center mt-2">
+                    <div class="col-6 text-left">Separated from male? <input type="checkbox" name="sepdam1" id="sepDam1" class="updateWatch"></div>
+                    <div class="col-6 text-right ifSep" data-dam="1"><input type="date" id="dam1SepDate" name="dam1sepdate" class="fullWidth"></div>
+                </div>
+                <div class="row align-items-center mt-2">
+                    <div class="col text-left">Given birth? <input type="checkbox" name="birthdam1" id="birthDam1" class="updateWatch"></div>
+                    <div class="col text-right ifBirth" data-dam="1"><input type="date" id="dam1BirthDate" name="dam1birthdate" class="fullWidth"></div>
+                </div>
             </div>
         </div>
         
         <!-- Dam 2 -->
-        <div class="col-12 col-md-6 col-xl-4 mt-2 mt-md-0 dam2" id="dam2Div" style="display: none;">
+        <div class="col-12 col-md-6 col-xl-4 mt-2 mt-md-0 dam2" id="dam2Div">
             <div class="container mouseDiv ">
                 <div class="row align-items-end">
                     <div class="col text-left">Dam 2 ID: </div>
@@ -138,6 +189,14 @@
                 <div class="row align-items-end mt-2">
                     <div class="col text-left">Dam 2 Mass:</div>
                     <div class="col text-right"><input id="dammass_2" min="0" name="dammass_2" step="0.1" type="number" class="fullWidth"/></div>
+                </div>
+                <div class="row align-items-end mt-2">
+                    <div class="col text-left">Separated from male? <input type="checkbox" name="sepdam2" id="sepDam2" class="updateWatch"></div>
+                    <div class="col text-right ifSep" data-dam="2"><input type="date" id="dam2SepDate" name="dam2sepdate"></div>
+                </div>
+                <div class="row align-items-end mt-2">
+                    <div class="col text-left">Given birth? <input type="checkbox" name="birthdam2" id="birthDam2" class="updateWatch"></div>
+                    <div class="col text-right ifBirth" data-dam="2"><input type="date" id="dam2BirthDate" name="dam2birthdate"></div>
                 </div>
             </div>
             
@@ -168,7 +227,7 @@
     </div>
 </div>
 
-<div class="container">
+<div class="container entry">
     <div class="row">
         <div class="col-12 col-lg-6">
             <!-- Dam 1 Plug Check -->
@@ -181,7 +240,7 @@
                 <div class="row mt-2">
                     <div class="col-12"><h3>Plug check for <span class="dam1_calc">__</span></h3></div>
                     <div class="col-12 plugCheckTables table-responsive xsTableDiv" id="dam1PlugChecks">
-                        <table id="dam1PlugTable" class="table">
+                        <table id="dam1PlugTable" class="table plug" data-dam="1">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -205,7 +264,7 @@
                 <div class="row mt-2">
                     <div class="col-12"><h3>Plug check for <span class="dam2_calc">__</span></h3></div>
                     <div class="col-12 plugCheckTables table-responsive xsTableDiv" id="dam2PlugChecks">
-                        <table id="dam2PlugTable" class="table">
+                        <table id="dam2PlugTable" class="table plug" data-dam="2">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -271,33 +330,3 @@
         </div>
     </div>
 </div>
-
-<!-- <div class="container mt-2 dam2">
-    <div class="plugCheckTables table-responsive xsTableDiv" id="dam2PlugChecks">
-        <table id="dam2PlugTable" class="table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Plug</th>
-                    <th>Comment</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div> -->
-
-<!-- Example Table Container that is responsive to window width, including for xs -->
-<!-- <div class="container mt-2">
-    <div class="table-responsive xsTableDiv">
-        <table class="table">
-            <thead>
-                <tr>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <p>&nbsp;</p>
-    </div>
-</div> -->
