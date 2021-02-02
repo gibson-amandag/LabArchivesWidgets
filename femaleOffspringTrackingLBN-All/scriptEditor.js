@@ -1198,7 +1198,7 @@ my_widget_script =
         if(whichPheno === "VO"){
             var $div = $(".VO_div" + dataSearch);
         } else if(whichPheno === "firstE"){
-            var $div = $(".firstE_div");
+            var $div = $(".firstE_div" + dataSearch);
         }
         $div.find(".addedRow").last().remove();
 
