@@ -42,7 +42,7 @@ my_widget_script =
         //adjust form design and buttons based on mode
         // this.adjustForMode(mode);
     },
-
+    
     to_json: function () {
         //should return a json string containing the data entered into the form by the user
         //whatever is return from the method is persisted in LabArchives.  must not be binary data.
@@ -56,7 +56,7 @@ my_widget_script =
 
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
-        var output = {
+        var output = { 
             widgetData: JSON.parse(widgetJsonString)
         };
 
@@ -183,7 +183,7 @@ my_widget_script =
      * Not currently using
      */
     initDynamicContent: function (parsedJson) {
-
+        
     },
 
     /**
@@ -201,12 +201,12 @@ my_widget_script =
         $("#cellID").on("input", function () {
             $(".cell_calc").text($(this).val());
         });
-
+        
         //When spontaneous length changes
         $("#spontLength").on("input", function () {
-            if (parseFloat($("#spontLength").val()) < 60) {
+            if(parseFloat($("#spontLength").val()) < 60){
                 $("#lengthWarning").html("<span style='color:red; font-size:18px;'>Warning: Spontaneous length is less than 60 minutes</span>");
-            } else {
+            }else {
                 $("#lengthWarning").html("");
             };
             my_widget_script.resize();
@@ -214,9 +214,9 @@ my_widget_script =
 
         //When senktide length changes
         $("#senktideLength").on("input", function () {
-            if (parseFloat($("#senktideLength").val()) !== 12) {
+            if(parseFloat($("#senktideLength").val()) !== 12){
                 $("#senktideLengthWarning").html("<span style='color:red; font-size:18px;'>Warning: senktide length is not 12 minutes</span>");
-            } else {
+            }else {
                 $("#senktideLengthWarning").html("");
             };
             my_widget_script.resize();
@@ -224,7 +224,7 @@ my_widget_script =
 
         //if senktide added
         $("#senktideAdded").on("change", function () {
-            if ($("#senktideAdded").is(":checked")) {
+            if($("#senktideAdded").is(":checked")) {
                 $(".ifSenktide").show();
                 $("#burstDiv").addClass("mt-md-2");
             } else {
@@ -235,19 +235,19 @@ my_widget_script =
 
         //if spontaneous firing analyzed
         $("#firingAnalysis").on("change", function () {
-            if ($("#firingAnalysis").val() === "yes_noact" || $("#firingAnalysis").val() === "yes_act") {
+            if($("#firingAnalysis").val() === "yes_noact" || $("#firingAnalysis").val() === "yes_act") {
                 $(".ifFiring").show();
             } else {
                 $(".ifFiring").hide();
             };
             my_widget_script.resize();
         });
-
+        
         //if burst firing analyzed
         $("#burstAnalysis").on("change", function () {
-            if ($("#burstAnalysis").val() === "yes_noact" || $("#burstAnalysis").val() === "yes_act") {
+            if($("#burstAnalysis").val() === "yes_noact" || $("#burstAnalysis").val() === "yes_act") {
                 $(".ifBursting").show();
-                if ($("#regionTablesProbs").val() === "yes") {
+                if($("#regionTablesProbs").val() === "yes") {
                     $(".ifProbs").show()
                 } else {
                     $(".ifProbs").hide();
@@ -261,7 +261,7 @@ my_widget_script =
 
         //if region table problems
         $("#regionTablesProbs").on("change", function () {
-            if ($("#regionTablesProbs").val() === "yes") {
+            if($("#regionTablesProbs").val() === "yes") {
                 $(".ifProbs").show();
             } else {
                 $(".ifProbs").hide();
@@ -271,7 +271,7 @@ my_widget_script =
 
         //if cluster analyzed
         $("#clusterAnalysis").on("change", function () {
-            if ($("#clusterAnalysis").val() === "yes_noact" || $("#clusterAnalysis").val() === "yes_act") {
+            if($("#clusterAnalysis").val() === "yes_noact" || $("#clusterAnalysis").val() === "yes_act") {
                 $(".ifCluster").show();
             } else {
                 $(".ifCluster").hide();
@@ -281,7 +281,7 @@ my_widget_script =
 
         //if senktide analyzed
         $("#senktideFiringAnalysis").on("change", function () {
-            if ($("#senktideFiringAnalysis").val() === "yes_noact" || $("#senktideFiringAnalysis").val() === "yes_act") {
+            if($("#senktideFiringAnalysis").val() === "yes_noact" || $("#senktideFiringAnalysis").val() === "yes_act") {
                 $(".ifSenktideAnalyzed").show();
             } else {
                 $(".ifSenktideAnalyzed").hide();
@@ -292,9 +292,9 @@ my_widget_script =
         $(".check_no").on("change", function () {
             //alert($(this).val());
             console.log($(this).val());
-            if ($(this).val() === "" || $(this).val() === "no") {
+            if($(this).val() === "" || $(this).val() === "no"){
                 $(this).parent().css("color", "red");
-            } else {
+            }else {
                 $(this).parent().css("color", "black");
             };
         })
@@ -334,30 +334,30 @@ my_widget_script =
         $(".cell_calc").text($("#cellID").val());
 
         //spont length
-        if (parseInt($("#spontLength").val()) < 60) {
+        if(parseInt($("#spontLength").val()) < 60){
             $("#lengthWarning").html("<span style='color:red; font-size:18px;'>Warning: Spontaneous length is less than 60 minutes</span>");
-        } else {
+        }else {
             $("#lengthWarning").html("");
         };
 
         //senktide lengths
-        if (parseInt($("#senktideLength").val()) !== 12) {
+        if(parseInt($("#senktideLength").val()) !== 12){
             $("#senktideLengthWarning").html("<span style='color:red; font-size:18px;'>Warning: senktide length is not 12 minutes</span>");
-        } else {
+        }else {
             $("#senktideLengthWarning").html("");
         };
 
         //spont analyzed
-        if ($("#firingAnalysis").val() === "yes_noact" || $("#firingAnalysis").val() === "yes_act") {
+        if($("#firingAnalysis").val() === "yes_noact" || $("#firingAnalysis").val() === "yes_act") {
             $(".ifFiring").show();
         } else {
             $(".ifFiring").hide();
         };
 
         //burst analyzed
-        if ($("#burstAnalysis").val() === "yes_noact" || $("#burstAnalysis").val() === "yes_act") {
+        if($("#burstAnalysis").val() === "yes_noact" || $("#burstAnalysis").val() === "yes_act") {
             $(".ifBursting").show();
-            if ($("#regionTablesProbs").val() === "yes") {
+            if($("#regionTablesProbs").val() === "yes") {
                 $(".ifProbs").show()
             } else {
                 $(".ifProbs").hide();
@@ -368,17 +368,17 @@ my_widget_script =
         };
 
         //cluster analyzed
-        if ($("#clusterAnalysis").val() === "yes_noact" || $("#clusterAnalysis").val() === "yes_act") {
+        if($("#clusterAnalysis").val() === "yes_noact" || $("#clusterAnalysis").val() === "yes_act") {
             $(".ifCluster").show();
         } else {
             $(".ifCluster").hide();
         };
 
         //if senktide added
-        if ($("#senktideAdded").is(":checked")) {
+        if($("#senktideAdded").is(":checked")) {
             $(".ifSenktide").show();
             $("#burstDiv").addClass("mt-md-2");
-            if ($("#senktideFiringAnalysis").val() === "yes_noact" || $("#senktideFiringAnalysis").val() === "yes_act") {
+            if($("#senktideFiringAnalysis").val() === "yes_noact" || $("#senktideFiringAnalysis").val() === "yes_act") {
                 $(".ifSenktideAnalyzed").show();
             } else {
                 $(".ifSenktideAnalyzed").hide();
@@ -391,9 +391,9 @@ my_widget_script =
         //check_no
         $(".check_no").each(function () {
             //alert($(this).val());
-            if ($(this).val() === "" || $(this).val() === "no") {
+            if($(this).val() === "" || $(this).val() === "no"){
                 $(this).parent().css("color", "red");
-            } else {
+            }else {
                 $(this).parent().css("color", "black");
             };
         })

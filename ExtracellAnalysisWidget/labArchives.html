@@ -275,12 +275,13 @@
                         <select id="senktideFiringAnalysis" name="senktidefiringanalysis" class="check_no fullWidth">
                             <option value="">[Select]</option>
                             <option value="no">Not yet</option>
-                            <option value="yes_noact">Yes, no response </option>
+                            <option value="no_noact">No, no response </option>
+                            <option value="yes_noact">Yes, no response</option>
                             <option value="yes_act">Yes, response</option>
                         </select>
                     </div>
 
-                    <div class="col-12 mt-2">
+                    <div class="col-12 mt-2 ifSenktideAnalyzed">
                         <label for="senktideLength">Length of sentkide period analyzed?</label><br/>
                         <input id="senktideLength" name="senktidelength" type="number" class="fullWidth" />
                         <div id="senktideLengthWarning"></div>
@@ -296,6 +297,7 @@
                         <select id="senktideBurstAnalysis" name="senktideburstanalysis" class="ifSenktideAnalyzed check_no">
                             <option value="">[Select]</option>
                             <option value="no">Not yet</option>
+                            <option value="no_noact">No, no response</option>
                             <option value="yes_noact">Yes, no response </option>
                             <option value="yes_act">Yes, response</option>
                         </select>
@@ -332,7 +334,7 @@
                         <select id="selectingBW" name="selectingbw" class="ifBursting check_no fullWidth">
                             <option value="">[Select]</option>
                             <option value="no">Not yet</option>
-                            <option value="no_noact">No, no/low spontaneous activity </option>
+                            <option value="yes_noact">Yes, no/low spontaneous activity </option>
                             <option value="yes_act">Yes, spontaneous activity</option>
                         </select>
                     </div>
