@@ -1,6 +1,5 @@
 my_widget_script =
 {
-    
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -692,4 +691,6 @@ my_widget_script =
             my_widget_script.resize();
         }
     }
+
+
 };
