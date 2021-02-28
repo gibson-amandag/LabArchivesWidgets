@@ -224,6 +224,12 @@ my_widget_script =
             });
             my_widget_script.adjustifOther();
             $(".tableDiv").show();
+            if($("#cycleMice").is(":checked")){
+                $(".cycleDates").hide();
+                $(".cycleEdits").hide();
+            } else {
+                $(".cycleDiv").hide();
+            }
         } else {
             if($("#DOB").val()) {
                 $("#entryDiv").insertAfter("#titleDiv");
@@ -345,6 +351,26 @@ my_widget_script =
         });
     },
 
+    startCycleFuncs: function () {
+        var dateClass = "pnd" + $("#cycleStart").val();
+        var allClasses = "pnd " + "startCycle " + dateClass;
+        $(".startCycle").removeClass().addClass(allClasses);
+        if($("#DOB").val()){
+            my_widget_script.addDays($("#DOB").val(), $("."+dateClass), parseInt($("#cycleStart").val()));
+        }
+        my_widget_script.resize();
+    },
+
+    endCycleFuncs: function () {
+        var dateClass = "pnd" + $("#cycleEnd").val();
+        var allClasses = "pnd " + "endCycle " + dateClass;
+        $(".endCycle").removeClass().addClass(allClasses);
+        if($("#DOB").val()){
+            my_widget_script.addDays($("#DOB").val(), $("."+dateClass), parseInt($("#cycleEnd").val()));
+        }
+        my_widget_script.resize();
+    },
+
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
@@ -368,6 +394,38 @@ my_widget_script =
         }).on("change", function () {
             my_widget_script.showWithCheck($(this), $(".editDemoChecked"));
         });
+
+        $("#cycleMice").each(function () {
+            my_widget_script.showWithCheck($(this), $(".ifCycle"));
+            if(!$(this).is(":checked")){
+                $("#cycleDatesCheck").prop("checked", false);
+                my_widget_script.showWithCheck($("#cycleDatesCheck"), $(".cycleDates"));
+            } 
+        }).on("change", function () {
+            my_widget_script.showWithCheck($(this), $(".ifCycle"));
+            if(!$(this).is(":checked")){
+                $("#cycleDatesCheck").prop("checked", false);
+                my_widget_script.showWithCheck($("#cycleDatesCheck"), $(".cycleDates"));
+            } 
+        });
+
+        $("#cycleStart").each(function () {
+            my_widget_script.startCycleFuncs();
+        }).on("input", function (){
+            my_widget_script.startCycleFuncs();
+        });
+
+        $("#cycleEnd").each(function () {
+            my_widget_script.endCycleFuncs();
+        }).on("input", function (){
+            my_widget_script.endCycleFuncs();
+        });
+
+        $("#cycleDatesCheck").each(function () {
+            my_widget_script.showWithCheck($(this), $(".cycleDates"));
+        }).on("change", function () {
+            my_widget_script.showWithCheck($(this), $(".cycleDates"));
+        });
         
         $("#DOB").on("change", function () {
             my_widget_script.adjustForNumOffspring();
@@ -377,6 +435,8 @@ my_widget_script =
             my_widget_script.switchMouseForEntry();
             my_widget_script.watchForVO();
             my_widget_script.watchFor1E();
+            my_widget_script.startCycleFuncs();
+            my_widget_script.endCycleFuncs();
         });
 
         $("#numOffspring").on("change", function () {
@@ -1446,21 +1506,12 @@ my_widget_script =
                             $("<div/>", {
                                 "class": showChecked + " mouse" + mouseNum
                             }).append(
-                                $("<select/>", {
+                                $("<input/>", {
                                     name: "eartag" + mouseNum,
                                     id: "earTag" + mouseNum,
+                                    type: "number",
                                     "class": "simpleCalc"
-                                }).append(
-                                    "<option value=''>[Select]</option>"+
-                                    "<option value='04'>04</option>"+
-                                    "<option value='06'>06</option>"+
-                                    "<option value='40'>40</option>"+
-                                    "<option value='60'>60</option>"+
-                                    "<option value='44'>44</option>"+
-                                    "<option value='66'>66</option>"+
-                                    "<option value='46'>46</option>"+
-                                    "<option value='64'>64</option>"
-                                )
+                                })
                             )
                         ).append(
                             $("<div/>", {
