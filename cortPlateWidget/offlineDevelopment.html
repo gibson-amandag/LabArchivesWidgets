@@ -297,6 +297,22 @@ $(document).ready(function () {
             
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
         });
+
+        $("#copySamplesButton").on("click", function (){
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            var duplicate = false;
+
+            my_widget_script.copySampleIDsFuncs($errorMsg, $divForCopy, duplicate);
+        });
+
+        $("#copySamplesButton_dup").on("click", function (){
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            var duplicate = true;
+
+            my_widget_script.copySampleIDsFuncs($errorMsg, $divForCopy, duplicate);
+        });
     },
 
     /**
@@ -775,6 +791,8 @@ $(document).ready(function () {
 
         my_widget_script.watchValue($(".sample" + dataSearchVal), $(".well" + dataSearchWell1));
         my_widget_script.watchValue($(".sample" + dataSearchVal), $(".well" + dataSearchWell2));
+
+        my_widget_script.resize();
     },
 
     /**
@@ -902,6 +920,33 @@ $(document).ready(function () {
         $temp.remove(); //remove temp
     },
 
+    copySampleIDs: function ($divForCopy, duplicate) {
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addLine = "";
+
+        var numSamples = $("#sampleNum").val();
+        var addText, sampleNum;
+        
+        for (i = 0; i < numSamples; i ++ ){
+            $temp.text($temp.text() + addLine);
+            addLine = "\n";
+            sampleNum = i + 1;
+            var dataSearch = my_widget_script.dataSearch("sample", sampleNum);
+            addText = $(".sample"+dataSearch).val();
+            if(duplicate){
+                totalText = addText + addLine + addText;
+            } else{
+                totalText = addText;
+            }
+            $temp.text($temp.text() + totalText);
+        }
+
+        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
+    },
+
     /**
      * Set of functions when toCSVButton clicked
      * 
@@ -954,7 +999,22 @@ $(document).ready(function () {
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
-    }    
+    },  
+
+    copySampleIDsFuncs: function ($errorMsg, $divForCopy, duplicate){
+        var data_valid = my_widget_script.data_valid_form();
+
+        if (data_valid) { //if data is valid
+            if($("#sampleNum").val() > 0 && $("#sampleNum").val() <= 38){
+                my_widget_script.copySampleIDs($divForCopy, duplicate); //copy table
+                $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            } else{
+                $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Please enter a sample number from 1-38 </span>"); //add to error message
+            }
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+    }      
 };
 
 //**************************************************************************
@@ -1029,6 +1089,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         width: 90%
     }
 
+    .fullWidth95 {
+        width: 95%
+    }
+
     td.dark {
         background: lightgray
     }
@@ -1087,13 +1151,19 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
     <div class="row mt-2">
         <div class="col-12 col-sm-6 col-md-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
-                class="fullWidth" /></div>
+                class="fullWidth95" /></div>
 
         <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth95" />
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3">TO-DO - Add a copy button for just the sample IDs</div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
+        </div>
     </div>
 </div>
 

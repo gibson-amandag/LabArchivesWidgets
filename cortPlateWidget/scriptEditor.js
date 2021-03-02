@@ -237,6 +237,22 @@ my_widget_script =
             
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
         });
+
+        $("#copySamplesButton").on("click", function (){
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            var duplicate = false;
+
+            my_widget_script.copySampleIDsFuncs($errorMsg, $divForCopy, duplicate);
+        });
+
+        $("#copySamplesButton_dup").on("click", function (){
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            var duplicate = true;
+
+            my_widget_script.copySampleIDsFuncs($errorMsg, $divForCopy, duplicate);
+        });
     },
 
     /**
@@ -397,6 +413,8 @@ my_widget_script =
         }
 
         var rowLetters = ["", "A", "B", "C", "D", "E", "F", "G", "H"];
+        var rowPairs1 = [1, 2, 5, 6];
+        var shading;
 
         // For subsequent rows
         for (var row = 1; row < 9; row++) {
@@ -410,6 +428,15 @@ my_widget_script =
             $tableRow = $table.find(".row"+rowLetters[row]);
 
             for( var col = 0; col < 13; col++) {
+                if (my_widget_script.isEven(col)){
+                    if(rowPairs1.includes(row)){
+                        shading = "light";
+                    } else {shading = "dark";}
+                } else {
+                    if(rowPairs1.includes(row)){
+                        shading = "dark";
+                    } else {shading = "light";}
+                }
                 if(col == 0){
                     $tableRow.append(
                         $("<th/>", {
@@ -419,13 +446,20 @@ my_widget_script =
                 } else {
                     $tableRow.append(
                         $("<td/>", {
-                            "class": "col" + col + " row" + rowLetters[row] + " well",
+                            "class": "col" + col + " row" + rowLetters[row] + " well " + shading,
                             "data-well": col + rowLetters[row]
                         })
                     )
                 }
             }
         }
+    },
+
+    isEven: function(value) {
+	if (value%2 == 0)
+		return true;
+	else
+		return false;
     },
 
     adjustForNumSamples: function () {
@@ -697,6 +731,8 @@ my_widget_script =
 
         my_widget_script.watchValue($(".sample" + dataSearchVal), $(".well" + dataSearchWell1));
         my_widget_script.watchValue($(".sample" + dataSearchVal), $(".well" + dataSearchWell2));
+
+        my_widget_script.resize();
     },
 
     /**
@@ -824,6 +860,33 @@ my_widget_script =
         $temp.remove(); //remove temp
     },
 
+    copySampleIDs: function ($divForCopy, duplicate) {
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addLine = "";
+
+        var numSamples = $("#sampleNum").val();
+        var addText, sampleNum;
+        
+        for (i = 0; i < numSamples; i ++ ){
+            $temp.text($temp.text() + addLine);
+            addLine = "\n";
+            sampleNum = i + 1;
+            var dataSearch = my_widget_script.dataSearch("sample", sampleNum);
+            addText = $(".sample"+dataSearch).val();
+            if(duplicate){
+                totalText = addText + addLine + addText;
+            } else{
+                totalText = addText;
+            }
+            $temp.text($temp.text() + totalText);
+        }
+
+        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
+    },
+
     /**
      * Set of functions when toCSVButton clicked
      * 
@@ -876,5 +939,20 @@ my_widget_script =
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
-    }    
+    },  
+
+    copySampleIDsFuncs: function ($errorMsg, $divForCopy, duplicate){
+        var data_valid = my_widget_script.data_valid_form();
+
+        if (data_valid) { //if data is valid
+            if($("#sampleNum").val() > 0 && $("#sampleNum").val() <= 38){
+                my_widget_script.copySampleIDs($divForCopy, duplicate); //copy table
+                $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            } else{
+                $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Please enter a sample number from 1-38 </span>"); //add to error message
+            }
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+    }      
 };

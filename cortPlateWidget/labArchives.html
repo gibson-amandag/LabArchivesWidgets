@@ -41,6 +41,10 @@
         width: 90%
     }
 
+    .fullWidth95 {
+        width: 95%
+    }
+
     td.dark {
         background: lightgray
     }
@@ -99,13 +103,19 @@
     </div>
     <div class="row mt-2">
         <div class="col-12 col-sm-6 col-md-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
-                class="fullWidth" /></div>
+                class="fullWidth95" /></div>
 
         <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth95" />
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3">TO-DO - Add a copy button for just the sample IDs</div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
+        </div>
     </div>
 </div>
 
