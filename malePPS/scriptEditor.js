@@ -433,16 +433,6 @@ my_widget_script =
             }
         });
 
-        $("#massSelect").on("change", function () {
-            var pnd = $(this).val();
-            if (pnd) {
-                my_widget_script.switchMassTable(pnd);
-            } else {
-                $(".massDiv").hide();
-            }
-            my_widget_script.resize();
-        });
-
         $("#mouseSelect").on("change", function () {
             my_widget_script.switchMouseForEntry();
             my_widget_script.adjustifOther();
@@ -672,8 +662,6 @@ my_widget_script =
             //     "Diff in ms: " + dateDiff_ms + "\n" +
             //     "Diff in days: " + dateDiff_days
             // )
-        } else {
-            my_widget_script.switchMassTable($("#massSelect").val());
         }
     },
 

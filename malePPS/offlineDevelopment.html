@@ -493,16 +493,6 @@ $(document).ready(function () {
             }
         });
 
-        $("#massSelect").on("change", function () {
-            var pnd = $(this).val();
-            if (pnd) {
-                my_widget_script.switchMassTable(pnd);
-            } else {
-                $(".massDiv").hide();
-            }
-            my_widget_script.resize();
-        });
-
         $("#mouseSelect").on("change", function () {
             my_widget_script.switchMouseForEntry();
             my_widget_script.adjustifOther();
@@ -717,7 +707,6 @@ $(document).ready(function () {
 
             // This prints at the top what needs to be done today and switches the Mass and AGD selector 
             my_widget_script.updateToDoStatus(dateDiff_days);
-            my_widget_script.updateCycleStatus(dateDiff_days);
     
             return(dateDiff_days);
     
@@ -732,8 +721,6 @@ $(document).ready(function () {
             //     "Diff in ms: " + dateDiff_ms + "\n" +
             //     "Diff in days: " + dateDiff_days
             // )
-        } else {
-            my_widget_script.switchMassTable($("#massSelect").val());
         }
     },
 
