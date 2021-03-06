@@ -1,4 +1,3 @@
-<!-- #region HTML -->
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -71,7 +70,7 @@
 </div>
 <div class="container">
     <h3>File Information</h3>
-    <div class="row align-items-end">
+    <div class="row align-items-end hideView">
         <div class="myLeftCol">Select video file:</div>
         <div class="col">
             <input type="file" name="myfile" id="myfile">&nbsp;</input>
@@ -83,7 +82,7 @@
             <span class="filePath">[Select a file]</span>
         </div>
     </div>
-    <div class="row mt-2 align-items-end">
+    <div class="row mt-2 align-items-end hideView">
         <div class="myLeftCol">Playback speed:</div>
         <div class="col">
             <input type="number" name="changespeed" id="changeSpeed" value="5"/>
@@ -92,12 +91,12 @@
     <div class="row mt-2">
         <div class="myLeftCol">Duration (in sec): </div>
         <div class="col">
-            <input type="number" name="videodur" id="videoDur" step="any" class="simpleCalc"/> <span class="requiredLab">Get duration: </span><input type="checkbox" name="getdur" id="getDur" class="required" disabled>
+            <input type="number" name="videodur" id="videoDur" step="any" class="simpleCalc"/> <span class="requiredLab hideView" >Get duration: </span><input type="checkbox" name="getdur" id="getDur" class="required hideView" disabled>
         </div>
     </div>
 </div>
 
-<div class="container mt-2">
+<div class="container mt-2 hideView">
     <div class="row">
         <h3 class="col">Add timestamps</h3>
     </div>
@@ -136,7 +135,7 @@
         </div>
     </div>
 </div>
-<div class="container mt-2 videoDiv">
+<div class="container mt-2 videoDiv hideView">
     <h3>Video Playback:</h3>
     <video id="videoPlayer" name="videoplayer" controls>&nbsp;</video>
 </div>

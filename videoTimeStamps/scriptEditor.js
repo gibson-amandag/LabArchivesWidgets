@@ -20,7 +20,7 @@ my_widget_script =
         var parsedJson = this.parseInitJson(json_data);
 
         //Uncomment to print parsedJson to consol
-        console.log("init", parsedJson);
+        //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
@@ -102,7 +102,8 @@ my_widget_script =
         var exitStamps = [0.75, 1.5, 2.6];
 
         //If no additional dynamic content 
-        var output = { 
+        var output = {
+            fileName: "test", 
             widgetData: testData,
             exitStamps: exitStamps,
             entryStamps: entryStamps
@@ -198,25 +199,29 @@ my_widget_script =
      */
     initDynamicContent: function (parsedJson) {
         $(".filePath").text(parsedJson.fileName);
-        for (var i = 0; i < parsedJson.exitStamps.length; i++) {
-            $(".leftStamps").append(
-                $("<div/>", {
-                    "class": "exit stamp"
-                }).append(
-                    parsedJson.exitStamps[i]
-                )
-            );
-        };
-
-        for (var i = 0; i < parsedJson.entryStamps.length; i++) {
-            $(".returnStamps").append(
-                $("<div/>", {
-                    "class": "entry stamp"
-                }).append(
-                    parsedJson.entryStamps[i]
-                )
-            );
-        };
+        if(parsedJson.exitStamps){
+            for (var i = 0; i < parsedJson.exitStamps.length; i++) {
+                $(".leftStamps").append(
+                    $("<div/>", {
+                        "class": "exit stamp"
+                    }).append(
+                        parsedJson.exitStamps[i]
+                    )
+                );
+            }
+        }
+        
+        if(parsedJson.entryStamps){
+            for (var i = 0; i < parsedJson.entryStamps.length; i++) {
+                $(".returnStamps").append(
+                    $("<div/>", {
+                        "class": "entry stamp"
+                    }).append(
+                        parsedJson.entryStamps[i]
+                    )
+                );
+            }
+        }
     },
 
     /**
@@ -230,6 +235,7 @@ my_widget_script =
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
+            $(".hideView").hide();
         }
     },
 
@@ -484,111 +490,112 @@ my_widget_script =
     },
 
     calcDurations: function () {
-        if($("#videoPlayer").prop("src")){
-            var startState = $("#startState").val();
-            var numExits = $("#numExits").val();
-            if(numExits){
-                numExits = parseInt(numExits);
-            }else {
-                numExits = 0;
-            }
-            var numEntries = $("#numEntries").val();
-            if(numEntries){
-                numEntries = parseInt(numEntries);
-            }else {
-                numEntries = 0;
-            }
+        var startState = $("#startState").val();
+        var numExits = $("#numExits").val();
+        if(numExits){
+            numExits = parseInt(numExits);
+        }else {
+            numExits = 0;
+        }
+        var numEntries = $("#numEntries").val();
+        if(numEntries){
+            numEntries = parseInt(numEntries);
+        }else {
+            numEntries = 0;
+        }
 
-            var exitStamps = [];
+        var exitStamps = [];
 
-            $(".leftStamps").find(".stamp").each(function() {
-                exitStamps[exitStamps.length] = parseFloat($(this).text()); 
-            });
+        $(".leftStamps").find(".stamp").each(function() {
+            exitStamps[exitStamps.length] = parseFloat($(this).text()); 
+        });
 
-            var entryStamps = [];
-            $(".returnStamps").find(".stamp").each(function() {
-                entryStamps[entryStamps.length] = parseFloat($(this).text()); 
-            });
+        var entryStamps = [];
+        $(".returnStamps").find(".stamp").each(function() {
+            entryStamps[entryStamps.length] = parseFloat($(this).text()); 
+        });
 
-            var offDurs = [];
-            var onDurs = [];
-            var duration = $("#videoDur").val();
-            var cutLast = "";
-            if(!duration) {
+        var offDurs = [];
+        var onDurs = [];
+        var duration = $("#videoDur").val();
+        var cutLast = "";
+        if(!duration) {
+            if($("#videoPlayer").prop("src")){
                 my_widget_script.getDuration();
                 duration = $("#videoDur").val();
             }
-            if(startState == "off"){
-                numExits = numExits + 1;
-                if (numExits > numEntries){
-                    entryStamps[entryStamps.length] = parseFloat(duration);
-                    cutLast = "on"
-                } else {
-                    exitStamps[exitStamps.length] = parseFloat(duration);
-                }
-
-                for (i = 0; i < numExits; i ++ ) {
-                    offDurs[i] = entryStamps[i] - exitStamps[i];
-                    onDurs[i] = exitStamps[i + 1] - entryStamps[i]
-                }
-            } else if(startState == "on"){
-                numEntries = numEntries + 1;
-                if (numEntries > numExits){
-                    exitStamps[exitStamps.length] = parseFloat(duration);
-                    cutLast = "off"
-                } else {
-                    entryStamps[entryStamps.length] = parseFloat(duration);
-                }
-
-                for (i = 0; i < numEntries; i ++ ) {
-                    onDurs[i] = exitStamps[i] - entryStamps[i];
-                    offDurs[i] = entryStamps[i + 1] - exitStamps[i]
-                }
-            }
-
-            if(cutLast == "on"){
-                onDurs.pop();
-            } else if(cutLast == "off"){
-                offDurs.pop();
-            }
-
-            var $div = $(".offDurationsDiv");
-            $div.find(".duration").remove();
-            $("#timeOffNest").val(0);
-
-            for (i = 0; i < offDurs.length; i ++ ){
-                $div.append(
-                    $("<div/>", {
-                        "class": "duration off"
-                    }).append(
-                        offDurs[i].toFixed(2)
-                    )
-                );
-
-                var currentDur = parseFloat($("#timeOffNest").val());
-                $("#timeOffNest").val((currentDur + offDurs[i]).toFixed(2))
-            }
-
-            $div = $(".onDurationsDiv");
-            $div.find(".duration").remove();
-            $("#timeOnNest").val(0);
-
-            for (i = 0; i < onDurs.length; i ++ ){
-                $div.append(
-                    $("<div/>", {
-                        "class": "duration on"
-                    }).append(
-                        onDurs[i].toFixed(2)
-                    )
-                );
-
-                var currentDur = parseFloat($("#timeOnNest").val());
-                $("#timeOnNest").val((currentDur + onDurs[i]).toFixed(2));
-            }
-
-            my_widget_script.calcValues();
-            // console.log("exitStamps", exitStamps, "entryStamps", entryStamps, "offDurs", offDurs, "onDurs", onDurs);
         }
+        if(startState == "off"){
+            numExits = numExits + 1;
+            if (numExits > numEntries){
+                entryStamps[entryStamps.length] = parseFloat(duration);
+                cutLast = "on"
+            } else {
+                exitStamps[exitStamps.length] = parseFloat(duration);
+            }
+
+            for (i = 0; i < numExits; i ++ ) {
+                offDurs[i] = entryStamps[i] - exitStamps[i];
+                onDurs[i] = exitStamps[i + 1] - entryStamps[i]
+            }
+        } else if(startState == "on"){
+            numEntries = numEntries + 1;
+            if (numEntries > numExits){
+                exitStamps[exitStamps.length] = parseFloat(duration);
+                cutLast = "off"
+            } else {
+                entryStamps[entryStamps.length] = parseFloat(duration);
+            }
+
+            for (i = 0; i < numEntries; i ++ ) {
+                onDurs[i] = exitStamps[i] - entryStamps[i];
+                offDurs[i] = entryStamps[i + 1] - exitStamps[i]
+            }
+        }
+
+        if(cutLast == "on"){
+            onDurs.pop();
+        } else if(cutLast == "off"){
+            offDurs.pop();
+        }
+
+        var $div = $(".offDurationsDiv");
+        $div.find(".duration").remove();
+        $("#timeOffNest").val(0);
+
+        for (i = 0; i < offDurs.length; i ++ ){
+            $div.append(
+                $("<div/>", {
+                    "class": "duration off"
+                }).append(
+                    offDurs[i].toFixed(2)
+                )
+            );
+
+            var currentDur = parseFloat($("#timeOffNest").val());
+            $("#timeOffNest").val((currentDur + offDurs[i]).toFixed(2))
+        }
+
+        $div = $(".onDurationsDiv");
+        $div.find(".duration").remove();
+        $("#timeOnNest").val(0);
+
+        for (i = 0; i < onDurs.length; i ++ ){
+            $div.append(
+                $("<div/>", {
+                    "class": "duration on"
+                }).append(
+                    onDurs[i].toFixed(2)
+                )
+            );
+
+            var currentDur = parseFloat($("#timeOnNest").val());
+            $("#timeOnNest").val((currentDur + onDurs[i]).toFixed(2));
+        }
+
+        my_widget_script.calcValues();
+        // console.log("exitStamps", exitStamps, "entryStamps", entryStamps, "offDurs", offDurs, "onDurs", onDurs);
+        
     },
 
     /**
@@ -649,7 +656,7 @@ my_widget_script =
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var file = document.getElementById('myfile').files[0];
+        var file = $(".filePath").text();
 
         var exitStamps = [];
         $(".leftStamps").find(".stamp").each(function() {
@@ -662,7 +669,7 @@ my_widget_script =
         });
 
         var dynamicContent = {
-            fileName: file.name,
+            fileName: file,
             exitStamps: exitStamps,
             entryStamps: entryStamps
         };
