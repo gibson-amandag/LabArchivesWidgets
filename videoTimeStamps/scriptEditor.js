@@ -1,6 +1,5 @@
 my_widget_script =
-{
-    
+{ 
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -61,7 +60,8 @@ my_widget_script =
             widgetData: JSON.parse(widgetJsonString),
             fileName: dynamicContent.fileName,
             exitStamps: dynamicContent.exitStamps,
-            entryStamps: dynamicContent.entryStamps
+            entryStamps: dynamicContent.entryStamps,
+            startState: dynamicContent.startState
         };
 
         //uncomment to check stringified output
@@ -98,7 +98,7 @@ my_widget_script =
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
 
-        var entryStamps = [0, 1, 2, 3];
+        var entryStamps = [1, 2, 3];
         var exitStamps = [0.75, 1.5, 2.6];
 
         //If no additional dynamic content 
@@ -106,7 +106,8 @@ my_widget_script =
             fileName: "test", 
             widgetData: testData,
             exitStamps: exitStamps,
-            entryStamps: entryStamps
+            entryStamps: entryStamps,
+            startState: "on"
         };
 
         //Add additional content to match the objects in to_json
@@ -197,8 +198,34 @@ my_widget_script =
      * 
      * This function requires the parsedJson object.
      */
-    initDynamicContent: function (parsedJson) {
+     initDynamicContent: function (parsedJson) {
         $(".filePath").text(parsedJson.fileName);
+
+        var startState = parsedJson.startState;
+        if(startState == "off") {
+            console.log("Started off");
+            $("#addStampButton").val("Dam Enters Nest").data("state", "off");
+            $(".leftStamps").append(
+                $("<div/>", {
+                    "class": "start stamp"
+                }).append(
+                    "0"
+                )
+            );
+        } else if(startState == "on"){
+            console.log("Started on");
+            $("#addStampButton").val("Dam Exists Nest").data("state", "on");
+            $(".returnStamps").append(
+                $("<div/>", {
+                    "class": "start stamp"
+                }).append(
+                    "0"
+                )
+            );
+        } else {
+            $("#addStampButton").val("[Enter Start State]").data("state", "");
+        }
+
         if(parsedJson.exitStamps){
             for (var i = 0; i < parsedJson.exitStamps.length; i++) {
                 $(".leftStamps").append(
@@ -236,6 +263,8 @@ my_widget_script =
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
             $(".hideView").hide();
+        } else {
+            $(".hideEdit").hide();
         }
     },
 
@@ -246,7 +275,7 @@ my_widget_script =
     addEventListeners: function () {
         $("#myfile").on("input", function () {
             var file = document.getElementById('myfile').files[0];
-            console.log(file);
+            //console.log(file);
             $(".filePath").text(file.name);
             var fileURL = URL.createObjectURL(file);
             $("#videoPlayer").prop("src", fileURL);
@@ -298,29 +327,6 @@ my_widget_script =
 
                 my_widget_script.calcDurations();
                 my_widget_script.resize();
-            }
-        }).each(function () {
-            var startState = $(this).val();
-            if(startState == "off") {
-                $("#addStampButton").val("Dam Enters Nest").data("state", "off");
-                $(".leftStamps").append(
-                    $("<div/>", {
-                        "class": "start stamp"
-                    }).append(
-                        "0"
-                    )
-                );
-            } else if(startState == "on"){
-                $("#addStampButton").val("Dam Exists Nest").data("state", "on");
-                $(".returnStamps").append(
-                    $("<div/>", {
-                        "class": "start stamp"
-                    }).append(
-                        "0"
-                    )
-                );
-            } else {
-                $("#addStampButton").val("[Enter Start State]").data("state", "");
             }
         });
 
@@ -491,17 +497,25 @@ my_widget_script =
 
     calcDurations: function () {
         var startState = $("#startState").val();
-        var numExits = $("#numExits").val();
-        if(numExits){
+        var numExits= $("#numExits").val();
+        if(numExits > 0){
             numExits = parseInt(numExits);
         }else {
             numExits = 0;
+            $(".leftStamps").find(".stamp.exit").each(function () {
+                numExits = numExits + 1;
+            });
+            $("#numExits").val(numExits);
         }
         var numEntries = $("#numEntries").val();
-        if(numEntries){
+        if(numEntries > 0){
             numEntries = parseInt(numEntries);
         }else {
             numEntries = 0;
+            $(".returnStamps").find(".stamp.entry").each(function () {
+                numEntries = numEntries + 1;
+            });
+            $("#numEntries").val(numEntries);
         }
 
         var exitStamps = [];
@@ -658,20 +672,30 @@ my_widget_script =
     getDynamicContent: function () {
         var file = $(".filePath").text();
 
+        var startState = $("#startState").val();
+        // if(startStateVal == "on"){
+        //     var startState = "on"
+        // } else if(startStateVal == "off"){
+        //     var startState = "off"
+        // } else {
+        //     var startState = ""
+        // }
+
         var exitStamps = [];
-        $(".leftStamps").find(".stamp").each(function() {
+        $(".leftStamps").find(".stamp.exit").each(function() {
             exitStamps[exitStamps.length] = parseFloat($(this).text()); 
         });
 
         var entryStamps = [];
-        $(".returnStamps").find(".stamp").each(function() {
+        $(".returnStamps").find(".stamp.entry").each(function() {
             entryStamps[entryStamps.length] = parseFloat($(this).text()); 
         });
 
         var dynamicContent = {
             fileName: file,
             exitStamps: exitStamps,
-            entryStamps: entryStamps
+            entryStamps: entryStamps,
+            startState: startState
         };
         return dynamicContent;
     },
