@@ -1,3 +1,18 @@
+<!-- #region HTML -->
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<!-- Load jQuery for Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<!-- Load bootstrap java -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+<!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
+<script>
+    var $jq351 = jQuery.noConflict(true);
+</script>
 <style type="text/css">
     /* TO DO Place css styling code here */
 
@@ -27,20 +42,6 @@
         width: 90%
     }
 </style>
-<!-- Bootstrap CSS -->
-<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
-<!-- Load jQuery for Bootstrap -->
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"
-    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-<!-- Load bootstrap java -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
-<!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
-<script>
-    var $jq351 = jQuery.noConflict(true);
-</script>
 
 <!-- TO DO Begin typing your HTML code here -->
 <div class="container">
@@ -49,35 +50,180 @@
         Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
             style="color:blue">#</span></p>
 </div>
-
-<!-- One example container for two column input that is responsive to window width -->
 <div class="container">
-    <div class="row align-items-end">
-        <div class="myLeftCol">Left Column</div>
-        <!-- myLeftCol adds additional classes in init function-->
-
-        <div class="col"><input id="myButton" name="mybutton" type="button" value="Click Me!" class="fullWidth disableOnView" /></div>
+    <div class="row">
+        <h3 class="col">Dam Information</h3>
     </div>
-
-    <div class="row align-items-end mt-2">
-        <div class="myLeftCol requiredLab">Row 2</div>
-
-        <div class="col"></div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Dam ID:</div>
+        <div class="col">
+            <input type="text" name="damid" id="damID" class="fullWidth">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Recording Date:
+        </div>
+        <div class="col">
+            <input type="date" name="recdate" id="recDate" class="fullWidth">
+        </div>
     </div>
 </div>
+<div class="container">
+    <h3>File Information</h3>
+    <div class="row align-items-end">
+        <div class="myLeftCol">Select video file:</div>
+        <div class="col">
+            <input type="file" name="myfile" id="myfile">&nbsp;</input>
+        </div>
+    </div>
+    <div class="row mt-2 align-items-end">
+        <div class="myLeftCol">File Name:</div>
+        <div class="col">
+            <span class="filePath">[Select a file]</span>
+        </div>
+    </div>
+    <div class="row mt-2 align-items-end">
+        <div class="myLeftCol">Playback speed:</div>
+        <div class="col">
+            <input type="number" name="changespeed" id="changeSpeed" value="5"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Duration (in sec): </div>
+        <div class="col">
+            <input type="number" name="videodur" id="videoDur" step="any" class="simpleCalc"/> <span class="requiredLab">Get duration: </span><input type="checkbox" name="getdur" id="getDur" class="required" disabled>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Add timestamps</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Starting State of Dam:</div>
+        <div class="col">
+            <select name="startstate" id="startState" class="fullWidth" required>
+                <option value="">[Select]</option>
+                <option value="off">Off nest</option>
+                <option value="on">On nest</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Clear all stamps:
+        </div>
+        <div class="col">
+            <input type="button" value="Clear all stamps" name="clearstamps" id="clearStamps" class="disableOnView fullWidth" />
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Undo last stamp:
+        </div>
+        <div class="col">
+            <input type="button" value="Undo last stamp" name="removestampbutton" id="removeStampButton" class="disableOnView fullWidth" disabled/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Press to add stamp:
+        </div>
+        <div class="col">
+            <input type="button" value="[Enter Start State]" name="addstampbutton" id="addStampButton" class="disableOnView fullWidth" disabled/>
+        </div>
+    </div>
+</div>
+<div class="container mt-2 videoDiv">
+    <h3>Video Playback:</h3>
+    <video id="videoPlayer" name="videoplayer" controls>&nbsp;</video>
+</div>
+<div class="container mt-2">
+    <div class="row">
+        <div class="col leftStamps">
+            <h4>Dam Left Nest at (sec): </h4>
+        </div>
+        <div class="col returnStamps">
+            <h4>Dam Returned to Nest at (sec):</h4> 
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Calculations</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col offDurationsDiv">
+            <h4>Durations Off Nest (sec):</h4>
+
+        </div>
+        <div class="col onDurationsDiv">
+            <h4>Durations On Nest (sec):</h4>
+
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
+            <h4>Number of Exits:</h4>
+            <input type="number" name="numexits" id="numExits" class="fullWidth simpleCalc" disabled/>
+            <h4>Total Off Nest (sec):</h4>
+            <input type="number" name="timeoffnest" id="timeOffNest" class="fullWidth simpleCalc" disabled/>
+        </div>
+        <div class="col">
+            <h4>Number of Entries:</h4>
+            <input type="number" name="numentries" id="numEntries" class="fullWidth simpleCalc" disabled/>
+            <h4>Total On Nest (sec):</h4>
+            <input type="number" name="timeonnest" id="timeOnNest" class="fullWidth simpleCalc" disabled/>
+
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="calculate" name="calcvalues" type="button"
+                value="Calculate Values" class="fullWidth disableOnView" />
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
+                class="fullWidth" /></div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
+            <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" />
+        </div>
+    </div>
+</div>
+
+<div id="forCopy">&nbsp;</div>
 
 <!-- Error Message Div -->
 <div class="container" id="errorMsg">&nbsp;</div>
 
 <!-- Example Table Container that is responsive to window width, including for xs -->
 <div class="container mt-2">
-    <div class="table-responsive xsTableDiv">
-        <table class="table">
+    <div class="table-responsive xsTableDiv outTableDiv">
+        <table class="table" id="outTable">
             <thead>
                 <tr>
+                    <th>Duration</th>
+                    <th>Num_exits</th>
+                    <th>Num_entries</th>
+                    <th>Time_off_nest</th>
+                    <th>Time_on_nest</th>
                 </tr>
             </thead>
             <tbody>
+                <tr>
+                    <td class="videoDur_calc">&nbsp;</td>
+                    <td class="numExits_calc">&nbsp;</td>
+                    <td class="numEntries_calc">&nbsp;</td>
+                    <td class="timeOffNest_calc">&nbsp;</td>
+                    <td class="timeOnNest_calc">&nbsp;</td>
+                </tr>
             </tbody>
         </table>
         <p>&nbsp;</p>
