@@ -200,10 +200,11 @@ my_widget_script =
      */
      initDynamicContent: function (parsedJson) {
         $(".filePath").text(parsedJson.fileName);
+        $(".clearOnLoad").text("");
 
         var startState = parsedJson.startState;
         if(startState == "off") {
-            console.log("Started off");
+            //console.log("Started off");
             $("#addStampButton").val("Dam Enters Nest").data("state", "off");
             $(".leftStamps").append(
                 $("<div/>", {
@@ -213,7 +214,7 @@ my_widget_script =
                 )
             );
         } else if(startState == "on"){
-            console.log("Started on");
+            //console.log("Started on");
             $("#addStampButton").val("Dam Exists Nest").data("state", "on");
             $(".returnStamps").append(
                 $("<div/>", {
@@ -300,7 +301,7 @@ my_widget_script =
         $("#startState").on("input", function () {
             var proceed = confirm("Changing this will remove all stamps. Do you wish to proceed?");
             if(proceed){
-                $(".stamp").remove();
+                $(".stamp, .stampMin").remove();
 
                 var startState = $(this).val();
                 if(startState == "off") {
@@ -420,17 +421,20 @@ my_widget_script =
         if($("#videoPlayer").prop("src")){
             if (currentState == "off"){
                 var $stampsDiv = $(".leftStamps");
+                var $stampsDivMin = $(".leftStampsMin");
                 var className = "exit"
                 $("#addStampButton").val("Dam Exists Nest").data("state", "on");
                 var $counter = $("#numExits");
             } else if(currentState == "on"){
                 var $stampsDiv = $(".returnStamps");
+                var $stampsDivMin = $(".returnStampsMin");
                 var className = "entry"
                 $("#addStampButton").val("Dam Enters Nest").data("state", "off");
                 var $counter = $("#numEntries");
             }
 
             $stampsDiv.find("." + className).last().remove();
+            $stampsDivMin.find("." + className).last().remove();
 
             my_widget_script.removeOneFromCounter($counter);
             my_widget_script.calcDurations();
@@ -442,6 +446,7 @@ my_widget_script =
         var proceed = confirm("Are you sure that you want to remove all time stamps?");
         if(proceed){
             $(".stamp:not(.start)").remove();
+            $(".stampMin").remove();
             $("#numEntries").val("");
             $("#numExits").val("");
             my_widget_script.calcDurations();
@@ -497,27 +502,18 @@ my_widget_script =
 
     calcDurations: function () {
         var startState = $("#startState").val();
-        var numExits= $("#numExits").val();
-        if(numExits > 0){
-            numExits = parseInt(numExits);
-        }else {
-            numExits = 0;
-            $(".leftStamps").find(".stamp.exit").each(function () {
-                numExits = numExits + 1;
-            });
-            $("#numExits").val(numExits);
-        }
-        var numEntries = $("#numEntries").val();
-        if(numEntries > 0){
-            numEntries = parseInt(numEntries);
-        }else {
-            numEntries = 0;
-            $(".returnStamps").find(".stamp.entry").each(function () {
-                numEntries = numEntries + 1;
-            });
-            $("#numEntries").val(numEntries);
-        }
-
+        var numExits = 0;
+        $(".leftStamps").find(".stamp.exit").each(function () {
+            numExits = numExits + 1;
+        });
+        $("#numExits").val(numExits);
+        
+        var numEntries = 0;
+        $(".returnStamps").find(".stamp.entry").each(function () {
+            numEntries = numEntries + 1;
+        });
+        $("#numEntries").val(numEntries);
+        
         var exitStamps = [];
 
         $(".leftStamps").find(".stamp").each(function() {
@@ -528,6 +524,42 @@ my_widget_script =
         $(".returnStamps").find(".stamp").each(function() {
             entryStamps[entryStamps.length] = parseFloat($(this).text()); 
         });
+
+        $(".leftStampsMin").find(".stampMin").remove();
+        // Convert to hh:mm:ss 
+        for (i = 0; i < exitStamps.length; i ++ ){
+            var stamp = exitStamps[i];
+            var stampDate = new Date();
+            stampDate.setHours(0, 0, stamp, 0);
+            //console.log(stampDate);
+            var hours = ("0" + stampDate.getHours()).slice(-2);
+            var mins = ("0" + stampDate.getMinutes()).slice(-2);
+            var secs = ("0" + stampDate.getSeconds()).slice(-2);
+            var time = hours + ":" + mins + ":" + secs
+            $(".leftStampsMin").append(
+                $("<div/>", {
+                    "class": "stampMin exit"
+                }).append(time)
+            );
+        }
+
+        $(".returnStampsMin").find(".stampMin").remove();
+        // Convert to hh:mm:ss 
+        for (i = 0; i < entryStamps.length; i ++ ){
+            var stamp = entryStamps[i];
+            var stampDate = new Date();
+            stampDate.setHours(0, 0, stamp, 0);
+            //console.log(stampDate);
+            var hours = ("0" + stampDate.getHours()).slice(-2);
+            var mins = ("0" + stampDate.getMinutes()).slice(-2);
+            var secs = ("0" + stampDate.getSeconds()).slice(-2);
+            var time = hours + ":" + mins + ":" + secs
+            $(".returnStampsMin").append(
+                $("<div/>", {
+                    "class": "stampMin entry"
+                }).append(time)
+            );
+        }
 
         var offDurs = [];
         var onDurs = [];
@@ -587,7 +619,10 @@ my_widget_script =
             );
 
             var currentDur = parseFloat($("#timeOffNest").val());
-            $("#timeOffNest").val((currentDur + offDurs[i]).toFixed(2))
+            if(offDurs[i]){
+                currentDur = currentDur + offDurs[i];
+            }
+            $("#timeOffNest").val((currentDur).toFixed(2));
         }
 
         $div = $(".onDurationsDiv");
@@ -604,6 +639,9 @@ my_widget_script =
             );
 
             var currentDur = parseFloat($("#timeOnNest").val());
+            if(onDurs[i]){
+                currentDur = currentDur + onDurs[i];
+            }
             $("#timeOnNest").val((currentDur + onDurs[i]).toFixed(2));
         }
 
