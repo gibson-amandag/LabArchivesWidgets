@@ -264,6 +264,7 @@ my_widget_script =
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
             $(".hideView").hide();
+            $(".bookmarkLink").parent().addClass("noPlay");
         } else {
             $(".hideEdit").hide();
         }
@@ -380,6 +381,18 @@ my_widget_script =
             var calcID = "." + elementID + "_calc";
             my_widget_script.watchValue($(this), $(calcID));
         });
+
+        //Jump to place in video and select add stamp button if there's a video file
+        $(document).on('click', ".stampMin:not(.noPlay) a", function() {
+            var vid = document.getElementById("videoPlayer");
+            if(vid.src){
+                vid.currentTime = $(this).attr('rel');
+                vid.play();
+                $("#addStampButton").select()
+            } else {
+                alert("Select a Video File");
+            }
+        });
     },
 
     addStampFuncs: function (currentState){
@@ -391,6 +404,7 @@ my_widget_script =
                 var buttonText = "Dam Enters Nest";
                 var buttonState = "off";
                 var $counter = $("#numExits");
+                var $otherDiv = $(".returnStamps");
             } else if(currentState == "off"){
                 var $stampsDiv = $(".returnStamps");
                 var className = "entry"
@@ -398,19 +412,26 @@ my_widget_script =
                 var buttonText = "Dam Exists Nest";
                 var buttonState = "on";
                 var $counter = $("#numEntries");
+                var $otherDiv = $(".leftStamps");
             }
             
             if(parseFloat(addText) < parseFloat($("#videoPlayer").prop("duration"))){
-                $stampsDiv.append(
-                    $("<div/>", {
-                        "class": className + " stamp"
-                    }).append(
-                        addText
-                    )
-                );
-                my_widget_script.addOneToCounter($counter);
-                my_widget_script.calcDurations();
-                $("#addStampButton").val(buttonText).data("state", buttonState);
+                if(parseFloat(addText) > parseFloat($otherDiv.find(".stamp").last().text())){
+                    $stampsDiv.append(
+                        $("<div/>", {
+                            "class": className + " stamp"
+                        }).append(
+                            addText
+                        )
+                    );
+                    my_widget_script.addOneToCounter($counter);
+                    my_widget_script.calcDurations();
+                    $("#addStampButton").val(buttonText).data("state", buttonState);
+                } else {
+                    var vid = document.getElementById("videoPlayer");
+                    vid.pause();
+                    alert("Must be after previous stamp");
+                }
             }
             
             my_widget_script.resize();
@@ -449,6 +470,16 @@ my_widget_script =
             $(".stampMin").remove();
             $("#numEntries").val("");
             $("#numExits").val("");
+
+            var startState = $("#startState").val();
+            if(startState == "off") {
+                $("#addStampButton").val("Dam Enters Nest").data("state", "off");
+            } else if(startState == "on"){
+                $("#addStampButton").val("Dam Exists Nest").data("state", "on");
+            } else {
+                $("#addStampButton").val("[Enter Start State]").data("state", "");
+            }
+
             my_widget_script.calcDurations();
             my_widget_script.resize();
         }
@@ -539,7 +570,9 @@ my_widget_script =
             $(".leftStampsMin").append(
                 $("<div/>", {
                     "class": "stampMin exit"
-                }).append(time)
+                }).append(
+                    "<a href='javascript:;' rel='" + stamp + "' class='bookmarkLink'>" + time + "</a>"
+                )
             );
         }
 
@@ -557,7 +590,9 @@ my_widget_script =
             $(".returnStampsMin").append(
                 $("<div/>", {
                     "class": "stampMin entry"
-                }).append(time)
+                }).append(
+                    "<a href='javascript:;' rel='" + stamp + "' class='bookmarkLink'>" + time + "</a>"
+                )
             );
         }
 
