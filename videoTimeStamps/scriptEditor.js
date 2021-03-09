@@ -1,5 +1,15 @@
 my_widget_script =
-{ 
+{
+    // Variables
+    _numEntries: 0,
+    _numExits: 0,
+    _duration: NaN,
+    _fileName: "",
+    _startState: "",
+    _vid: document.getElementById("videoPlayer"),
+    _timeOffNest: 0,
+    _timeOnNest: 0,
+
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -61,7 +71,9 @@ my_widget_script =
             fileName: dynamicContent.fileName,
             exitStamps: dynamicContent.exitStamps,
             entryStamps: dynamicContent.entryStamps,
-            startState: dynamicContent.startState
+            startState: dynamicContent.startState,
+            numExits: dynamicContent.numExits,
+            numEntries: dynamicContent.numEntries
         };
 
         //uncomment to check stringified output
@@ -107,7 +119,9 @@ my_widget_script =
             widgetData: testData,
             exitStamps: exitStamps,
             entryStamps: entryStamps,
-            startState: "on"
+            startState: "on",
+            numEntries: 3,
+            numExits: 3
         };
 
         //Add additional content to match the objects in to_json
@@ -198,14 +212,23 @@ my_widget_script =
      * 
      * This function requires the parsedJson object.
      */
-     initDynamicContent: function (parsedJson) {
+    initDynamicContent: function (parsedJson) {
+        // Fill filePath in widget
         $(".filePath").text(parsedJson.fileName);
+        // Update fileName variable
+        my_widget_script._fileName = parsedJson.fileName;
         $(".clearOnLoad").text("");
 
+        my_widget_script._numExits = parsedJson.numExits;
+        my_widget_script._numEntries = parsedJson.numEntries;
+
         var startState = parsedJson.startState;
+        // Update global startState variable
+        my_widget_script._startState = parsedJson.startState
+        my_widget_script.changeToState(startState);
+
         if(startState == "off") {
             //console.log("Started off");
-            $("#addStampButton").val("Dam Enters Nest").data("state", "off");
             $(".leftStamps").append(
                 $("<div/>", {
                     "class": "start stamp"
@@ -215,7 +238,6 @@ my_widget_script =
             );
         } else if(startState == "on"){
             //console.log("Started on");
-            $("#addStampButton").val("Dam Exists Nest").data("state", "on");
             $(".returnStamps").append(
                 $("<div/>", {
                     "class": "start stamp"
@@ -223,8 +245,6 @@ my_widget_script =
                     "0"
                 )
             );
-        } else {
-            $("#addStampButton").val("[Enter Start State]").data("state", "");
         }
 
         if(parsedJson.exitStamps){
@@ -276,37 +296,65 @@ my_widget_script =
      */
     addEventListeners: function () {
         $("#myfile").on("input", function () {
+            // Get selected file
             var file = document.getElementById('myfile').files[0];
             //console.log(file);
-            $(".filePath").text(file.name);
-            var fileURL = URL.createObjectURL(file);
-            $("#videoPlayer").prop("src", fileURL);
 
-            var vid = document.getElementById("videoPlayer");
-            vid.playbackRate = $("#changeSpeed").val();
+            var proceed = false;
+            if( ! my_widget_script._fileName ){ // if no current file name
+                proceed = true;
+            } else if( file.name == my_widget_script._fileName) { // if matches current file name
+                proceed = true;
+            } else { // confirm if doesn't match
+                proceed = confirm("This is a different file than was previously analyzed in this widget. Do you want to proceed?");
+            }
 
-            $("#getDur").removeAttr("disabled");
-            $("#addStampButton").removeAttr("disabled");
-            $("#removeStampButton").removeAttr("disabled");
+            if( proceed ){
+                $(".filePath").text(file.name);
+                my_widget_script._fileName = file.name;
+                
+                var fileURL = URL.createObjectURL(file);
+                // Add file URL to source for video player
+                my_widget_script._vid.src = fileURL;
+    
+                // var vid = document.getElementById("videoPlayer");
+                my_widget_script._vid.playbackRate = $("#changeSpeed").val();
+    
+                $("#addStampButton").removeAttr("disabled");
+                $("#removeStampButton").removeAttr("disabled");
+            }
         });
 
         $("#getDur").on("input", function () {
-            my_widget_script.getDuration();
-        })
+            my_widget_script.calcDurations();
+
+        });
+
+        $("#videoDur").on("input", function () {
+            my_widget_script.calcDurations();
+        });
 
         $("#changeSpeed").on("input", function () {
-            var vid = document.getElementById("videoPlayer");
-            vid.playbackRate = $(this).val();
+            my_widget_script._vid.playbackRate = $(this).val();
         });
 
         $("#startState").on("input", function () {
-            var proceed = confirm("Changing this will remove all stamps. Do you wish to proceed?");
+            if(! my_widget_script._numEntries > 0 &&  ! my_widget_script._numExits > 0){
+                var proceed = true;
+            } else {
+                var proceed = confirm("Changing this will remove all stamps. Do you wish to proceed?");
+            }
             if(proceed){
                 $(".stamp, .stampMin").remove();
 
                 var startState = $(this).val();
+                my_widget_script._startState = $(this).val();
+                my_widget_script.changeToState(startState);
+
+                my_widget_script._numEntries = 0;
+                my_widget_script._numExits = 0;
+
                 if(startState == "off") {
-                    $("#addStampButton").val("Dam Enters Nest").data("state", "off");
                     $(".leftStamps").append(
                         $("<div/>", {
                             "class": "start stamp"
@@ -315,7 +363,6 @@ my_widget_script =
                         )
                     );
                 } else if(startState == "on"){
-                    $("#addStampButton").val("Dam Exists Nest").data("state", "on");
                     $(".returnStamps").append(
                         $("<div/>", {
                             "class": "start stamp"
@@ -323,8 +370,6 @@ my_widget_script =
                             "0"
                         )
                     );
-                } else {
-                    $("#addStampButton").val("[Enter Start State]").data("state", "");
                 }
 
                 my_widget_script.calcDurations();
@@ -395,27 +440,39 @@ my_widget_script =
         });
     },
 
+    changeToState: function (state) {
+        if(state == "off"){
+            $("#addStampButton").val("Dam Enters Nest").data("state", "off");
+        } else if(state == "on") {
+            $("#addStampButton").val("Dam Exists Nest").data("state", "on");
+        } else {
+            $("#addStampButton").val("[Enter Start State]").data("state", "");
+        }
+    },
+
+    toggleState: function (currentState) {
+        if (currentState == "off") {
+            my_widget_script.changeToState("on");
+        } else if (currentState == "on") {
+            my_widget_script.changeToState("off");
+        }
+    },
+
     addStampFuncs: function (currentState){
-        if($("#videoPlayer").prop("src")){
+        if(my_widget_script._vid.src){
             if (currentState == "on"){
                 var $stampsDiv = $(".leftStamps");
                 var className = "exit"
                 var addText = my_widget_script.getTimeStamp();
-                var buttonText = "Dam Enters Nest";
-                var buttonState = "off";
-                var $counter = $("#numExits");
                 var $otherDiv = $(".returnStamps");
             } else if(currentState == "off"){
                 var $stampsDiv = $(".returnStamps");
                 var className = "entry"
                 var addText = my_widget_script.getTimeStamp();
-                var buttonText = "Dam Exists Nest";
-                var buttonState = "on";
-                var $counter = $("#numEntries");
                 var $otherDiv = $(".leftStamps");
             }
             
-            if(parseFloat(addText) < parseFloat($("#videoPlayer").prop("duration"))){
+            if(parseFloat(addText) < my_widget_script._duration){
                 if(parseFloat(addText) > parseFloat($otherDiv.find(".stamp").last().text())){
                     $stampsDiv.append(
                         $("<div/>", {
@@ -424,12 +481,12 @@ my_widget_script =
                             addText
                         )
                     );
-                    my_widget_script.addOneToCounter($counter);
+                    // my_widget_script.addOneToCounter($counter);
+                    my_widget_script.addOneToVar(className);
                     my_widget_script.calcDurations();
-                    $("#addStampButton").val(buttonText).data("state", buttonState);
+                    my_widget_script.toggleState(currentState);
                 } else {
-                    var vid = document.getElementById("videoPlayer");
-                    vid.pause();
+                    my_widget_script._vid.pause();
                     alert("Must be after previous stamp");
                 }
             }
@@ -439,26 +496,30 @@ my_widget_script =
     },
 
     removeStampFuncs: function (currentState) {
-        if($("#videoPlayer").prop("src")){
+        if(my_widget_script._vid.src){
             if (currentState == "off"){
                 var $stampsDiv = $(".leftStamps");
                 var $stampsDivMin = $(".leftStampsMin");
-                var className = "exit"
-                $("#addStampButton").val("Dam Exists Nest").data("state", "on");
-                var $counter = $("#numExits");
+                var className = "exit";
+                var currentNum = my_widget_script._numExits;
             } else if(currentState == "on"){
                 var $stampsDiv = $(".returnStamps");
                 var $stampsDivMin = $(".returnStampsMin");
-                var className = "entry"
-                $("#addStampButton").val("Dam Enters Nest").data("state", "off");
-                var $counter = $("#numEntries");
+                var className = "entry";
+                var currentNum = my_widget_script._numEntries;
             }
 
-            $stampsDiv.find("." + className).last().remove();
-            $stampsDivMin.find("." + className).last().remove();
+            if(currentNum > 0){
+                $stampsDiv.find("." + className).last().remove();
+                $stampsDivMin.find("." + className).last().remove();
+                my_widget_script.toggleState(currentState);
+                my_widget_script.removeOneFromVar(className);
+                my_widget_script.calcDurations();
+                my_widget_script._vid.pause();
+            } else {
+                alert("No stamps to remove");
+            }
 
-            my_widget_script.removeOneFromCounter($counter);
-            my_widget_script.calcDurations();
             my_widget_script.resize();
         }
     },
@@ -468,34 +529,36 @@ my_widget_script =
         if(proceed){
             $(".stamp:not(.start)").remove();
             $(".stampMin").remove();
-            $("#numEntries").val("");
-            $("#numExits").val("");
+            my_widget_script._numEntries = 0;
+            my_widget_script._numExits = 0;
 
-            var startState = $("#startState").val();
-            if(startState == "off") {
-                $("#addStampButton").val("Dam Enters Nest").data("state", "off");
-            } else if(startState == "on"){
-                $("#addStampButton").val("Dam Exists Nest").data("state", "on");
-            } else {
-                $("#addStampButton").val("[Enter Start State]").data("state", "");
-            }
-
+            my_widget_script.changeToState(my_widget_script._startState);
             my_widget_script.calcDurations();
             my_widget_script.resize();
         }
     },
 
     getDuration: function () {
-        if($("#videoPlayer").prop("src")){
-            var duration = $("#videoPlayer").prop("duration");
-            $("#videoDur").val(duration);
+        if($("#getDur").is(":checked") && my_widget_script._vid.src) {
+                var duration = my_widget_script._vid.duration;
+        } else {
+            var duration = $("#videoDur").val();
+            if (duration) {
+                duration = parseFloat(duration);
+            } else {
+                duration = 3600;
+            }
         }
+
+        $("#videoDur").val(duration);
+        my_widget_script._duration = duration;
+        $(".videoDur_calc").text(duration);
     },
 
     getTimeStamp: function () {
         var timeStamp = "";
-        if($("#videoPlayer").prop("src")){
-            var timeStamp = $("#videoPlayer").prop("currentTime");
+        if(my_widget_script._vid.src){
+            var timeStamp = my_widget_script._vid.currentTime;
         }
         return (timeStamp)
     },
@@ -506,6 +569,23 @@ my_widget_script =
             existingText = existingText + "\n";
         }
         return (existingText)
+    },
+
+    addOneToVar: function (exitOrEntry) {
+        if(exitOrEntry == "entry"){
+            my_widget_script._numEntries++;
+            // console.log(my_widget_script._numEntries);
+        } else if(exitOrEntry == "exit"){
+            my_widget_script._numExits++;
+        }
+    },
+
+    removeOneFromVar: function (exitOrEntry) {
+        if(exitOrEntry == "entry"){
+            my_widget_script._numEntries--;
+        } else if(exitOrEntry == "exit"){
+            my_widget_script._numExits--;
+        }
     },
 
     addOneToCounter: function ($counter) {
@@ -531,19 +611,24 @@ my_widget_script =
         $counter.val(count);
     },
 
+    // return time as hh:mm:ss from a certain number of seconds
+    getTimeFromSec: function (timeInSec) {
+        var asDate = new Date();
+        asDate.setHours(0, 0, timeInSec, 0);
+        //console.log(asDate);
+        var hours = ("0" + asDate.getHours()).slice(-2);
+        var mins = ("0" + asDate.getMinutes()).slice(-2);
+        var secs = ("0" + asDate.getSeconds()).slice(-2);
+        var time = hours + ":" + mins + ":" + secs
+        return(time)
+    },
+
     calcDurations: function () {
-        var startState = $("#startState").val();
-        var numExits = 0;
-        $(".leftStamps").find(".stamp.exit").each(function () {
-            numExits = numExits + 1;
-        });
-        $("#numExits").val(numExits);
-        
-        var numEntries = 0;
-        $(".returnStamps").find(".stamp.entry").each(function () {
-            numEntries = numEntries + 1;
-        });
-        $("#numEntries").val(numEntries);
+        my_widget_script.getDuration();
+
+        var startState = my_widget_script._startState;
+        var numExits = my_widget_script._numExits;
+        var numEntries = my_widget_script._numEntries;
         
         var exitStamps = [];
 
@@ -560,13 +645,7 @@ my_widget_script =
         // Convert to hh:mm:ss 
         for (i = 0; i < exitStamps.length; i ++ ){
             var stamp = exitStamps[i];
-            var stampDate = new Date();
-            stampDate.setHours(0, 0, stamp, 0);
-            //console.log(stampDate);
-            var hours = ("0" + stampDate.getHours()).slice(-2);
-            var mins = ("0" + stampDate.getMinutes()).slice(-2);
-            var secs = ("0" + stampDate.getSeconds()).slice(-2);
-            var time = hours + ":" + mins + ":" + secs
+            var time = my_widget_script.getTimeFromSec(stamp);
             $(".leftStampsMin").append(
                 $("<div/>", {
                     "class": "stampMin exit"
@@ -580,13 +659,7 @@ my_widget_script =
         // Convert to hh:mm:ss 
         for (i = 0; i < entryStamps.length; i ++ ){
             var stamp = entryStamps[i];
-            var stampDate = new Date();
-            stampDate.setHours(0, 0, stamp, 0);
-            //console.log(stampDate);
-            var hours = ("0" + stampDate.getHours()).slice(-2);
-            var mins = ("0" + stampDate.getMinutes()).slice(-2);
-            var secs = ("0" + stampDate.getSeconds()).slice(-2);
-            var time = hours + ":" + mins + ":" + secs
+            var time = my_widget_script.getTimeFromSec(stamp);
             $(".returnStampsMin").append(
                 $("<div/>", {
                     "class": "stampMin entry"
@@ -598,21 +671,15 @@ my_widget_script =
 
         var offDurs = [];
         var onDurs = [];
-        var duration = $("#videoDur").val();
+        var duration = my_widget_script._duration;
         var cutLast = "";
-        if(!duration) {
-            if($("#videoPlayer").prop("src")){
-                my_widget_script.getDuration();
-                duration = $("#videoDur").val();
-            }
-        }
         if(startState == "off"){
             numExits = numExits + 1;
             if (numExits > numEntries){
-                entryStamps[entryStamps.length] = parseFloat(duration);
+                entryStamps[entryStamps.length] = duration;
                 cutLast = "on"
             } else {
-                exitStamps[exitStamps.length] = parseFloat(duration);
+                exitStamps[exitStamps.length] = duration;
             }
 
             for (i = 0; i < numExits; i ++ ) {
@@ -622,10 +689,10 @@ my_widget_script =
         } else if(startState == "on"){
             numEntries = numEntries + 1;
             if (numEntries > numExits){
-                exitStamps[exitStamps.length] = parseFloat(duration);
+                exitStamps[exitStamps.length] = duration;
                 cutLast = "off"
             } else {
-                entryStamps[entryStamps.length] = parseFloat(duration);
+                entryStamps[entryStamps.length] = duration;
             }
 
             for (i = 0; i < numEntries; i ++ ) {
@@ -641,8 +708,10 @@ my_widget_script =
         }
 
         var $div = $(".offDurationsDiv");
+        // remove previously calculated durations
         $div.find(".duration").remove();
-        $("#timeOffNest").val(0);
+        my_widget_script._timeOffNest = 0;
+        
 
         for (i = 0; i < offDurs.length; i ++ ){
             $div.append(
@@ -653,16 +722,16 @@ my_widget_script =
                 )
             );
 
-            var currentDur = parseFloat($("#timeOffNest").val());
+            var currentDur = my_widget_script._timeOffNest;
             if(offDurs[i]){
                 currentDur = currentDur + offDurs[i];
             }
-            $("#timeOffNest").val((currentDur).toFixed(2));
+            my_widget_script._timeOffNest = currentDur;
         }
 
         $div = $(".onDurationsDiv");
         $div.find(".duration").remove();
-        $("#timeOnNest").val(0);
+        my_widget_script._timeOnNest = 0;
 
         for (i = 0; i < onDurs.length; i ++ ){
             $div.append(
@@ -673,11 +742,11 @@ my_widget_script =
                 )
             );
 
-            var currentDur = parseFloat($("#timeOnNest").val());
+            var currentDur = my_widget_script._timeOnNest;
             if(onDurs[i]){
                 currentDur = currentDur + onDurs[i];
             }
-            $("#timeOnNest").val((currentDur + onDurs[i]).toFixed(2));
+            my_widget_script._timeOnNest = currentDur;
         }
 
         my_widget_script.calcValues();
@@ -743,17 +812,6 @@ my_widget_script =
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var file = $(".filePath").text();
-
-        var startState = $("#startState").val();
-        // if(startStateVal == "on"){
-        //     var startState = "on"
-        // } else if(startStateVal == "off"){
-        //     var startState = "off"
-        // } else {
-        //     var startState = ""
-        // }
-
         var exitStamps = [];
         $(".leftStamps").find(".stamp.exit").each(function() {
             exitStamps[exitStamps.length] = parseFloat($(this).text()); 
@@ -765,10 +823,12 @@ my_widget_script =
         });
 
         var dynamicContent = {
-            fileName: file,
+            fileName: my_widget_script._fileName,
             exitStamps: exitStamps,
             entryStamps: entryStamps,
-            startState: startState
+            startState: my_widget_script._startState,
+            numExits: my_widget_script._numExits,
+            numEntries: my_widget_script._numEntries
         };
         return dynamicContent;
     },
@@ -835,6 +895,12 @@ my_widget_script =
             var calcID = "." + elementID + "_calc";
             my_widget_script.watchValue($(this), $(calcID));
         });
+
+        $(".numEntries_calc").text(my_widget_script._numEntries);
+        $(".numExits_calc").text(my_widget_script._numExits);
+        $(".timeOffNest_calc").text(my_widget_script._timeOffNest.toFixed(2));
+        $(".timeOnNest_calc").text(my_widget_script._timeOnNest.toFixed(2));
+        
 
         $("#outTable tr").each(function () { //for each row
             $("td", this).each(function () { //for each cell

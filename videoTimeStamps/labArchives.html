@@ -97,7 +97,7 @@
     <div class="row mt-2">
         <div class="myLeftCol">Duration (in sec): </div>
         <div class="col">
-            <input type="number" name="videodur" id="videoDur" step="any" class="simpleCalc"/> <span class="requiredLab hideView" >Get duration: </span><input type="checkbox" name="getdur" id="getDur" class="required hideView" disabled>
+            <input type="number" name="videodur" id="videoDur" step="any" class="simpleCalc" value="3600"/> <span class="hideView" >Get duration automatically: </span><input type="checkbox" name="getdur" id="getDur" class="hideView" checked>
         </div>
     </div>
 </div>
@@ -193,20 +193,15 @@
     <div class="row mt-2">
         <div class="col">
             <h4>Number of Exits:</h4>
-            <input type="number" name="numexits" id="numExits" class="fullWidth simpleCalc hideEdit hideView"/>
             <div class="numExits_calc">&nbsp;</div>
             <h4>Total Off Nest (sec):</h4>
-            <input type="number" name="timeoffnest" id="timeOffNest" class="fullWidth simpleCalc hideEdit hideView"/>
             <div class="timeOffNest_calc">&nbsp;</div>
         </div>
         <div class="col">
             <h4>Number of Entries:</h4>
-            <input type="number" name="numentries" id="numEntries" class="fullWidth simpleCalc hideEdit hideView"/>
             <div class="numEntries_calc">&nbsp;</div>
             <h4>Total On Nest (sec):</h4>
-            <input type="number" name="timeonnest" id="timeOnNest" class="fullWidth simpleCalc hideEdit hideView"/>
             <div class="timeOnNest_calc">&nbsp;</div>
-
         </div>
     </div>
 </div>
