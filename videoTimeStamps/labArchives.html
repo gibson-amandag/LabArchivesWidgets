@@ -1,3 +1,5 @@
+<!-- Google Charts -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -48,11 +50,11 @@
     }
 
     .stampRow.entry {
-        background-color:rgb(204, 219, 246)
+        background-color:#ccdbf6
     }
 
     .stampRow.exit{
-        background-color: rgb(244, 200, 206);
+        background-color: #f4c8ce;
     }
 </style>
 
@@ -190,11 +192,11 @@
         </div>
 
         <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDursButton" name="copydursbutton" type="button" value="Copy Durations" class="fullWidth disableOnView" />
+            <input id="copyDursButton" name="copydursbutton" type="button" value="Copy Durations" class="fullWidth" />
         </div>
 
         <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyTimesButton" name="copytimesbutton" type="button" value="Copy Times" class="fullWidth disableOnView" />
+            <input id="copyTimesButton" name="copytimesbutton" type="button" value="Copy Times" class="fullWidth" />
         </div>
     </div>
 </div>
@@ -236,5 +238,14 @@
             </tbody>
         </table>
         <p>&nbsp;</p>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Timeline</h3>
+    </div>
+    <div class="row">
+        <div class="col" id="chart_div" style="height: 150px;">&nbsp;</div>
     </div>
 </div>

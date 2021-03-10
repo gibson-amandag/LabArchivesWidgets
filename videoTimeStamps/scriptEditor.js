@@ -45,6 +45,7 @@ my_widget_script =
 
         //resize the content box when the window size changes
         window.onresize = this.resize;
+        window.onresize = this.GoogleChartTimeLine;
 
         //Define behavior when buttons are clicked or checkboxes/selctions change
         this.addEventListeners();
@@ -60,6 +61,8 @@ my_widget_script =
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
+
+        this.GoogleChartTimeLine();
     },
     
     to_json: function () {
@@ -345,6 +348,7 @@ my_widget_script =
             var lastDuration = my_widget_script._duration - my_widget_script._stampTimes[my_widget_script._stampTimes.length - 1];
             my_widget_script._allDurations[my_widget_script._allDurations.length - 1] = lastDuration;
             $(".stampRow").last().find(".duration").text(lastDuration.toFixed(2));
+            my_widget_script.GoogleChartTimeLine();
             my_widget_script.resize();
         });
 
@@ -353,6 +357,8 @@ my_widget_script =
             var lastDuration = my_widget_script._duration - my_widget_script._stampTimes[my_widget_script._stampTimes.length - 1];
             my_widget_script._allDurations[my_widget_script._allDurations.length - 1] = lastDuration;
             $(".stampRow").last().find(".duration").text(lastDuration.toFixed(2));
+            my_widget_script.GoogleChartTimeLine();
+            my_widget_script.resize();
         });
 
         $("#videoDur").on("input", function () {
@@ -360,6 +366,8 @@ my_widget_script =
             var lastDuration = my_widget_script._duration - my_widget_script._stampTimes[my_widget_script._stampTimes.length - 1];
             my_widget_script._allDurations[my_widget_script._allDurations.length - 1] = lastDuration;
             $(".stampRow").last().find(".duration").text(lastDuration.toFixed(2));
+            my_widget_script.GoogleChartTimeLine();
+            my_widget_script.resize();
         });
 
         $("#changeSpeed").on("input", function () {
@@ -450,7 +458,7 @@ my_widget_script =
                 vid.currentTime = $(this).attr('rel');
                 vid.play();
                 $("#videoPlayer").focus();
-                $("#addStampButton").select()
+                $("#addStampButton").select();
             } else {
                 alert("Select a Video File");
             }
@@ -717,6 +725,17 @@ my_widget_script =
         return(time)
     },
 
+    getHoursMin: function (timeString) {
+        timeString = timeString.split(":");
+        var hours = parseInt(timeString[0], 10), mins = parseInt(timeString[1], 10);
+        return( 
+            split = {
+                hours: hours,
+                mins: mins
+            }
+        )
+    },
+
     /**
      * TO DO: edit this function to define the symbols that should be added to the HTML
      * page based on whether or not a field is required to save the widget to the page
@@ -919,6 +938,8 @@ my_widget_script =
                 }
             })
         });
+
+        my_widget_script.GoogleChartTimeLine();
 
         //resize the tableDiv
         my_widget_script.resize();
@@ -1238,6 +1259,62 @@ my_widget_script =
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+    },
+
+    GoogleChartTimeLine: function () {
+        google.charts.load("current", {packages:["timeline"]});
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+
+            var container = document.getElementById('example3.1');
+            var dataTable = new google.visualization.DataTable();
+            dataTable.addColumn({ type: 'string', id: 'Position' });
+            dataTable.addColumn({ type: 'date', id: 'Start' });
+            dataTable.addColumn({ type: 'date', id: 'End' });
+
+            var startTime = $("#recTime").val();
+            if(startTime){
+                var splitTime = my_widget_script.getHoursMin(startTime);
+                var startHour = splitTime.hours;
+            } else{
+                startHour = 0;
+            }
+
+
+            for(i = 0; i < my_widget_script._stampStates.length; i++ ){
+                var movement = "", time = NaN, duration = NaN;
+                movement = my_widget_script._stampStates[i];
+                time = my_widget_script._stampTimes[i];
+                duration = my_widget_script._allDurations[i];
+
+                var state = ""
+                if(movement == "exit"){
+                    state = "OFF Nest"
+                } else if(movement == "entry") {
+                    state = "ON Nest"
+                }
+
+                dataTable.addRows([
+                    [ state, new Date(0, 0, 0, startHour, 0, time), new Date(0, 0, 0, startHour, 0, time + duration) ]
+                ]);
+            }
+
+            if(my_widget_script._startState == "off"){
+                colors = ['#f4c8ce', '#ccdbf6']
+            } else if(my_widget_script._startState == "on"){
+                colors = ['#ccdbf6', '#f4c8ce']
+            }
+            var options = {
+                hAxis: {
+                title: 'Time'
+                },
+                colors: colors,
+                avoidOverlappingGridLines: false
+            };
+            var container = document.getElementById("chart_div");
+            var chart = new google.visualization.Timeline(container);
+            chart.draw(dataTable, options);
         }
     }
 };
