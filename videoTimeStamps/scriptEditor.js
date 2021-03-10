@@ -9,6 +9,15 @@ my_widget_script =
     _vid: document.getElementById("videoPlayer"),
     _timeOffNest: 0,
     _timeOnNest: 0,
+    _stampTimes: [],
+    _stampStates: [],
+    _allDurations: [],
+    _entryStamps: [],
+    _exitStamps: [],
+    _entryDurs: [],
+    _exitDurs: [],
+    _percOffNest: 0,
+    _percOnNest: 0,
 
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
@@ -69,11 +78,13 @@ my_widget_script =
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
             fileName: dynamicContent.fileName,
-            exitStamps: dynamicContent.exitStamps,
-            entryStamps: dynamicContent.entryStamps,
             startState: dynamicContent.startState,
+            duration: dynamicContent.duration,
             numExits: dynamicContent.numExits,
-            numEntries: dynamicContent.numEntries
+            numEntries: dynamicContent.numEntries,
+            stampTimes: dynamicContent.stampTimes,
+            stampStates: dynamicContent.stampStates,
+            allDurations: dynamicContent.allDurations
         };
 
         //uncomment to check stringified output
@@ -110,18 +121,21 @@ my_widget_script =
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
 
-        var entryStamps = [1, 2, 3];
-        var exitStamps = [0.75, 1.5, 2.6];
+        var stampStates = ["entry", "exit", "entry", "exit", "entry", "exit", "entry"];
+        var stampTimes = [0, 1, 3, 6, 10, 15, 21];
+        var allDurations = [1, 2, 3, 4, 5, 6, 979];
 
         //If no additional dynamic content 
         var output = {
             fileName: "test", 
             widgetData: testData,
-            exitStamps: exitStamps,
-            entryStamps: entryStamps,
             startState: "on",
+            duration: 1000,
             numEntries: 3,
-            numExits: 3
+            numExits: 3,
+            stampStates: stampStates,
+            stampTimes: stampTimes,
+            allDurations: allDurations
         };
 
         //Add additional content to match the objects in to_json
@@ -222,54 +236,53 @@ my_widget_script =
         my_widget_script._numExits = parsedJson.numExits;
         my_widget_script._numEntries = parsedJson.numEntries;
 
+        // Update duration
+        my_widget_script._duration = parsedJson.duration;
+        $("#videoDur").val(my_widget_script._duration);
+
         var startState = parsedJson.startState;
         // Update global startState variable
-        my_widget_script._startState = parsedJson.startState
-        my_widget_script.changeToState(startState);
+        my_widget_script._startState = parsedJson.startState;
+        my_widget_script.changeToState(my_widget_script._startState);
+        // my_widget_script.resetStamps(startState);
 
-        if(startState == "off") {
-            //console.log("Started off");
-            $(".leftStamps").append(
-                $("<div/>", {
-                    "class": "start stamp"
-                }).append(
-                    "0"
-                )
-            );
-        } else if(startState == "on"){
-            //console.log("Started on");
-            $(".returnStamps").append(
-                $("<div/>", {
-                    "class": "start stamp"
-                }).append(
-                    "0"
-                )
-            );
+        // Update global arrays
+        if(parsedJson.stampStates) {
+            my_widget_script._stampStates = parsedJson.stampStates;
+        }
+        if(parsedJson.stampTimes){
+            my_widget_script._stampTimes = parsedJson.stampTimes;
+        }
+        if(parsedJson.allDurations){
+            my_widget_script._allDurations = parsedJson.allDurations;
         }
 
-        if(parsedJson.exitStamps){
-            for (var i = 0; i < parsedJson.exitStamps.length; i++) {
-                $(".leftStamps").append(
-                    $("<div/>", {
-                        "class": "exit stamp"
-                    }).append(
-                        parsedJson.exitStamps[i]
-                    )
-                );
+        for(i = 0; i < my_widget_script._stampStates.length; i++ ){
+            var movement = "", time = NaN, duration = NaN;
+            movement = my_widget_script._stampStates[i];
+            time = my_widget_script._stampTimes[i];
+            duration = my_widget_script._allDurations[i];
+            var $stampsDiv = $(".stampsDiv");
+
+            if(movement == "exit") {
+                var newState = "OFF";
+                var stateForButton = "off";
+            }else if(movement == "entry"){
+                var newState = "ON";
+                var stateForButton = "on";
+            } else {
+                var newState = "";
+                var stateForButton = "";
+            }
+
+            my_widget_script.makeStampRow($stampsDiv, movement, newState, time, duration);
+
+            if(i == my_widget_script._stampStates.length - 1){
+                my_widget_script.changeToState(stateForButton);
             }
         }
-        
-        if(parsedJson.entryStamps){
-            for (var i = 0; i < parsedJson.entryStamps.length; i++) {
-                $(".returnStamps").append(
-                    $("<div/>", {
-                        "class": "entry stamp"
-                    }).append(
-                        parsedJson.entryStamps[i]
-                    )
-                );
-            }
-        }
+
+        my_widget_script.calcValues();
     },
 
     /**
@@ -323,15 +336,30 @@ my_widget_script =
                 $("#addStampButton").removeAttr("disabled");
                 $("#removeStampButton").removeAttr("disabled");
             }
+
+            my_widget_script.resize();
+        });
+
+        $("#videoPlayer").on("durationchange", function () {
+            my_widget_script.getDuration();
+            var lastDuration = my_widget_script._duration - my_widget_script._stampTimes[my_widget_script._stampTimes.length - 1];
+            my_widget_script._allDurations[my_widget_script._allDurations.length - 1] = lastDuration;
+            $(".stampRow").last().find(".duration").text(lastDuration.toFixed(2));
+            my_widget_script.resize();
         });
 
         $("#getDur").on("input", function () {
-            my_widget_script.calcDurations();
-
+            my_widget_script.getDuration();
+            var lastDuration = my_widget_script._duration - my_widget_script._stampTimes[my_widget_script._stampTimes.length - 1];
+            my_widget_script._allDurations[my_widget_script._allDurations.length - 1] = lastDuration;
+            $(".stampRow").last().find(".duration").text(lastDuration.toFixed(2));
         });
 
         $("#videoDur").on("input", function () {
-            my_widget_script.calcDurations();
+            my_widget_script.getDuration();
+            var lastDuration = my_widget_script._duration - my_widget_script._stampTimes[my_widget_script._stampTimes.length - 1];
+            my_widget_script._allDurations[my_widget_script._allDurations.length - 1] = lastDuration;
+            $(".stampRow").last().find(".duration").text(lastDuration.toFixed(2));
         });
 
         $("#changeSpeed").on("input", function () {
@@ -345,41 +373,19 @@ my_widget_script =
                 var proceed = confirm("Changing this will remove all stamps. Do you wish to proceed?");
             }
             if(proceed){
-                $(".stamp, .stampMin").remove();
-
                 var startState = $(this).val();
                 my_widget_script._startState = $(this).val();
-                my_widget_script.changeToState(startState);
-
-                my_widget_script._numEntries = 0;
-                my_widget_script._numExits = 0;
-
-                if(startState == "off") {
-                    $(".leftStamps").append(
-                        $("<div/>", {
-                            "class": "start stamp"
-                        }).append(
-                            "0"
-                        )
-                    );
-                } else if(startState == "on"){
-                    $(".returnStamps").append(
-                        $("<div/>", {
-                            "class": "start stamp"
-                        }).append(
-                            "0"
-                        )
-                    );
-                }
-
-                my_widget_script.calcDurations();
-                my_widget_script.resize();
+                my_widget_script.resetStamps(startState);                
             }
         });
 
         $("#addStampButton").on("click", function () {
             var currentState = $(this).data("state");
-            my_widget_script.addStampFuncs(currentState);
+            if(currentState){
+                my_widget_script.addStampFuncs(currentState);
+            } else {
+                alert("Enter the starting state of the dam");
+            }
         });
 
         $("#removeStampButton").on("click", function () {
@@ -388,12 +394,22 @@ my_widget_script =
         });
 
         $("#clearStamps").on("click", function () {
-            my_widget_script.clearAllStamps();
+            var proceed = confirm("Are you sure that you want to remove all time stamps?");
+            if (proceed) {
+                my_widget_script.resetStamps(my_widget_script._startState);
+            }
         });
 
-        //when the calculate button is clicked, run the calcValues function
-        $('#calculate').on("click", function () {
-            my_widget_script.calcTableFuncs();
+        $('#copyDursButton').on("click", function () {
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            my_widget_script.copyDurationsFuncs($errorMsg, $divForCopy);
+        });
+
+        $('#copyTimesButton').on("click", function () {
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            my_widget_script.copyTimeStampsFuncs($errorMsg, $divForCopy);
         });
 
         //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
@@ -433,6 +449,7 @@ my_widget_script =
             if(vid.src){
                 vid.currentTime = $(this).attr('rel');
                 vid.play();
+                $("#videoPlayer").focus();
                 $("#addStampButton").select()
             } else {
                 alert("Select a Video File");
@@ -460,31 +477,49 @@ my_widget_script =
 
     addStampFuncs: function (currentState){
         if(my_widget_script._vid.src){
-            if (currentState == "on"){
-                var $stampsDiv = $(".leftStamps");
-                var className = "exit"
-                var addText = my_widget_script.getTimeStamp();
-                var $otherDiv = $(".returnStamps");
-            } else if(currentState == "off"){
-                var $stampsDiv = $(".returnStamps");
-                var className = "entry"
-                var addText = my_widget_script.getTimeStamp();
-                var $otherDiv = $(".leftStamps");
-            }
-            
-            if(parseFloat(addText) < my_widget_script._duration){
-                if(parseFloat(addText) > parseFloat($otherDiv.find(".stamp").last().text())){
-                    $stampsDiv.append(
-                        $("<div/>", {
-                            "class": className + " stamp"
-                        }).append(
-                            addText
-                        )
-                    );
-                    // my_widget_script.addOneToCounter($counter);
-                    my_widget_script.addOneToVar(className);
-                    my_widget_script.calcDurations();
+            my_widget_script.getDuration();
+            var $stampsDiv = $(".stampsDiv");
+            var timeInSec = parseFloat(my_widget_script.getTimeStamp());
+
+            if(timeInSec < my_widget_script._duration){         
+                var $previousRow = $stampsDiv.find(".stampRow").last();
+
+                // Get previous stamp
+                var previousTime = my_widget_script._stampTimes[my_widget_script._stampTimes.length - 1];
+
+                if(timeInSec > previousTime){ // if after previous stamp
+                    // Get the time between this stamp and previous stamp
+                    var lastDuration = timeInSec - previousTime;
+                    // Replace duration in previous row
+                    $previousRow.find(".duration").text(lastDuration.toFixed(2));
+                    // Replace duration in durations array
+                    my_widget_script._allDurations[my_widget_script._allDurations.length - 1] = lastDuration;
+
+                    // Add time to all stamps array
+                    my_widget_script._stampTimes[my_widget_script._stampTimes.length] = timeInSec;
+
+                    // Get the duration from this time to the end of the recording
+                    var thisDuration = my_widget_script._duration - timeInSec;
+                    // Add this duration to the all durations array
+                    my_widget_script._allDurations[my_widget_script._allDurations.length] = thisDuration
+
+                    if (currentState == "on"){
+                        var movementType = "exit";
+                        var newState = "OFF";
+                    } else if(currentState == "off"){
+                        var movementType = "entry";
+                        var newState = "ON";
+                    }
+
+                    my_widget_script._stampStates[my_widget_script._stampStates.length] = movementType;
+
+                    my_widget_script.makeStampRow($stampsDiv, movementType, newState, timeInSec, thisDuration);
+
+                    my_widget_script.addOneToVar(movementType);
+                    my_widget_script.calcValues();
                     my_widget_script.toggleState(currentState);
+
+                    // console.log(my_widget_script._stampTimes, my_widget_script._stampStates, my_widget_script._allDurations);
                 } else {
                     my_widget_script._vid.pause();
                     alert("Must be after previous stamp");
@@ -495,26 +530,68 @@ my_widget_script =
         }
     },
 
+    makeStampRow: function ($div, className, newState, timeInSec, thisDuration){
+        var timeStamp = my_widget_script.getTimeFromSec(timeInSec);
+
+        $div.append(
+            $("<div/>", {
+                "class": "row stampRow " + className
+            }).append(
+                $("<div/>", {
+                    "class": "col state " + className
+                }).append(newState)
+            ).append(
+                $("<div/>", {
+                    "class": "col stamp " + className,
+                    "data-movement": className
+                }).append(timeInSec.toFixed(2))
+            ).append(
+                $("<div/>", {
+                    "class": "col stampMin " + className
+                }).append(
+                    "<a href='javascript:;' rel='" + timeInSec + "' class='bookmarkLink'>" + timeStamp + "</a>"
+                )
+            ).append(
+                $("<div/>", {
+                    "class": "col duration " + className
+                }).append(thisDuration.toFixed(2))
+            )
+        );
+    },
+
     removeStampFuncs: function (currentState) {
         if(my_widget_script._vid.src){
             if (currentState == "off"){
-                var $stampsDiv = $(".leftStamps");
-                var $stampsDivMin = $(".leftStampsMin");
                 var className = "exit";
                 var currentNum = my_widget_script._numExits;
             } else if(currentState == "on"){
-                var $stampsDiv = $(".returnStamps");
-                var $stampsDivMin = $(".returnStampsMin");
                 var className = "entry";
                 var currentNum = my_widget_script._numEntries;
             }
 
             if(currentNum > 0){
-                $stampsDiv.find("." + className).last().remove();
-                $stampsDivMin.find("." + className).last().remove();
+                my_widget_script.getDuration();
+                $(".stampRow").last().remove();
+
+                // Remove the last values from the arrays
+                my_widget_script._stampTimes.pop();
+                my_widget_script._stampStates.pop();
+                my_widget_script._allDurations.pop();
+
+                // Replace the last duration with time to end from last event
+                var lastDuration = my_widget_script._duration - my_widget_script._stampTimes[my_widget_script._stampTimes.length - 1];
+                my_widget_script._allDurations[my_widget_script._allDurations.length - 1] = lastDuration
+                $(".stampRow").last().find(".duration").text(lastDuration.toFixed(2));
+
+                // console.log(
+                //     my_widget_script._stampTimes,
+                //     my_widget_script._stampStates,
+                //     my_widget_script._allDurations
+                // );
+
                 my_widget_script.toggleState(currentState);
                 my_widget_script.removeOneFromVar(className);
-                my_widget_script.calcDurations();
+                my_widget_script.calcValues();
                 my_widget_script._vid.pause();
             } else {
                 alert("No stamps to remove");
@@ -524,18 +601,35 @@ my_widget_script =
         }
     },
 
-    clearAllStamps: function () {
-        var proceed = confirm("Are you sure that you want to remove all time stamps?");
-        if(proceed){
-            $(".stamp:not(.start)").remove();
-            $(".stampMin").remove();
-            my_widget_script._numEntries = 0;
-            my_widget_script._numExits = 0;
+    resetStamps: function (startState) {
+        my_widget_script.changeToState(startState);
 
-            my_widget_script.changeToState(my_widget_script._startState);
-            my_widget_script.calcDurations();
-            my_widget_script.resize();
+        // Reset parameters
+        my_widget_script._numEntries = 0;
+        my_widget_script._numExits = 0;
+        my_widget_script._stampTimes = [];
+        my_widget_script._stampStates = [];
+        my_widget_script._allDurations = [];
+
+        $(".stampRow").remove();
+
+        if(startState == "off") {
+            var startState = "exit";
+            var newState = "OFF";
+        } else if(startState == "on"){
+            var startState = "entry";
+            var newState = "ON";
         }
+
+        my_widget_script.getDuration();
+        my_widget_script.makeStampRow($(".stampsDiv"), startState, newState, 0, my_widget_script._duration);
+
+        my_widget_script._stampTimes = [0];
+        my_widget_script._stampStates = [startState];
+        my_widget_script._allDurations = [my_widget_script._duration];
+
+        my_widget_script.calcValues();
+        my_widget_script.resize();
     },
 
     getDuration: function () {
@@ -623,137 +717,6 @@ my_widget_script =
         return(time)
     },
 
-    calcDurations: function () {
-        my_widget_script.getDuration();
-
-        var startState = my_widget_script._startState;
-        var numExits = my_widget_script._numExits;
-        var numEntries = my_widget_script._numEntries;
-        
-        var exitStamps = [];
-
-        $(".leftStamps").find(".stamp").each(function() {
-            exitStamps[exitStamps.length] = parseFloat($(this).text()); 
-        });
-
-        var entryStamps = [];
-        $(".returnStamps").find(".stamp").each(function() {
-            entryStamps[entryStamps.length] = parseFloat($(this).text()); 
-        });
-
-        $(".leftStampsMin").find(".stampMin").remove();
-        // Convert to hh:mm:ss 
-        for (i = 0; i < exitStamps.length; i ++ ){
-            var stamp = exitStamps[i];
-            var time = my_widget_script.getTimeFromSec(stamp);
-            $(".leftStampsMin").append(
-                $("<div/>", {
-                    "class": "stampMin exit"
-                }).append(
-                    "<a href='javascript:;' rel='" + stamp + "' class='bookmarkLink'>" + time + "</a>"
-                )
-            );
-        }
-
-        $(".returnStampsMin").find(".stampMin").remove();
-        // Convert to hh:mm:ss 
-        for (i = 0; i < entryStamps.length; i ++ ){
-            var stamp = entryStamps[i];
-            var time = my_widget_script.getTimeFromSec(stamp);
-            $(".returnStampsMin").append(
-                $("<div/>", {
-                    "class": "stampMin entry"
-                }).append(
-                    "<a href='javascript:;' rel='" + stamp + "' class='bookmarkLink'>" + time + "</a>"
-                )
-            );
-        }
-
-        var offDurs = [];
-        var onDurs = [];
-        var duration = my_widget_script._duration;
-        var cutLast = "";
-        if(startState == "off"){
-            numExits = numExits + 1;
-            if (numExits > numEntries){
-                entryStamps[entryStamps.length] = duration;
-                cutLast = "on"
-            } else {
-                exitStamps[exitStamps.length] = duration;
-            }
-
-            for (i = 0; i < numExits; i ++ ) {
-                offDurs[i] = entryStamps[i] - exitStamps[i];
-                onDurs[i] = exitStamps[i + 1] - entryStamps[i]
-            }
-        } else if(startState == "on"){
-            numEntries = numEntries + 1;
-            if (numEntries > numExits){
-                exitStamps[exitStamps.length] = duration;
-                cutLast = "off"
-            } else {
-                entryStamps[entryStamps.length] = duration;
-            }
-
-            for (i = 0; i < numEntries; i ++ ) {
-                onDurs[i] = exitStamps[i] - entryStamps[i];
-                offDurs[i] = entryStamps[i + 1] - exitStamps[i]
-            }
-        }
-
-        if(cutLast == "on"){
-            onDurs.pop();
-        } else if(cutLast == "off"){
-            offDurs.pop();
-        }
-
-        var $div = $(".offDurationsDiv");
-        // remove previously calculated durations
-        $div.find(".duration").remove();
-        my_widget_script._timeOffNest = 0;
-        
-
-        for (i = 0; i < offDurs.length; i ++ ){
-            $div.append(
-                $("<div/>", {
-                    "class": "duration off"
-                }).append(
-                    offDurs[i].toFixed(2)
-                )
-            );
-
-            var currentDur = my_widget_script._timeOffNest;
-            if(offDurs[i]){
-                currentDur = currentDur + offDurs[i];
-            }
-            my_widget_script._timeOffNest = currentDur;
-        }
-
-        $div = $(".onDurationsDiv");
-        $div.find(".duration").remove();
-        my_widget_script._timeOnNest = 0;
-
-        for (i = 0; i < onDurs.length; i ++ ){
-            $div.append(
-                $("<div/>", {
-                    "class": "duration on"
-                }).append(
-                    onDurs[i].toFixed(2)
-                )
-            );
-
-            var currentDur = my_widget_script._timeOnNest;
-            if(onDurs[i]){
-                currentDur = currentDur + onDurs[i];
-            }
-            my_widget_script._timeOnNest = currentDur;
-        }
-
-        my_widget_script.calcValues();
-        // console.log("exitStamps", exitStamps, "entryStamps", entryStamps, "offDurs", offDurs, "onDurs", onDurs);
-        
-    },
-
     /**
      * TO DO: edit this function to define the symbols that should be added to the HTML
      * page based on whether or not a field is required to save the widget to the page
@@ -794,7 +757,7 @@ my_widget_script =
             my_widget_script.adjustTextareaHeight(this);
         });
 
-        my_widget_script.calcDurations();
+        my_widget_script.calcValues();
 
         my_widget_script.resize();
     },
@@ -812,23 +775,15 @@ my_widget_script =
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var exitStamps = [];
-        $(".leftStamps").find(".stamp.exit").each(function() {
-            exitStamps[exitStamps.length] = parseFloat($(this).text()); 
-        });
-
-        var entryStamps = [];
-        $(".returnStamps").find(".stamp.entry").each(function() {
-            entryStamps[entryStamps.length] = parseFloat($(this).text()); 
-        });
-
         var dynamicContent = {
             fileName: my_widget_script._fileName,
-            exitStamps: exitStamps,
-            entryStamps: entryStamps,
             startState: my_widget_script._startState,
+            duration: my_widget_script._duration,
             numExits: my_widget_script._numExits,
-            numEntries: my_widget_script._numEntries
+            numEntries: my_widget_script._numEntries,
+            stampTimes: my_widget_script._stampTimes,
+            stampStates: my_widget_script._stampStates,
+            allDurations: my_widget_script._allDurations
         };
         return dynamicContent;
     },
@@ -887,20 +842,74 @@ my_widget_script =
     * Calls the resize function at the end
     */
     calcValues: function () {
-        //TO DO add calc functions
-        // Output table calculations
-
-        $(".simpleCalc").each(function () {
-            var elementID = this.id;
-            var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
-        });
+        my_widget_script.getDuration();
 
         $(".numEntries_calc").text(my_widget_script._numEntries);
         $(".numExits_calc").text(my_widget_script._numExits);
+
+        my_widget_script._entryStamps = [];
+        my_widget_script._entryDurs = [];
+        my_widget_script._exitStamps = [];
+        my_widget_script._exitDurs = [];
+        my_widget_script._timeOnNest = 0;
+        my_widget_script._timeOffNest = 0;
+        my_widget_script._avgDurOnNest = 0;
+        my_widget_script._avgDurOffNest = 0;
+
+        // console.log(
+        //     my_widget_script._stampTimes,
+        //     my_widget_script._stampStates,
+        //     my_widget_script._allDurations
+        // );
+
+        for(i = 0; i < my_widget_script._stampStates.length; i++ ){
+            if(my_widget_script._stampStates[i] == "exit") {
+                my_widget_script._exitStamps[my_widget_script._exitStamps.length] = my_widget_script._stampTimes[i];
+                my_widget_script._exitDurs[my_widget_script._exitDurs.length] = my_widget_script._allDurations[i];
+            }else if(my_widget_script._stampStates[i] == "entry"){
+                my_widget_script._entryStamps[my_widget_script._entryStamps.length] = my_widget_script._stampTimes[i];
+                my_widget_script._entryDurs[my_widget_script._entryDurs.length] = my_widget_script._allDurations[i];
+            }
+        }
+
+        // Sum of off nest durations
+        my_widget_script._timeOffNest = my_widget_script._exitDurs.reduce(function(a, b){
+            return a + b;
+        }, 0);
+
+        // Sum of on nest durations
+        my_widget_script._timeOnNest = my_widget_script._entryDurs.reduce(function(a, b){
+            return a + b;
+        }, 0);
+
         $(".timeOffNest_calc").text(my_widget_script._timeOffNest.toFixed(2));
         $(".timeOnNest_calc").text(my_widget_script._timeOnNest.toFixed(2));
+
+        // Avg of off nest durations
+        my_widget_script._avgDurOffNest = my_widget_script._timeOffNest / my_widget_script._exitDurs.length;
         
+        // Avg of on nest durations
+        my_widget_script._avgDurOnNest = my_widget_script._timeOnNest / my_widget_script._entryDurs.length;
+
+        $(".avgDurOffNest_calc").text(my_widget_script._avgDurOffNest.toFixed(2));
+        $(".avgDurOnNest_calc").text(my_widget_script._avgDurOnNest.toFixed(2));      
+        
+        my_widget_script._percOffNest = (my_widget_script._timeOffNest / my_widget_script._duration) * 100;
+        my_widget_script._percOnNest = (my_widget_script._timeOnNest / my_widget_script._duration) * 100;
+        
+        $(".percOffNest_calc").text(my_widget_script._percOffNest.toFixed(2));
+        $(".percOnNest_calc").text(my_widget_script._percOnNest.toFixed(2));
+        
+        // console.log(
+        //     my_widget_script._exitStamps,
+        //     my_widget_script._exitDurs,
+        //     my_widget_script._entryStamps,
+        //     my_widget_script._entryDurs,
+        //     my_widget_script._timeOffNest,
+        //     my_widget_script._timeOnNest,
+        //     my_widget_script._percOffNest,
+        //     my_widget_script._percOnNest,
+        // );
 
         $("#outTable tr").each(function () { //for each row
             $("td", this).each(function () { //for each cell
@@ -980,6 +989,52 @@ my_widget_script =
             csv.push(row.join(","));
         }
 
+        var exitStamps = my_widget_script._exitStamps;
+        var entryStamps = my_widget_script._entryStamps;
+
+        var row = [];
+        row.push("OnTimes");
+        row.push("OffTimes");
+        csv.push(row.join(","));
+
+        for(i = 0; i < exitStamps.length || i < entryStamps.length; i++){
+            if(exitStamps[i]) {
+                var exitTime = exitStamps[i]; 
+            } else { var exitTime = "NA"}
+
+            if(entryStamps[i]) {
+                var entryTime = entryStamps[i]; 
+            } else { var entryTime = "NA"}
+
+            var row = [];
+            row.push(entryTime);
+            row.push(exitTime);
+            csv.push(row.join(","));
+        }
+
+        var exitDurs = my_widget_script._exitDurs;
+        var entryDurs = my_widget_script._entryDurs;
+
+        var row = [];
+        row.push("OnDurations");
+        row.push("OffDurations");
+        csv.push(row.join(","));
+
+        for(i = 0; i < exitDurs.length || i < entryDurs.length; i++){
+            if(exitDurs[i]) {
+                var exitDur = exitDurs[i]; 
+            } else { var exitDur = "NA"}
+
+            if(entryDurs[i]) {
+                var entryDur = entryDurs[i]; 
+            } else { var entryDur = "NA"}
+
+            var row = [];
+            row.push(entryDur);
+            row.push(exitDur);
+            csv.push(row.join(","));
+        }
+
         // Download CSV file
         this.downloadCSV(csv.join("\n"), filename);
     },
@@ -1039,6 +1094,60 @@ my_widget_script =
         $temp.remove(); //remove temp
     },
 
+    copyDurations: function ($divForCopy) {
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addLine = "";
+
+        $temp.text("OnDurations\tOffDurations");
+
+        var exitDurs = my_widget_script._exitDurs;
+        var entryDurs = my_widget_script._entryDurs;
+
+        for(i = 0; i < exitDurs.length || i < entryDurs.length; i++){
+            if(exitDurs[i]) {
+                var exitDur = exitDurs[i]; 
+            } else { var exitDur = "NA"}
+
+            if(entryDurs[i]) {
+                var entryDur = entryDurs[i]; 
+            } else { var entryDur = "NA"}
+
+            $temp.text($temp.text() + "\n" + entryDur + "\t" + exitDur);
+        }
+
+        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
+    },
+
+    copyTimeStamps: function ($divForCopy) {
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addLine = "";
+
+        $temp.text("OnTimes\tOffTimes");
+
+        var exitStamps = my_widget_script._exitStamps;
+        var entryStamps = my_widget_script._entryStamps;
+
+        for(i = 0; i < exitStamps.length || i < entryStamps.length; i++){
+            if(exitStamps[i]) {
+                var exitTime = exitStamps[i]; 
+            } else { var exitTime = "NA"}
+
+            if(entryStamps[i]) {
+                var entryTime = entryStamps[i]; 
+            } else { var entryTime = "NA"}
+
+            $temp.text($temp.text() + "\n" + entryTime + "\t" + exitTime);
+        }
+
+        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
+    },
+
     /**
      * Set of functions when calcValuesButton clicked
      * Run data_valid_form
@@ -1063,7 +1172,7 @@ my_widget_script =
         var data_valid = my_widget_script.data_valid_form();
 
         if (data_valid) {
-            my_widget_script.calcDurations();
+            my_widget_script.calcValues();
             my_widget_script.exportTableToCSV(fileName, tableID);
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
         } else {
@@ -1094,12 +1203,38 @@ my_widget_script =
             copyHead = false;
         }
 
-        my_widget_script.calcDurations();
+        my_widget_script.calcValues();
 
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             my_widget_script.resize(); //resize
             my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+    },
+
+    copyDurationsFuncs: function ($errorMsg, $divForCopy){
+        var data_valid = my_widget_script.data_valid_form();
+
+        my_widget_script.calcValues();
+
+        if (data_valid) { //if data is valid
+            my_widget_script.copyDurations($divForCopy); //copy durations
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+    },
+
+    copyTimeStampsFuncs: function ($errorMsg, $divForCopy){
+        var data_valid = my_widget_script.data_valid_form();
+
+        my_widget_script.calcValues();
+
+        if (data_valid) { //if data is valid
+            my_widget_script.copyTimeStamps($divForCopy); //copy durations
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message

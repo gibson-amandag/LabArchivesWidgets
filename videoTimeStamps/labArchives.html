@@ -46,6 +46,14 @@
         text-decoration: none;
         cursor:inherit;
     }
+
+    .stampRow.entry {
+        background-color:rgb(204, 219, 246)
+    }
+
+    .stampRow.exit{
+        background-color: rgb(244, 200, 206);
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
@@ -71,6 +79,14 @@
         </div>
         <div class="col">
             <input type="date" name="recdate" id="recDate" class="fullWidth">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Recording Time:
+        </div>
+        <div class="col">
+            <input type="time" name="rectime" id="recTime" class="fullWidth">
         </div>
     </div>
 </div>
@@ -104,10 +120,10 @@
 
 <div class="container mt-2 hideView">
     <div class="row">
-        <h3 class="col">Add timestamps</h3>
+        <h3 class="col">Add Time Stamps</h3>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol">Starting State of Dam:</div>
+        <div class="myLeftCol requiredLab">Starting State of Dam:</div>
         <div class="col">
             <select name="startstate" id="startState" class="fullWidth" required>
                 <option value="">[Select]</option>
@@ -145,79 +161,40 @@
     <h3>Video Playback:</h3>
     <video id="videoPlayer" name="videoplayer" controls>&nbsp;</video>
 </div>
-<div class="container mt-2">
+<div class="container mt-2 stampsDiv">
     <div class="row">
         <div class="col">
-            <h4>Dam Left Nest at (sec): </h4>
+            <h4>State</h4>
         </div>
         <div class="col">
-            <h4>Dam Left Nest at: </h4>
+            <h4>At time: (sec)</h4>
         </div>
         <div class="col">
-            <h4>Dam Returned to Nest at (sec):</h4> 
+            <h4>Time Stamp:</h4>
         </div>
         <div class="col">
-            <h4>Dam Returned to Nest at: </h4>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col leftStamps clearOnLoad">
-            &nbsp;
-        </div>
-        <div class="col leftStampsMin clearOnLoad">
-            &nbsp;
-        </div>
-        <div class="col returnStamps clearOnLoad">
-            &nbsp;
-        </div>
-        <div class="col returnStampsMin clearOnLoad">
-            &nbsp;
-        </div>
-    </div>
-</div>
-
-<div class="container mt-2">
-    <div class="row">
-        <h3 class="col">Calculations</h4>
-    </div>
-    <div class="row mt-2">
-        <div class="col offDurationsDiv">
-            <h4>Durations Off Nest (sec):</h4>
-
-        </div>
-        <div class="col onDurationsDiv">
-            <h4>Durations On Nest (sec):</h4>
-
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="col">
-            <h4>Number of Exits:</h4>
-            <div class="numExits_calc">&nbsp;</div>
-            <h4>Total Off Nest (sec):</h4>
-            <div class="timeOffNest_calc">&nbsp;</div>
-        </div>
-        <div class="col">
-            <h4>Number of Entries:</h4>
-            <div class="numEntries_calc">&nbsp;</div>
-            <h4>Total On Nest (sec):</h4>
-            <div class="timeOnNest_calc">&nbsp;</div>
+            <h4>Duration: (sec)</h4>
         </div>
     </div>
 </div>
 
 <div class="container mt-4">
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="calculate" name="calcvalues" type="button"
-                value="Calculate Values" class="fullWidth disableOnView" />
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Output Data" class="fullWidth" />
+            <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" />
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
-                class="fullWidth" /></div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="toCSV" name="tocsv" type="button" value="Save CSV" class="fullWidth" />
+        </div>
 
         <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
-            <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" />
+            <input id="copyDursButton" name="copydursbutton" type="button" value="Copy Durations" class="fullWidth disableOnView" />
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyTimesButton" name="copytimesbutton" type="button" value="Copy Times" class="fullWidth disableOnView" />
         </div>
     </div>
 </div>
@@ -238,6 +215,10 @@
                     <th>Num_entries</th>
                     <th>Time_off_nest</th>
                     <th>Time_on_nest</th>
+                    <th>Perc_off_nest</th>
+                    <th>Perc_on_nest</th>
+                    <th>Avg_dur_off_nest</th>
+                    <th>Avg_dur_on_nest</th>
                 </tr>
             </thead>
             <tbody>
@@ -247,6 +228,10 @@
                     <td class="numEntries_calc">&nbsp;</td>
                     <td class="timeOffNest_calc">&nbsp;</td>
                     <td class="timeOnNest_calc">&nbsp;</td>
+                    <td class="percOffNest_calc">&nbsp;</td>
+                    <td class="percOnNest_calc">&nbsp;</td>
+                    <td class="avgDurOffNest_calc">&nbsp;</td>
+                    <td class="avgDurOnNest_calc">&nbsp;</td>
                 </tr>
             </tbody>
         </table>
