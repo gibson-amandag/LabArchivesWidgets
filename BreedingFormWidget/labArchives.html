@@ -1,3 +1,5 @@
+<!-- Luxon for dates -->
+<script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -120,7 +122,7 @@
         <div class="myLeftCol">Breeding Date: </div>
         <!-- myLeftCol adds additional classes in init function-->
 
-        <div class="col"><input id="breedDate" name="breeddate" type="date" class="fullWidth" value="2021-01-29"/></div>
+        <div class="col"><input id="breedDate" name="breeddate" type="date" class="fullWidth"/></div>
     </div>
 
     <div class="row align-items-end mt-2">
@@ -135,7 +137,7 @@
 
     <div class="row align-items-center mt-2">
         <div class="myLeftCol">Add a second dam: </div>
-        <div class="col"><input type="checkbox" name="dam2check" id="dam2Check" /></div>
+        <div class="col"><input type="checkbox" name="dam2check" id="dam2Check" class="checkText"/></div>
     </div>
 </div>
 
@@ -157,16 +159,34 @@
                     <div class="col text-right"><input id="damstrain_1" name="damstrain_1" class="fullWidth"/></div>
                 </div>
                 <div class="row align-items-end mt-2">
+                    <div class="col text-left">Dam 1 Generation: </div>
+                    <div class="col text-right"><input id="damgeneration_1" name="damgeneration_1" class="fullWidth"/></div>
+                </div>
+                <div class="row align-items-end mt-2">
                     <div class="col text-left">Dam 1 Mass:</div>
                     <div class="col text-right"><input id="dammass_1" min="0" name="dammass_1" step="0.1" type="number" class="fullWidth"/></div>
                 </div>
                 <div class="row align-items-center mt-2">
-                    <div class="col-6 text-left">Separated from male? <input type="checkbox" name="sepdam1" id="sepDam1" class="updateWatch"></div>
-                    <div class="col-6 text-right ifSep" data-dam="1"><input type="date" id="dam1SepDate" name="dam1sepdate" class="fullWidth"></div>
+                    <div class="col text-left">
+                        Separated from male? <input type="checkbox" name="sepdam1" id="sepDam1" class="updateWatch">
+                    </div>
+                    <div class="col text-right ifSep" data-dam="1">
+                        <input type="date" id="dam1SepDate" name="dam1sepdate" class="fullWidth"/>
+                    </div>
+                </div>
+                <div class="row align-items-center mt-2">
+                    <div class="col-6 text-left ifSep" data-dam="1">
+                        New Cage #
+                    </div>
+                    <div class="col-6 text-right ifSep" data-dam="1">
+                        <input type="number" name="dam1cage" id="dam1cage" class="fullWidth"/>
+                    </div>
                 </div>
                 <div class="row align-items-center mt-2">
                     <div class="col text-left">Given birth? <input type="checkbox" name="birthdam1" id="birthDam1" class="updateWatch"></div>
-                    <div class="col text-right ifBirth" data-dam="1"><input type="date" id="dam1BirthDate" name="dam1birthdate" class="fullWidth"></div>
+                    <div class="col text-right ifBirth" data-dam="1">
+                        <input type="date" id="dam1BirthDate" name="dam1birthdate" class="fullWidth">
+                    </div>
                 </div>
             </div>
         </div>
@@ -187,12 +207,28 @@
                     <div class="col text-right"><input id="damstrain_2" name="damstrain_2" class="fullWidth"/></div>
                 </div>
                 <div class="row align-items-end mt-2">
+                    <div class="col text-left">Dam 2 Generation: </div>
+                    <div class="col text-right"><input id="damgeneration_2" name="damgeneration_2" class="fullWidth"/></div>
+                </div>
+                <div class="row align-items-end mt-2">
                     <div class="col text-left">Dam 2 Mass:</div>
                     <div class="col text-right"><input id="dammass_2" min="0" name="dammass_2" step="0.1" type="number" class="fullWidth"/></div>
                 </div>
-                <div class="row align-items-end mt-2">
-                    <div class="col text-left">Separated from male? <input type="checkbox" name="sepdam2" id="sepDam2" class="updateWatch"></div>
-                    <div class="col text-right ifSep" data-dam="2"><input type="date" id="dam2SepDate" name="dam2sepdate"></div>
+                <div class="row align-items-center mt-2">
+                    <div class="col text-left">
+                        Separated from male? <input type="checkbox" name="sepdam2" id="sepDam2" class="updateWatch">
+                    </div>
+                    <div class="col text-right ifSep" data-dam="2">
+                        <input type="date" id="dam2SepDate" name="dam2sepdate" class="fullWidth"/>
+                    </div>
+                </div>
+                <div class="row align-items-center mt-2">
+                    <div class="col-6 text-left ifSep" data-dam="2">
+                        New Cage #
+                    </div>
+                    <div class="col-6 text-right ifSep" data-dam="2">
+                        <input type="number" name="dam2cage" id="dam2cage" class="fullWidth"/>
+                    </div>
                 </div>
                 <div class="row align-items-end mt-2">
                     <div class="col text-left">Given birth? <input type="checkbox" name="birthdam2" id="birthDam2" class="updateWatch"></div>
@@ -218,8 +254,8 @@
                     <div class="col text-right"><input id="sirestrain" name="sirestrain" class="fullWidth"/></div>
                 </div>
                 <div class="row align-items-end mt-2">
-                    <div class="col text-left">&nbsp;</div>
-                    <div class="col text-right">&nbsp;</div>
+                    <div class="col text-left">Sire Generation: </div>
+                    <div class="col text-right"><input id="siregeneration" name="siregeneration" class="fullWidth"/></div>
                 </div>
             </div>
 

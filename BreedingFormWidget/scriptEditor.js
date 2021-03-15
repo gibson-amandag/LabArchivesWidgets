@@ -1,6 +1,5 @@
 my_widget_script =
 {
-    
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -362,10 +361,19 @@ my_widget_script =
         //source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
         $('#the_form').find('select, textarea, input').each(function () { //find each select field, textarea, and input
             if ($(this).prop('required')) { //if has the attribute "required"
-            $(this).after("<span style='color:red'>*</span>"); //add asterisk after
-        }
-    });
-},
+                $(this).after("<span style='color:red'>*</span>"); //add asterisk after
+            }
+        });
+    },
+    
+    updateTextarea: function () {
+        $('textarea').each(function () {
+            if(! $(this).is(":hidden")) {
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            } 
+        });
+        my_widget_script.resize();
+    },
 
     /**
      * TO DO: edit this function to define how the form should be initilized based 
@@ -373,17 +381,18 @@ my_widget_script =
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
-        $('textarea').each(function () {
-            if(! $(this).css("display", "none")) {
-                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-            } else {
-                var thisScrollHeight = $(this).show().prop("scrollHeight").hide();
-                this.setAttribute('style', 'height:' + (thisScrollHeight) + 'px;overflow-y:hidden;');
-            }
-        });
-
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
+
+        $("textarea").on("input", function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            my_widget_script.resize();
+        });
+
+        $(".checkText").on("change", function () {
+            my_widget_script.updateTextarea();
+        });
 
         //Check if the dam2Check checkbox is checked and adjust visibility
         if ($('#dam2Check').is(":checked")) {
@@ -406,7 +415,7 @@ my_widget_script =
         });
 
         my_widget_script.adjustForDaysPostBreedingAndPlug();
-
+        my_widget_script.updateTextarea();
         my_widget_script.resize();
     },
 
@@ -492,6 +501,9 @@ my_widget_script =
         var col2ID = whichDam + "_qual_" + rowCount;
         var col3ID = whichDam + "_comment_" + rowCount;
 
+        // Not using this because don't have a set up for loading previously added dates. This would add today's date for everything when remaking form
+        // var dateToday = my_widget_script.getLocalDateString();
+
         $(tableName).find("tbody").append(
             $('<tr></tr>', { //add a new row
                 id: rowID //give this row the rowID
@@ -502,6 +514,7 @@ my_widget_script =
                         name: col1ID,
                         type: "date", //make it type "date"
                         "class": "plugDate"
+                        // value: dateToday
                     }).on("change", function () {
                         my_widget_script.adjustForDaysPostBreedingAndPlug()
                     })
@@ -529,8 +542,12 @@ my_widget_script =
                         id: col3ID,
                         name: col3ID,
                         "rows": 1,
-                        "cols": 12
-                    }).on('input', function () {
+                        "cols": 12,
+                    }).css(
+                        "height", this.scrollHeight + "px"
+                    ).css(
+                        "overflow-y", "hidden"
+                    ).on('input', function () {
                         this.style.height = 'auto';
                         this.style.height = (this.scrollHeight) + 'px';
                     })
@@ -550,6 +567,9 @@ my_widget_script =
         var col2ID = whichDam + "_mass_" + rowCount;
         //var col3ID = whichDam + "_change_" + rowCount;
 
+        // Not using due to need to refill with previously used date
+        // var dateToday = my_widget_script.getLocalDateString();
+
         $(tableName).find("tbody").append(
             $('<tr></tr>', { //add a new row
                 id: rowID //give this row the rowID
@@ -559,6 +579,7 @@ my_widget_script =
                         id: col1ID,
                         name: col1ID,
                         type: "date" //make it type "date"
+                        // value: dateToday
                     })
                 )
             ).append(
@@ -611,18 +632,8 @@ my_widget_script =
 
     addDays: function ($startDateVal, $newDateClass, numDays) {
         // console.log("in addDays. Going to replace" + $newDateClass.text());
-        var dateString = $startDateVal; //get the date string from the input
-
-        var startDate = new Date(dateString);
-
-        var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-        // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-        // for locales with different time zones, this means that the Date displayed could be the previous day
-
-        //Add the number of days (in ms) and offset (in ms) to the start Date (in ms) and make it a new date object
-        var newDate = new Date(startDate.getTime() + numDays * 24 * 60 * 60 * 1000 + offset * 60 * 1000);
-
-        $newDateClass.text(newDate.toDateString());
+        var newDate = luxon.DateTime.fromISO($startDateVal).plus({days: numDays}).toLocaleString(luxon.DateTime.DATE_HUGE);
+        $newDateClass.text(newDate);
     },
 
     watchForPlug: function (whichDam) {
@@ -865,152 +876,26 @@ my_widget_script =
 
     getDaysPostEvent: function ($originDateVal) {
         if($originDateVal) {
-            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-            // for locales with different time zones, this means that the Date displayed could be the previous day
-    
-            var currentYear = new Date().getFullYear();
-            var currentMonth = new Date().getMonth();
-            var currentDay = new Date().getDate();
+            // AGG - 3/14/21 - Switched to use luxon package
+            var startDate = luxon.DateTime.fromISO($originDateVal).startOf("day");
+            var todayDate = luxon.DateTime.now().startOf("day")
+            var dateDiff_days = todayDate.diff(startDate, "days").as("day");
+            // console.log(dateDiff_days);
 
-            var originDate_asDate = new Date($originDateVal);
-
-            //Adjust for offset
-            var originDate_asDate_adj = new Date(originDate_asDate.getTime() + offset * 60 * 1000);
-            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
-            var dateDiff_ms = today_asDate.getTime() - originDate_asDate_adj.getTime();
-    
-            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
-    
             return(dateDiff_days);
-    
-            // console.log(
-            //     "Current Year: " + currentYear +"\n" +
-            //     "Current Month: " + currentMonth + "\n" +
-            //     "Current Day: " + currentDay + "\n" +
-            //     "DOB String: " + $DOBVal + "\n" +
-            //     "DOB Date Obj: " + DOB_asDate + "\n" +
-            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
-            //     "Today Date Obj: " + today_asDate + "\n" +
-            //     "Diff in ms: " + dateDiff_ms + "\n" +
-            //     "Diff in days: " + dateDiff_days
-            // )
-        }
-    },
-
-    getDaysPostBreeding: function() {
-        var $breedDateVal = $("#breeddate").val();
-
-        if($breedDateVal) {
-            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-            // for locales with different time zones, this means that the Date displayed could be the previous day
-    
-            var currentYear = new Date().getFullYear();
-            var currentMonth = new Date().getMonth();
-            var currentDay = new Date().getDate();
-
-            var breedDate_asDate = new Date($breedDate_val);
-
-            //Adjust for offset
-            var breedDate_asDate_adj = new Date(breedDate_asDate.getTime() + offset * 60 * 1000);
-            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
-            var dateDiff_ms = today_asDate.getTime() - breedDate_asDate_adj.getTime();
-    
-            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
-    
-            var breedDayTodayString = ".bd.bd" + dateDiff_days;
-            var breedDayNotTodayString = ".bd:not(.bd" + dateDiff_days + ")";
-    
-            $(breedDayTodayString).css("color", "red");
-            $(breedDayNotTodayString).css("color", "black");
-    
-            $(".bdToday").text(dateDiff_days);
-
-            // This prints at the top what needs to be done today
-            my_widget_script.updateToDoStatus(dateDiff_days);
-    
-            return(dateDiff_days);
-    
-            // console.log(
-            //     "Current Year: " + currentYear +"\n" +
-            //     "Current Month: " + currentMonth + "\n" +
-            //     "Current Day: " + currentDay + "\n" +
-            //     "DOB String: " + $DOBVal + "\n" +
-            //     "DOB Date Obj: " + DOB_asDate + "\n" +
-            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
-            //     "Today Date Obj: " + today_asDate + "\n" +
-            //     "Diff in ms: " + dateDiff_ms + "\n" +
-            //     "Diff in days: " + dateDiff_days
-            // )
-        } else {
-            my_widget_script.switchMassTable($("#massSelect").val());
-        }
-    },
-
-
-    getPND_today: function () {
-        // var offset = new Date().getTimezoneOffset();
-        var $DOBVal = $("#DOB").val();
-
-        if($DOBVal){
-            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-            // for locales with different time zones, this means that the Date displayed could be the previous day
-    
-            var currentYear = new Date().getFullYear();
-            var currentMonth = new Date().getMonth();
-            var currentDay = new Date().getDate();
-            
-            var DOB_asDate = new Date($DOBVal);
-    
-            //Adjust for offset
-            var DOB_asDate_adj = new Date(DOB_asDate.getTime() + offset * 60 * 1000);
-            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
-    
-            var dateDiff_ms = today_asDate.getTime() - DOB_asDate_adj.getTime();
-    
-            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
-    
-            var pndTodayString = ".pnd.pnd" + dateDiff_days;
-            var pndNotTodayString = ".pnd:not(.pnd" + dateDiff_days + ")";
-    
-            $(pndTodayString).css("color", "red");
-            $(pndNotTodayString).css("color", "black");
-    
-            $(".pndToday").text(dateDiff_days);
-
-            // This prints at the top what needs to be done today and switches the Mass and AGD selector 
-            my_widget_script.updateToDoStatus(dateDiff_days);
-            my_widget_script.updateCycleStatus(dateDiff_days);
-    
-            return(dateDiff_days);
-    
-            // console.log(
-            //     "Current Year: " + currentYear +"\n" +
-            //     "Current Month: " + currentMonth + "\n" +
-            //     "Current Day: " + currentDay + "\n" +
-            //     "DOB String: " + $DOBVal + "\n" +
-            //     "DOB Date Obj: " + DOB_asDate + "\n" +
-            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
-            //     "Today Date Obj: " + today_asDate + "\n" +
-            //     "Diff in ms: " + dateDiff_ms + "\n" +
-            //     "Diff in days: " + dateDiff_days
-            // )
-        } else {
-            my_widget_script.switchMassTable($("#massSelect").val());
         }
     },
 
     getGestDay: function (dateInputVal) {
         //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
         var breedDateisDay = 0;
-        var compDate_as_ms = new Date(dateInputVal).getTime();
         var textOutput;
         if($("#breedDate").val()){
             if(dateInputVal){
-                var breedDate_as_ms = new Date($("#DOB").val()).getTime();
-                var gestDay = (compDate_as_ms - breedDate_as_ms) / (1000 * 3600 * 24) + breedDateisDay;
+                var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
+                var breedDate = luxon.DateTime.fromISO($("#breedDate").val()).startOf("day").plus({ days: breedDateisDay });
+                var gestDay = compDate.diff(breedDate, "days").as("day");
+                // console.log(gestDay);
                 textOutput = gestDay;
             } else {
                 textOutput = "[Enter Date of Plug Check]";
@@ -1022,23 +907,9 @@ my_widget_script =
         return textOutput;
     },
 
-    getPND: function (dateInputVal) {
-        //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
-        var DOBisDay = 0;
-        var compDate_as_ms = new Date(dateInputVal).getTime();
-        var textOutput;
-        if($("#DOB").val()){
-            if(dateInputVal){
-                var DOB_as_ms = new Date($("#DOB").val()).getTime();
-                var pnd = (compDate_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
-                textOutput = pnd;
-            } else {
-                textOutput = "[Enter Date of VO Check]";
-            }
-        } else {
-            textOutput = "[Enter DOB]";
-        }
-        
-        return textOutput;
-    },
+    getLocalDateString: function () {
+        var dateTodayString = luxon.DateTime.now().toISODate();
+        // console.log(dateTodayString);
+        return(dateTodayString);
+    }
 };

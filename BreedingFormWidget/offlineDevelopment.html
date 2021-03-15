@@ -562,6 +562,9 @@ $(document).ready(function () {
         var col2ID = whichDam + "_qual_" + rowCount;
         var col3ID = whichDam + "_comment_" + rowCount;
 
+        // Not using this because don't have a set up for loading previously added dates. This would add today's date for everything when remaking form
+        // var dateToday = my_widget_script.getLocalDateString();
+
         $(tableName).find("tbody").append(
             $('<tr></tr>', { //add a new row
                 id: rowID //give this row the rowID
@@ -572,6 +575,7 @@ $(document).ready(function () {
                         name: col1ID,
                         type: "date", //make it type "date"
                         "class": "plugDate"
+                        // value: dateToday
                     }).on("change", function () {
                         my_widget_script.adjustForDaysPostBreedingAndPlug()
                     })
@@ -624,6 +628,9 @@ $(document).ready(function () {
         var col2ID = whichDam + "_mass_" + rowCount;
         //var col3ID = whichDam + "_change_" + rowCount;
 
+        // Not using due to need to refill with previously used date
+        // var dateToday = my_widget_script.getLocalDateString();
+
         $(tableName).find("tbody").append(
             $('<tr></tr>', { //add a new row
                 id: rowID //give this row the rowID
@@ -633,6 +640,7 @@ $(document).ready(function () {
                         id: col1ID,
                         name: col1ID,
                         type: "date" //make it type "date"
+                        // value: dateToday
                     })
                 )
             ).append(
@@ -685,18 +693,8 @@ $(document).ready(function () {
 
     addDays: function ($startDateVal, $newDateClass, numDays) {
         // console.log("in addDays. Going to replace" + $newDateClass.text());
-        var dateString = $startDateVal; //get the date string from the input
-
-        var startDate = new Date(dateString);
-
-        var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-        // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-        // for locales with different time zones, this means that the Date displayed could be the previous day
-
-        //Add the number of days (in ms) and offset (in ms) to the start Date (in ms) and make it a new date object
-        var newDate = new Date(startDate.getTime() + numDays * 24 * 60 * 60 * 1000 + offset * 60 * 1000);
-
-        $newDateClass.text(newDate.toDateString());
+        var newDate = luxon.DateTime.fromISO($startDateVal).plus({days: numDays}).toLocaleString(luxon.DateTime.DATE_HUGE);
+        $newDateClass.text(newDate);
     },
 
     watchForPlug: function (whichDam) {
@@ -939,152 +937,26 @@ $(document).ready(function () {
 
     getDaysPostEvent: function ($originDateVal) {
         if($originDateVal) {
-            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-            // for locales with different time zones, this means that the Date displayed could be the previous day
-    
-            var currentYear = new Date().getFullYear();
-            var currentMonth = new Date().getMonth();
-            var currentDay = new Date().getDate();
+            // AGG - 3/14/21 - Switched to use luxon package
+            var startDate = luxon.DateTime.fromISO($originDateVal).startOf("day");
+            var todayDate = luxon.DateTime.now().startOf("day")
+            var dateDiff_days = todayDate.diff(startDate, "days").as("day");
+            // console.log(dateDiff_days);
 
-            var originDate_asDate = new Date($originDateVal);
-
-            //Adjust for offset
-            var originDate_asDate_adj = new Date(originDate_asDate.getTime() + offset * 60 * 1000);
-            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
-            var dateDiff_ms = today_asDate.getTime() - originDate_asDate_adj.getTime();
-    
-            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
-    
             return(dateDiff_days);
-    
-            // console.log(
-            //     "Current Year: " + currentYear +"\n" +
-            //     "Current Month: " + currentMonth + "\n" +
-            //     "Current Day: " + currentDay + "\n" +
-            //     "DOB String: " + $DOBVal + "\n" +
-            //     "DOB Date Obj: " + DOB_asDate + "\n" +
-            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
-            //     "Today Date Obj: " + today_asDate + "\n" +
-            //     "Diff in ms: " + dateDiff_ms + "\n" +
-            //     "Diff in days: " + dateDiff_days
-            // )
-        }
-    },
-
-    getDaysPostBreeding: function() {
-        var $breedDateVal = $("#breeddate").val();
-
-        if($breedDateVal) {
-            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-            // for locales with different time zones, this means that the Date displayed could be the previous day
-    
-            var currentYear = new Date().getFullYear();
-            var currentMonth = new Date().getMonth();
-            var currentDay = new Date().getDate();
-
-            var breedDate_asDate = new Date($breedDate_val);
-
-            //Adjust for offset
-            var breedDate_asDate_adj = new Date(breedDate_asDate.getTime() + offset * 60 * 1000);
-            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
-            var dateDiff_ms = today_asDate.getTime() - breedDate_asDate_adj.getTime();
-    
-            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
-    
-            var breedDayTodayString = ".bd.bd" + dateDiff_days;
-            var breedDayNotTodayString = ".bd:not(.bd" + dateDiff_days + ")";
-    
-            $(breedDayTodayString).css("color", "red");
-            $(breedDayNotTodayString).css("color", "black");
-    
-            $(".bdToday").text(dateDiff_days);
-
-            // This prints at the top what needs to be done today
-            my_widget_script.updateToDoStatus(dateDiff_days);
-    
-            return(dateDiff_days);
-    
-            // console.log(
-            //     "Current Year: " + currentYear +"\n" +
-            //     "Current Month: " + currentMonth + "\n" +
-            //     "Current Day: " + currentDay + "\n" +
-            //     "DOB String: " + $DOBVal + "\n" +
-            //     "DOB Date Obj: " + DOB_asDate + "\n" +
-            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
-            //     "Today Date Obj: " + today_asDate + "\n" +
-            //     "Diff in ms: " + dateDiff_ms + "\n" +
-            //     "Diff in days: " + dateDiff_days
-            // )
-        } else {
-            my_widget_script.switchMassTable($("#massSelect").val());
-        }
-    },
-
-
-    getPND_today: function () {
-        // var offset = new Date().getTimezoneOffset();
-        var $DOBVal = $("#DOB").val();
-
-        if($DOBVal){
-            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-            // for locales with different time zones, this means that the Date displayed could be the previous day
-    
-            var currentYear = new Date().getFullYear();
-            var currentMonth = new Date().getMonth();
-            var currentDay = new Date().getDate();
-            
-            var DOB_asDate = new Date($DOBVal);
-    
-            //Adjust for offset
-            var DOB_asDate_adj = new Date(DOB_asDate.getTime() + offset * 60 * 1000);
-            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
-    
-            var dateDiff_ms = today_asDate.getTime() - DOB_asDate_adj.getTime();
-    
-            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
-    
-            var pndTodayString = ".pnd.pnd" + dateDiff_days;
-            var pndNotTodayString = ".pnd:not(.pnd" + dateDiff_days + ")";
-    
-            $(pndTodayString).css("color", "red");
-            $(pndNotTodayString).css("color", "black");
-    
-            $(".pndToday").text(dateDiff_days);
-
-            // This prints at the top what needs to be done today and switches the Mass and AGD selector 
-            my_widget_script.updateToDoStatus(dateDiff_days);
-            my_widget_script.updateCycleStatus(dateDiff_days);
-    
-            return(dateDiff_days);
-    
-            // console.log(
-            //     "Current Year: " + currentYear +"\n" +
-            //     "Current Month: " + currentMonth + "\n" +
-            //     "Current Day: " + currentDay + "\n" +
-            //     "DOB String: " + $DOBVal + "\n" +
-            //     "DOB Date Obj: " + DOB_asDate + "\n" +
-            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
-            //     "Today Date Obj: " + today_asDate + "\n" +
-            //     "Diff in ms: " + dateDiff_ms + "\n" +
-            //     "Diff in days: " + dateDiff_days
-            // )
-        } else {
-            my_widget_script.switchMassTable($("#massSelect").val());
         }
     },
 
     getGestDay: function (dateInputVal) {
         //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
         var breedDateisDay = 0;
-        var compDate_as_ms = new Date(dateInputVal).getTime();
         var textOutput;
         if($("#breedDate").val()){
             if(dateInputVal){
-                var breedDate_as_ms = new Date($("#DOB").val()).getTime();
-                var gestDay = (compDate_as_ms - breedDate_as_ms) / (1000 * 3600 * 24) + breedDateisDay;
+                var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
+                var breedDate = luxon.DateTime.fromISO($("#breedDate").val()).startOf("day").plus({ days: breedDateisDay });
+                var gestDay = compDate.diff(breedDate, "days").as("day");
+                // console.log(gestDay);
                 textOutput = gestDay;
             } else {
                 textOutput = "[Enter Date of Plug Check]";
@@ -1096,25 +968,11 @@ $(document).ready(function () {
         return textOutput;
     },
 
-    getPND: function (dateInputVal) {
-        //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
-        var DOBisDay = 0;
-        var compDate_as_ms = new Date(dateInputVal).getTime();
-        var textOutput;
-        if($("#DOB").val()){
-            if(dateInputVal){
-                var DOB_as_ms = new Date($("#DOB").val()).getTime();
-                var pnd = (compDate_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
-                textOutput = pnd;
-            } else {
-                textOutput = "[Enter Date of VO Check]";
-            }
-        } else {
-            textOutput = "[Enter DOB]";
-        }
-        
-        return textOutput;
-    },
+    getLocalDateString: function () {
+        var dateTodayString = luxon.DateTime.now().toISODate();
+        // console.log(dateTodayString);
+        return(dateTodayString);
+    }
 };
 
 //**************************************************************************
@@ -1146,6 +1004,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
 <!------------------------------------------------------------------------------------------>
 <!-- #region HTML -->
+<!-- Luxon for dates -->
+<script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -1268,7 +1128,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="myLeftCol">Breeding Date: </div>
         <!-- myLeftCol adds additional classes in init function-->
 
-        <div class="col"><input id="breedDate" name="breeddate" type="date" class="fullWidth" value="2021-01-29"/></div>
+        <div class="col"><input id="breedDate" name="breeddate" type="date" class="fullWidth"/></div>
     </div>
 
     <div class="row align-items-end mt-2">
@@ -1305,16 +1165,34 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <div class="col text-right"><input id="damstrain_1" name="damstrain_1" class="fullWidth"/></div>
                 </div>
                 <div class="row align-items-end mt-2">
+                    <div class="col text-left">Dam 1 Generation: </div>
+                    <div class="col text-right"><input id="damgeneration_1" name="damgeneration_1" class="fullWidth"/></div>
+                </div>
+                <div class="row align-items-end mt-2">
                     <div class="col text-left">Dam 1 Mass:</div>
                     <div class="col text-right"><input id="dammass_1" min="0" name="dammass_1" step="0.1" type="number" class="fullWidth"/></div>
                 </div>
                 <div class="row align-items-center mt-2">
-                    <div class="col-6 text-left">Separated from male? <input type="checkbox" name="sepdam1" id="sepDam1" class="updateWatch"></div>
-                    <div class="col-6 text-right ifSep" data-dam="1"><input type="date" id="dam1SepDate" name="dam1sepdate" class="fullWidth"></div>
+                    <div class="col text-left">
+                        Separated from male? <input type="checkbox" name="sepdam1" id="sepDam1" class="updateWatch">
+                    </div>
+                    <div class="col text-right ifSep" data-dam="1">
+                        <input type="date" id="dam1SepDate" name="dam1sepdate" class="fullWidth"/>
+                    </div>
+                </div>
+                <div class="row align-items-center mt-2">
+                    <div class="col-6 text-left ifSep" data-dam="1">
+                        New Cage #
+                    </div>
+                    <div class="col-6 text-right ifSep" data-dam="1">
+                        <input type="number" name="dam1cage" id="dam1cage" class="fullWidth"/>
+                    </div>
                 </div>
                 <div class="row align-items-center mt-2">
                     <div class="col text-left">Given birth? <input type="checkbox" name="birthdam1" id="birthDam1" class="updateWatch"></div>
-                    <div class="col text-right ifBirth" data-dam="1"><input type="date" id="dam1BirthDate" name="dam1birthdate" class="fullWidth"></div>
+                    <div class="col text-right ifBirth" data-dam="1">
+                        <input type="date" id="dam1BirthDate" name="dam1birthdate" class="fullWidth">
+                    </div>
                 </div>
             </div>
         </div>
@@ -1335,12 +1213,28 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <div class="col text-right"><input id="damstrain_2" name="damstrain_2" class="fullWidth"/></div>
                 </div>
                 <div class="row align-items-end mt-2">
+                    <div class="col text-left">Dam 2 Generation: </div>
+                    <div class="col text-right"><input id="damgeneration_2" name="damgeneration_2" class="fullWidth"/></div>
+                </div>
+                <div class="row align-items-end mt-2">
                     <div class="col text-left">Dam 2 Mass:</div>
                     <div class="col text-right"><input id="dammass_2" min="0" name="dammass_2" step="0.1" type="number" class="fullWidth"/></div>
                 </div>
-                <div class="row align-items-end mt-2">
-                    <div class="col text-left">Separated from male? <input type="checkbox" name="sepdam2" id="sepDam2" class="updateWatch"></div>
-                    <div class="col text-right ifSep" data-dam="2"><input type="date" id="dam2SepDate" name="dam2sepdate"></div>
+                <div class="row align-items-center mt-2">
+                    <div class="col text-left">
+                        Separated from male? <input type="checkbox" name="sepdam2" id="sepDam2" class="updateWatch">
+                    </div>
+                    <div class="col text-right ifSep" data-dam="2">
+                        <input type="date" id="dam2SepDate" name="dam2sepdate" class="fullWidth"/>
+                    </div>
+                </div>
+                <div class="row align-items-center mt-2">
+                    <div class="col-6 text-left ifSep" data-dam="2">
+                        New Cage #
+                    </div>
+                    <div class="col-6 text-right ifSep" data-dam="2">
+                        <input type="number" name="dam2cage" id="dam2cage" class="fullWidth"/>
+                    </div>
                 </div>
                 <div class="row align-items-end mt-2">
                     <div class="col text-left">Given birth? <input type="checkbox" name="birthdam2" id="birthDam2" class="updateWatch"></div>
@@ -1366,8 +1260,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <div class="col text-right"><input id="sirestrain" name="sirestrain" class="fullWidth"/></div>
                 </div>
                 <div class="row align-items-end mt-2">
-                    <div class="col text-left">&nbsp;</div>
-                    <div class="col text-right">&nbsp;</div>
+                    <div class="col text-left">Sire Generation: </div>
+                    <div class="col text-right"><input id="siregeneration" name="siregeneration" class="fullWidth"/></div>
                 </div>
             </div>
 
