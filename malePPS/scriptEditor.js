@@ -310,11 +310,8 @@ my_widget_script =
     },
 
     getLocalDateString: function () {
-        var dateToday = new Date();
-        var dateTodayYear = dateToday.getFullYear();
-        var dateTodayMonth = dateToday.getMonth() + 1;
-        var dateTodayDay = dateToday.getDate();
-        var dateTodayString = dateTodayYear + "-" + dateTodayMonth.toString().padStart(2, 0) + "-" + dateTodayDay.toString().padStart(2, 0);
+        var dateTodayString = luxon.DateTime.now().toISODate();
+        // console.log(dateTodayString);
         return(dateTodayString);
     },
 
@@ -619,23 +616,10 @@ my_widget_script =
         var $DOBVal = $("#DOB").val();
 
         if($DOBVal){
-            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-            // for locales with different time zones, this means that the Date displayed could be the previous day
-    
-            var currentYear = new Date().getFullYear();
-            var currentMonth = new Date().getMonth();
-            var currentDay = new Date().getDate();
-            
-            var DOB_asDate = new Date($DOBVal);
-    
-            //Adjust for offset
-            var DOB_asDate_adj = new Date(DOB_asDate.getTime() + offset * 60 * 1000);
-            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
-    
-            var dateDiff_ms = today_asDate.getTime() - DOB_asDate_adj.getTime();
-    
-            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
+            var startDate = luxon.DateTime.fromISO($DOBVal).startOf("day");
+            var todayDate = luxon.DateTime.now().startOf("day")
+            var dateDiff_days = todayDate.diff(startDate, "days").as("day");
+            // console.log(dateDiff_days);
     
             var pndTodayString = ".pnd.pnd" + dateDiff_days;
             var pndNotTodayString = ".pnd:not(.pnd" + dateDiff_days + ")";
@@ -647,33 +631,21 @@ my_widget_script =
 
             // This prints at the top what needs to be done today and switches the Mass and AGD selector 
             my_widget_script.updateToDoStatus(dateDiff_days);
-            my_widget_script.updateCycleStatus(dateDiff_days);
     
             return(dateDiff_days);
-    
-            // console.log(
-            //     "Current Year: " + currentYear +"\n" +
-            //     "Current Month: " + currentMonth + "\n" +
-            //     "Current Day: " + currentDay + "\n" +
-            //     "DOB String: " + $DOBVal + "\n" +
-            //     "DOB Date Obj: " + DOB_asDate + "\n" +
-            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
-            //     "Today Date Obj: " + today_asDate + "\n" +
-            //     "Diff in ms: " + dateDiff_ms + "\n" +
-            //     "Diff in days: " + dateDiff_days
-            // )
         }
     },
 
     getPND: function (dateInputVal) {
         //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
         var DOBisDay = 0;
-        var compDate_as_ms = new Date(dateInputVal).getTime();
         var textOutput;
         if($("#DOB").val()){
             if(dateInputVal){
-                var DOB_as_ms = new Date($("#DOB").val()).getTime();
-                var pnd = (compDate_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
+                var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
+                var DOB = luxon.DateTime.fromISO($("#DOB").val()).startOf("day").plus({ days: DOBisDay });
+                var pnd = compDate.diff(DOB, "days").as("day");
+                // console.log(pnd);
                 textOutput = pnd;
             } else {
                 textOutput = "[Enter Date of PPS Check]";
@@ -703,18 +675,8 @@ my_widget_script =
     },
 
     addDays: function ($startDateVal, $newDateClass, numDays) {
-        var dateString = $startDateVal; //get the date string from the input
-
-        var startDate = new Date(dateString);
-
-        var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-        // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-        // for locales with different time zones, this means that the Date displayed could be the previous day
-
-        //Add the number of days (in ms) and offset (in ms) to the start Date (in ms) and make it a new date object
-        var newDate = new Date(startDate.getTime() + numDays * 24 * 60 * 60 * 1000 + offset * 60 * 1000);
-
-        $newDateClass.text(newDate.toDateString());
+        var newDate = luxon.DateTime.fromISO($startDateVal).plus({days: numDays}).toLocaleString({ weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'});
+        $newDateClass.text(newDate);
     },
 
     printPND_days: function () {
