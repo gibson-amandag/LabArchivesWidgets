@@ -1,0 +1,522 @@
+<script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<!-- Load jQuery for Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<!-- Load bootstrap java -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+<!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
+<script>
+    var $jq351 = jQuery.noConflict(true);
+</script>
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .blackBackground {
+        background-color: black;
+        color: white
+    }
+
+    .p2_9 {
+        display: none;
+    }
+
+    .p4_11 {
+        display: none;
+    }
+
+    .selectPara {
+        display: none;
+    }
+
+    /* .p11, .p12, .p13, .p14, .p15, .p16, .p19, .p21 */
+    .massDiv {
+        display: none;
+    }
+
+    #datesList,
+    #datesListP2 {
+        display: none;
+    }
+
+    .fullWidth {
+        width: 90%
+    }
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="container">
+    <div class="row">
+        <p class="col">Elements that are required to save this page are marked with a red asterisk <span
+                style="color:red">*</span><br />
+            Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
+                style="color:blue">#</span></p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <h3 class="col">Today is PND <span class="pndToday">[Enter DOB]</span></h3>
+    </div>
+    <h3>Dam Information</h3>
+
+    <div class="row align-items-end">
+        <div class="myLeftCol"><span style="color:red">*</span><span style="color:blue">#</span>Dam ID:</div>
+        <!-- myLeftCol adds additional classes in init function-->
+
+        <div class="col"><input class="needForTable fullWidth" id="damID" name="damid" required="" /></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol"><span style="color:red">*</span>Dam Strain:</div>
+
+        <div class="col"><input class="fullWidth" id="damStrain" name="damstrain" required="" /></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">DOB (parturition):</div>
+
+        <div class="col"><input class="fullWidth" id="DOB" name="dob" type="date" /></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Cage Number:</div>
+
+        <div class="col"><input class="fullWidth" id="cageNum" name="cagenum" type="number" /></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Treatment:</div>
+
+        <div class="col"><select class="fullWidth" id="treatment" name="treatment">
+                <option value="">[Select]</option>
+                <option value="CON">Control</option>
+                <option value="LBN">LBN</option>
+            </select></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Treatment Period:</div>
+
+        <div class="col"><select class="fullWidth" id="treatmentPeriod" name="treatmentperiod">
+                <option value="">[Select]</option>
+                <option value="p2_9">P2-P9</option>
+                <option value="p4_11">P4-P11</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row align-items-start">
+        <div class="myLeftCol selectPara hideView mt-2">
+            Change additional mass days?
+            <input type="checkbox" name="change_sel_mass_days" id="changeSelMassDays"/>
+        </div>
+        <div class="col selectPara hideView mt-0 mt-sm-2">
+            <select name="select_mass_days" id="selectMassDays" class="fullWidth" multiple>
+                &nbsp;
+            </select>
+        </div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Sacrificed or Stopped:</div>
+
+        <div class="col"><input class="fullWidth simpleCalc" id="sacOrStop" name="sacorstop" type="date" /></div>
+    </div>
+
+    <div class="row align-items-end mt-2">
+        <div class="myLeftCol">Comment on sac/stop:</div>
+
+        <div class="col"><textarea class="fullWidth" id="sacStopComment" name="sacstopcomment"></textarea></div>
+    </div>
+</div>
+
+<div class="selectPara" id="paraDiv">
+    <div class="container mt-2">
+        <div class="row">
+            <div class="col-6 col-md-4 col-lg-3 col-xl-2 text-right">Show PND Dates:</div>
+
+            <div class="col"><input id="showDates" name="showdates" type="checkbox" /></div>
+        </div>
+
+        <div class="container" id="datesList">
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-4 original">
+                    <strong>PND <span class="pndNum start">&nbsp;</span>: </strong>
+                    <span class="pndDateShort start">&nbsp;</span>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 original">
+                    <strong>PND <span class="pndNum end">&nbsp;</span>: </strong>
+                    <span class="pndDateShort end">&nbsp;</span>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 original last">
+                    <strong>PND 21: </strong>
+                    <span class="pndDateShort" data-pnd="21">&nbsp;</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- header -->
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND <span class="pndNum start" >&nbsp;</span>:</div>
+
+            <div class="col pndDate start" data-pnd="2">&nbsp;</div>
+        </div>
+
+        <!-- Dam Mass -->
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Dam Mass:</div>
+            <div class="col"><input class="fullWidth start damMass watchDamMass" id="damMassStart" name="dam_mass_start" type="number" /></div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col"><em>Enter the total mass after adding each pup individually</em></div>
+        </div>
+
+        <!-- Add/remove pup buttons -->
+        <div class="row mt-2">
+            <div class="myLeftCol"><input class="fullWidth" id="addPupStart" name="add_pup_start" type="button"
+                    value="Add Pup" /></div>
+
+            <div class="col"><input class="fullWidth" id="removePupStart" name="remove_pup_start" type="button"
+                    value="Remove Last Pup" /></div>
+        </div>
+
+        <!-- Offspring Mass Table -->
+        <div class="container mt-2 start" id="offspringMassStart" >
+            <div class="row original">
+                <div class="col text-center"><strong>Total (g)</strong></div>
+                <div class="col text-center"><strong>Individual (g)</strong></div>
+            </div>
+        </div>
+
+        <!-- Number of pups - calculated -->
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol2">Number of pups:</div>
+
+            <div class="col numPupsStart start" >&nbsp;</div>
+        </div>
+
+        <!-- Avg Pup Mass - calculated -->
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol2">Average Pup Mass:</div>
+
+            <div class="col avgMassStart start" >&nbsp;</div>
+        </div>
+
+        <!-- Video Monitoring -->
+        <div class="mt-4">
+            <h4>Video Monitoring</h4>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Camera:</div>
+
+            <div class="col"><input class="fullWidth simpleCalc" id="camera" name="camera" /></div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Monitoring Start Date:</div>
+
+            <div class="col"><input class="fullWidth" id="monitorStartDate" name="monitor_startdate" type="date" />
+            </div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Monitoring Start Time:</div>
+
+            <div class="col"><input class="fullWidth" id="monitorStartTime" name="monitor_starttime" type="time" />
+            </div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Monitoring End Date:</div>
+
+            <div class="col"><input class="fullWidth" id="monitorEndDate" name="monitor_enddate" type="date" />
+            </div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Monitoring End Time:</div>
+
+            <div class="col"><input class="fullWidth" id="monitorEndTime" name="monitor_endtime" type="time" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Post-paradigm -->
+    <div class="container mt-4">
+        <div class="row align-items-end mt-2 blackBackground">
+            <!-- TO-DO add number and data-pnd to this -->
+            <div class="myLeftCol2">PND <span class="pndNum end" >&nbsp;</span>: </div>
+
+            <div class="col pndDate end" >&nbsp;</div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Dam Mass:</div>
+
+            <div class="col"><input class="fullWidth end damMass watchDamMass" id="damMassEnd" name="dam_mass_end" type="number" /></div>
+        </div>
+
+        <!-- Add/remove pup buttons -->
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol"><input class="fullWidth" id="addPupEnd" name="add_pup_end" type="button"
+                    value="Add Pup" /></div>
+
+            <div class="col"><input class="fullWidth" id="removePupEnd" name="remove_pup_end" type="button"
+                    value="Remove Last Pup" /></div>
+        </div>
+
+        <!-- Offspring Demographic Info -->
+        <!-- TO-DO This is a place to add a row with new pups -->
+        <div class="mt-2 offspringDemoEnd end" >
+            <div class="row original">
+                <div class="col">
+                    <strong>Tail</strong>
+                </div>
+                <div class="col">
+                    <strong>
+                        Ear Tag <span style="color:blue">#</span>
+                    </strong>
+                </div>
+                <div class="col">
+                    <strong>Sex</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol2">Number of pups:</div>
+
+            <div class="col numPupsEnd end" >&nbsp;</div>
+        </div>
+
+        <!-- Select Mass Tables -->
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Select Mass Day:</div>
+
+            <div class="col"><select class="fullWidth" id="massDay" name="massday">
+                    <option class="original" value="0">Demographics</option>
+                    <option class="original end massSelectOption" value="" >[Select Paradigm Days]</option>
+                    <option class="original last" value="21">PND 21</option>
+                    <!-- TO-DO: Add options based on selected days-->
+                </select></div>
+        </div>
+
+        <!-- Just Demographics -->
+        <div class="demo massDiv" id="offspringDemoEnd_nice" data-pnd="0">
+            <div class="row original">
+                <div class="col">
+                    <strong>Tail</strong>
+                </div>
+                <div class="col">
+                    <strong>Ear Tag</strong>
+                </div>
+                <div class="col">
+                    <strong>Sex</strong>
+                </div>
+            </div>
+            <!-- TO-DO: Add row when adding pups -->
+        </div>
+        <!-- <div class="massDiv end hideView" data-pnd = "999" >
+            <div class="row original">
+                <div class="col">
+                    <strong>Tail</strong>
+                </div>
+                <div class="col">
+                    <strong>Ear Tag</strong>
+                </div>
+                <div class="col">
+                    <strong>Sex</strong>
+                </div>
+                <div class="col">
+                    <strong>Mass</strong>
+                </div>
+            </div>
+        </div> -->
+        <div class="addedMassDivs hideView">
+            &nbsp;
+        </div>        
+        <!-- PND 21 -->
+        <div class="row align-items-end mt-2 blackBackground">
+            <div class="myLeftCol2">PND 21:</div>
+
+            <div class="col pndDate" data-pnd="21">&nbsp;</div>
+        </div>
+
+        <div class="row align-items-end mt-2">
+            <div class="myLeftCol">Dam Mass:</div>
+
+            <div class="col">
+                <input class="fullWidth simpleCalc damMass p21" id="damMass_p21" name="dam_mass_p21" type="number"/>
+            </div>
+        </div>
+
+        <div class="massDiv hideView" data-pnd="21">
+            <div class="row original">
+                <div class="col">
+                    <strong>Tail</strong>
+                </div>
+                <div class="col">
+                    <strong>Ear Tag</strong>
+                </div>
+                <div class="col">
+                    <strong>Sex</strong>
+                </div>
+                <div class="col">
+                    <strong>Mass</strong>
+                </div>
+            </div>
+            <!-- TO-DO: Add new row when adding pups with script -->
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col" id="errorMsg">&nbsp;</div>
+    </div>
+</div>
+
+<div class="container mt-2 selectPara">
+    <div class="row mt-2">
+        <h3 class="col">Dam Output Table</h3>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="toggleTableDam" name="toggletabledam"
+                type="button" value="Show/Hide Table" /></div>
+
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="toCSVDam" name="tocsvdam" type="button"
+                value="Save CSV" /></div>
+
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="copyDataButtonDam" name="copydatabuttondam"
+                type="button" value="Copy Data" /><br />
+            Copy Head? <input id="copyHeadDam" name="copyheaddam" type="checkbox" />
+            <p>&nbsp;</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2" id="damOutDiv" style="display:none">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="damOutTable">
+            <thead>
+                <tr>
+                    <th>ParaType</th>
+                    <th>Dam_Mass_P2</th>
+                    <th>Dam_Mass_P9</th>
+                    <th>Dam_Mass_P4</th>
+                    <th>Dam_Mass_P11</th>
+                    <th>Dam_Mass_P21</th>
+                    <th>Avg_litter_mass_startPara</th>
+                    <th>Litter_size_startPara</th>
+                    <th>Litter_size_endPara</th>
+                    <th>Camera_number</th>
+                    <th>Sac_or_stop</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <!-- TO-DO paratype calc; assigning dam mass to correct location -->
+                    <td class="paraTypeCalc"></td>
+                    <td class="damMassCalc" data-pnd="2">&nbsp;</td>
+                    <td class="damMassCalc" data-pnd="9">&nbsp;</td>
+                    <td class="damMassCalc" data-pnd="4">&nbsp;</td>
+                    <td class="damMassCalc" data-pnd="11">&nbsp;</td>
+                    <td class="damMass_p21_calc">&nbsp;</td>
+                    <td class="avgMassStart">&nbsp;</td>
+                    <td class="numPupsStart">&nbsp;</td>
+                    <td class="numPupsEnd">&nbsp;</td>
+                    <td class="camera_calc">&nbsp;</td>
+                    <td class="sacOrStop_calc">&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div id="forCopy">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 selectPara">
+    <div class="row mt-2">
+        <h3 class="col">Offspring Mass Output Table</h3>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="toggleTable" name="toggletable" type="button"
+                value="Show/Hide Table" /></div>
+
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="toCSV" name="tocsv" type="button"
+                value="Save CSV" /></div>
+
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="copyDataButton" name="copydatabutton"
+                type="button" value="Copy Data" /><br />
+            Copy Head? <input id="copyHead" name="copyhead" type="checkbox" />
+            <p>&nbsp;</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2" id="offspringMassOutDiv" style="display:none">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="offspringMassOutTable">
+            <thead>
+                <tr class="original">
+                    <th>Mouse_ID</th>
+                    <th>ParaType</th>
+                    <th>Mass_P9</th>
+                    <th>Mass_P10</th>
+                    <th>Mass_P11</th>
+                    <th>Mass_P12</th>
+                    <th>Mass_P13</th>
+                    <th>Mass_P14</th>
+                    <th>Mass_P15</th>
+                    <th>Mass_P16</th>
+                    <th>Mass_P17</th>
+                    <th>Mass_P18</th>
+                    <th>Mass_P19</th>
+                    <th>Mass_P20</th>
+                    <th>Mass_P21</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- TO-DO Change the create row info for this -->
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
