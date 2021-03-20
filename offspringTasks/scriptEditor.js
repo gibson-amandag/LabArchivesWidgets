@@ -16,6 +16,12 @@ my_widget_script =
         //uncomment to inspect and view code while developing
         //debugger;
 
+        // Have to un-disable this select field because when viewing, the array comes back false if it's disabled
+        // TO-DO - this still doesn't completely fix the problem, as the widget doesn't reload this properly. 
+        // Need to save the selections in getDynamic content and reload with initDynamic content - although may need to be after calling the widgetData stuff
+        $(".tasks").prop("disabled", false);
+        $(".tasks option").prop("disabled", false);
+
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
 
@@ -27,12 +33,11 @@ my_widget_script =
 
         //resize the content box when the window size changes
         window.onresize = this.resize;
-
-        //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners();
-
+        
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
+
+        this.initSelectedTasks(parsedJson);
 
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
@@ -59,7 +64,8 @@ my_widget_script =
         // Will be accessed within the init and from_json methods
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
-            damList: dynamicContent.damList
+            damList: dynamicContent.damList,
+            selectedTasks: dynamicContent.selectedTasks
         };
 
         //uncomment to check stringified output
@@ -99,7 +105,13 @@ my_widget_script =
         //If no additional dynamic content 
         var output = { 
             widgetData: testData,
-            damList: [1, 4, 5, 7] 
+            damList: [1, 4, 5, 7] ,
+            selectedTasks: {
+                1: ["p2_9", "p12_mass"],
+                4: ["p11_mass", "juv_agd"],
+                5: ["p15_mass", "p16_mass", "ad_agd"],
+                7: ["p18_mass", "cycle"]
+            }
         };
 
         //Add additional content to match the objects in to_json
@@ -185,25 +197,33 @@ my_widget_script =
     },
 
     /**
-     * TO DO: edit this function to reinitialize any dynamic content that is not explicity
-     * defined within the HTML code. 
-     * 
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        for (var i = 0; i < parsedJson.damList.length; i++) {
-            var damNum = parsedJson.damList[i];
-            my_widget_script.createMouseSelect(damNum);
-            my_widget_script.createMouseInfo(damNum);
-            my_widget_script.createMousePrint(damNum);
-        };
-        my_widget_script.damList = parsedJson.damList;
+        if(parsedJson.damList){
+            for (var i = 0; i < parsedJson.damList.length; i++) {
+                var damNum = parsedJson.damList[i];
+                my_widget_script.createMouseSelect(damNum);
+                my_widget_script.createMouseInfo(damNum);
+                my_widget_script.createMousePrint(damNum);
+            };
+            my_widget_script.damList = parsedJson.damList;
+        }
+    },
+
+    initSelectedTasks: function (parsedJson) {
+        if(parsedJson.damList && parsedJson.selectedTasks){
+            for( var i = 0; i < parsedJson.damList.length; i ++ ){
+                var damNum = parsedJson.damList[i];
+                var damSearch = my_widget_script.damSearch(damNum);
+                var tasks = parsedJson.selectedTasks[damNum];
+                // Update the selected tasks based on the parsedJson list
+                $(".tasks"+damSearch).val(tasks);
+            }
+        }
     },
 
     /**
-     * TO DO: edit this function to define how the HTML elements should be adjusted
-     * based on the current mode.
-     * 
      * Here, a subset of buttons are disabled when the widget is not being edited.
      * There may be other elements that should be shown/hidden based on the mode
      */
@@ -211,15 +231,8 @@ my_widget_script =
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
+            $(".hideView").hide();
         }
-    },
-
-    /**
-     * TO DO: edit this function to define behavior when the user interacts with the form.
-     * This could include when buttons are clicked or when inputs change.
-     */
-    addEventListeners: function () {
-        
     },
 
     /**
@@ -302,6 +315,7 @@ my_widget_script =
             var damNum = $(this).val();
             var damSearch = my_widget_script.damSearch(damNum);
             my_widget_script.switchDam(damSearch);
+            my_widget_script.resize();
         });
 
         my_widget_script.resize();
@@ -320,8 +334,23 @@ my_widget_script =
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
+        // Create a selected tasks object
+        var selectedTasks = {};
+
+        var damList = my_widget_script.damList;
+
+        for(var i = 0; i < damList.length; i++){
+            var damNum = damList[i];
+            var damSearch = my_widget_script.damSearch(damNum);
+            var tasks = $(".tasks"+damSearch).val();
+            // Create a property within the selectedTasks object for each dam 
+            // Value equals the selected tasks for that dam
+            selectedTasks[damNum] = tasks
+        }
+
         var dynamicContent = {
-            damList: my_widget_script.damList
+            damList: damList,
+            selectedTasks: selectedTasks
         };
         return dynamicContent;
     },
@@ -432,6 +461,10 @@ my_widget_script =
     },
 
     printTasks_today: function (damSearch) {
+        // Have to un-disable this select field because when viewing, the array comes back false if it's disabled
+        $(".tasks").prop("disabled", false);
+        $(".tasks option").prop("disabled", false);
+
         var selectedTasks = $(".tasks"+damSearch).val();
         // console.log(selectedTasks);
         var $taskPrint = $(".taskPrint"+damSearch);
@@ -439,9 +472,11 @@ my_widget_script =
         var proceed = my_widget_script.checkStopStatus(damSearch);
         // If not marked to stop tracking dam
         if(proceed){
+            // console.log("Not marked to stop checking");
             var pndToday = my_widget_script.getPND_today(damSearch);
             // If there's a pnd today
             if(pndToday){
+                // console.log("We've got a pndToday");
                 var proceed_p2_9 = my_widget_script.checkInArray("p2_9", selectedTasks);
                 if(pndToday == 2 && proceed_p2_9){
                     $taskPrint.append("<div>Start the paradigm</div>");
