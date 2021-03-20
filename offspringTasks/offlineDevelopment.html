@@ -355,11 +355,25 @@ $(document).ready(function () {
             my_widget_script.resize();
         });
         
-        $(".stop").on("input", function () {
+        $(".stop").each(function() {
+            var damSearch = my_widget_script.damSearch($(this).data("dam"));
+            var show = my_widget_script.checkStopStatus(damSearch);
+            if(show){
+                $(".addedPrint"+damSearch).show();
+            } else {
+                $(".addedPrint"+damSearch).hide();
+            }
+        }).on("input", function () {
             var damSearch = my_widget_script.damSearch($(this).data("dam"));
             my_widget_script.printID(damSearch);
             my_widget_script.printDOB(damSearch);
             my_widget_script.printTasks_today(damSearch);
+            var show = my_widget_script.checkStopStatus(damSearch);
+            if(show){
+                $(".addedPrint"+damSearch).show();
+            } else {
+                $(".addedPrint"+damSearch).hide();
+            }
             my_widget_script.resize();
         });
 
@@ -469,33 +483,21 @@ $(document).ready(function () {
 
     printID: function (damSearch) {
         var id = $(".damID"+damSearch).val();
-        var proceed = my_widget_script.checkStopStatus(damSearch);
-        if(proceed){
-            $(".idPrint"+damSearch).text(id);
-        } else {
-            $(".idPrint"+damSearch).text("");
-        }
-        // Always print for select list
-        $(".idList"+damSearch).text(id);
+        $(".idPrint"+damSearch).text(id);
     },
 
     printDOB: function (damSearch) {
-        var proceed = my_widget_script.checkStopStatus(damSearch);
-        if(proceed){
-            var dob = $(".DOB"+damSearch).val();
-            var pnd, dobPrint;
-            if (dob){
-                var day = luxon.DateTime.fromISO(dob).toLocaleString({weekday: "long"})
-                dobPrint = dob + "<br/>" + day;
-                pnd = my_widget_script.getPND_today(damSearch);
-            } else {
-                dobPrint = "";
-                pnd = "";
-            }
+        var dob = $(".DOB"+damSearch).val();
+        var pnd, dobPrint;
+        if (dob){
+            var day = luxon.DateTime.fromISO(dob).toLocaleString({weekday: "long"})
+            dobPrint = dob + "<br/>" + day;
+            pnd = my_widget_script.getPND_today(damSearch);
         } else {
             dobPrint = "";
             pnd = "";
         }
+        
         $(".DOBPrint"+damSearch).html(dobPrint);
         $(".PNDPrint"+damSearch).text(pnd);
         my_widget_script.printTasks_today(damSearch);
@@ -529,63 +531,58 @@ $(document).ready(function () {
         // console.log(selectedTasks);
         var $taskPrint = $(".taskPrint"+damSearch);
         $taskPrint.html("");
-        var proceed = my_widget_script.checkStopStatus(damSearch);
-        // If not marked to stop tracking dam
-        if(proceed){
-            // console.log("Not marked to stop checking");
-            var pndToday = my_widget_script.getPND_today(damSearch);
-            // If there's a pnd today
-            if(pndToday){
-                // console.log("We've got a pndToday");
-                var proceed_p2_9 = my_widget_script.checkInArray("p2_9", selectedTasks);
-                if(pndToday == 2 && proceed_p2_9){
-                    $taskPrint.append("<div>Start the paradigm</div>");
-                }
-                var proceed_p4_11 = my_widget_script.checkInArray("p4_11", selectedTasks);
-                if(pndToday == 4 && proceed_p4_11){
-                    $taskPrint.append("<div>Start the paradigm</div>");
-                }
-                if(pndToday == 9 && proceed_p2_9){
-                    $taskPrint.append("<div>End the paradigm and ear tag</div>");
-                }
-                var proceed_p4_11 = my_widget_script.checkInArray("p4_11", selectedTasks);
-                if(pndToday == 11 && proceed_p4_11){
-                    $taskPrint.append("<div>End the paradigm and ear tag</div>");
-                }
-                var possibleMassDays = [2, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
-                for (var i = 0; i<possibleMassDays.length; i++ ){
-                    var day = possibleMassDays[i];
-                    if(pndToday == day){
-                        var checkDay = my_widget_script.checkInArray("p"+day+"_mass", selectedTasks);
-                        if(checkDay){
-                            $taskPrint.append("<div>Take masses</div>");
-                        }
-                    }
-                }
-                if(pndToday == 21){
-                    $taskPrint.append("<div>Wean</div>");
-                }
-                var proceed_juv_agd = my_widget_script.checkInArray("juv_agd", selectedTasks);
-                var proceed_juv_agd_dates = my_widget_script.checkInArray(pndToday, [22, 23, 24]);
-                if( proceed_juv_agd && proceed_juv_agd_dates){
-                    $taskPrint.append("<div>Check AGD</div>");
-                }
-                var proceed_ad_agd = my_widget_script.checkInArray("ad_agd", selectedTasks);
-                var proceed_ad_agd_dates = my_widget_script.checkInArray(pndToday, [70, 71, 72]);
-                if( proceed_ad_agd && proceed_ad_agd_dates){
-                    $taskPrint.append("<div>Check AGD and take mass</div>");
-                }
-                var proceed_weeklyMass = my_widget_script.checkInArray("weekly_mass", selectedTasks);
-                if(proceed_weeklyMass){
-                    var weeklyMassDays = [28, 35, 42, 49, 56, 63, 70];
-                    if(my_widget_script.checkInArray(pndToday, weeklyMassDays)){
+        var pndToday = my_widget_script.getPND_today(damSearch);
+        // If there's a pnd today
+        if(pndToday){
+            // console.log("We've got a pndToday");
+            var proceed_p2_9 = my_widget_script.checkInArray("p2_9", selectedTasks);
+            if(pndToday == 2 && proceed_p2_9){
+                $taskPrint.append("<div>Start the paradigm</div>");
+            }
+            var proceed_p4_11 = my_widget_script.checkInArray("p4_11", selectedTasks);
+            if(pndToday == 4 && proceed_p4_11){
+                $taskPrint.append("<div>Start the paradigm</div>");
+            }
+            if(pndToday == 9 && proceed_p2_9){
+                $taskPrint.append("<div>End the paradigm and ear tag</div>");
+            }
+            var proceed_p4_11 = my_widget_script.checkInArray("p4_11", selectedTasks);
+            if(pndToday == 11 && proceed_p4_11){
+                $taskPrint.append("<div>End the paradigm and ear tag</div>");
+            }
+            var possibleMassDays = [2, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
+            for (var i = 0; i<possibleMassDays.length; i++ ){
+                var day = possibleMassDays[i];
+                if(pndToday == day){
+                    var checkDay = my_widget_script.checkInArray("p"+day+"_mass", selectedTasks);
+                    if(checkDay){
                         $taskPrint.append("<div>Take masses</div>");
                     }
                 }
-                var proceed_cycle = my_widget_script.checkInArray("cycle", selectedTasks)
-                if(proceed_cycle && pndToday >= 70 && pndToday <= 90 ){
-                    $taskPrint.append("<div>Cycle females</div>")
+            }
+            if(pndToday == 21){
+                $taskPrint.append("<div>Wean</div>");
+            }
+            var proceed_juv_agd = my_widget_script.checkInArray("juv_agd", selectedTasks);
+            var proceed_juv_agd_dates = my_widget_script.checkInArray(pndToday, [22, 23, 24]);
+            if( proceed_juv_agd && proceed_juv_agd_dates){
+                $taskPrint.append("<div>Check AGD</div>");
+            }
+            var proceed_ad_agd = my_widget_script.checkInArray("ad_agd", selectedTasks);
+            var proceed_ad_agd_dates = my_widget_script.checkInArray(pndToday, [70, 71, 72]);
+            if( proceed_ad_agd && proceed_ad_agd_dates){
+                $taskPrint.append("<div>Check AGD and take mass</div>");
+            }
+            var proceed_weeklyMass = my_widget_script.checkInArray("weekly_mass", selectedTasks);
+            if(proceed_weeklyMass){
+                var weeklyMassDays = [28, 35, 42, 49, 56, 63, 70];
+                if(my_widget_script.checkInArray(pndToday, weeklyMassDays)){
+                    $taskPrint.append("<div>Take masses</div>");
                 }
+            }
+            var proceed_cycle = my_widget_script.checkInArray("cycle", selectedTasks)
+            if(proceed_cycle && pndToday >= 70 && pndToday <= 90 ){
+                $taskPrint.append("<div>Cycle females</div>")
             }
         }
     },
@@ -649,7 +646,7 @@ $(document).ready(function () {
         $select.append(
             $("<option/>", {
                 value: thisDam,
-                "class": "added idList",
+                "class": "added idPrint",
                 "data-dam": thisDam
             }).append(
                 "Dam " + thisDam
