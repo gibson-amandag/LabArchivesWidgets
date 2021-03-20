@@ -36,6 +36,11 @@ my_widget_script =
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
+        if(parsedJson.selectedDays){
+            // Update multi-select list
+            $("#selectMassDays").val(parsedJson.selectedDays);
+        }
+
         // Set up the form based on previously entered form input
         this.setUpInitialState();
 
@@ -60,7 +65,8 @@ my_widget_script =
             widgetData: JSON.parse(widgetJsonString),
             numPupsStart: dynamicContent.numPupsStart,
             numPupsEnd: dynamicContent.numPupsEnd,
-            tailMarksEnd: dynamicContent.tailMarksEnd
+            tailMarksEnd: dynamicContent.tailMarksEnd,
+            selectedDays: dynamicContent.selectedDays
         };
 
         //uncomment to check stringified output
@@ -506,10 +512,13 @@ my_widget_script =
             tailMarksEnd[i] = tailMarkText;
         }
 
+        $("#selectMassDays").prop("disabled", false);
+        $("#selectMassDays").find("option").prop("disabled", false);
         var dynamicContent = {
             numPupsStart: numPupsStart,
             numPupsEnd: numPupsEnd,
-            tailMarksEnd: tailMarksEnd
+            tailMarksEnd: tailMarksEnd,
+            selectedDays: $("#selectMassDays").val()
         }
 
         return dynamicContent;
@@ -759,10 +768,29 @@ my_widget_script =
             $(".pndToday").text(dateDiff_days);
 
             // This prints at the top what needs to be done today and switches the Mass and AGD selector 
-            // my_widget_script.updateToDoStatus(dateDiff_days);
+            my_widget_script.updateToDoStatus(dateDiff_days);
     
             return(dateDiff_days);
         } 
+    },
+
+    updateToDoStatus: function (PND_today) {
+        var $toDoStatus = $(".toDoStatus");
+        if (PND_today == my_widget_script.treatStart){
+            $toDoStatus.html("<span style='color:red'>Start the paradigm today and take masses</span>");
+        } else if (my_widget_script.treatStart > 0 && PND_today == my_widget_script.treatStart + 1){
+            $toDoStatus.html("<span style='color:black'>Begin video monitoring today</span>");
+        } else if (my_widget_script.treatStart > 0 && PND_today == my_widget_script.treatStart + 2){
+            $toDoStatus.html("<span style='color:black'>End video monitoring today</span>");
+        } else if (my_widget_script.treatEnd > 0 && PND_today == my_widget_script.treatEnd){
+            $toDoStatus.html("<span style='color:red'>Stop the paradigm today, ear tag, and take masses</span>");
+        } else if (PND_today == 21){
+            $toDoStatus.html("<span style='color:red'>Wean and take masses</span>");
+        } else if ($.inArray(PND_today, my_widget_script.possibleMassDays) !== -1)  {
+            $toDoStatus.html("<span style='color:blue'>Take mass today</span>");
+        } else {
+            $toDoStatus.html("<em>No mass today</em>");
+        }
     },
 
     createMassDivs: function (){
@@ -1163,7 +1191,7 @@ my_widget_script =
                 $('<td></td>', {
                     "class": "paraTypeCalc"
                 }).append(
-                    my_widget_script.treatEnd
+                    my_widget_script.treatStart
                 )
             )
         );
@@ -1355,7 +1383,7 @@ my_widget_script =
             my_widget_script.exportTableToCSV(fileName, outTable);
             $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Saved successfully</span>")
         } else {
-            $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Did not export</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
+            $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Did not export</span><br/>");
         }
     },
 
@@ -1435,7 +1463,7 @@ my_widget_script =
             my_widget_script.copyTable($outTable, copyHead);
             $("#errorMsg").html("<span style='color:grey; font-size:24px;'>Copied successfully</span>")
         } else {
-            $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span><br/><p>Be sure to check that you haven't created table rows with the other paradigm treatment period</p>");
+            $("#errorMsg").append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span><br/>");
         }
     },
 
