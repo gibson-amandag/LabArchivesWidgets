@@ -428,77 +428,43 @@ $(document).ready(function () {
     makeSlide: function (cols, rows, orientation, day) {
         var $div = $(".slideDiv"+my_widget_script.daySearch(day));
         $div.find(".forSlide").remove();
-        if(orientation == "col"){
-            $div.append(
-                $("<div/>", {
-                    "class": "container forSlide"
-                }).append(
-                    $("<div/>", {
-                        "class": "row fillThis"
-                    })
-                )
-            );
-            var mouseNum = 1;
-            for (var i = 0; i < cols; i++ ){
-                var col = i + 1;
-                $div.find(".fillThis").append(
-                    $("<div/>", {
-                        "class": "col container",
-                        "data-col": col
-                    })
-                );
-                var colSearch = my_widget_script.colSearch(col);
-                var $colRow = $div.find(".container"+colSearch);
-                for (var j = 0; j < rows; j++){
-                    var row = j + 1;
-                    $colRow.append(
-                        $("<div/>", {
-                            "class": "row slideCell",
-                            "data-row": row,
-                            "data-mouse": mouseNum
-                        }).on("dblclick", function () {
-                            // Allows for correcting value if double-clicked
-                            var text = $(this).text();
-                            $(this).addClass("fixing");
-                            $(".forFixing").show();
-                            $("#fixVal").val(text).select();
-                        }).append(mouseNum)
-                    );
-                    mouseNum++
-                }
+        $div.append(
+            $("<div/>", {
+                "class": "forSlide container"
+            })
+        );
+        var mouseNum = 1;
+        for (var i = 0; i < rows; i++ ){
+            var row = i + 1;
+            if(orientation == "col"){
+                var mouseNum = row;
             }
-        } if (orientation == "row") {
-            $div.append(
+            $div.find(".forSlide").append(
                 $("<div/>", {
-                    "class": "forSlide container"
+                    "class": "row",
+                    "data-row": row
                 })
             );
-            var mouseNum = 1;
-            for (var i = 0; i < rows; i++ ){
-                var row = i + 1;
-                $div.find(".forSlide").append(
+            var rowSearch = my_widget_script.rowSearch(row);
+            var $rowRow = $div.find(".row"+rowSearch);
+            for(var j = 0; j < cols; j++){
+                var col = j + 1;
+                $rowRow.append(
                     $("<div/>", {
-                        "class": "row",
-                        "data-row": row
-                    })
+                        "class": "col slideCell",
+                        "data-col": col,
+                        "data-mouse": mouseNum
+                    }).on("dblclick", function () {
+                        // Allows for correcting value if double-clicked
+                        var text = $(this).text();
+                        $(this).addClass("fixing");
+                        $(".forFixing").show();
+                        $("#fixVal").val(text).select();
+                    }).append(mouseNum)
                 );
-                var rowSearch = my_widget_script.rowSearch(row);
-                var $rowRow = $div.find(".row"+rowSearch);
-                for(var j = 0; j < cols; j++){
-                    var col = j + 1;
-                    $rowRow.append(
-                        $("<div/>", {
-                            "class": "col slideCell",
-                            "data-col": col,
-                            "data-mouse": mouseNum
-                        }).on("dblclick", function () {
-                            // Allows for correcting value if double-clicked
-                            var text = $(this).text();
-                            $(this).addClass("fixing");
-                            $(".forFixing").show();
-                            $("#fixVal").val(text).select();
-                        }).append(mouseNum)
-                    );
+                if(orientation == "col"){
+                    mouseNum = mouseNum + rows;
+                } else {
                     mouseNum++
                 }
             }
@@ -589,6 +555,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     .slideCell{
         border-style: solid;
         border-width: thin;
+        word-break: break-all;
     }
 </style>
 
