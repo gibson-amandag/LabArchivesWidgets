@@ -1,0 +1,671 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<!-- START:stylesheet
+-->
+
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/stylesheets/labarchive.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery-ui.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/themes/base/ui.all.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/chosen/chosen.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/css/jquery.dataTables_themeroller.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/css/TableTools.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/css/ColVis.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.css">
+          <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-1.7.2.min.js"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-ui-1.9.1.custom.min.js"></script>
+                    <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/populate/jquery.populate.pack.js" defer="defer"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/numeric/jquery.numeric.js" defer="defer"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.js" defer="defer"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/daepark-postmessage/postmessage.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/widget_proxy.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/parent_form_script.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/database_form_script.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/js/jquery.dataTables.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/TableTools.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/ZeroClipboard.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/js/ColVis.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColResize/ColReorderWithResize.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/chosen/chosen.jquery_modified.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/autoresize/jquery.autoresize.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/freezerbox_form_script.js" ></script>
+    
+<title></title>
+</head>
+<body>
+<script>
+    // #region
+var form_script = null;
+try {
+$(document).ready(function () {
+      
+      
+      // Create window var to store the locale for the datepicker
+      window.datepicker_locale = '';
+//***************************************************************************
+//***************************************************************************
+//***************************************************************************
+//place your javascript code below and when you have it the way you want it
+//just paste it into the LA Dev tool
+//***************************************************************************
+//***************************************************************************
+//***************************************************************************
+// #endregion
+    form_script = 
+    my_widget_script =
+{
+    
+    init: function (mode, json_data) {
+        //this method is called when the form is being constructed
+        // parameters
+        // mode = if it equals 'view' than it should not be editable
+        //        if it equals 'edit' then it will be used for entry
+        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
+        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
+
+        // json_data will contain the data to populate the form with, it will be in the form of the data
+        // returned from a call to to_json or empty if this is a new form.
+        //By default it calls the parent_class's init.
+
+        //uncomment to inspect and view code while developing
+        //debugger;
+
+        //Get the parsed JSON data
+        var parsedJson = this.parseInitJson(json_data);
+
+        //Uncomment to print parsedJson to consol
+        //console.log("init", parsedJson);
+
+        //check parsedJson for info not contained in form inputs and reinitialize
+        this.initDynamicContent(parsedJson);
+
+        //resize the content box when the window size changes
+        window.onresize = this.resize;
+
+        //Define behavior when buttons are clicked or checkboxes/selctions change
+        this.addEventListeners();
+
+        // Initialize the form with the stored widgetData using the parent_class.init() function
+        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
+
+        // Add * and # to mark required field indicators
+        this.addRequiredFieldIndicators();
+
+        // Set up the form based on previously entered form input
+        this.setUpInitialState();
+
+        //adjust form design and buttons based on mode
+        this.adjustForMode(mode);
+    },
+    
+    to_json: function () {
+        //should return a json string containing the data entered into the form by the user
+        //whatever is return from the method is persisted in LabArchives.  must not be binary data.
+        //called when the user hits the save button, when adding or editing an entry
+
+        //Acquire input data from the form using the parent_class.to_json() function
+        var widgetJsonString = this.parent_class.to_json();
+
+        //Get information about any dynamic content that may have been created
+        var dynamicContent = this.getDynamicContent();
+
+        // Add widgetData and any additional dynamic content to an output object
+        // Will be accessed within the init and from_json methods
+        var output = { 
+            widgetData: JSON.parse(widgetJsonString)
+        };
+
+        //uncomment to check stringified output
+        //console.log("to JSON", JSON.stringify(output));
+
+        // return stringified output
+        return JSON.stringify(output);
+    },
+
+    from_json: function (json_data) {
+        //populates the form with json_data
+
+        // all data in string format within json_data is parsed into an object parsedJson
+        var parsedJson = JSON.parse(json_data);
+
+        //use parsedJson to get widgetData and turn into a string
+        //parent class uses the widget data to fill in inputs
+        this.parent_class.from_json(JSON.stringify(parsedJson.widgetData));
+    },
+
+    /**
+     * In preview, the form is populated with test data when the
+     * parent_class.test_data() function is called. This randomly selects options for 
+     * dropdown select menus, radio buttons, and checkboxes.
+     */
+    test_data: function () {
+        //during development this method is called to populate your form while in preview mode
+
+        // ORIGINAL LABARCHIVES RETURN FOR TEST DATA
+        //return this.parent_class.test_data();
+
+        // CUSTOM TEST DATA
+
+        //store the outcome of the the test data within the testData variable
+        var testData = JSON.parse(this.parent_class.test_data());
+
+        //If no additional dynamic content 
+        var output = { widgetData: testData };
+
+        //Add additional content to match the objects in to_json
+        //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
+
+        //return the stringified output for use by the init function
+        return JSON.stringify(output);
+    },
+
+    /**
+     * This function determines whether or not the user is allowed to save the widget to the page
+     * 
+     * The original LabArchives function checks for fields that have _mandatory appended to the name attribute
+     * 
+     * The custom function checks for fields with the required attribute. If any of these fields are blank, 
+     * an alert is returns that provides a fail log with the ids of the elements that are missing. If there are
+     * no blank required fields, an empty array is returned.
+     * 
+     * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+     */
+    is_valid: function (b_suppress_message) {
+        //called when the user hits the save button, to allow for form validation.
+        //returns an array of dom elements that are not valid - default is those elements marked as mandatory
+        // that have no data in them.
+        //You can modify this method, to highlight bad form elements etc...
+        //LA calls this method with b_suppress_message and relies on your code to communicate issues to the user
+        //Returning an empty array [] or NULL equals no error
+        //TO DO write code specific to your form
+
+        //ORIGINAL LABARCHIVES IS_VALID FUNCTION
+        //return this.parent_class.is_valid(b_suppress_message);
+
+        //CUSTOM FUNCTION TO CHECK REQUIRED ITEMS
+        var fail = false; //begin with a fail variable that is false
+        var fail_log = ''; //begin with an empty fail log
+        var name; //create a name variable
+
+        //search the_form for all elements that are of type select, textarea, or input
+        $('#the_form').find('select, textarea, input').each(function () {
+            if (!$(this).prop('required')) { //if this element does not have a required attribute
+                //don't change anything (fail remains false)
+            } else { //if there is a required attribute
+                if (!$(this).val()) { //if there is not a value for this input
+                    fail = true; //change fail to true
+                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                    fail_log += name + " is required \n"; //add to the fail log that this name is required
+                }
+
+            }
+        });
+
+        if (fail) { //if fail is true (meaning a required element didn't have a value)
+            return alert(fail_log); //return the fail log as an alert
+        } else {
+            var noErrors = [];
+            return noErrors;
+        } //otherwise, return empty array
+    },
+
+    is_edited: function () {
+        //should return true if the form has been edited since it was loaded or since reset_edited was called
+        return this.parent_class.is_edited();
+    },
+
+    reset_edited: function () {
+        //typically called have a save
+        //TO DO write code specific to your form
+        return this.parent_class.reset_edited();
+    },
+
+    // ********************** CUSTOM METHODS USED BY INIT METHOD **********************
+    parseInitJson: function (json_data) {
+        var jsonString;
+        //check if string or function because preview test is function and page is string
+        if (typeof json_data === "string") {
+            jsonString = json_data;
+        } else {
+            jsonString = json_data();
+        }
+        //Take input string into js object to be able to use elsewhere
+        var parsedJson = JSON.parse(jsonString);
+        return (parsedJson);
+    },
+
+    /**
+     * TO DO: edit this function to reinitialize any dynamic content that is not explicity
+     * defined within the HTML code. 
+     * 
+     * This function requires the parsedJson object.
+     */
+    initDynamicContent: function (parsedJson) {
+        // for (var i = 0; i < parsedJson.addedRows; i++) {
+        // };
+    },
+
+    /**
+     * TO DO: edit this function to define how the HTML elements should be adjusted
+     * based on the current mode.
+     * 
+     * Here, a subset of buttons are disabled when the widget is not being edited.
+     * There may be other elements that should be shown/hidden based on the mode
+     */
+    adjustForMode: function (mode) {
+        if (mode !== "edit" && mode !== "edit_dev") {
+            //disable when not editing
+            $(".disableOnView").prop("disabled", true);
+        }
+    },
+
+    /**
+     * TO DO: edit this function to define behavior when the user interacts with the form.
+     * This could include when buttons are clicked or when inputs change.
+     */
+    addEventListeners: function () {
+        
+    },
+
+    /**
+     * TO DO: edit this function to define the symbols that should be added to the HTML
+     * page based on whether or not a field is required to save the widget to the page
+     * 
+     * Here, the function adds a blue # before fields of the class "needForFormLab" and a 
+     * red * before fields with the "requiredLab" property
+     */
+    addRequiredFieldIndicators: function () {
+        $('.needForTableLab').each(function () { //find element with class "needForFormLab"
+            //alert($(this).val());
+            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
+        });
+
+        $('.requiredLab').each(function () { //find element with class "requiredLab"
+            //alert($(this).val());
+            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
+        });
+    },
+
+    /**
+     * TO DO: edit this function to define how the form should be initilized based 
+     * on the existing form values. This is particularly important for when the 
+     * widget already has data entered, such as when saved to a page.
+     */
+    setUpInitialState: function () {
+        //Add classes to add bootstrap styles for left column in form
+        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
+
+        $('textarea.autoAdjust').each(function () {
+            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            my_widget_script.resize();
+        });
+
+        $(".makeSlide").on("click", function () {
+            var day = $(this).data("day");
+            var daySearch = my_widget_script.daySearch(day);
+            var cols = $(".numCols"+daySearch).val();
+            var rows = $(".numRows"+daySearch).val();
+
+            if(cols && rows){
+                cols = parseInt(cols);
+                rows = parseInt(rows);
+                var orientation = $(".orientation"+daySearch).val();
+                my_widget_script.makeSlide(cols, rows, orientation, day);
+            } else {
+                alert("Select both number of columns and rows");
+            }
+
+        });
+
+        $(".slideCell").on("click", function () {
+            alert("double clicked");
+            var currentText = $(this).text();
+            $("#errorMsg").append(
+                $("<input/>", {
+                    value: currentText
+                })
+            )
+        });
+
+        $("#fixVal").on("input", function () {
+            // Store the value from the input
+            var fixedText = $(this).val();
+            // Replace anything with the "fixing" class with this value
+            $(".fixing").text(fixedText);
+        }).on("focusout", function () { // When this input box loses focus
+            // Remove the "fixing" class from all elements
+            $(".fixing").removeClass("fixing");
+            // Hide the forFixing div
+            $(".forFixing").hide();
+        });
+
+        // Formatting gets weird if this is done with css
+        $(".forFixing").hide(); 
+
+        my_widget_script.resize();
+    },
+
+    /**
+     * TO DO: edit this function to define which <div>s or other elements
+     * should be adjusted based on the current width of the window
+     */
+    resize: function () {
+        //resize the container
+        my_widget_script.parent_class.resize_container();
+    },
+    // ********************** END CUSTOM INIT METHODS **********************
+
+
+    // ********************** START CUSTOM TO_JSON METHODS **********************
+    getDynamicContent: function () {
+        var dynamicContent = {};
+        return dynamicContent;
+    },
+    // ********************** END CUSTOM TO_JSON METHODS **********************
+
+    /** -----------------------------------------------------------------------------
+     * VALIDATE FORM ENTRY BEFORE COPYING OR SAVING TABLE TO CSV
+     *
+     * This function will check that elements with a class "needForTable"
+     * are not blank. If there are blank elements, it will return false
+     * and will post an error message "Please fill out all elements marked by a blue #"
+     *
+     * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+     * -----------------------------------------------------------------------------
+     */
+    data_valid_form: function () {
+        var valid = true; //begin with a valid value of true
+        //var fail_log = ''; //begin with an empty fail log
+        //var name; //create a name variable
+
+        //search the_form for all elements that are of class "needForForm"
+        $('.needForTable').each(function () {
+            if (!$(this).val()) { //if there is not a value for this input
+                valid = false; //change valid to false
+                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
+                //fail_log += name + " is required \n"; //add to the fail log that this name is required
+            }
+        });
+
+        if (!valid) {
+            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+        } else {
+            $("#errorMsg").html("");
+        }
+
+        return valid;
+    },
+
+    dataSearch: function (dataName, dataValue) {
+        var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
+        return dataSearch;
+    },
+
+    daySearch: function (day){
+        var daySearch = my_widget_script.dataSearch("day", day);
+        return daySearch;
+    },
+    
+    colSearch: function (col) {
+        var colSearch = my_widget_script.dataSearch("col", col);
+        return colSearch;
+    },
+    
+    rowSearch: function (row) {
+        var rowSearch = my_widget_script.dataSearch("row", row);
+        return rowSearch;
+    },
+
+    makeSlide: function (cols, rows, orientation, day) {
+        var $div = $(".slideDiv"+my_widget_script.daySearch(day));
+        $div.find(".forSlide").remove();
+        if(orientation == "col"){
+            $div.append(
+                $("<div/>", {
+                    "class": "container forSlide"
+                }).append(
+                    $("<div/>", {
+                        "class": "row fillThis"
+                    })
+                )
+            );
+            var mouseNum = 1;
+            for (var i = 0; i < cols; i++ ){
+                var col = i + 1;
+                $div.find(".fillThis").append(
+                    $("<div/>", {
+                        "class": "col container",
+                        "data-col": col
+                    })
+                );
+                var colSearch = my_widget_script.colSearch(col);
+                var $colRow = $div.find(".container"+colSearch);
+                for (var j = 0; j < rows; j++){
+                    var row = j + 1;
+                    $colRow.append(
+                        $("<div/>", {
+                            "class": "row slideCell",
+                            "data-row": row,
+                            "data-mouse": mouseNum
+                        }).on("dblclick", function () {
+                            // Allows for correcting value if double-clicked
+                            var text = $(this).text();
+                            $(this).addClass("fixing");
+                            $(".forFixing").show();
+                            $("#fixVal").val(text).select();
+                        }).append(mouseNum)
+                    );
+                    mouseNum++
+                }
+            }
+        } if (orientation == "row") {
+            $div.append(
+                $("<div/>", {
+                    "class": "forSlide container"
+                })
+            );
+            var mouseNum = 1;
+            for (var i = 0; i < rows; i++ ){
+                var row = i + 1;
+                $div.find(".forSlide").append(
+                    $("<div/>", {
+                        "class": "row",
+                        "data-row": row
+                    })
+                );
+                var rowSearch = my_widget_script.rowSearch(row);
+                var $rowRow = $div.find(".row"+rowSearch);
+                for(var j = 0; j < cols; j++){
+                    var col = j + 1;
+                    $rowRow.append(
+                        $("<div/>", {
+                            "class": "col slideCell",
+                            "data-col": col,
+                            "data-mouse": mouseNum
+                        }).on("dblclick", function () {
+                            // Allows for correcting value if double-clicked
+                            var text = $(this).text();
+                            $(this).addClass("fixing");
+                            $(".forFixing").show();
+                            $("#fixVal").val(text).select();
+                        }).append(mouseNum)
+                    );
+                    mouseNum++
+                }
+            }
+        }
+    },
+
+    
+};
+
+//**************************************************************************
+//End of your code
+//**************************************************************************
+//**************************************************************************
+      //the parent class functionality is added to your class below.
+      form_script.parent_class = parent_form_script;
+      //**************************************************************************
+      //**************************************************************************
+      //call to the init function in your script.  Note that you can change the mode in the call here.
+      //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
+      form_script.init("edit", function() {return form_script.test_data()});
+
+
+    }
+)
+
+}
+catch (e) {
+
+}
+
+parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00:23-05:00","last_modified_at":"2021-01-03T18:51:34-05:00","last_modified_by":"Amanda Gibson","owned_by":"unknown"};
+
+</script>
+<form id="the_form" style="display:table">
+<!------------------------------------------------------------------------------------------>
+<!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
+<!------------------------------------------------------------------------------------------>
+<!-- #region HTML -->
+<!-- Luxon Date Handling -->
+<script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<!-- Load jQuery for Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<!-- Load bootstrap java -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+<!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
+<script>
+    var $jq351 = jQuery.noConflict(true);
+</script>
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 90%
+    }
+
+    .forSlide {
+        border-style: solid;
+        border-width:medium;
+    }
+    .slideCell{
+        border-style: solid;
+        border-width: thin;
+    }
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="container">
+    <div class="row">
+        <div class="myLeftCol">
+            Number of Rows:
+        </div>
+        <div class="col">
+            <input type="number" name="numrows1" id="numRows1" class="numRows" data-day="1" step="1" value="4"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Number of Columns</div>
+        <div class="col"><input type="number" name="numcols1" id="numCols1" class="numCols" data-day="1" step="1" value="7"></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Select orientation</div>
+        <div class="col">
+            <select name="orientation1" id="orientation1" class="orientation" data-day="1">
+                <option value="col">By column</option>
+                <option value="row">By row</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Create new slide template</div>
+        <div class="col"><input type="button" value="Make Slide" name="makeslide" id="makeSlide" class="makeSlide" data-day="1" data-date="2021-03-21"></div>
+    </div>
+    <div class="row mt-2 forFixing">
+        <div class="myLeftCol">Enter new value:</div>
+        <div class="col">
+            <input type="text" id="fixVal" name="fixval"/>
+        </div>
+    </div>
+</div>
+
+<div class="container slideDiv" data-day="1">
+
+</div>
+
+<!-- Error Message Div -->
+<div class="container" id="errorMsg">&nbsp;</div>
+
+<!-- Example Table Container that is responsive to window width, including for xs -->
+<div class="container mt-2">
+    <div class="table-responsive xsTableDiv">
+        <table class="table">
+            <thead>
+                <tr>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+
+
+General thoughts - 
+ - Need to be able to create multiple slides per day
+ - There should probably be a data-slide for keeping track of slide number
+ - Maybe when add a new "day", create the slide div container
+ - Need a way to then still indicate which slide you're working with within that day
+    - Want to be able to refresh the one you're on without ruining the previous ones
+ - Should the mouse number always start at 1 for each day? or do you have it start from the end of the previous slide for each day?
+ - How would it know to add the mouse to a new slide once the previous one is full? 
+ - May need to add data-day or data-slide to the slideCells to know which to fill
+ - OR have a global "mouseNum" and each new slide starts from there?
+
+<!-- #endregion -->
+<!------------------------------------------------------------------------------------------>
+<!--end of your code-->
+<!------------------------------------------------------------------------------------------>
+
+</form>
+</body>
+</html>
