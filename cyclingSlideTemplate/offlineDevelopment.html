@@ -60,7 +60,8 @@ $(document).ready(function () {
     form_script = 
     my_widget_script =
 {
-    
+    slideDivNums: [],
+
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -262,6 +263,8 @@ $(document).ready(function () {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
+            $(".hideView").hide();
+            $(".slideDiv").show();
         }
     },
 
@@ -309,32 +312,33 @@ $(document).ready(function () {
             my_widget_script.resize();
         });
 
-        $(".makeSlide").on("click", function () {
-            var day = $(this).data("day");
-            var daySearch = my_widget_script.daySearch(day);
-            var cols = $(".numCols"+daySearch).val();
-            var rows = $(".numRows"+daySearch).val();
-
-            if(cols && rows){
-                cols = parseInt(cols);
-                rows = parseInt(rows);
-                var orientation = $(".orientation"+daySearch).val();
-                my_widget_script.makeSlide(cols, rows, orientation, day);
-            } else {
-                alert("Select both number of columns and rows");
+        $(".makeSlideDiv").on("click", function () {
+            var maxSlide = Math.max.apply(Math,my_widget_script.slideDivNums);
+            if( maxSlide == -Infinity){
+                maxSlide = 0;
             }
-
+            var slide = maxSlide + 1;
+            console.log(maxSlide);
+            // var slide = $(".allSlides").find(".slideDiv").first().data("slide");
+            // if(!slide){
+            //     slide = 1;
+            // } else {
+            //     slide++;
+            // }
+            my_widget_script.makeSlideDiv(slide);
         });
 
-        $(".slideCell").on("click", function () {
-            alert("double clicked");
-            var currentText = $(this).text();
-            $("#errorMsg").append(
-                $("<input/>", {
-                    value: currentText
-                })
-            )
+        $(".makeSlide").on("click", function () {
+            var slide = $(this).data("slide");
+            my_widget_script.makeSlide(slide);
         });
+
+        $("#selectSlide").on("input", function () {
+            var selectedSlide = $(this).val();
+            var slideSearch = my_widget_script.slideSearch(selectedSlide);
+            $(".slideDiv"+slideSearch).show();
+            $(".slideDiv").not(slideSearch).hide();
+        })
 
         $("#fixVal").on("input", function () {
             // Store the value from the input
@@ -348,10 +352,133 @@ $(document).ready(function () {
             $(".forFixing").hide();
         });
 
+        $("#idEntry").on("change", function () {
+            var fullList = $(this).val();
+            var splitList = fullList.split(/[\r\n]+/);
+            // console.log(splitList);
+            var $select = $("#idSelect");
+            $select.html("");
+            for (var i = 0; i < splitList.length; i++ ){
+                mouseID = splitList[i];
+                $select.append(
+                    $("<option/>", {
+                        value: i,
+                        "data-mouse": i,
+                    }).append(mouseID)
+                );
+                // console.log($select.find("option").last().text());
+            }
+        });
+
+        $("#fillIDs").on("click", function () {
+            var output = my_widget_script.getSelectedIDs();
+            var slide = $("#fillSlide").val();
+            var cell = $("#fillCell").val();
+            var proceed = true;
+            if(slide){
+                slide = parseInt(slide);
+            } else {
+                alert("Enter slide number");
+                proceed = false;
+            } 
+            if(cell){
+                cell = parseInt(cell);
+            } else {
+                alert("Enter cell number");
+                proceed = false;
+            }
+            if(proceed){
+                my_widget_script.printIDsOnSlide(output.selectedIDs, slide, cell);
+            }
+            // console.log(output);
+        })
+
         // Formatting gets weird if this is done with css
         $(".forFixing").hide(); 
 
         my_widget_script.resize();
+    },
+
+    getSelectedIDs: function () {
+        var selectedVals = $("#idSelect").val();
+        var selectedIDs = [];
+        if(selectedVals){
+            for(var i = 0; i < selectedVals.length; i++ ){
+                var mouseSearch = my_widget_script.mouseSearch(selectedVals[i]);
+                var thisID = $("#idSelect").find(mouseSearch).text();
+                selectedIDs[i] = thisID;
+            }
+        }
+        // console.log(selectedIDs);
+        var output = {
+            selectedVals: selectedVals,
+            selectedIDs: selectedIDs
+        }
+        return output
+    },
+
+    printIDsOnSlide: function (IDs, startSlide, startCell) {
+        var slide = startSlide;
+        
+        // Will check to see if div for slide exists, if not, will make one
+        my_widget_script.makeSlideDiv(slide);
+        var $div = $(".slideDiv"+my_widget_script.slideSearch(slide));
+        
+        // If there's not a "forSlide" div, then make one
+        if (!$div.find(".forSlide").html()){
+            my_widget_script.makeSlide(slide);
+        }
+        
+        // Get the number of cells on the slide
+        var numCells = $div.find(".slideCell").length;
+        var cell = startCell;
+        // console.log(numCells, cell);
+
+        if(IDs){
+            var checkBeforeReplacing = true;
+            var proceed = true;
+            for(var i = 0; i < IDs.length; i++ ){
+                // If the cell number is larger than the number of cells on this slide
+                if(cell > numCells){
+                    // Move to the next slide
+                    slide++;
+                    // Check if div exists
+                    my_widget_script.makeSlideDiv(slide);
+                    $div = $(".slideDiv"+my_widget_script.slideSearch(slide));
+                    
+                    // If slide doesn't exist, make it
+                    if (!$div.find(".forSlide").html()){
+                        my_widget_script.makeSlide(slide);
+                    }
+
+                    // Get the new number of cells
+                    numCells = $div.find(".slideCell").length;
+
+                    // Start back at cell 1
+                    cell = 1;
+                }
+                var id = IDs[i];
+                var cellSearch = my_widget_script.cellSearch(cell);
+                var $cell = $div.find(cellSearch);
+                // Check once if replacing a previously filled cell
+                if($cell.hasClass("filled") && checkBeforeReplacing){
+                    proceed = confirm("This will replace a previously filled cell. Are you sure you wish to continue?");
+                    checkBeforeReplacing = false;
+                }
+                if(proceed){
+                    $cell.text(id).addClass("filled");
+                    cell++
+                } else {
+                    return;
+                }
+            }
+            if(cell > numCells){
+                cell = 1;
+                slide++;
+            }
+            $("#fillSlide").val(slide);
+            $("#fillCell").val(cell);
+        }
     },
 
     /**
@@ -410,9 +537,9 @@ $(document).ready(function () {
         return dataSearch;
     },
 
-    daySearch: function (day){
-        var daySearch = my_widget_script.dataSearch("day", day);
-        return daySearch;
+    slideSearch: function (slide){
+        var slideSearch = my_widget_script.dataSearch("slide", slide);
+        return slideSearch;
     },
     
     colSearch: function (col) {
@@ -425,51 +552,243 @@ $(document).ready(function () {
         return rowSearch;
     },
 
-    makeSlide: function (cols, rows, orientation, day) {
-        var $div = $(".slideDiv"+my_widget_script.daySearch(day));
-        $div.find(".forSlide").remove();
-        $div.append(
-            $("<div/>", {
-                "class": "forSlide container"
-            })
-        );
-        var mouseNum = 1;
-        for (var i = 0; i < rows; i++ ){
-            var row = i + 1;
-            if(orientation == "col"){
-                var mouseNum = row;
-            }
-            $div.find(".forSlide").append(
+    mouseSearch: function (mouse){
+        var mouseSearch = my_widget_script.dataSearch("mouse", mouse);
+        return mouseSearch
+    },
+
+    cellSearch: function (cell){
+        var cellSearch = my_widget_script.dataSearch("cell", cell);
+        return cellSearch
+    },
+
+    makeSlide: function (slide) {
+        var slideSearch = my_widget_script.slideSearch(slide);
+        var cols = $(".numCols"+slideSearch).val();
+        var rows = $(".numRows"+slideSearch).val();
+
+        if(cols && rows){
+            cols = parseInt(cols);
+            rows = parseInt(rows);
+            var orientation = $(".orientation"+slideSearch).val();
+        } else {
+            alert("Select both number of columns and rows");
+            return;
+        }
+
+        var $div = $(".slideDiv"+my_widget_script.slideSearch(slide));
+        var proceed = true;
+        if($div.find(".forSlide").html()){
+            proceed = confirm("Are you sure that you wish to replace the existing slide?")
+        }
+
+        if(proceed){
+            $div.find(".forSlide").remove();
+            $div.append(
                 $("<div/>", {
-                    "class": "row",
-                    "data-row": row
+                    "class": "forSlide container mt-2"
                 })
             );
-            var rowSearch = my_widget_script.rowSearch(row);
-            var $rowRow = $div.find(".row"+rowSearch);
-            for(var j = 0; j < cols; j++){
-                var col = j + 1;
-                $rowRow.append(
-                    $("<div/>", {
-                        "class": "col slideCell",
-                        "data-col": col,
-                        "data-mouse": mouseNum
-                    }).on("dblclick", function () {
-                        // Allows for correcting value if double-clicked
-                        var text = $(this).text();
-                        $(this).addClass("fixing");
-                        $(".forFixing").show();
-                        $("#fixVal").val(text).select();
-                    }).append(mouseNum)
-                );
+            var mouseNum = 1;
+            for (var i = 0; i < rows; i++ ){
+                var row = i + 1;
                 if(orientation == "col"){
-                    mouseNum = mouseNum + rows;
-                } else {
-                    mouseNum++
+                    var mouseNum = row;
+                }
+                $div.find(".forSlide").append(
+                    $("<div/>", {
+                        "class": "row",
+                        "data-row": row
+                    })
+                );
+                var rowSearch = my_widget_script.rowSearch(row);
+                var $rowRow = $div.find(".row"+rowSearch);
+                for(var j = 0; j < cols; j++){
+                    var col = j + 1;
+                    $rowRow.append(
+                        $("<div/>", {
+                            "class": "col slideCell",
+                            "data-col": col,
+                            "data-cell": mouseNum
+                        }).on("dblclick", function () {
+                            // Allows for correcting value if double-clicked
+                            var text = $(this).text();
+                            $(this).addClass("fixing").addClass("filled");
+                            $(".forFixing").show();
+                            $("#fixVal").val(text).select();
+                        }).append(mouseNum)
+                    );
+                    if(orientation == "col"){
+                        mouseNum = mouseNum + rows;
+                    } else {
+                        mouseNum++
+                    }
                 }
             }
         }
     },
+
+    checkInArray: function (searchVal, array){
+        var proceed = $.inArray(searchVal, array) !== -1;
+        return proceed
+    },
+
+    makeSlideDiv: function (lastSlide) {
+        var $div = $(".allSlides");
+        var myLeftCol = "col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right";
+        
+        // This makes it so that each slide number div gets made
+        for(var i = 0; i < lastSlide; i++){
+            var slide = i + 1;
+            // If slide number isn't in array
+            if(!my_widget_script.checkInArray(slide, my_widget_script.slideDivNums)){
+                my_widget_script.slideDivNums[my_widget_script.slideDivNums.length] = slide;
+                // console.log(my_widget_script.slideDivNums);
+                var lastSlideSearch = my_widget_script.slideSearch(slide - 1);
+                var lastRowNum = $(".numRows"+lastSlideSearch).val();
+                var lastColNum = $(".numCols"+lastSlideSearch).val();
+                var lastOrientation = $(".orientation"+lastSlideSearch).val();
+                if(lastRowNum){
+                    lastRowNum = parseInt(lastRowNum);
+                } else {
+                    lastRowNum = 4;
+                }
+                if(lastColNum){
+                    lastColNum = parseInt(lastColNum);
+                } else {
+                    lastColNum = 7;
+                }
+                if(!lastOrientation){
+                    lastOrientation = "col";
+                }
+
+                $("#selectSlide").append(
+                    $("<option/>", {
+                        value: slide,
+                        selected: true
+                    }).append(
+                        "Slide " + slide
+                    )
+                );
+
+                $(".selectDiv").after(
+                    $("<div/>", {
+                        "class": "container slideDiv",
+                        "data-slide": slide
+                    }).append(
+                        "<h3 class='col'>Slide " + slide + "</h3>"
+                    ).append(
+                        $("<div/>", {
+                            "class": "row mt-2 hideView"
+                        }).append(
+                            $("<div/>", {
+                                "class": myLeftCol
+                            }).append("Number of Rows:")
+                        ).append(
+                            $("<div/>", {
+                                "class": "col"
+                            }).append(
+                                $("<input/>", {
+                                    type: "number",
+                                    name: "numrows"+slide,
+                                    id: "numRows"+slide,
+                                    "class": "numRows",
+                                    "data-slide": slide,
+                                    "step": 1,
+                                    value: lastRowNum
+                                })
+                            )
+                        )
+                    ).append(
+                        $("<div/>", {
+                            "class": "row mt-2 hideView"
+                        }).append(
+                            $("<div/>", {
+                                "class": myLeftCol
+                            }).append("Number of Columns:")
+                        ).append(
+                            $("<div/>", {
+                                "class": "col"
+                            }).append(
+                                $("<input/>", {
+                                    type: "number",
+                                    name: "numcols"+slide,
+                                    id: "numColss"+slide,
+                                    "class": "numCols",
+                                    "data-slide": slide,
+                                    "step": 1,
+                                    value: lastColNum
+                                })
+                            )
+                        )
+                    ).append(
+                        $("<div/>", {
+                            "class": "row mt-2 hideView"
+                        }).append(
+                            $("<div/>", {
+                                "class": myLeftCol
+                            }).append("Select Orientation:")
+                        ).append(
+                            $("<div/>", {
+                                "class": "col"
+                            }).append(
+                                $("<select/>", {
+                                    name: "orientation"+slide,
+                                    id: "orientation"+slide,
+                                    "class": "orientation",
+                                    "data-slide": slide
+                                }).append(
+                                    $("<option/>", {
+                                        value: "col"
+                                    }).append("By column")
+                                ).append(
+                                    $("<option/>", {
+                                        value: "row"
+                                    }).append("By row")
+                                )
+                            )
+                        )
+                    ).append(
+                        $("<div/>", {
+                            "class": "row mt-2 hideView"
+                        }).append(
+                            $("<div/>", {
+                                "class": myLeftCol
+                            }).append("Create new slide template:")
+                        ).append(
+                            $("<div/>", {
+                                "class": "col"
+                            }).append(
+                                $("<input/>", {
+                                    type: "button",
+                                    name: "makeslide"+slide,
+                                    id: "makeSlide"+slide,
+                                    "class": "makeSlide",
+                                    "data-slide": slide,
+                                    value: "Make slide template"
+                                }).on("click", function () {
+                                    var slideNum = $(this).data("slide");
+                                    my_widget_script.makeSlide(slideNum);
+                                })
+                            )
+                        )
+                    ).append(
+                        $("<div/>", {
+                            "class": "row mt-2 hideView"
+                        }).append(
+                            $("<div/>", {
+                                "class": "col"
+                            }).append("Double click on cell to edit value")
+                        )
+                    )
+                );
+                $div.find(".orientation"+my_widget_script.slideSearch(slide)).val(lastOrientation);
+                var slideSearch = my_widget_script.slideSearch(slide);
+                $(".slideDiv"+slideSearch).show();
+                $(".slideDiv").not(slideSearch).hide();
+            }
+        }
+    }
 
     
 };
@@ -557,26 +876,55 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         border-width: thin;
         word-break: break-all;
     }
+    .filled{
+        background-color: lightblue;
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
 <div class="container">
     <div class="row">
+        <div class="myLeftCol">Enter mouse IDs. Put each mouse on a new line. Tip: copy/paste from a spreadsheet column</div>
+        <div class="col"><textarea name="identry" id="idEntry" rows="10" class="fullWidth" placeholder="Enter IDs"></textarea></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Select mice to add to slide. Use <kbd>shift</kbd> and <kbd>cmd/ctrl</kbd></div>
+        <div class="col">
+            <select name="idselect" id="idSelect" class="fullWidth" multiple>
+                &nbsp;
+            </select>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Make new slide entry</div>
+        <div class="col">
+            <input type="button" value="Make new slide entry" id="makeSlideDiv" name="makeslidediv" class="makeSlideDiv"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
+            Fill selected IDs starting with slide 
+            <input type="number" name="fillslide" id="fillSlide" style="width: 5em;" step="1" min="1" value="1"/> 
+            and cell <input type="number" name="fillcell" id="fillCell" style="width: 5em;" step="1" min="1" value="1"/>
+            <input type="button" value="Do it!" id="fillIDs" name="fillids"/>
+        </div>
+    </div>
+    <!-- <div class="row mt-2">
         <div class="myLeftCol">
             Number of Rows:
         </div>
         <div class="col">
-            <input type="number" name="numrows1" id="numRows1" class="numRows" data-day="1" step="1" value="4"/>
+            <input type="number" name="numrows1" id="numRows1" class="numRows" data-slide="1" step="1" value="4"/>
         </div>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol">Number of Columns</div>
-        <div class="col"><input type="number" name="numcols1" id="numCols1" class="numCols" data-day="1" step="1" value="7"></div>
+        <div class="col"><input type="number" name="numcols1" id="numCols1" class="numCols" data-slide="1" step="1" value="7"></div>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol">Select orientation</div>
         <div class="col">
-            <select name="orientation1" id="orientation1" class="orientation" data-day="1">
+            <select name="orientation1" id="orientation1" class="orientation" data-slide="1">
                 <option value="col">By column</option>
                 <option value="row">By row</option>
             </select>
@@ -584,18 +932,31 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
     <div class="row mt-2">
         <div class="myLeftCol">Create new slide template</div>
-        <div class="col"><input type="button" value="Make Slide" name="makeslide" id="makeSlide" class="makeSlide" data-day="1" data-date="2021-03-21"></div>
+        <div class="col"><input type="button" value="Make Slide" name="makeslide" id="makeSlide" class="makeSlide" data-slide="1"></div>
+    </div> -->
+</div>
+
+
+<div class="allSlides">
+    <div class="container selectDiv">
+        <div class="row mt-2">
+            <div class="myLeftCol">Select Slide</div>
+            <div class="col">
+                <select name="selectslide" id="selectSlide">
+                    <option val="">[Select slide]</option>
+                </select>
+            </div>
+        </div>
     </div>
+</div>
+
+<div class="container">
     <div class="row mt-2 forFixing">
         <div class="myLeftCol">Enter new value:</div>
         <div class="col">
             <input type="text" id="fixVal" name="fixval"/>
         </div>
     </div>
-</div>
-
-<div class="container slideDiv" data-day="1">
-
 </div>
 
 <!-- Error Message Div -->
@@ -615,18 +976,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <p>&nbsp;</p>
     </div>
 </div>
-
-
-General thoughts - 
- - Need to be able to create multiple slides per day
- - There should probably be a data-slide for keeping track of slide number
- - Maybe when add a new "day", create the slide div container
- - Need a way to then still indicate which slide you're working with within that day
-    - Want to be able to refresh the one you're on without ruining the previous ones
- - Should the mouse number always start at 1 for each day? or do you have it start from the end of the previous slide for each day?
- - How would it know to add the mouse to a new slide once the previous one is full? 
- - May need to add data-day or data-slide to the slideCells to know which to fill
- - OR have a global "mouseNum" and each new slide starts from there?
 
 <!-- #endregion -->
 <!------------------------------------------------------------------------------------------>
