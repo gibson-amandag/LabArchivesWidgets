@@ -61,6 +61,7 @@ $(document).ready(function () {
     my_widget_script =
 {
     slideDivNums: [],
+    slideNums: [],
 
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
@@ -82,18 +83,15 @@ $(document).ready(function () {
 
         //Uncomment to print parsedJson to consol
         //console.log("init", parsedJson);
-
-        //check parsedJson for info not contained in form inputs and reinitialize
-        this.initDynamicContent(parsedJson);
-
+        
         //resize the content box when the window size changes
         window.onresize = this.resize;
-
-        //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners();
-
+        
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
+        
+        //check parsedJson for info not contained in form inputs and reinitialize
+        this.initDynamicContent(parsedJson);
 
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
@@ -119,7 +117,10 @@ $(document).ready(function () {
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
         var output = { 
-            widgetData: JSON.parse(widgetJsonString)
+            widgetData: JSON.parse(widgetJsonString),
+            slideDivNums: dynamicContent.slideDivNums,
+            slideNums: dynamicContent.slideNums,
+            slideInfo: dynamicContent.slideInfo
         };
 
         //uncomment to check stringified output
@@ -157,7 +158,36 @@ $(document).ready(function () {
         var testData = JSON.parse(this.parent_class.test_data());
 
         //If no additional dynamic content 
-        var output = { widgetData: testData };
+        var output = { 
+            widgetData: testData,
+            slideDivNums: [1, 2],
+            slideNums: [1],
+            slideInfo: {
+                1: {
+                    cols: 2,
+                    rows: 2, 
+                    orientation: "row",
+                    cellInfo: {
+                        1: {
+                            text: "Cell 1",
+                            filled: true
+                        },
+                        2: {
+                            text: "Cell 2",
+                            filled: true
+                        },
+                        3: {
+                            text: "Cell 3", 
+                            filled: false
+                        },
+                        4: {
+                            text: "Cell 4",
+                            filled: false
+                        }
+                    }
+                }
+            }
+        };
 
         //Add additional content to match the objects in to_json
         //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
@@ -248,6 +278,44 @@ $(document).ready(function () {
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
+        if(parsedJson.slideDivNums){
+            var numDivs = parsedJson.slideDivNums.length;
+            my_widget_script.makeSlideDiv(numDivs);
+
+            if(parsedJson.slideNums){
+                // For each slide
+                for(var i = 0; i < parsedJson.slideNums.length; i++){
+                    var slide = parsedJson.slideNums[i];
+                    var slideInfo = parsedJson.slideInfo[slide];
+                    var cols = slideInfo.cols;
+                    var rows = slideInfo.rows;
+                    var orientation = slideInfo.orientation;
+                    // Make the slide with the slide #, # of rows, # of cols, and orientation
+                    my_widget_script.buildForSlideDiv(slide, rows, cols, orientation);
+                    var slideSearch = my_widget_script.slideSearch(slide);
+                    // Called after parent init function, so this replaces whatever was in the form with the actual values used to create the slide
+                    $(".numRows"+slideSearch).val(rows);
+                    $(".numCols"+slideSearch).val(cols);
+                    $(".orientation"+slideSearch).val(orientation);
+
+                    var numCells = cols * rows;
+                    var $div = $(".slideDiv"+my_widget_script.slideSearch(slide));
+                    // Fill each cell with the text and mark if filled
+                    for (var j = 0; j < numCells; j++){
+                        var cell = j + 1;
+                        var cellInfo = slideInfo.cellInfo[cell];
+                        var text = cellInfo.text;
+                        var filled = cellInfo.filled;
+                        var cellSearch = my_widget_script.cellSearch(cell);
+                        var $cell = $div.find(cellSearch);
+                        $cell.text(text);
+                        if(filled){
+                            $cell.addClass("filled");
+                        }
+                    }
+                }
+            }
+        }
         // for (var i = 0; i < parsedJson.addedRows; i++) {
         // };
     },
@@ -266,14 +334,6 @@ $(document).ready(function () {
             $(".hideView").hide();
             $(".slideDiv").show();
         }
-    },
-
-    /**
-     * TO DO: edit this function to define behavior when the user interacts with the form.
-     * This could include when buttons are clicked or when inputs change.
-     */
-    addEventListeners: function () {
-        
     },
 
     /**
@@ -494,7 +554,47 @@ $(document).ready(function () {
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var dynamicContent = {};
+        var slideInfo = {};
+        if(my_widget_script.slideNums){
+            for(var i = 0; i < my_widget_script.slideNums.length; i++){
+                var slide = my_widget_script.slideNums[i];
+                var slideSearch = my_widget_script.slideSearch(slide);
+                $div = $(".forSlide"+slideSearch);
+                var numCols = $div.data("numcols");
+                var numRows = $div.data("numrows");
+                var orientation = $div.data("orientation");
+
+                var numMice = numCols * numRows;
+                var $div = $(".slideDiv"+my_widget_script.slideSearch(slide));
+                
+                var cellInfo = {};
+                for (var j = 0; j < numMice; j++){
+                    var cell = j + 1;
+                    var cellSearch = my_widget_script.cellSearch(cell);
+                    var $cell = $div.find(cellSearch);
+                    var filled = $cell.hasClass("filled");
+                    var text = $cell.text();
+                    cellInfo[cell] = {
+                        text: text,
+                        filled: filled
+                    };
+                }
+                slideInfo[slide] = {
+                    cellInfo: cellInfo,
+                    cols: numCols,
+                    rows: numRows,
+                    orientation: orientation
+                }
+            }
+            // console.log(slideInfo);
+
+        }
+
+        var dynamicContent = {
+            slideDivNums: my_widget_script.slideDivNums,
+            slideNums: my_widget_script.slideNums,
+            slideInfo: slideInfo
+        };
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -566,6 +666,7 @@ $(document).ready(function () {
         var slideSearch = my_widget_script.slideSearch(slide);
         var cols = $(".numCols"+slideSearch).val();
         var rows = $(".numRows"+slideSearch).val();
+        var proceed = true;
 
         if(cols && rows){
             cols = parseInt(cols);
@@ -573,56 +674,67 @@ $(document).ready(function () {
             var orientation = $(".orientation"+slideSearch).val();
         } else {
             alert("Select both number of columns and rows");
-            return;
+            proceed = false;
         }
 
-        var $div = $(".slideDiv"+my_widget_script.slideSearch(slide));
-        var proceed = true;
-        if($div.find(".forSlide").html()){
-            proceed = confirm("Are you sure that you wish to replace the existing slide?")
+        if(proceed && my_widget_script.checkInArray(slide, my_widget_script.slideNums)){
+            proceed = confirm("Are you sure that you wish to replace the existing slide?");
+        } else {
+            my_widget_script.slideNums[my_widget_script.slideNums.length] = slide;
         }
+
+        // console.log(my_widget_script.slideNums);
 
         if(proceed){
-            $div.find(".forSlide").remove();
-            $div.append(
+            my_widget_script.buildForSlideDiv(slide, rows, cols, orientation);
+        }
+    },
+
+    buildForSlideDiv: function (slide, rows, cols, orientation){
+        var $div = $(".slideDiv"+my_widget_script.slideSearch(slide));
+        $div.find(".forSlide").remove();
+        $div.append(
+            $("<div/>", {
+                "class": "forSlide container mt-2",
+                "data-numcols": cols,
+                "data-numrows": rows,
+                "data-orientation": orientation,
+                "data-slide": slide
+            })
+        );
+        var mouseNum = 1;
+        for (var i = 0; i < rows; i++ ){
+            var row = i + 1;
+            if(orientation == "col"){
+                var mouseNum = row;
+            }
+            $div.find(".forSlide").append(
                 $("<div/>", {
-                    "class": "forSlide container mt-2"
+                    "class": "row",
+                    "data-row": row
                 })
             );
-            var mouseNum = 1;
-            for (var i = 0; i < rows; i++ ){
-                var row = i + 1;
-                if(orientation == "col"){
-                    var mouseNum = row;
-                }
-                $div.find(".forSlide").append(
+            var rowSearch = my_widget_script.rowSearch(row);
+            var $rowRow = $div.find(".row"+rowSearch);
+            for(var j = 0; j < cols; j++){
+                var col = j + 1;
+                $rowRow.append(
                     $("<div/>", {
-                        "class": "row",
-                        "data-row": row
-                    })
+                        "class": "col slideCell",
+                        "data-col": col,
+                        "data-cell": mouseNum
+                    }).on("dblclick", function () {
+                        // Allows for correcting value if double-clicked
+                        var text = $(this).text();
+                        $(this).addClass("fixing").addClass("filled");
+                        $(".forFixing").show();
+                        $("#fixVal").val(text).select();
+                    }).append(mouseNum)
                 );
-                var rowSearch = my_widget_script.rowSearch(row);
-                var $rowRow = $div.find(".row"+rowSearch);
-                for(var j = 0; j < cols; j++){
-                    var col = j + 1;
-                    $rowRow.append(
-                        $("<div/>", {
-                            "class": "col slideCell",
-                            "data-col": col,
-                            "data-cell": mouseNum
-                        }).on("dblclick", function () {
-                            // Allows for correcting value if double-clicked
-                            var text = $(this).text();
-                            $(this).addClass("fixing").addClass("filled");
-                            $(".forFixing").show();
-                            $("#fixVal").val(text).select();
-                        }).append(mouseNum)
-                    );
-                    if(orientation == "col"){
-                        mouseNum = mouseNum + rows;
-                    } else {
-                        mouseNum++
-                    }
+                if(orientation == "col"){
+                    mouseNum = mouseNum + rows;
+                } else {
+                    mouseNum++
                 }
             }
         }
@@ -676,7 +788,51 @@ $(document).ready(function () {
                         "class": "container slideDiv",
                         "data-slide": slide
                     }).append(
-                        "<h3 class='col'>Slide " + slide + "</h3>"
+                        $("<div/>", {
+                            "class": "row"
+                        }).append(
+                            "<h3 class='col'>Slide " + slide + "</h3>"
+                        )
+                    ).append(
+                        $("<div/>", {
+                            "class": "row mt-2"
+                        }).append(
+                            $("<div/>", {
+                                "class": myLeftCol
+                            }).append("Date slide started:")
+                        ).append(
+                            $("<div/>", {
+                                "class": "col"
+                            }).append(
+                                $("<input/>", {
+                                    type: "date",
+                                    name: "startdate"+slide,
+                                    id: "startDate"+slide,
+                                    "class": "startDate",
+                                    "data-slide": slide
+                                })
+                            )
+                        )
+                    ).append(
+                        $("<div/>", {
+                            "class": "row mt-2"
+                        }).append(
+                            $("<div/>", {
+                                "class": myLeftCol
+                            }).append("Date slide finished:")
+                        ).append(
+                            $("<div/>", {
+                                "class": "col"
+                            }).append(
+                                $("<input/>", {
+                                    type: "date",
+                                    name: "enddate"+slide,
+                                    id: "endDate"+slide,
+                                    "class": "endDate",
+                                    "data-slide": slide
+                                })
+                            )
+                        )
                     ).append(
                         $("<div/>", {
                             "class": "row mt-2 hideView"
@@ -882,7 +1038,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container">
+<div class="container hideView">
     <div class="row">
         <div class="myLeftCol">Enter mouse IDs. Put each mouse on a new line. Tip: copy/paste from a spreadsheet column</div>
         <div class="col"><textarea name="identry" id="idEntry" rows="10" class="fullWidth" placeholder="Enter IDs"></textarea></div>
@@ -938,7 +1094,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 
 <div class="allSlides">
-    <div class="container selectDiv">
+    <div class="container selectDiv hideView">
         <div class="row mt-2">
             <div class="myLeftCol">Select Slide</div>
             <div class="col">
