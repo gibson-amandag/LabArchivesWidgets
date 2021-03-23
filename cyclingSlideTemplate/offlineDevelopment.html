@@ -86,18 +86,22 @@ $(document).ready(function () {
         
         //resize the content box when the window size changes
         window.onresize = this.resize;
+
+        //check parsedJson for info not contained in form inputs and reinitialize
+        this.initDynamicContent(parsedJson);
         
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
         
-        //check parsedJson for info not contained in form inputs and reinitialize
-        this.initDynamicContent(parsedJson);
+        this.fillRowsColsOrientation(parsedJson);
 
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
 
         // Set up the form based on previously entered form input
         this.setUpInitialState();
+
+        $("#idSelect").val(parsedJson.selectedMice);
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
@@ -120,7 +124,8 @@ $(document).ready(function () {
             widgetData: JSON.parse(widgetJsonString),
             slideDivNums: dynamicContent.slideDivNums,
             slideNums: dynamicContent.slideNums,
-            slideInfo: dynamicContent.slideInfo
+            slideInfo: dynamicContent.slideInfo,
+            selectedMice: dynamicContent.selectedMice
         };
 
         //uncomment to check stringified output
@@ -291,6 +296,7 @@ $(document).ready(function () {
                     var rows = slideInfo.rows;
                     var orientation = slideInfo.orientation;
                     // Make the slide with the slide #, # of rows, # of cols, and orientation
+                    my_widget_script.slideNums.push(slide);
                     my_widget_script.buildForSlideDiv(slide, rows, cols, orientation);
                     var slideSearch = my_widget_script.slideSearch(slide);
                     // Called after parent init function, so this replaces whatever was in the form with the actual values used to create the slide
@@ -319,6 +325,25 @@ $(document).ready(function () {
         // for (var i = 0; i < parsedJson.addedRows; i++) {
         // };
     },
+
+    fillRowsColsOrientation: function (parsedJson) {
+        if(parsedJson.slideNums){
+            // For each slide
+            for(var i = 0; i < parsedJson.slideNums.length; i++){
+                var slide = parsedJson.slideNums[i];
+                var slideInfo = parsedJson.slideInfo[slide];
+                var cols = slideInfo.cols;
+                var rows = slideInfo.rows;
+                var orientation = slideInfo.orientation;
+                var slideSearch = my_widget_script.slideSearch(slide);
+                // Called after parent init function, so this replaces whatever was in the form with the actual values used to create the slide
+                $(".numRows"+slideSearch).val(rows);
+                $(".numCols"+slideSearch).val(cols);
+                $(".orientation"+slideSearch).val(orientation);
+            }
+        }
+    },
+
 
     /**
      * TO DO: edit this function to define how the HTML elements should be adjusted
@@ -398,6 +423,7 @@ $(document).ready(function () {
             var slideSearch = my_widget_script.slideSearch(selectedSlide);
             $(".slideDiv"+slideSearch).show();
             $(".slideDiv").not(slideSearch).hide();
+            my_widget_script.resize();
         })
 
         $("#fixVal").on("input", function () {
@@ -410,9 +436,10 @@ $(document).ready(function () {
             $(".fixing").removeClass("fixing");
             // Hide the forFixing div
             $(".forFixing").hide();
+            my_widget_script.resize();
         });
 
-        $("#idEntry").on("change", function () {
+        $("#idEntry").each(function () {
             var fullList = $(this).val();
             var splitList = fullList.split(/[\r\n]+/);
             // console.log(splitList);
@@ -428,6 +455,23 @@ $(document).ready(function () {
                 );
                 // console.log($select.find("option").last().text());
             }
+        }).on("change", function () {
+            var fullList = $(this).val();
+            var splitList = fullList.split(/[\r\n]+/);
+            // console.log(splitList);
+            var $select = $("#idSelect");
+            $select.html("");
+            for (var i = 0; i < splitList.length; i++ ){
+                mouseID = splitList[i];
+                $select.append(
+                    $("<option/>", {
+                        value: i,
+                        "data-mouse": i,
+                    }).append(mouseID)
+                );
+                // console.log($select.find("option").last().text());
+            }
+            my_widget_script.resize();
         });
 
         $("#fillIDs").on("click", function () {
@@ -538,6 +582,7 @@ $(document).ready(function () {
             }
             $("#fillSlide").val(slide);
             $("#fillCell").val(cell);
+            my_widget_script.resize();
         }
     },
 
@@ -590,10 +635,13 @@ $(document).ready(function () {
 
         }
 
+        var selectedMice = $("#idSelect").val();
+
         var dynamicContent = {
             slideDivNums: my_widget_script.slideDivNums,
             slideNums: my_widget_script.slideNums,
-            slideInfo: slideInfo
+            slideInfo: slideInfo,
+            selectedMice: selectedMice
         };
         return dynamicContent;
     },
@@ -729,6 +777,7 @@ $(document).ready(function () {
                         $(this).addClass("fixing").addClass("filled");
                         $(".forFixing").show();
                         $("#fixVal").val(text).select();
+                        my_widget_script.resize();
                     }).append(mouseNum)
                 );
                 if(orientation == "col"){
@@ -738,6 +787,7 @@ $(document).ready(function () {
                 }
             }
         }
+        my_widget_script.resize();
     },
 
     checkInArray: function (searchVal, array){
@@ -785,7 +835,7 @@ $(document).ready(function () {
 
                 $(".selectDiv").after(
                     $("<div/>", {
-                        "class": "container slideDiv",
+                        "class": "container slideDiv mt-2",
                         "data-slide": slide
                     }).append(
                         $("<div/>", {
@@ -942,11 +992,10 @@ $(document).ready(function () {
                 var slideSearch = my_widget_script.slideSearch(slide);
                 $(".slideDiv"+slideSearch).show();
                 $(".slideDiv").not(slideSearch).hide();
+                my_widget_script.resize();
             }
         }
     }
-
-    
 };
 
 //**************************************************************************
@@ -1065,31 +1114,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <input type="button" value="Do it!" id="fillIDs" name="fillids"/>
         </div>
     </div>
-    <!-- <div class="row mt-2">
-        <div class="myLeftCol">
-            Number of Rows:
-        </div>
-        <div class="col">
-            <input type="number" name="numrows1" id="numRows1" class="numRows" data-slide="1" step="1" value="4"/>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol">Number of Columns</div>
-        <div class="col"><input type="number" name="numcols1" id="numCols1" class="numCols" data-slide="1" step="1" value="7"></div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol">Select orientation</div>
-        <div class="col">
-            <select name="orientation1" id="orientation1" class="orientation" data-slide="1">
-                <option value="col">By column</option>
-                <option value="row">By row</option>
-            </select>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol">Create new slide template</div>
-        <div class="col"><input type="button" value="Make Slide" name="makeslide" id="makeSlide" class="makeSlide" data-slide="1"></div>
-    </div> -->
 </div>
 
 
@@ -1112,24 +1136,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="col">
             <input type="text" id="fixVal" name="fixval"/>
         </div>
-    </div>
-</div>
-
-<!-- Error Message Div -->
-<div class="container" id="errorMsg">&nbsp;</div>
-
-<!-- Example Table Container that is responsive to window width, including for xs -->
-<div class="container mt-2">
-    <div class="table-responsive xsTableDiv">
-        <table class="table">
-            <thead>
-                <tr>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <p>&nbsp;</p>
     </div>
 </div>
 
