@@ -60,8 +60,9 @@ $(document).ready(function () {
     form_script = 
     my_widget_script =
 {
-    mouseNums: [3, 4],
+    mouseNums: [],
     sampleNums: [],
+    startTime: "",
 
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
@@ -120,7 +121,9 @@ $(document).ready(function () {
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
         var output = { 
-            widgetData: JSON.parse(widgetJsonString)
+            widgetData: JSON.parse(widgetJsonString),
+            mouseNums: dynamicContent.mouseNums,
+            sampleNums: dynamicContent.sampleNums
         };
 
         //uncomment to check stringified output
@@ -158,7 +161,11 @@ $(document).ready(function () {
         var testData = JSON.parse(this.parent_class.test_data());
 
         //If no additional dynamic content 
-        var output = { widgetData: testData };
+        var output = { 
+            widgetData: testData,
+            mouseNums: [2, 4],
+            sampleNums: [1, 2, 3]
+        };
 
         //Add additional content to match the objects in to_json
         //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
@@ -209,6 +216,28 @@ $(document).ready(function () {
             }
         });
 
+        $("input[type='date']").each(function () {
+            var date = $(this).val();
+            if(date){
+                var validDate = my_widget_script.isValidDate(date);
+                if(!validDate){
+                    fail = true;
+                    fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
+                }
+            }
+        });
+
+        $("input[type='time']").each(function () {
+            var time = $(this).val();
+            if(time){
+                var validtime = my_widget_script.isValidTime(time);
+                if(!validtime){
+                    fail = true;
+                    fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
+                }
+            }
+        });
+
         if (fail) { //if fail is true (meaning a required element didn't have a value)
             return alert(fail_log); //return the fail log as an alert
         } else {
@@ -249,8 +278,15 @@ $(document).ready(function () {
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        // for (var i = 0; i < parsedJson.addedRows; i++) {
-        // };
+        if(parsedJson.mouseNums){
+            for(var i = 0; i < parsedJson.mouseNums.length; i++){
+                var mouse = parsedJson.mouseNums[i];
+                my_widget_script.makeMouseCard(mouse);
+            }
+        }
+        if(parsedJson.sampleNums){
+            my_widget_script.makeSampleContent(parsedJson.sampleNums.length);
+        }
     },
 
     /**
@@ -273,6 +309,80 @@ $(document).ready(function () {
      */
     addEventListeners: function () {
         
+    },
+
+    isValidTime: function (timeString) {
+        var regEx = "^(((([0-1][0-9])|(2[0-3])):[0-5][0-9]))$";
+        if(!timeString.match(regEx)){
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    isTimeSupported: function () {
+        // Check if browser has support for input type=time
+        var input = document.createElement('input');
+        input.setAttribute('type', 'time');
+        var supported = true;
+        if(input.type !== "time"){
+            supported = false;
+        }
+        my_widget_script.timeSupported = supported;
+        return (supported);
+    },
+
+    timeSupported: true,
+
+    checkTimeFormat: function ($timeInput) {
+        if(!my_widget_script.timeSupported){ // if not supported
+            $timeInput.next(".timeWarning").remove();
+            var time = $timeInput.val();
+            var isValid = my_widget_script.isValidTime(time);
+            if(!isValid){
+                $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
+            }
+            my_widget_script.resize();
+        }
+    },
+
+    isValidDate: function (dateString) {
+        // https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery/18759013
+        var regEx = /^\d{4}-\d{2}-\d{2}$/;
+        if(!dateString.match(regEx)) return false;  // Invalid format
+        var d = new Date(dateString);
+        var dNum = d.getTime();
+        if(!dNum && dNum !== 0) return false; // NaN value, Invalid date
+        return d.toISOString().slice(0,10) === dateString;
+    },
+
+    isDateSupported: function () {
+        // https://gomakethings.com/how-to-check-if-a-browser-supports-native-input-date-pickers/
+        // Check if browser has support for input type=date
+        var input = document.createElement('input');
+        // var value = 'a';
+        input.setAttribute('type', 'date');
+        var supported = true;
+        if(input.type !== "date"){
+            supported = false;
+        }
+        my_widget_script.dateSupported = supported;
+        return (supported);
+    },
+
+    dateSupported: true,
+
+    checkDateFormat: function ($dateInput) {
+        if(!my_widget_script.dateSupported){ // if not supported
+            $dateInput.next(".dateWarning").remove();
+            var date = $dateInput.val();
+            var isValid = my_widget_script.isValidDate(date);
+            if(!isValid){
+                $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
+            }
+            $dateInput.datepicker({dateFormat: "yy-mm-dd"})
+            my_widget_script.resize();
+        }
     },
 
     /**
@@ -300,6 +410,21 @@ $(document).ready(function () {
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
+        my_widget_script.isDateSupported();
+        my_widget_script.isTimeSupported();
+        
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
+            my_widget_script.checkDateFormat($(this));
+        }).each(function () {
+            my_widget_script.checkDateFormat($(this));
+        });
+        
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
+            my_widget_script.checkTimeFormat($(this));
+        }).each(function () {
+            my_widget_script.checkTimeFormat($(this));
+        });
+        
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
@@ -314,7 +439,7 @@ $(document).ready(function () {
                 height = forSizing.scrollHeight;
                 $(".forTextBox").hide();
             }
-            console.log(height);
+            // console.log(height);
             this.setAttribute('style', 'height:' + height + 'px;overflow-y:hidden;');
         }).on('input', function () {
             this.style.height = 'auto';
@@ -323,24 +448,101 @@ $(document).ready(function () {
         });
 
         $("#numSamples").each(function () {
-            var numSamples = $(this).val();
-            if(numSamples){
-                numSamples = parseInt(numSamples);
+            var totalNumSamples = $(this).val();
+            if(totalNumSamples){
+                totalNumSamples = parseInt(totalNumSamples);
             } else {
-                numSamples = 0;
+                totalNumSamples = 0;
             }
-            my_widget_script.makeSampleContent(numSamples);
+            my_widget_script.makeSampleContent(totalNumSamples);
         }).on("input", function () {
-            var numSamples = $(this).val();
-            if(numSamples){
-                numSamples = parseInt(numSamples);
+            var totalNumSamples = $(this).val();
+            if(totalNumSamples){
+                totalNumSamples = parseInt(totalNumSamples);
             } else {
-                numSamples = 0;
+                totalNumSamples = 0;
             }
-            my_widget_script.makeSampleContent(numSamples);
+            my_widget_script.makeSampleContent(totalNumSamples);
+        });
+
+        $(".otherSample").each(function () {
+            my_widget_script.showIfOtherCheck($(this));
+        }).on("change", function () {
+            my_widget_script.showIfOtherCheck($(this));
+        });
+
+        $("#timeZone").each(function () {
+            if($(this).val() == "est"){
+                my_widget_script.startTime = luxon.DateTime.fromObject({
+                    hour: 09,
+                    minute: 30
+                })
+            } else {
+                my_widget_script.startTime = luxon.DateTime.fromObject({
+                    hour: 10,
+                    minute: 30
+                })
+            }
+            my_widget_script.printExpTimes();
+            my_widget_script.watchSampleLabel();
+        }).on("change", function () {
+            if($(this).val() == "est"){
+                my_widget_script.startTime = luxon.DateTime.fromObject({
+                    hour: 09,
+                    minute: 30
+                })
+            } else {
+                my_widget_script.startTime = luxon.DateTime.fromObject({
+                    hour: 10,
+                    minute: 30
+                })
+            }
+            my_widget_script.printExpTimes();
+            my_widget_script.watchSampleLabel();
+        });
+
+        $("#addMouse").on("click", function () {
+            if(my_widget_script.mouseNums.length > 0){
+                var lastMouse = my_widget_script.mouseNums[my_widget_script.mouseNums.length - 1];
+                var mouseNum = lastMouse + 1;
+            } else {
+                var mouseNum = 1;
+            }
+            my_widget_script.makeMouseCard(mouseNum);
+
+            var totalNumSamples = $("#numSamples").val();
+            if(totalNumSamples){
+                totalNumSamples = parseInt(totalNumSamples);
+            } else {
+                totalNumSamples = 0;
+            }
+            my_widget_script.makeSampleContent(totalNumSamples);
+        });
+
+        $.each(my_widget_script.mouseNums, function () {
+            // console.log(this);
+            my_widget_script.watchMouseID(this);
+            my_widget_script.watchShortID(this);
+        });
+
+        $.each(my_widget_script.sampleNums, function () {
+            my_widget_script.watchSampleLabel(this);
         })
 
         my_widget_script.resize();
+    },
+
+    addToStartTime: function (hoursToAdd) {
+        var newTime = my_widget_script.startTime.plus({hours: hoursToAdd});
+        var newTimeString = newTime.toLocaleString(luxon.DateTime.TIME_24_SIMPLE);
+        return newTimeString
+    },
+
+    printExpTimes: function (){
+        $(".expStartTime").text(my_widget_script.addToStartTime(0));
+        $(".expRestraintTime").text(my_widget_script.addToStartTime(1));
+        $(".expScentTime").text(my_widget_script.addToStartTime(3));
+        $(".expEndTime").text(my_widget_script.addToStartTime(5));
     },
 
     /**
@@ -365,7 +567,10 @@ $(document).ready(function () {
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var dynamicContent = {};
+        var dynamicContent = {
+            mouseNums: my_widget_script.mouseNums,
+            sampleNums: my_widget_script.sampleNums,
+        };
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -408,6 +613,275 @@ $(document).ready(function () {
         return proceed
     },
 
+    watchMouseID: function (mouseNum) {
+        var mouseSearch = my_widget_script.mouseSearch(mouseNum);
+        var mouseID = $(".mouseID"+mouseSearch).val();
+        if(!mouseID){
+            mouseID = "[Enter Mouse " + mouseNum + " ID]";
+        }
+        $(".mouseIDCalc"+mouseSearch).html(mouseID);
+    },
+
+    watchShortID: function (mouseNum){
+        var mouseSearch = my_widget_script.mouseSearch(mouseNum);
+        var mouseID = $(".shortID"+mouseSearch).val();
+        if(!mouseID){
+            mouseID = "[Enter Short ID]";
+        }
+        $(".shortIDCalc"+mouseSearch).html(mouseID);
+    },
+
+    watchSampleLabel: function (sampleNum){
+        var sampleSearch = my_widget_script.sampleSearch(sampleNum);
+        var sampleID = $(".sampleLabel"+sampleSearch).val();
+        var sampleTime = $(".sampleTime"+sampleSearch).val();
+        if(!sampleID){
+            sampleID = "Sample " + sampleNum;
+        }
+        if(sampleTime){
+            sampleTime = "Hr " + sampleTime + " - " + my_widget_script.addToStartTime(parseFloat(sampleTime));
+            sampleID = sampleTime + " - " + sampleID;
+        }
+        $(".sampleLabelCalc"+sampleSearch).html(sampleID);
+    },
+
+    makeMouseCard: function (mouseNum) {
+        var inArray = my_widget_script.checkInArray(mouseNum, my_widget_script.mouseNums);
+        if(! inArray){
+            my_widget_script.mouseNums.push(mouseNum);
+
+            var $div = $(".mouseInfo");
+
+            if(! $div.find(".card").length){
+                $div.html("");
+            }
+
+            var row = "row mt-2";
+            var col = "col-12 col-lg-6";
+
+            $div.append(
+                $("<div/>", {
+                    "class": "col col-md-6 mt-2 mouseCard",
+                    "data-mouse": mouseNum
+                }).append(
+                    $("<div/>", {
+                        "class": "card"
+                    }).append(
+                        $("<div/>", {
+                            "class": "card-header mouseIDCalc",
+                            "data-mouse": mouseNum
+                        }).append("[Enter Mouse ID]")
+                    ).append(
+                        $("<div/>", {
+                            "class": "card-body"
+                        }).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("<h4>Mouse ID:</h4>")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<input/>", {
+                                        type: "text", 
+                                        "data-mouse": mouseNum,
+                                        id: "mouseID"+mouseNum,
+                                        name: "mouseid"+mouseNum,
+                                        "class": "mouseID fullWidth"
+                                    }).on("input", function () {
+                                        my_widget_script.watchMouseID($(this).data("mouse"));
+                                    })
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Short ID (for labels):")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<input/>", {
+                                        type: "text", 
+                                        "data-mouse": mouseNum,
+                                        id: "shortID"+mouseNum,
+                                        name: "shortid"+mouseNum,
+                                        "class": "shortID fullWidth"
+                                    }).on("input", function () {
+                                        my_widget_script.watchShortID($(this).data("mouse"));
+                                    })
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Treatment:")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<select/>", {
+                                        "data-mouse": mouseNum,
+                                        id: "treatment"+mouseNum,
+                                        name: "treatment"+mouseNum,
+                                        "class": "treatment fullWidth"
+                                    }).append('<option value="control">Control</option><option value="stress">Stress</option>')
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Delete:")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<input/>", {
+                                        type: "button", 
+                                        value: "Delete Mouse",
+                                        "data-mouse": mouseNum,
+                                        id: "deleteMouse"+mouseNum,
+                                        name: "deletemouse"+mouseNum,
+                                        "class": "deleteMouse fullWidth"
+                                    }).on("click", function () {
+                                        my_widget_script.deleteMouseFuncs($(this).data("mouse"));
+                                    })
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Sex:")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<select/>", {
+                                        "data-mouse": mouseNum,
+                                        id: "sex"+mouseNum,
+                                        name: "sex"+mouseNum,
+                                        "class": "sex fullWidth"
+                                    }).append(
+                                        '<option value="">[Select]</option><option value="male">Male</option><option value="female">Female</option>'
+                                    ).on("input", function () {
+                                        var sex = $(this).val();
+                                        if(sex == "female"){
+                                            $(this).parents(".row").next(".ifFemale").show();
+                                        }else {
+                                            $(this).parents(".row").next(".ifFemale").hide();
+                                        }
+                                    })
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": row + " ifFemale"
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Estrous Stage:")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<select/>", {
+                                        "data-mouse": mouseNum,
+                                        id: "stage"+mouseNum,
+                                        name: "stage"+mouseNum,
+                                        "class": "stage fullWidth"
+                                    }).append('<option value="">Select</option><option value="diestrus">Diestrus</option><option value="proestrus">Proestrus</option><option value="estrus">Estrus</option>')
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Body Mass:")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<input/>", {
+                                        type: "number", 
+                                        "data-mouse": mouseNum,
+                                        id: "mass"+mouseNum,
+                                        name: "mass"+mouseNum,
+                                        "class": "mass fullWidth"
+                                    })
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Gonad Mass:")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<input/>", {
+                                        type: "text", 
+                                        "data-mouse": mouseNum,
+                                        id: "gonadMass"+mouseNum,
+                                        name: "gonadmass"+mouseNum,
+                                        "class": "gonadMass fullWidth"
+                                    })
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+            my_widget_script.resize();
+        }
+    },
+
+    deleteMouseFuncs: function (mouseNum) {
+        // Remove it from the mouseNums
+        var index = my_widget_script.mouseNums.indexOf(mouseNum);
+        if(index > -1){
+            my_widget_script.mouseNums.splice(index, 1);
+        }
+
+        if(my_widget_script.sampleNums){
+            var numSamples = my_widget_script.sampleNums.length;
+            for(var i = 0; i < numSamples; i++){
+                var sample = my_widget_script.sampleNums[i];
+                var index = my_widget_script.miceInSamples[sample].indexOf(mouseNum);
+                if(index > -1){
+                    my_widget_script.miceInSamples[sample].splice(index, 1);
+                }
+            }
+        }
+
+        // console.log(my_widget_script.mouseNums);
+
+        var mouseSearch = my_widget_script.mouseSearch(mouseNum);
+        $(".mouseCard"+mouseSearch).remove();
+        $(".mouseSampleCard"+mouseSearch).remove();
+
+        my_widget_script.resize();
+    },
+
     makeSampleContent: function (totalNumSamples) {
         var sampleNum;
         var mice = my_widget_script.mouseNums;
@@ -418,9 +892,11 @@ $(document).ready(function () {
         }
         for(var i = 0; i < totalNumSamples; i++){
             sampleNum = i + 1;
-            console.log(my_widget_script.sampleNums);
-            console.log(my_widget_script.checkInArray(sampleNum, my_widget_script.sampleNums));
             if(! my_widget_script.checkInArray(sampleNum, my_widget_script.sampleNums)){
+                if(sampleNum == 1){
+                    $("#samplesAccordion").html("");
+                    $(".sampleInfoDiv").html("");
+                }
                 my_widget_script.sampleNums.push(sampleNum);
                 my_widget_script.miceInSamples[sampleNum] = [];
                 my_widget_script.makeSampleInfo(sampleNum);
@@ -428,11 +904,14 @@ $(document).ready(function () {
             }
             for (var j = 0; j < numMice; j++){
                 var mouse = mice[j];
+                // console.log(mouse);
                 var inSample = my_widget_script.checkMiceInSamples(sampleNum, mouse);
                 if(!inSample){
                     my_widget_script.miceInSamples[sampleNum].push(mouse);
                     my_widget_script.makeSampleForMouse(sampleNum, mouse);
                 }
+                my_widget_script.watchMouseID(mouse);
+                my_widget_script.watchShortID(mouse);
             }
         }
         my_widget_script.resize();
@@ -474,6 +953,8 @@ $(document).ready(function () {
                                 id: "sampleTime"+sampleNum,
                                 "class": "sampleTime fullWidth",
                                 "data-sample": sampleNum
+                            }).on("input", function () {
+                                my_widget_script.watchSampleLabel($(this).data("sample"));
                             })
                         )
                     ).append(
@@ -490,6 +971,8 @@ $(document).ready(function () {
                                 id: "sampleLabel"+sampleNum,
                                 "class": "sampleLabel fullWidth",
                                 "data-sample": sampleNum
+                            }).on("input", function () {
+                                my_widget_script.watchSampleLabel($(this).data("sample"));
                             })
                         )
                     ).append(
@@ -546,6 +1029,8 @@ $(document).ready(function () {
                                         id: "otherSample"+sampleNum,
                                         "data-sample": sampleNum,
                                         "class": "otherSample"
+                                    }).on("change", function () {
+                                        my_widget_script.showIfOtherCheck($(this));
                                     })
                                 ).append(
                                     $("<input/>", {
@@ -580,12 +1065,13 @@ $(document).ready(function () {
                         "class": "mb-0"
                     }).append(
                         $("<button/>", {
-                            "class": "btn btn-link btn-block text-left",
+                            "class": "btn btn-link btn-block text-left sampleLabelCalc",
                             type: "button",
                             "data-toggle": "collapse",
                             "data-target": "#samplingBody"+sampleNum,
                             "aria-expanded": "false",
-                            "aria-controls": "samplingBody"+sampleNum
+                            "aria-controls": "samplingBody"+sampleNum,
+                            "data-sample": sampleNum
                         }).append("Sample " + sampleNum)
                     )
                 )
@@ -606,7 +1092,6 @@ $(document).ready(function () {
         )
     },
     
-
     makeSampleForMouse: function (sampleNum, mouseNum) {
         var sampleSearch = my_widget_script.sampleSearch(sampleNum);
         var $div = $(".divForMouseSampling"+sampleSearch);
@@ -614,7 +1099,7 @@ $(document).ready(function () {
 
         $div.append(
             $("<div/>", {
-                "class": "card",
+                "class": "card mouseSampleCard",
                 "data-sample": sampleNum,
                 "data-mouse": mouseNum
             }).append(
@@ -670,6 +1155,15 @@ $(document).ready(function () {
                                     "class": "startButton fullWidth",
                                     "data-mouse": mouseNum,
                                     "data-sample": sampleNum
+                                }).on("click", function () {
+                                    var thisMouseNum = $(this).data("mouse");
+                                    var thisSampleNum = $(this).data("sample");
+                                    var mouseSearch = my_widget_script.mouseSearch(mouseNum);
+                                    var sampleSearch = my_widget_script.sampleSearch(sampleNum);
+                                    var currentTime = luxon.DateTime.now();
+                                    // en-GB makes it so that midnight is 00:xx instead of 24:xx
+                                    var timeString = currentTime.toLocaleString({...luxon.DateTime.TIME_24_SIMPLE, locale: "en-GB"});
+                                    $(".startTime"+mouseSearch+sampleSearch).val(timeString);
                                 })
                             )
                         ).append(
@@ -684,6 +1178,15 @@ $(document).ready(function () {
                                     "class": "endButton fullWidth",
                                     "data-mouse": mouseNum,
                                     "data-sample": sampleNum
+                                }).on("click", function () {
+                                    var thisMouseNum = $(this).data("mouse");
+                                    var thisSampleNum = $(this).data("sample");
+                                    var mouseSearch = my_widget_script.mouseSearch(mouseNum);
+                                    var sampleSearch = my_widget_script.sampleSearch(sampleNum);
+                                    var currentTime = luxon.DateTime.now();
+                                    // en-GB makes it so that midnight is 00:xx instead of 24:xx
+                                    var timeString = currentTime.toLocaleString({...luxon.DateTime.TIME_24_SIMPLE, locale: "en-GB"});
+                                    $(".endTime"+mouseSearch+sampleSearch).val(timeString);
                                 })
                             )
                         )
@@ -701,7 +1204,12 @@ $(document).ready(function () {
                                     name: "starttime"+sampMouseID,
                                     "class": "startTime fullWidth",
                                     "data-mouse": mouseNum,
-                                    "data-sample": sampleNum
+                                    "data-sample": sampleNum,
+                                    "placeholder": "hh:mm"
+                                }).each(function () {
+                                    my_widget_script.checkTimeFormat($(this));
+                                }).on("change", function () {
+                                    my_widget_script.checkTimeFormat($(this));
                                 })
                             )
                         ).append(
@@ -715,7 +1223,12 @@ $(document).ready(function () {
                                     name: "endtime"+sampMouseID,
                                     "class": "endTime fullWidth",
                                     "data-mouse": mouseNum,
-                                    "data-sample": sampleNum
+                                    "data-sample": sampleNum,
+                                    "placeholder": "hh:mm"
+                                }).each(function () {
+                                    my_widget_script.checkTimeFormat($(this));
+                                }).on("change", function () {
+                                    my_widget_script.checkTimeFormat($(this));
                                 })
                             )
                         )
@@ -727,9 +1240,9 @@ $(document).ready(function () {
                                 "class": "col"
                             }).append(
                                 $("<select/>", {
-                                    id: "startNotes"+sampMouseID,
-                                    name: "startnotes"+sampMouseID,
-                                    "class": "startNotes fullWidth",
+                                    id: "behaviorNotes"+sampMouseID,
+                                    name: "behaviornotes"+sampMouseID,
+                                    "class": "behaviorNotes fullWidth",
                                     "data-mouse": mouseNum,
                                     "data-sample": sampleNum
                                 }).append(
@@ -744,6 +1257,25 @@ $(document).ready(function () {
                                     "class": "addNotes fullWidth",
                                     "data-sample": sampleNum,
                                     "data-mouse": mouseNum,
+                                }).on("click", function () {
+                                    var thisMouseNum = $(this).data("mouse");
+                                    var thisSampleNum = $(this).data("sample");
+                                    var mouseSearch = my_widget_script.mouseSearch(mouseNum);
+                                    var sampleSearch = my_widget_script.sampleSearch(sampleNum);
+                                    var selectedBehavior = $(".behaviorNotes"+mouseSearch+sampleSearch).find("option:selected").text();
+                                    if(selectedBehavior == "[Select]"){
+                                        selectedBehavior = "";
+                                    }
+                                    var currentVal = $(".notes"+mouseSearch+sampleSearch).val();
+                                    if(currentVal){
+                                        currentVal = currentVal + "\n";
+                                    }
+                                    $(".notes"+mouseSearch+sampleSearch).val(currentVal+selectedBehavior);
+                                    // Resize
+                                    var notesTxtbox = document.getElementById("notes"+thisSampleNum+"_"+thisMouseNum);
+                                    notesTxtbox.style.height = 'auto';
+                                    notesTxtbox.style.height = (notesTxtbox.scrollHeight) + 'px';
+                                    my_widget_script.resize();
                                 })
                             )
                         ).append(
@@ -789,6 +1321,20 @@ $(document).ready(function () {
     sampleSearch: function (sampleNum){
         var sampleSearch = my_widget_script.dataSearch("sample", sampleNum);
         return sampleSearch;
+    },
+
+    showWithCheck: function ($chbx, $toToggle) {
+        if($chbx.is(":checked")){
+            $toToggle.show();
+        } else {
+            $toToggle.hide();
+        }
+        my_widget_script.resize();
+    },
+
+    showIfOtherCheck: function ($chbx) {
+        var $ifOther = $chbx.next(".ifOther");
+        my_widget_script.showWithCheck($chbx, $ifOther);
     }
 };
 
@@ -878,7 +1424,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         width: 100%
     }
 
-    .forTextBox {
+    .forTextBox, .ifOther, .ifFemale {
         display: none;
     }
 </style>
@@ -891,7 +1437,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row mt-2">
         <div class="myLeftCol">Date:</div>
         <div class="col">
-            <input type="date" name="expdate" id="expDate" class="fullWidth"/>
+            <input type="date" name="expdate" id="expDate" class="fullWidth" placeholder="YYYY-MM-DD"/>
         </div>
     </div>
     <div class="row mt-2">
@@ -925,208 +1471,35 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<div class="container mouseInfo">
+<div class="container">
     <div class="row mt-2 align-items-center">
         <h3 class="myLeftCol">Mouse Info:</h3>
         <div class="col">
             <input type="button" value="Add new mouse" id="addMouse" name="addmouse" class="fullWidth"/>
         </div>
     </div>
-    <!-- Add Dyanmically with Button -->
-    <div class="card col-12 col-md-6 mt-2 mouseCard" data-mouse="1">
-        <div class="card-header">Mouse 1</div>
-        <div class="card-body">
-            <div class="row mt-2">
-                <div class="col-12 col-lg-6"><h4>Mouse ID:</h4></div>
-                <div class="col"><input type="text" data-mouse="1" id="mouseID1" name="mouseid1" class="mouseID fullWidth"/></div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-12 col-lg-6">Short ID (for labels):</div>
-                <div class="col">
-                    <select name="treatment1" id="treatment1" data-mouse="1" class="treatment fullWidth">
-                        <option value="control">Control</option>
-                        <option value="stress">Stress</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-12 col-lg-6">Delete:</div>
-                <div class="col"><input type="button" value="Delete Mouse" id="deleteMouse1" name="deletemouse1" class="deleteMouse fullWidth" data-mouse="1"/></div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-12 col-lg-6">Sex:</div>
-                <div class="col">
-                    <select name="sex1" id="sex1" class="fullWidth sex" data-mouse="1">
-                        <option value="">[Select]</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row mt-2 ifFemale">
-                <div class="col-12 col-lg-6">Estrous Stage:</div>
-                <div class="col">
-                    <select name="stage1" id="stage1" class="fullWidth stage" data-mouse="1">
-                        <option value="">Select</option>
-                        <option value="diestrus">Diestrus</option>
-                        <option value="proestrus">Proestrus</option>
-                        <option value="estrus">Estrus</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-12 col-lg-6">Body mass:</div>
-                <div class="col">
-                    <input type="number" name="mass1" id="mass1" class="mass fullWidth" data-mouse="1"/>
-                </div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-12 col-lg-6">Gonad Mass:</div>
-                <div class="col">
-                    <input type="number" name="gonadmass1" id="gonadMass1" class="gonadMass fullWidth" data-mouse="1"/>
-                </div>
-            </div>
-        </div>
+    <div class="row mouseInfo">
+        &nbsp;
     </div>
-
 </div>
 
 <div class="container">
     <div class="row mt-2">
         <h3 class="col">Sampling Info:</h3>
     </div>
-    <div class="row mt-2">
-        <div class="myLeftCol">Max # of Samples:</div>
+    <div class="row mt-2 align-items-center">
+        <div class="myLeftCol">Total # Possible Sample Times:</div>
         <div class="col"><input type="number" name="numsamples" id="numSamples" class="fullWidth"></div>
     </div>
 
     <div class="row sampleInfoDiv">
-        <!-- &nbsp; -->
-        <!-- <div class="col-12 col-md-6 mt-2 ">
-            <div class="card sampleInfo" data-sample="1">
-                <div class="card-header">Sample 1</div>
-                <div class="card-body row">
-                    <div class="col-12 col-lg-6 font-weight-bold mt-2">Exp Hour:</div>
-                    <div class="col-12 col-lg-6 mt-lg-2">
-                        <input type="number" name="sampletime1" id="sampleTime1" class="sampleTime fullWidth" data-sample="1"/>
-                    </div>
-                    <div class="col-12 col-lg-6 font-weight-bold mt-2">Sample Label:</div>
-                    <div class="col-12 col-lg-6 mt-lg-2">
-                        <input type="text" name="samplelabel1" id="sampleLabel1" class="sampleLabel fullWidth" data-sample="1"/>
-                    </div>
-                    <div class="col-12 col-lg-6 font-weight-bold mt-2">Sample for:</div>
-                    <div class="col-12 col-lg-6 mt-lg-2">
-                        <div class="row">
-                            <div class="col">
-                                Cort: <input type="checkbox" name="cort2" id="cort2" data-sample="2" class="cort"/> 
-                            </div>
-                            <div class="col">
-                                LH: <input type="checkbox" name="lh2" id="LH2" data-sample="2" class="LH"/> 
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Other: <input type="checkbox" name="othersample2" id="otherSample2" data-sample="2" class="otherSample"/> 
-                                <input type="text" name="othername2" id="otherName2" data-sample="2" class="otherName ifOther fullWidth"/> 
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> -->
-    </div>
-    <!-- Add Dynamically -->
+        &nbsp;
+        </div>
 </div>
 
 <div class="container samplesDiv mt-2">
     <div class="accordion" id="samplesAccordion">
-        <!-- Add dynamically  -->
-        <!-- <div class="card samplingCard" data-sample="1">
-            <div class="card-header samplingHead" id="samplingHead1">
-                <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#samplingBody1" aria-expanded="false" aria-controls="samplingBody1">
-                    Sample 1
-                </button>
-                </h2>
-            </div>
-         -->
-            <!-- <div id="samplingBody1" class="collapse hide samplingBody" aria-labelledby="samplingHead1" data-parent="#samplesAccordion" data-sample="1">
-                <div class="card-body"> -->
-                    <!-- Add new card dynamically for each mouse -->
-                    <!-- <div class="card" data-sample="1" data-mouse="1">
-                        <div class="card-header" id="heading1_1">
-                        <h2 class="mb-0">
-                            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#body1_1" aria-expanded="false" aria-controls="body1_1">
-                                <span class="mouseIDCalc" data-mouse="1">[Enter Mouse ID]</span> - <span class="shortIDCalc" data-mouse="1">[Enter Short ID]</span>
-                            </button>
-                        </h2>
-                        </div>
-                    
-                        <div id="body1_1" class="collapse hide" aria-labelledby="heading1_1">
-                            <div class="card-body container" data-mouse="1" data-sample="1">
-                                <div class="row">
-                                    <div class="col">
-                                        <input type="button" value="Start" id="startButton1_1" name="startbutton1_1" class="startButton fullWidth" data-mouse="1" data-sample="1"/>
-                                    </div>
-                                    <div class="col">
-                                        <input type="button" value="End" id="endButton1_1" name="endbutton1_1" class="endButton fullWidth" data-mouse="1" data-sample="1"/>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col">
-                                        <input type="time" id="startTime1_1" name="starttime1_1" class="startTime fullWidth" data-mouse="1" data-sample="1"/>
-                                    </div>
-                                    <div class="col">
-                                        <input type="time" id="endTime1_1" name="endtime1_1" class="endTime fullWidth" data-mouse="1" data-sample="1"/>
-                                    </div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col">
-                                        <select name="selectnotes1_1" id="selectNotes1_1" class="selectNotes fullWidth" data-sample="1" data-mouse="1">
-                                            <option value="">[Select]</option>
-                                            <option value="calm">Calm</option>
-                                            <option value="jumpy">Jumpy</option>
-                                            <option value="exploring">Exploring</option>
-                                            <option value="hunched">Hunched</option>
-                                        </select>
-                                        <input type="button" value="Add notes" id="addNotes1_1" name="addnotes1_1" class="addNotes fullWidth" data-sample="1" data-mouse="1"/>
-                                    </div>
-                                    <div class="col"><textarea name="notes1_1" id="notes1_1" rows="1" class="notes fullWidth autoAdjust" placeholder="Notes" data-sample="1" data-mouse="1"></textarea></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div> -->
-                <!-- </div>
-            </div>
-        </div> -->
-        <!-- <div class="card">
-          <div class="card-header" id="headingTwo">
-            <h2 class="mb-0">
-              <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                Collapsible Group Item #2
-              </button>
-            </h2>
-          </div>
-          <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#samplesAccordion">
-            <div class="card-body">
-              Some placeholder content for the second accordion panel. This panel is hidden by default.
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header" id="headingThree">
-            <h2 class="mb-0">
-              <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                Collapsible Group Item #3
-              </button>
-            </h2>
-          </div>
-          <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#samplesAccordion">
-            <div class="card-body">
-              And lastly, the placeholder content for the third and final accordion panel. This panel is hidden by default.
-            </div>
-          </div>
-        </div> -->
+        &nbsp;
     </div>
 </div>
 
