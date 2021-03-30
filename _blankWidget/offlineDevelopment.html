@@ -340,6 +340,7 @@ $(document).ready(function () {
             supported = false;
         }
         my_widget_script.timeSupported = supported;
+        input.remove();
         return (supported);
     },
 
@@ -378,6 +379,7 @@ $(document).ready(function () {
             supported = false;
         }
         my_widget_script.dateSupported = supported;
+        input.remove();
         return (supported);
     },
 
