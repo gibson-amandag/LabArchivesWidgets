@@ -36,16 +36,17 @@ my_widget_script =
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
+        
+        // Set up the form based on previously entered form input
+        this.setUpInitialState();
+        
+        //adjust form design and buttons based on mode
+        this.adjustForMode(mode);
+        
         if(parsedJson.selectedDays){
             // Update multi-select list
             $("#selectMassDays").val(parsedJson.selectedDays);
         }
-
-        // Set up the form based on previously entered form input
-        this.setUpInitialState();
-
-        //adjust form design and buttons based on mode
-        this.adjustForMode(mode);
     },
 
     to_json: function () {
@@ -117,6 +118,7 @@ my_widget_script =
             numPupsStart: 3,
             numPupsEnd: 2,
             tailMarksEnd: tailMarksEnd,
+            selectedDays: [14, 15]
         }
         //return the stringified output for use by the init function
         return JSON.stringify(output);
@@ -161,6 +163,28 @@ my_widget_script =
                     fail_log += name + " is required \n"; //add to the fail log that this name is required
                 }
 
+            }
+        });
+
+        $("input[type='date']").each(function () {
+            var date = $(this).val();
+            if(date){
+                var validDate = my_widget_script.isValidDate(date);
+                if(!validDate){
+                    fail = true;
+                    fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
+                }
+            }
+        });
+
+        $("input[type='time']").each(function () {
+            var time = $(this).val();
+            if(time){
+                var validtime = my_widget_script.isValidTime(time);
+                if(!validtime){
+                    fail = true;
+                    fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
+                }
             }
         });
 
@@ -233,22 +257,22 @@ my_widget_script =
     adjustForMode: function (mode) {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
-            $("#addPupP4").prop('disabled', true);
-            $("#removePupP4").prop('disabled', true);
-            $("#addPupP11").prop('disabled', true);
-            $("#removePupP11").prop('disabled', true);
-            $("#addPupP2").prop('disabled', true);
-            $("#removePupP2").prop('disabled', true);
-            $("#addPupP9").prop('disabled', true);
-            $("#removePupP9").prop('disabled', true);
             $(".hideView").hide();
             $(".massDiv.demo").show();
-            $(".massDivP2.demo").show();
             $(".offspringDemoEnd").hide();
             if ($("#treatmentPeriod").val()) {
                 $("#offspringMassOutDiv").show();
                 $("#damOutDiv").show();
             }
+            $("input[type='date']").removeClass(".hasDatePicker");
+        } else{
+            $("input[type='date']").each(function () {
+                my_widget_script.checkDateFormat($(this));
+            });
+            
+            $("input[type='time']").each(function () {
+                my_widget_script.checkTimeFormat($(this));
+            });
         }
     },
 
@@ -370,11 +394,98 @@ my_widget_script =
         });
     },
 
+    isValidTime: function (timeString) {
+        var regEx = "^(((([0-1][0-9])|(2[0-3])):[0-5][0-9]))$";
+        if(!timeString.match(regEx)){
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    isTimeSupported: function () {
+        // Check if browser has support for input type=time
+        var input = document.createElement('input');
+        input.setAttribute('type', 'time');
+        var supported = true;
+        if(input.type !== "time"){
+            supported = false;
+        }
+        my_widget_script.timeSupported = supported;
+        input.remove();
+        return (supported);
+    },
+
+    timeSupported: true,
+
+    checkTimeFormat: function ($timeInput) {
+        if(!my_widget_script.timeSupported){ // if not supported
+            $timeInput.next(".timeWarning").remove();
+            var time = $timeInput.val();
+            var isValid = my_widget_script.isValidTime(time);
+            if(!isValid){
+                $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
+            }
+            my_widget_script.resize();
+        }
+    },
+
+    isValidDate: function (dateString) {
+        // https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery/18759013
+        var regEx = /^\d{4}-\d{2}-\d{2}$/;
+        if(!dateString.match(regEx)) return false;  // Invalid format
+        var d = new Date(dateString);
+        var dNum = d.getTime();
+        if(!dNum && dNum !== 0) return false; // NaN value, Invalid date
+        return d.toISOString().slice(0,10) === dateString;
+    },
+
+    isDateSupported: function () {
+        // https://gomakethings.com/how-to-check-if-a-browser-supports-native-input-date-pickers/
+        // Check if browser has support for input type=date
+        var input = document.createElement('input');
+        // var value = 'a';
+        input.setAttribute('type', 'date');
+        var supported = true;
+        if(input.type !== "date"){
+            supported = false;
+        }
+        my_widget_script.dateSupported = supported;
+        input.remove();
+        return (supported);
+    },
+
+    dateSupported: true,
+
+    checkDateFormat: function ($dateInput) {
+        if(!my_widget_script.dateSupported){ // if not supported
+            $dateInput.next(".dateWarning").remove();
+            var date = $dateInput.val();
+            var isValid = my_widget_script.isValidDate(date);
+            if(!isValid){
+                $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
+            }
+            $dateInput.datepicker({dateFormat: "yy-mm-dd"})
+            my_widget_script.resize();
+        }
+    },
+
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 text-left text-sm-right");
         $('.myLeftCol2').addClass("col-6 col-md-4 col-lg-3 col-xl-2 text-right");
 
+        my_widget_script.isDateSupported();
+        my_widget_script.isTimeSupported();
+        
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
+            my_widget_script.checkDateFormat($(this));
+        });
+        
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
+            my_widget_script.checkTimeFormat($(this));
+        });
+        
         //Print PND dates
         if ($("#DOB").val()) {
             my_widget_script.printPND_days();
@@ -521,6 +632,7 @@ my_widget_script =
             selectedDays: $("#selectMassDays").val()
         }
 
+        // console.log(dynamicContent);
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -1093,7 +1205,7 @@ my_widget_script =
             mouseNum = 1
         }
 
-        var rowClass = "added row mt-1 align-items-center";
+        var rowClass = "row added mt-1 align-items-center";
 
         var idClass = "idCalc";
         var sexClass = "sexCalc";
@@ -1150,7 +1262,7 @@ my_widget_script =
                         type: "number",
                         "data-pnd": whichDay,
                         "data-mouse": mouseNum,
-                        "class": massClass
+                        "class": massClass + " fullWidth"
                     }).on("input", function () {
                         var pnd = $(this).data("pnd");
                         var mouse = $(this).data("mouse");
