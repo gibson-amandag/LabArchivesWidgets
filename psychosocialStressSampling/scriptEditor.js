@@ -245,6 +245,15 @@ my_widget_script =
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
             $(".hideView").hide();
+            $("input[type='date']").removeClass(".hasDatePicker");
+        } else {
+            $("input[type='date']").each(function () {
+                my_widget_script.checkDateFormat($(this));
+            });
+            
+            $("input[type='time']").each(function () {
+                my_widget_script.checkTimeFormat($(this));
+            });
         }
     },
 
@@ -361,16 +370,12 @@ my_widget_script =
     setUpInitialState: function () {
         my_widget_script.isDateSupported();
         my_widget_script.isTimeSupported();
-        
+
         $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
-            my_widget_script.checkDateFormat($(this));
-        }).each(function () {
             my_widget_script.checkDateFormat($(this));
         });
         
         $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
-            my_widget_script.checkTimeFormat($(this));
-        }).each(function () {
             my_widget_script.checkTimeFormat($(this));
         });
         
@@ -462,7 +467,6 @@ my_widget_script =
 
         $.each(my_widget_script.mouseNums, function () {
             // console.log(this);
-            my_widget_script.watchMouseID(this);
             my_widget_script.watchMouseID(this);
         });
 
@@ -862,7 +866,6 @@ my_widget_script =
                     my_widget_script.miceInSamples[sampleNum].push(mouse);
                     my_widget_script.makeSampleForMouse(sampleNum, mouse);
                 }
-                my_widget_script.watchMouseID(mouse);
                 my_widget_script.watchMouseID(mouse);
             }
         }
