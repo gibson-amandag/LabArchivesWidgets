@@ -5,25 +5,11 @@ my_widget_script =
     startTime: "",
 
     init: function (mode, json_data) {
-        //this method is called when the form is being constructed
-        // parameters
-        // mode = if it equals 'view' than it should not be editable
-        //        if it equals 'edit' then it will be used for entry
-        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
-        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
-
-        // json_data will contain the data to populate the form with, it will be in the form of the data
-        // returned from a call to to_json or empty if this is a new form.
-        //By default it calls the parent_class's init.
-
         //uncomment to inspect and view code while developing
         // debugger;
 
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
-
-        //Uncomment to print parsedJson to consol
-        //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
@@ -52,10 +38,6 @@ my_widget_script =
     },
     
     to_json: function () {
-        //should return a json string containing the data entered into the form by the user
-        //whatever is return from the method is persisted in LabArchives.  must not be binary data.
-        //called when the user hits the save button, when adding or editing an entry
-
         //Acquire input data from the form using the parent_class.to_json() function
         var widgetJsonString = this.parent_class.to_json();
 
@@ -88,19 +70,7 @@ my_widget_script =
         this.parent_class.from_json(JSON.stringify(parsedJson.widgetData));
     },
 
-    /**
-     * In preview, the form is populated with test data when the
-     * parent_class.test_data() function is called. This randomly selects options for 
-     * dropdown select menus, radio buttons, and checkboxes.
-     */
     test_data: function () {
-        //during development this method is called to populate your form while in preview mode
-
-        // ORIGINAL LABARCHIVES RETURN FOR TEST DATA
-        //return this.parent_class.test_data();
-
-        // CUSTOM TEST DATA
-
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
 
@@ -110,38 +80,12 @@ my_widget_script =
             mouseNums: [2, 4],
             sampleNums: [1, 2, 3]
         };
-
-        //Add additional content to match the objects in to_json
-        //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
-
+        
         //return the stringified output for use by the init function
         return JSON.stringify(output);
     },
 
-    /**
-     * This function determines whether or not the user is allowed to save the widget to the page
-     * 
-     * The original LabArchives function checks for fields that have _mandatory appended to the name attribute
-     * 
-     * The custom function checks for fields with the required attribute. If any of these fields are blank, 
-     * an alert is returns that provides a fail log with the ids of the elements that are missing. If there are
-     * no blank required fields, an empty array is returned.
-     * 
-     * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
-     */
     is_valid: function (b_suppress_message) {
-        //called when the user hits the save button, to allow for form validation.
-        //returns an array of dom elements that are not valid - default is those elements marked as mandatory
-        // that have no data in them.
-        //You can modify this method, to highlight bad form elements etc...
-        //LA calls this method with b_suppress_message and relies on your code to communicate issues to the user
-        //Returning an empty array [] or NULL equals no error
-        //TO DO write code specific to your form
-
-        //ORIGINAL LABARCHIVES IS_VALID FUNCTION
-        //return this.parent_class.is_valid(b_suppress_message);
-
-        //CUSTOM FUNCTION TO CHECK REQUIRED ITEMS
         var fail = false; //begin with a fail variable that is false
         var fail_log = ''; //begin with an empty fail log
         var name; //create a name variable
@@ -215,12 +159,6 @@ my_widget_script =
         return (parsedJson);
     },
 
-    /**
-     * TO DO: edit this function to reinitialize any dynamic content that is not explicity
-     * defined within the HTML code. 
-     * 
-     * This function requires the parsedJson object.
-     */
     initDynamicContent: function (parsedJson) {
         if(parsedJson.mouseNums){
             for(var i = 0; i < parsedJson.mouseNums.length; i++){
@@ -233,13 +171,6 @@ my_widget_script =
         }
     },
 
-    /**
-     * TO DO: edit this function to define how the HTML elements should be adjusted
-     * based on the current mode.
-     * 
-     * Here, a subset of buttons are disabled when the widget is not being edited.
-     * There may be other elements that should be shown/hidden based on the mode
-     */
     adjustForMode: function (mode) {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
@@ -254,15 +185,45 @@ my_widget_script =
             $("input[type='time']").each(function () {
                 my_widget_script.checkTimeFormat($(this));
             });
+
+            $(".table").hide();
+
+            if($("#expDate").val() && $("#numSamples").val()>1){
+                $(".samplesDiv").insertBefore(".info");
+            }
         }
     },
 
-    /**
-     * TO DO: edit this function to define behavior when the user interacts with the form.
-     * This could include when buttons are clicked or when inputs change.
-     */
     addEventListeners: function () {
-        
+        //Show/hide the table
+        $(".toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
+            var tableID = $(this).data("table");
+            var $table = $("#"+tableID);
+            my_widget_script.toggleTableFuncs($table);
+        });
+
+        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
+        $('.toCSV').on("click", function () {
+            var tableID = $(this).data("table");
+            var dateToday = luxon.DateTime.now().toISODate();
+            var fileName = "stress_"+tableID+"_"+dateToday;
+            var $errorMsg = $("#errorMsg");
+            
+            my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
+        });
+
+        //When the copy button is clicked, run the copyTable function
+        $(".copyData").on("click", function () {
+            var tableID = $(this).data("table");
+            var tableSearch = my_widget_script.tableSearch(tableID);
+            var $copyHead = $(".copyHead"+tableSearch);
+            var $tableToCopy = $("#"+tableID);
+            var $tableDiv = $tableToCopy.parent();
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            
+            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
+        });
     },
 
     isValidTime: function (timeString) {
@@ -343,13 +304,6 @@ my_widget_script =
         }
     },
 
-    /**
-     * TO DO: edit this function to define the symbols that should be added to the HTML
-     * page based on whether or not a field is required to save the widget to the page
-     * 
-     * Here, the function adds a blue # before fields of the class "needForFormLab" and a 
-     * red * before fields with the "requiredLab" property
-     */
     addRequiredFieldIndicators: function () {
         $('.needForTableLab').each(function () { //find element with class "needForFormLab"
             //alert($(this).val());
@@ -362,11 +316,6 @@ my_widget_script =
         });
     },
 
-    /**
-     * TO DO: edit this function to define how the form should be initilized based 
-     * on the existing form values. This is particularly important for when the 
-     * widget already has data entered, such as when saved to a page.
-     */
     setUpInitialState: function () {
         my_widget_script.isDateSupported();
         my_widget_script.isTimeSupported();
@@ -419,30 +368,26 @@ my_widget_script =
 
         $("#timeZone").each(function () {
             if($(this).val() == "est"){
-                my_widget_script.startTime = luxon.DateTime.fromObject({
-                    hour: 09,
-                    minute: 30
-                })
+                startHour = 09;
             } else {
-                my_widget_script.startTime = luxon.DateTime.fromObject({
-                    hour: 10,
-                    minute: 30
-                })
+                startHour = 10;
             }
+            my_widget_script.startTime = luxon.DateTime.fromObject({
+                hour: startHour,
+                minute: 30
+            });
             my_widget_script.printExpTimes();
             my_widget_script.watchSampleLabel();
         }).on("change", function () {
             if($(this).val() == "est"){
-                my_widget_script.startTime = luxon.DateTime.fromObject({
-                    hour: 09,
-                    minute: 30
-                })
+                startHour = 09;
             } else {
-                my_widget_script.startTime = luxon.DateTime.fromObject({
-                    hour: 10,
-                    minute: 30
-                })
+                startHour = 10;
             }
+            my_widget_script.startTime = luxon.DateTime.fromObject({
+                hour: startHour,
+                minute: 30
+            });
             my_widget_script.printExpTimes();
             my_widget_script.watchSampleLabel();
         });
@@ -474,16 +419,21 @@ my_widget_script =
             my_widget_script.watchSampleLabel(this);
         });
 
-        // $(".card-header").on("click", function () {
-        //     my_widget_script.toggleCard($(this));
-        // });
+        $(".watch").each(function () {
+            my_widget_script.watchValue($(this));
+        });
 
         my_widget_script.resize();
     },
 
     toggleCard: function ($cardHead) {
-        console.log($cardHead.next());
+        // console.log($cardHead.next());
         $cardHead.next().toggleClass("collapse");
+        $cardHead.next().find("textarea.autoAdjust").each(function () {
+            if(! $(this).is(":hidden")) {
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            } 
+        });
         my_widget_script.resize();
     },
 
@@ -500,22 +450,9 @@ my_widget_script =
         $(".expEndTime").text(my_widget_script.addToStartTime(5));
     },
 
-    /**
-     * TO DO: edit this function to define which <div>s or other elements
-     * should be adjusted based on the current width of the window
-     */
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
-
-        // var x = window.matchMedia("(max-width: 576px)");
-        // if(x.matches){
-        //     $("#card td").each(function () {
-        //         $(this).before(
-        //             $(this).data("label")
-        //         )
-        //     })
-        // }
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -530,27 +467,12 @@ my_widget_script =
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
-    /** -----------------------------------------------------------------------------
-     * VALIDATE FORM ENTRY BEFORE COPYING OR SAVING TABLE TO CSV
-     *
-     * This function will check that elements with a class "needForTable"
-     * are not blank. If there are blank elements, it will return false
-     * and will post an error message "Please fill out all elements marked by a blue #"
-     *
-     * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
-     * -----------------------------------------------------------------------------
-     */
-    data_valid_form: function () {
-        var valid = true; //begin with a valid value of true
-        //var fail_log = ''; //begin with an empty fail log
-        //var name; //create a name variable
-
-        //search the_form for all elements that are of class "needForForm"
+    //source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+     data_valid_form: function () {
+        var valid = true; 
         $('.needForTable').each(function () {
             if (!$(this).val()) { //if there is not a value for this input
                 valid = false; //change valid to false
-                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
-                //fail_log += name + " is required \n"; //add to the fail log that this name is required
             }
         });
 
@@ -598,6 +520,26 @@ my_widget_script =
         $(".sampleLabelCalc"+sampleSearch).html(sampleID);
     },
 
+    watchValue: function ($el) {
+        var watch = $el.data("watch");
+        var calcSearch = my_widget_script.calcSearch(watch);
+        var sampleNum = $el.data("sample");
+        var mouseNum = $el.data("mouse");
+        var val = $el.val();
+        if(sampleNum){
+            calcSearch += my_widget_script.sampleSearch(sampleNum);
+        }
+        if(mouseNum){
+            calcSearch += my_widget_script.mouseSearch(mouseNum);
+        }
+        if(val == "on"){ //likely checkbox
+            if($el.prop("type") == "checkbox"){
+                if($el.is(":checked")){val = "Yes"} else {val = "No"}
+            }
+        }
+        $(calcSearch).html(val);
+    },
+
     makeMouseCard: function (mouseNum) {
         var inArray = my_widget_script.checkInArray(mouseNum, my_widget_script.mouseNums);
         if(! inArray){
@@ -629,7 +571,7 @@ my_widget_script =
                         }).append("[Enter Mouse ID]")
                     ).append(
                         $("<div/>", {
-                            "class": "card-body"
+                            "class": "card-body collapse"
                         }).append(
                             $("<div/>", {
                                 "class": row
@@ -646,7 +588,8 @@ my_widget_script =
                                         "data-mouse": mouseNum,
                                         id: "mouseID"+mouseNum,
                                         name: "mouseid"+mouseNum,
-                                        "class": "mouseID fullWidth"
+                                        "class": "mouseID fullWidth watch",
+                                        "data-watch": "mouseID"
                                     }).on("input", function () {
                                         my_widget_script.watchMouseID($(this).data("mouse"));
                                     })
@@ -668,7 +611,8 @@ my_widget_script =
                                         "data-mouse": mouseNum,
                                         id: "shortID"+mouseNum,
                                         name: "shortid"+mouseNum,
-                                        "class": "shortID fullWidth"
+                                        "class": "shortID fullWidth watch",
+                                        "data-watch": "shortID"
                                     }).on("input", function () {
                                         my_widget_script.watchMouseID($(this).data("mouse"));
                                     })
@@ -689,7 +633,8 @@ my_widget_script =
                                         "data-mouse": mouseNum,
                                         id: "treatment"+mouseNum,
                                         name: "treatment"+mouseNum,
-                                        "class": "treatment fullWidth"
+                                        "class": "treatment fullWidth watch",
+                                        "data-watch": "treatment"
                                     }).append('<option value="control">Control</option><option value="stress">Stress</option>')
                                 )
                             )
@@ -710,7 +655,7 @@ my_widget_script =
                                         "data-mouse": mouseNum,
                                         id: "deleteMouse"+mouseNum,
                                         name: "deletemouse"+mouseNum,
-                                        "class": "deleteMouse fullWidth"
+                                        "class": "deleteMouse fullWidth",
                                     }).on("click", function () {
                                         my_widget_script.deleteMouseFuncs($(this).data("mouse"));
                                     })
@@ -731,7 +676,8 @@ my_widget_script =
                                         "data-mouse": mouseNum,
                                         id: "sex"+mouseNum,
                                         name: "sex"+mouseNum,
-                                        "class": "sex fullWidth"
+                                        "class": "sex fullWidth watch",
+                                        "data-watch": "sex"
                                     }).append(
                                         '<option value="">[Select]</option><option value="male">Male</option><option value="female">Female</option>'
                                     ).on("input", function () {
@@ -739,7 +685,7 @@ my_widget_script =
                                         if(sex == "female"){
                                             $(this).parents(".row").next(".ifFemale").show();
                                         }else {
-                                            $(this).parents(".row").next(".ifFemale").hide();
+                                            $(this).parents(".row").next(".ifFemale").hide().find(".stage").val("");
                                         }
                                     })
                                 )
@@ -759,7 +705,8 @@ my_widget_script =
                                         "data-mouse": mouseNum,
                                         id: "stage"+mouseNum,
                                         name: "stage"+mouseNum,
-                                        "class": "stage fullWidth"
+                                        "class": "stage fullWidth watch",
+                                        "data-watch": "stage"
                                     }).append('<option value="">Select</option><option value="diestrus">Diestrus</option><option value="proestrus">Proestrus</option><option value="estrus">Estrus</option>')
                                 )
                             )
@@ -769,7 +716,7 @@ my_widget_script =
                             }).append(
                                 $("<div/>", {
                                     "class": col
-                                }).append("Body Mass:")
+                                }).append("Body Mass (g):")
                             ).append(
                                 $("<div/>", {
                                     "class": "col"
@@ -779,7 +726,8 @@ my_widget_script =
                                         "data-mouse": mouseNum,
                                         id: "mass"+mouseNum,
                                         name: "mass"+mouseNum,
-                                        "class": "mass fullWidth"
+                                        "class": "mass fullWidth watch",
+                                        "data-watch": "mass"
                                     })
                                 )
                             )
@@ -789,7 +737,7 @@ my_widget_script =
                             }).append(
                                 $("<div/>", {
                                     "class": col
-                                }).append("Gonad Mass:")
+                                }).append("Uterine/Seminal Vesicle Mass (mg):")
                             ).append(
                                 $("<div/>", {
                                     "class": "col"
@@ -797,9 +745,10 @@ my_widget_script =
                                     $("<input/>", {
                                         type: "text", 
                                         "data-mouse": mouseNum,
-                                        id: "gonadMass"+mouseNum,
-                                        name: "gonadmass"+mouseNum,
-                                        "class": "gonadMass fullWidth"
+                                        id: "reproMass"+mouseNum,
+                                        name: "repromass"+mouseNum,
+                                        "class": "reproMass fullWidth watch",
+                                        "data-watch": "reproMass"
                                     })
                                 )
                             )
@@ -807,33 +756,58 @@ my_widget_script =
                     )
                 )
             )
+            
+            var $mouseTable = $("#mouseTable");
+
+            $mouseTable.find("tbody").append(
+                $("<tr/>", {
+                    "data-mouse": mouseNum
+                })
+            );
+
+            var calcs = ["mouseID", "sex", "stage", "treatment", "mass", "reproMass"];
+            var mouseSearch = my_widget_script.mouseSearch(mouseNum);
+
+            for(var i = 0; i < calcs.length; i++){
+                var calc = calcs[i];
+                $mouseTable.find("tbody").find("tr"+mouseSearch).append(
+                    $("<td/>", {
+                        "data-calc": calc,
+                        "data-mouse": mouseNum
+                    })
+                );
+            }
+
             my_widget_script.resize();
         }
     },
 
     deleteMouseFuncs: function (mouseNum) {
-        // Remove it from the mouseNums
-        var index = my_widget_script.mouseNums.indexOf(mouseNum);
-        if(index > -1){
-            my_widget_script.mouseNums.splice(index, 1);
-        }
-
-        if(my_widget_script.sampleNums){
-            var numSamples = my_widget_script.sampleNums.length;
-            for(var i = 0; i < numSamples; i++){
-                var sample = my_widget_script.sampleNums[i];
-                var index = my_widget_script.miceInSamples[sample].indexOf(mouseNum);
-                if(index > -1){
-                    my_widget_script.miceInSamples[sample].splice(index, 1);
+        var proceed = confirm("Are you sure that you wish to delete this mouse?");
+        if(proceed){
+            // Remove it from the mouseNums
+            var index = my_widget_script.mouseNums.indexOf(mouseNum);
+            if(index > -1){
+                my_widget_script.mouseNums.splice(index, 1);
+            }
+    
+            if(my_widget_script.sampleNums){
+                var numSamples = my_widget_script.sampleNums.length;
+                for(var i = 0; i < numSamples; i++){
+                    var sample = my_widget_script.sampleNums[i];
+                    var index = my_widget_script.miceInSamples[sample].indexOf(mouseNum);
+                    if(index > -1){
+                        my_widget_script.miceInSamples[sample].splice(index, 1);
+                    }
                 }
             }
+    
+            // console.log(my_widget_script.mouseNums);
+    
+            var mouseSearch = my_widget_script.mouseSearch(mouseNum);
+            $(".mouseCard"+mouseSearch).remove();
+            $(".mouseSampleCard"+mouseSearch).remove();
         }
-
-        // console.log(my_widget_script.mouseNums);
-
-        var mouseSearch = my_widget_script.mouseSearch(mouseNum);
-        $(".mouseCard"+mouseSearch).remove();
-        $(".mouseSampleCard"+mouseSearch).remove();
 
         my_widget_script.resize();
     },
@@ -857,6 +831,7 @@ my_widget_script =
                 my_widget_script.miceInSamples[sampleNum] = [];
                 my_widget_script.makeSampleInfo(sampleNum);
                 my_widget_script.makeSamplingCard(sampleNum);
+                my_widget_script.makeSampleForTables(sampleNum);
             }
             for (var j = 0; j < numMice; j++){
                 var mouse = mice[j];
@@ -885,10 +860,47 @@ my_widget_script =
                 }
             }
         }
+        $(".watch").each(function () {
+            my_widget_script.watchValue($(this));
+        }).on("input", function () {
+            my_widget_script.watchValue($(this));
+        });
+
         my_widget_script.resize();
     },
 
     miceInSamples: {},
+
+    makeSampleForTables: function (sampleNum) {
+        var $sample = $("#sampleTable");
+        var calcs = ["sampleLabel", "sampleTime", "cort", "LH", "otherName"];
+        $sample.find("tbody").append(
+            $("<tr/>", {
+                "data-sample": sampleNum
+            })
+        );
+        var sampleSearch = my_widget_script.sampleSearch(sampleNum);
+        for( var i = 0; i < calcs.length; i++){
+            var calc = calcs[i];
+            $sample.find("tr"+sampleSearch).append(
+                $("<td/>", {
+                    "data-calc": calc,
+                    "data-sample": sampleNum
+                })
+            )
+        }
+
+        var $mouse = $("#mouseTable");
+        $mouse.find("thead").find("tr").append(
+            $("<th/>", {
+                "data-sample": sampleNum
+            }).append("Sample"+sampleNum+"Start")
+        ).append(
+            $("<th/>", {
+                "data-sample": sampleNum
+            }).append("Sample"+sampleNum+"End")
+        );
+    },
 
     makeSampleInfo: function (sampleNum) {
         var $div = $(".sampleInfoDiv");
@@ -910,7 +922,7 @@ my_widget_script =
                     }).on("click", function () {my_widget_script.toggleCard($(this))}).append("Sample " + sampleNum)
                 ).append(
                     $("<div/>", {
-                        "class": "card-body row"
+                        "class": "card-body row collapse"
                     }).append(
                         $("<div/>", {
                             "class": labelClass
@@ -923,8 +935,9 @@ my_widget_script =
                                 type: "number",
                                 name: "sampletime"+sampleNum,
                                 id: "sampleTime"+sampleNum,
-                                "class": "sampleTime fullWidth",
-                                "data-sample": sampleNum
+                                "class": "sampleTime fullWidth watch",
+                                "data-sample": sampleNum,
+                                "data-watch": "sampleTime"
                             }).on("input", function () {
                                 my_widget_script.watchSampleLabel($(this).data("sample"));
                             })
@@ -941,8 +954,9 @@ my_widget_script =
                                 type: "text",
                                 name: "samplelabel"+sampleNum,
                                 id: "sampleLabel"+sampleNum,
-                                "class": "sampleLabel fullWidth",
-                                "data-sample": sampleNum
+                                "class": "sampleLabel fullWidth watch",
+                                "data-sample": sampleNum,
+                                "data-watch": "sampleLabel"
                             }).on("input", function () {
                                 my_widget_script.watchSampleLabel($(this).data("sample"));
                             })
@@ -968,7 +982,10 @@ my_widget_script =
                                         name: "cort"+sampleNum,
                                         id: "cort"+sampleNum,
                                         "data-sample": sampleNum,
-                                        "class": "cort"
+                                        "class": "cort watch",
+                                        "data-watch": "cort"
+                                    }).on("change", function () {
+
                                     })
                                 )
                             ).append(
@@ -982,7 +999,8 @@ my_widget_script =
                                         name: "lh"+sampleNum,
                                         id: "LH"+sampleNum,
                                         "data-sample": sampleNum,
-                                        "class": "LH"
+                                        "class": "LH watch",
+                                        "data-watch": "LH"
                                     })
                                 )
                             )
@@ -1010,7 +1028,8 @@ my_widget_script =
                                         name: "othername"+sampleNum,
                                         id: "otherName"+sampleNum,
                                         "data-sample": sampleNum,
-                                        "class": "otherName ifOther fullWidth"
+                                        "class": "otherName ifOther fullWidth watch",
+                                        "data-watch": "otherName"
                                     })
                                 )
                             )
@@ -1038,28 +1057,14 @@ my_widget_script =
                     }).append(
                         $("<div/>", {
                             "class": "sampleLabelCalc",
-                        // $("<button/>", {
-                            // "class": "btn btn-link btn-block text-left sampleLabelCalc",
-                            // type: "button",
-                            // "data-toggle": "collapse",
-                            // "data-target": "#samplingBody"+sampleNum,
-                            // "aria-expanded": "false",
-                            // "aria-controls": "samplingBody"+sampleNum,
-                            "data-sample": sampleNum,
-                            // "name": "samplingheadbutton"+sampleNum
+                            "data-sample": sampleNum
                         }).append("Sample " + sampleNum)
-                        // .on("click", function () {
-                        //     my_widget_script.resize();
-                        // })
                     )
                 )
             ).append(
                 $("<div/>", {
-                    // "class": "collapse hide samplingBody",
-                    "class": "samplingBody",
+                    "class": "samplingBody collapse",
                     id: "samplingBody"+sampleNum,
-                    // "aria-labelledby": "samplingHead"+sampleNum,
-                    // "data-parent": "#samplesAccordion",
                     "data-sample": sampleNum
                 }).append(
                     $("<div/>", {
@@ -1068,7 +1073,7 @@ my_widget_script =
                     })
                 )
             )
-        )
+        );  
     },
     
     makeSampleForMouse: function (sampleNum, mouseNum) {
@@ -1090,20 +1095,10 @@ my_widget_script =
                         "class": "mb-0"
                     }).append(
                         $("<div/>", {
-                        // $("<button/>", {
-                            // "class": "btn btn-link btn-block text-left",
-                            // type: "button",
-                            // "data-toggle": "collapse",
-                            // "data-target": "#body"+sampMouseID,
-                            // "aria-expanded": "false",
-                            // "aria-controls": "body"+sampMouseID,
-                            // "name": "samplemousebutton"+sampMouseID
-                        // }).on("click", function () {
-                        //     my_widget_script.resize();
                         }).append(
                             $("<span/>", {
                                 "class": "mouseIDCalc",
-                                "data-mouse": mouseNum
+                                "data-mouse": mouseNum,
                             }).append("[Enter Mouse ID]")
                         ).append(
                             $("<span/>", {
@@ -1116,8 +1111,7 @@ my_widget_script =
             ).append(
                 $("<div/>", {
                     id: "body"+sampMouseID,
-                    // "class": "collapse hide",
-                    // "aria-labelledby": "heading"+sampMouseID
+                    "class": "collapse"
                 }).append(
                     $("<div/>", {
                         "class": "card-body container",
@@ -1146,8 +1140,16 @@ my_widget_script =
                                     var currentTime = luxon.DateTime.now();
                                     // en-GB makes it so that midnight is 00:xx instead of 24:xx
                                     var timeString = currentTime.toLocaleString({...luxon.DateTime.TIME_24_SIMPLE, locale: "en-GB"});
-                                    $(".startTime"+mouseSearch+sampleSearch).val(timeString);
-                                    my_widget_script.checkTimeFormat($(".startTime"+mouseSearch+sampleSearch));
+                                    var proceed = true;
+                                    if($(".startTime"+mouseSearch+sampleSearch).val()){
+                                        proceed = confirm("Are you sure that you want to replace the time?");
+                                    }
+                                    if(proceed){
+                                        $(".startTime"+mouseSearch+sampleSearch).val(timeString);
+                                        my_widget_script.watchValue($(".startTime"+mouseSearch+sampleSearch));
+                                        my_widget_script.checkTimeFormat($(".startTime"+mouseSearch+sampleSearch));
+                                    }
+                                    my_widget_script.resize();
                                 })
                             ).append(
                                 $("<input/>", {
@@ -1155,10 +1157,11 @@ my_widget_script =
                                     value: "Start", 
                                     id: "startTime"+sampMouseID,
                                     name: "starttime"+sampMouseID,
-                                    "class": "startTime fullWidth",
+                                    "class": "startTime fullWidth watch",
                                     "data-mouse": mouseNum,
                                     "data-sample": sampleNum,
-                                    "placeholder": "hh:mm"
+                                    "placeholder": "hh:mm",
+                                    "data-watch": "startTime"
                                 }).each(function () {
                                     my_widget_script.checkTimeFormat($(this));
                                 }).on("change", function () {
@@ -1185,8 +1188,16 @@ my_widget_script =
                                     var currentTime = luxon.DateTime.now();
                                     // en-GB makes it so that midnight is 00:xx instead of 24:xx
                                     var timeString = currentTime.toLocaleString({...luxon.DateTime.TIME_24_SIMPLE, locale: "en-GB"});
-                                    $(".endTime"+mouseSearch+sampleSearch).val(timeString);
-                                    my_widget_script.checkTimeFormat($(".endTime"+mouseSearch+sampleSearch));
+                                    var proceed = true;
+                                    if($(".endTime"+mouseSearch+sampleSearch).val()){
+                                        proceed = confirm("Are you sure that you want to replace the time?");
+                                    }
+                                    if(proceed){
+                                        $(".endTime"+mouseSearch+sampleSearch).val(timeString);
+                                        my_widget_script.watchValue($(".endTime"+mouseSearch+sampleSearch));
+                                        my_widget_script.checkTimeFormat($(".endTime"+mouseSearch+sampleSearch));
+                                    }
+                                    my_widget_script.resize();
                                 })
                             ).append(
                                 $("<input/>", {
@@ -1194,10 +1205,11 @@ my_widget_script =
                                     value: "End", 
                                     id: "endTime"+sampMouseID,
                                     name: "endtime"+sampMouseID,
-                                    "class": "endTime fullWidth",
+                                    "class": "endTime fullWidth watch",
                                     "data-mouse": mouseNum,
                                     "data-sample": sampleNum,
-                                    "placeholder": "hh:mm"
+                                    "placeholder": "hh:mm",
+                                    "data-watch": "endTime"
                                 }).each(function () {
                                     my_widget_script.checkTimeFormat($(this));
                                 }).on("change", function () {
@@ -1258,7 +1270,7 @@ my_widget_script =
                                 $('<text' + 'area></text' + 'area>', {
                                     id: "notes"+sampMouseID,
                                     name: "notes"+sampMouseID,
-                                    "class": "notes fullWidth autoAdjut",
+                                    "class": "notes fullWidth autoAdjust",
                                     "placeholder": "Notes",
                                     "data-mouse": mouseNum,
                                     "data-sample": sampleNum
@@ -1273,6 +1285,23 @@ my_widget_script =
                 )
             )
         )
+
+        var $mouseTable = $("#mouseTable");
+
+        var mouseSearch = my_widget_script.mouseSearch(mouseNum);
+        $mouseTable.find("tr"+mouseSearch).append(
+            $("<td/>", {
+                "data-calc": "startTime",
+                "data-mouse": mouseNum,
+                "data-sample": sampleNum
+            })
+        ).append(
+            $("<td/>", {
+                "data-calc": "endTime",
+                "data-mouse": mouseNum,
+                "data-sample": sampleNum
+            })
+        );
     },
 
     checkMiceInSamples: function (sampleNum, mouseNum){
@@ -1296,11 +1325,21 @@ my_widget_script =
         return sampleSearch;
     },
 
+    tableSearch: function (table){
+        var tableSearch = my_widget_script.dataSearch("table", table);
+        return tableSearch;
+    },
+
+    calcSearch: function (calc) {
+        var calcSearch = my_widget_script.dataSearch("calc", calc);
+        return calcSearch;
+    },
+
     showWithCheck: function ($chbx, $toToggle) {
         if($chbx.is(":checked")){
             $toToggle.show();
         } else {
-            $toToggle.hide();
+            $toToggle.hide().html("");
         }
         my_widget_script.resize();
     },
@@ -1308,5 +1347,125 @@ my_widget_script =
     showIfOtherCheck: function ($chbx) {
         var $ifOther = $chbx.next(".ifOther");
         my_widget_script.showWithCheck($chbx, $ifOther);
+    },
+
+    downloadCSV: function (csv, filename) {
+        var csvFile;
+        var downloadLink;
+
+        // CSV file
+        csvFile = new Blob([csv], { type: "text/csv" });
+
+        // Download link
+        downloadLink = document.createElement("a");
+
+        // File name
+        downloadLink.download = filename;
+
+        // Create a link to the file
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+
+        // Hide download link
+        downloadLink.style.display = "none";
+
+        // Add the link to DOM
+        document.body.appendChild(downloadLink);
+
+        // Click download link
+        downloadLink.click();
+    },
+    
+    exportTableToCSV: function (filename, table) {
+        var csv = [];
+        var datatable = document.getElementById(table);
+        var rows = datatable.querySelectorAll("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
+
+            for (var j = 0; j < cols.length; j++) {
+                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
+                row.push(cellText);
+            };
+
+            csv.push(row.join(","));
+        }
+
+        // Download CSV file
+        this.downloadCSV(csv.join("\n"), filename);
+    },
+
+    copyTable: function ($table, copyHead, $divForCopy) {
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addLine = "";
+        if (copyHead) {
+            $table.find("thead").children("tr").each(function () { //add each child of the row
+                var addTab = "";
+                $(this).children().each(function () {
+                    $temp.text($temp.text() + addTab + $(this).text());
+                    addTab = "\t";
+                });
+            });
+            addLine = "\n";
+        }
+
+        $table.find("tbody").children("tr").each(function () { //add each child of the row
+            $temp.text($temp.text() + addLine);
+            var addTab = "";
+            $(this).find("td").each(function () {
+                if ($(this).text()) {
+                    var addText = $(this).text();
+                } else {
+                    var addText = "NA"
+                }
+                $temp.text($temp.text() + addTab + addText);
+                addTab = "\t";
+                addLine = "\n";
+            });
+        });
+
+        $temp.appendTo($divForCopy).select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
+    },
+
+    toggleTableFuncs: function ($table) {
+        my_widget_script.resize();
+        my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+        $table.toggle();
+        my_widget_script.parent_class.resize_container();
+    },
+
+    toCSVFuncs: function (fileName, tableID, $errorMsg) {
+        var data_valid = my_widget_script.data_valid_form();
+
+        if (data_valid) {
+            my_widget_script.exportTableToCSV(fileName, tableID);
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
+        }
+    },
+
+    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy){
+        var data_valid = my_widget_script.data_valid_form();
+        var copyHead
+
+        //only copy the heading when the input box is checked
+        if ($copyHead.is(":checked")) {
+            copyHead = true;
+        } else {
+            copyHead = false;
+        }
+
+        if (data_valid) { //if data is valid
+            $tableDiv.show(); //show the table
+            my_widget_script.resize(); //resize
+            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
     }
 };

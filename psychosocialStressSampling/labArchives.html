@@ -24,31 +24,19 @@
             overflow-x: scroll;
         }
     }
+
     table {
-        border: 1px solid #ccc;
-        width: 100%;
-        margin:0;
-        padding:0;
-        border-collapse: collapse;
-        border-spacing: 0;
+        border: 2px solid black;
     }
 
-    table tr {
-        border: 1px solid #ddd;
+    th {
         padding: 5px;
-        background: #fff;
-
+        border: 2px solid black;
     }
 
-    table th, table td {
-        padding: 10px;
-        text-align: center;
-
-    }
-
-    table th {
-        text-transform: uppercase;
-        letter-spacing: 1px;
+    td {
+        padding: 5px;
+        border: 1px solid black;
     }
 
     .fullWidth {
@@ -61,7 +49,7 @@
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container">
+<div class="container info">
     <div class="row">
         <h3 class="col">Experiment Info:</h3>
     </div>
@@ -138,15 +126,82 @@
     <textarea name="forsizing" id="forSizing">&nbsp;</textarea>
 </div>
 
-<!-- Error Message Div -->
-<div class="container" id="errorMsg">&nbsp;</div>
+<div class="container mt-2">
+    <div id="forCopy">&nbsp;</div>
+    <div id="errorMsg">&nbsp;</div>
+    <div class="row">
+        <h3 class="col-12">Output Tables:</h3>
+    </div>
+</div>
+<div class="container mt-2">
+    <div class="row">
+        <h4 class="col">Sampling Info</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable1" name="toggletable1" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="sampleTable"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="sampleTable" /></div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="sampleTable"/>
+            <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="sampleTable"/>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="sampleTable">
+            <thead>
+                <tr>
+                    <th>Sample</th>
+                    <th>Hour</th>
+                    <th>Cort</th>
+                    <th>LH</th>
+                    <th>Other</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h4 class="col">Mouse Info:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable2" name="toggletable2" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV2" name="tocsv2" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="mouseTable" /></div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable"/>
+            <br />Copy Table Head? <input id="copyHead2" name="copyhead2" type="checkbox" class="copyHead" data-table="mouseTable"/>
+        </div>
+    </div>
+</div>
 
 <!-- Example Table Container that is responsive to window width, including for xs -->
 <div class="container mt-2">
     <div class="table-responsive xsTableDiv">
-        <table class="table">
+        <table class="table" id="mouseTable">
             <thead>
                 <tr>
+                    <th>Mouse</th>
+                    <th>Sex</th>
+                    <th>CycleStage</th>
+                    <th>Treatment</th>
+                    <th>BodyMass</th>
+                    <th>ReproTractMass</th>
                 </tr>
             </thead>
             <tbody>
