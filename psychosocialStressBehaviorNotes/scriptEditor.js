@@ -236,6 +236,9 @@ my_widget_script =
             $(".disableOnView").prop("disabled", true);
             $(".hideView").hide();
             $("input[type='date']").removeClass(".hasDatePicker");
+            $(".card-header").each(function () {
+                my_widget_script.toggleCard($(this));
+            });
         } else {
             $("input[type='date']").each(function () {
                 my_widget_script.checkDateFormat($(this));
@@ -371,7 +374,18 @@ my_widget_script =
         });
 
         $('textarea.autoAdjust').each(function () {
-            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            var height = this.scrollHeight;
+            if(height == 0){ // when hidden to begin with, the height is 0; this won't make everything visible, though if more than two lines at start
+                // height = 48;
+                text = $(this).val();
+                $(".forTextBox").show();
+                $("#forSizing").val(text);
+                var forSizing = document.getElementById("forSizing");
+                height = forSizing.scrollHeight;
+                $(".forTextBox").hide();
+            }
+            // console.log(height);
+            this.setAttribute('style', 'height:' + height + 'px;overflow-y:hidden;');
         }).on('input', function () {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
@@ -490,6 +504,11 @@ my_widget_script =
 
     toggleCard: function ($cardHead) {
         $cardHead.next().toggleClass("collapse");
+        $cardHead.find("textarea.autoAdjust").each(function () {
+            if(! $(this).is(":hidden")) {
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            } 
+        });
         my_widget_script.resize();
     },
     
@@ -507,7 +526,7 @@ my_widget_script =
                 }).append(cardHeadContent)
             ).append(
                 $("<div/>", {
-                    "class": "card-body"
+                    "class": "card-body collapse"
                 }).append(
                     cardBodyContent
                 )
@@ -654,7 +673,7 @@ my_widget_script =
                         $('<text' + 'area></text' + 'area>', {
                             id: "notes"+mouseNum,
                             name: "notes"+mouseNum,
-                            "class": "notes fullWidth autoAdjut",
+                            "class": "notes fullWidth autoAdjust",
                             "placeholder": "Notes",
                             "data-mouse": mouseNum
                         }).on("input", function () {
