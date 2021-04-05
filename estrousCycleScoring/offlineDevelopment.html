@@ -61,17 +61,6 @@ $(document).ready(function () {
     my_widget_script =
 {
     init: function (mode, json_data) {
-        //this method is called when the form is being constructed
-        // parameters
-        // mode = if it equals 'view' than it should not be editable
-        //        if it equals 'edit' then it will be used for entry
-        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
-        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
-
-        // json_data will contain the data to populate the form with, it will be in the form of the data
-        // returned from a call to to_json or empty if this is a new form.
-        //By default it calls the parent_class's init.
-
         //uncomment to inspect and view code while developing
         //debugger;
 
@@ -81,7 +70,7 @@ $(document).ready(function () {
         var parsedJson = this.parseInitJson(json_data);
 
         //Uncomment to print parsedJson to consol
-        //console.log("init", parsedJson);
+        // console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
@@ -90,9 +79,6 @@ $(document).ready(function () {
         window.onresize = this.resize;
 
         // Initialize the form with the stored widgetData using the parent_class.init() function
-        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
-
-        this.initScoringRows();
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
         
         // Add * and # to mark required field indicators
@@ -106,10 +92,6 @@ $(document).ready(function () {
     },
     
     to_json: function () {
-        //should return a json string containing the data entered into the form by the user
-        //whatever is return from the method is persisted in LabArchives.  must not be binary data.
-        //called when the user hits the save button, when adding or editing an entry
-
         //Acquire input data from the form using the parent_class.to_json() function
         var widgetJsonString = this.parent_class.to_json();
 
@@ -120,7 +102,8 @@ $(document).ready(function () {
         // Will be accessed within the init and from_json methods
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
-            mouseNums: my_widget_script.mouseNums
+            mouseNums: my_widget_script.mouseNums,
+            mice: my_widget_script.mice
         };
 
         //uncomment to check stringified output
@@ -141,11 +124,6 @@ $(document).ready(function () {
         this.parent_class.from_json(JSON.stringify(parsedJson.widgetData));
     },
 
-    /**
-     * In preview, the form is populated with test data when the
-     * parent_class.test_data() function is called. This randomly selects options for 
-     * dropdown select menus, radio buttons, and checkboxes.
-     */
     test_data: function () {
         //during development this method is called to populate your form while in preview mode
 
@@ -157,39 +135,26 @@ $(document).ready(function () {
         //store the outcome of the the test data within the testData variable
         var testData = JSON.parse(this.parent_class.test_data());
 
-        //If no additional dynamic content 
         var output = { 
             widgetData: testData,
-            mouseNums: [2, 3]
+            mouseNums: [1, 2, 3, 4, 5, 6, 7],
+            mice: {
+                1: {id: "CRH-01", startDate: "2021-04-01", endDate: "2021-04-17"},
+                2: {id: "CRH-02", startDate: "2021-04-01", endDate: "2021-04-17"},
+                3: {id: "CRH-03", startDate: "2021-04-01", endDate: "2021-04-17"},
+                4: {id: "CRH-04", startDate: "2021-04-01", endDate: "2021-04-17"},
+                5: {id: "CRH-05", startDate: "2021-04-01", endDate: "2021-04-17"},
+                6: {id: "CRH-06", startDate: "2021-04-01", endDate: "2021-04-17"},
+                7: {id: "CRH-07", startDate: "2021-04-01", endDate: "2021-04-17"},
+            }
         };
-
-        //Add additional content to match the objects in to_json
-        //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
 
         //return the stringified output for use by the init function
         return JSON.stringify(output);
     },
 
-    /**
-     * This function determines whether or not the user is allowed to save the widget to the page
-     * 
-     * The original LabArchives function checks for fields that have _mandatory appended to the name attribute
-     * 
-     * The custom function checks for fields with the required attribute. If any of these fields are blank, 
-     * an alert is returns that provides a fail log with the ids of the elements that are missing. If there are
-     * no blank required fields, an empty array is returned.
-     * 
-     * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
-     */
+    //source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
     is_valid: function (b_suppress_message) {
-        //called when the user hits the save button, to allow for form validation.
-        //returns an array of dom elements that are not valid - default is those elements marked as mandatory
-        // that have no data in them.
-        //You can modify this method, to highlight bad form elements etc...
-        //LA calls this method with b_suppress_message and relies on your code to communicate issues to the user
-        //Returning an empty array [] or NULL equals no error
-        //TO DO write code specific to your form
-
         //ORIGINAL LABARCHIVES IS_VALID FUNCTION
         //return this.parent_class.is_valid(b_suppress_message);
 
@@ -298,51 +263,38 @@ $(document).ready(function () {
         return (parsedJson);
     },
 
-    /**
-     * TO DO: edit this function to reinitialize any dynamic content that is not explicity
-     * defined within the HTML code. 
-     * 
-     * This function requires the parsedJson object.
-     */
     initDynamicContent: function (parsedJson) {
-        console.log(parsedJson.mouseNums);
+        // console.log(parsedJson);
+        if(parsedJson.mice){
+            my_widget_script.mice = parsedJson.mice;
+        } else {
+            my_widget_script.mice = {}
+        }
+
+        // console.log(my_widget_script.mice);
+
+        console.time("initDynamic")
         if(parsedJson.mouseNums){
+            var $cardContainer = $("<div/>");
+            var addedChildren = false;
             for (var i = 0; i < parsedJson.mouseNums.length; i++){
                 mouse = parsedJson.mouseNums[i];
                 my_widget_script.mouseNums.push(mouse);
-                my_widget_script.mice[mouse] = {};
                 my_widget_script.makeMouseCard(mouse);
+                addedChildren = true;
+                $cardContainer.append(my_widget_script.adjustScoringRows(mouse));
+                // console.log("initDynamicContent - mouse", $cardContainer);
             }
-            my_widget_script.mouseNums = parsedJson.mouseNums;
+            if(addedChildren){
+                // console.log($cardContainer.children());
+                $cardContainer.children().appendTo($(".cardContainer"));
+            }
         } else {
             my_widget_script.mouseNums = [];
         }
+        console.timeEnd("initDynamic");
     },
 
-    initScoringRows: function (){
-        $.each(my_widget_script.mouseNums, function () {
-            var num = this;
-            console.log(num);
-            var id = $("#mouseID"+num).val();
-            var startDate = $("#startDate"+num).val();
-            var endDate = $("#endDate"+num).val();
-            my_widget_script.mice[num] = {
-                id: id,
-                startDate: startDate,
-                endDate: endDate
-            }
-        });
-
-        my_widget_script.adjustScoringRows();
-    },
-
-    /**
-     * TO DO: edit this function to define how the HTML elements should be adjusted
-     * based on the current mode.
-     * 
-     * Here, a subset of buttons are disabled when the widget is not being edited.
-     * There may be other elements that should be shown/hidden based on the mode
-     */
     adjustForMode: function (mode) {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
@@ -360,13 +312,6 @@ $(document).ready(function () {
         }
     },
 
-    /**
-     * TO DO: edit this function to define the symbols that should be added to the HTML
-     * page based on whether or not a field is required to save the widget to the page
-     * 
-     * Here, the function adds a blue # before fields of the class "needForFormLab" and a 
-     * red * before fields with the "requiredLab" property
-     */
     addRequiredFieldIndicators: function () {
         $('.needForTableLab').each(function () { //find element with class "needForFormLab"
             //alert($(this).val());
@@ -455,11 +400,6 @@ $(document).ready(function () {
         }
     },
 
-    /**
-     * TO DO: edit this function to define how the form should be initilized based 
-     * on the existing form values. This is particularly important for when the 
-     * widget already has data entered, such as when saved to a page.
-     */
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
@@ -517,11 +457,8 @@ $(document).ready(function () {
                 my_widget_script.mice[mouseNum] = {}
                 my_widget_script.makeMouseCard(mouseNum);
                 my_widget_script.makeTableCols();
+                my_widget_script.sortFunc("date");
             }
-        });
-
-        $(".watch").each(function () {
-            my_widget_script.watchValue($(this));
         });
 
         // console.log(my_widget_script.mice);
@@ -556,8 +493,14 @@ $(document).ready(function () {
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
         });
 
-        my_widget_script.adjustScoringRows();
+        my_widget_script.makeTableCols();
+        // console.time("sortFunc");
         my_widget_script.sortFunc("date");
+        // console.timeEnd("sortFunc");
+
+        $(".watch").each(function () {
+            my_widget_script.watchValue($(this));
+        });
         
         my_widget_script.resize();
     },
@@ -566,10 +509,6 @@ $(document).ready(function () {
     mice: {},
     dates: {},
 
-    /**
-     * TO DO: edit this function to define which <div>s or other elements
-     * should be adjusted based on the current width of the window
-     */
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
@@ -599,7 +538,6 @@ $(document).ready(function () {
 
     sortFunc: function (sortBy) {
         $(".cardContainer").mySort({sortBy: sortBy});
-        
         var sortVals = [];
         $(".sortCard").each(function () {
             var sortVal = $(this).data(sortBy);
@@ -608,31 +546,30 @@ $(document).ready(function () {
             }
         });
         // console.log(sortVals);
-        
         $(".madeCards").html("");
         if(sortVals){
             for(var i = 0; i<sortVals.length; i++){
                 var sortVal = sortVals[i];
                 if(sortBy == "mouse"){
-                    $header = $("<div></div>", {
-                        "data-calc": "mouse",
-                        "data-mouse": sortVal
-                    }).append(
-                        my_widget_script.capitalize(sortBy) + ": " + sortVal
-                    )
+                    header = "<div data-calc='mouse' data-mouse='"+sortVal+"'>"+my_widget_script.capitalize(sortBy) + ": " + sortVal+"</div>";
                 } else {
-                    $header = my_widget_script.capitalize(sortBy) + ": " + sortVal
+                    header = my_widget_script.capitalize(sortBy) + ": " + sortVal;
                 }
-                my_widget_script.makeCard($(".madeCards"), $header, "");
                 
-                var $cardBody = $(".madeCards").find(".card-body").last();
-                my_widget_script.appendLabelRow($cardBody);
+                var cardBody = document.createDocumentFragment();
+                cardBody.appendChild(my_widget_script.createLabelRow());
+                
                 var dataSearch = my_widget_script.dataSearch(sortBy, sortVal);
-                $(".sortCard"+dataSearch).each(function () {
-                    $(this).appendTo($cardBody);
-                })
-                $cardBody.mySort({sortBy: "day"})
-                $cardBody.mySort({sortBy: "mouse"})
+                var x = document.querySelectorAll(".sortCard"+dataSearch);
+                for (var j = 0; j < x.length; j++) {
+                    cardBody.appendChild(x[j]);
+                }
+                
+                my_widget_script.makeCard($(".madeCards"), header, cardBody);
+
+                var $cardBody = $(".madeCards").find(".cardBody").last();
+                $cardBody.mySort({sortBy: "day"});
+                $cardBody.mySort({sortBy: "mouse"});
             }
         }
 
@@ -645,16 +582,7 @@ $(document).ready(function () {
         my_widget_script.resize();
     },
     
-    /** -----------------------------------------------------------------------------
-     * VALIDATE FORM ENTRY BEFORE COPYING OR SAVING TABLE TO CSV
-     *
-     * This function will check that elements with a class "needForTable"
-     * are not blank. If there are blank elements, it will return false
-     * and will post an error message "Please fill out all elements marked by a blue #"
-     *
-     * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
-     * -----------------------------------------------------------------------------
-     */
+    // source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
     data_valid_form: function () {
         var valid = true; //begin with a valid value of true
         //var fail_log = ''; //begin with an empty fail log
@@ -735,7 +663,13 @@ $(document).ready(function () {
     },
     
     makeScoringRow: function (mouseNum, dateString, day){
-        var $cardContainer = $(".cardContainer");
+        // var $cardContainer = $(".cardContainer");
+        var $cardContainer = $("<div/>", {
+            "class": "card sortCard",
+            "data-mouse": mouseNum,
+            "data-day": day,
+            "data-date": dateString
+        });
 
         labelClasses = "col-12 font-weight-bold";
         dataCols = ["mouse", "date", "day", "total", "nuc", "corn", "leuko", "stage", "final"];
@@ -746,38 +680,33 @@ $(document).ready(function () {
 
         $cardContainer.append(
             $("<div/>", {
-                "class": "card sortCard",
-                "data-mouse": mouseNum,
-                "data-day": day,
-                "data-date": dateString
+                "class": "row"
             }).append(
                 $("<div/>", {
-                    "class": "row"
+                    "class": "col-6 d-md-none row labelRow",
+                    "data-mouse": mouseNum
+                })
+            ).append(
+                $("<div/>", {
+                    "class": "col-6 col-md-12 row mouseRow",
+                    "data-mouse": mouseNum
                 }).append(
                     $("<div/>", {
-                        "class": "col-6 d-md-none row labelRow"
-                    })
+                        "class": sortClasses,
+                        "data-col": "mouse",
+                        "data-calc": "mouse",
+                        "data-mouse": mouseNum
+                    }).css("word-break", "break-all").append("Mouse " + mouseNum) // change to watch ID
                 ).append(
                     $("<div/>", {
-                        "class": "col-6 col-md-12 row mouseRow"
-                    }).append(
-                        $("<div/>", {
-                            "class": sortClasses,
-                            "data-col": "mouse",
-                            "data-calc": "mouse",
-                            "data-mouse": mouseNum
-                        }).css("word-break", "break-all").append("Mouse " + mouseNum) // change to watch ID
-                    ).append(
-                        $("<div/>", {
-                            "class": sortClasses,
-                            "data-col": "date"
-                        }).append(dateString)
-                    ).append(
-                        $("<div/>", {
-                            "class": sortClasses,
-                            "data-col": "day"
-                        }).append(day)
-                    )
+                        "class": sortClasses,
+                        "data-col": "date"
+                    }).append(dateString)
+                ).append(
+                    $("<div/>", {
+                        "class": sortClasses,
+                        "data-col": "day"
+                    }).append(day)
                 )
             )
         );
@@ -785,7 +714,7 @@ $(document).ready(function () {
         for(var i=0; i<dataCols.length; i++){
             var col = dataCols[i];
             var extraClass = extraClasses[i]
-            $cardContainer.find(".labelRow").last().append(
+            $cardContainer.find(".labelRow[data-mouse='"+mouseNum+"']").append(
                 $("<div/>",{
                     "class": labelClasses + " " + extraClass,
                     "data-col": col
@@ -795,7 +724,7 @@ $(document).ready(function () {
         
         for(var i=0; i<inputCols.length; i++){
             var col = inputCols[i];
-            $cardContainer.find(".mouseRow").last().append(
+            $cardContainer.find(".mouseRow[data-mouse='"+mouseNum+"']").append(
                 $("<div/>", {
                     "class": showClasses,
                     "data-col": col
@@ -813,7 +742,7 @@ $(document).ready(function () {
             )
         }
 
-        $cardContainer.find(".mouseRow").last().append(
+        $cardContainer.find(".mouseRow[data-mouse='"+mouseNum+"']").append(
             $("<div/>", {
                 "class": showClasses,
                 "data-col": "final"
@@ -829,12 +758,43 @@ $(document).ready(function () {
                 }).append('<option value="">[Select]</option><option value="1">Estrus</option><option value="2">Diestrus</option><option value="3">Proestrus</option>')
             )
         );
+        
+        // console.log("makeScoringRow", $cardContainer);
+        // $cardContainer.appendTo(".cardContainer");
 
-        $(".watch").on("input", function () {
+        $cardContainer.find(".watch").on("input", function () {
             my_widget_script.watchValue($(this));
         });
 
-        my_widget_script.sortFunc("date");
+        return($cardContainer);
+    },
+
+    createLabelRow: function () {
+        labelClasses = "col font-weight-bold";
+        dataCols = ["mouse", "date", "day", "total", "nuc", "corn", "leuko", "stage", "final"];
+        extraClasses = ["sortCol", "sortCol", "sortCol", "showCol", "showCol", "showCol", "showCol", "showCol", "showCol"];
+
+        var card = document.createElement("div");
+        card.className = "card d-none d-md-flex topTableRow";
+        var row = document.createElement("div");
+        row.className = "row";
+        var col = document.createElement("div");
+        col.className = "col-12 row labelRow";
+
+        for (var i=0; i<dataCols.length; i++) {
+            var colName = dataCols[i];
+            var extraClass = extraClasses[i];
+            var e = document.createElement("div");
+            e.className = labelClasses + " " + extraClass;
+            e.dataset.col = colName;
+            content = document.createTextNode(my_widget_script.capitalize(colName));
+            e.appendChild(content);
+            col.appendChild(e);
+        }
+        row.appendChild(col);
+        card.appendChild(row);
+
+        return card;
     },
 
     appendLabelRow: function ($div){
@@ -882,7 +842,6 @@ $(document).ready(function () {
                 $("<div/>", {
                     "class": "card-header"
                 }).on("click", function () {
-                    // console.log($(this));
                     my_widget_script.toggleCard($(this));
                 }).append(cardHeadContent)
             ).append(
@@ -897,7 +856,6 @@ $(document).ready(function () {
     },
 
     toggleCard: function ($cardHead) {
-        // console.log($cardHead.next());
         $cardHead.next().toggleClass("collapse");
         $cardHead.next().find("textarea.autoAdjust").each(function () {
             if(! $(this).is(":hidden")) {
@@ -930,7 +888,6 @@ $(document).ready(function () {
                         "data-calc": "mouse",
                         "data-mouse": mouseNum
                     }).on("click", function () {
-                        // console.log($(this));
                         my_widget_script.toggleCard($(this));
                     }).append("Mouse " + mouseNum)
                 ).append(
@@ -1032,7 +989,9 @@ $(document).ready(function () {
                                     }
                                     if(proceed){
                                         my_widget_script.mice[mouseNum]["startDate"]=$(this).val();
-                                        my_widget_script.adjustScoringRows();
+                                        $(".cardContainer").append(my_widget_script.adjustScoringRows(mouseNum));
+                                        my_widget_script.sortFunc("date");
+                                        my_widget_script.makeTableCols();
                                     } else if(currentDate) {
                                         $(this).val(currentDate);
                                     }
@@ -1061,7 +1020,7 @@ $(document).ready(function () {
                                     my_widget_script.checkDateFormat($(this));
                                 }).on("change", function () {
                                     my_widget_script.checkDateFormat($(this));
-                                    var currentDate = my_widget_script.mice[$(this).data("mouse")]["endDate"];
+                                    var currentDate = my_widget_script.mice[mouseNum]["endDate"];
                                     var thisDate = $(this).val();
                                     var currentAsDate = luxon.DateTime.fromISO(currentDate).startOf("day");
                                     var thisAsDate = luxon.DateTime.fromISO(thisDate).startOf("day");
@@ -1070,8 +1029,10 @@ $(document).ready(function () {
                                         proceed = confirm("This will remove sampling days. Are you sure you wish to proceed?");
                                     }
                                     if(proceed){
-                                        my_widget_script.mice[$(this).data("mouse")]["endDate"]=$(this).val();
-                                        my_widget_script.adjustScoringRows();
+                                        my_widget_script.mice[mouseNum]["endDate"]=$(this).val();
+                                        $(".cardContainer").append(my_widget_script.adjustScoringRows(mouseNum));
+                                        my_widget_script.sortFunc("date");
+                                        my_widget_script.makeTableCols();
                                     } else if(currentDate) {
                                         $(this).val(currentDate);
                                     }
@@ -1114,130 +1075,173 @@ $(document).ready(function () {
 
             //Remove it from mice
             delete my_widget_script.mice[mouseNum];
-
-            // console.log(my_widget_script.mice);
     
             // Remove mouse from dates list
-            if(my_widget_script.dates){
-                var numDates = my_widget_script.dates.length;
-                for(var i = 0; i < numDates; i++){
-                    var index = my_widget_script.dates[i].indexOf(mouseNum);
-                    if(index > -1){
-                        my_widget_script.dates[i].splice(index, 1);
-                    }
+            for(date in my_widget_script.dates){
+                var index = my_widget_script.dates[date].indexOf(mouseNum);
+                if(index > -1){
+                    my_widget_script.dates[date].splice(index, 1);
                 }
             }
     
             var mouseSearch = my_widget_script.mouseSearch(mouseNum);
             $(mouseSearch).remove();
+            // console.log(my_widget_script.mice, my_widget_script.dates);
+            my_widget_script.sortFunc("date");
         }
 
         my_widget_script.resize();
     },
 
-    adjustScoringRows: function () {
-        // console.log(my_widget_script.mouseNums.length);
-        for(var i = 0; i < my_widget_script.mouseNums.length; i++){
-            var mouse = my_widget_script.mouseNums[i];
-            
-            var mouseInfo = my_widget_script.mice[mouse];
-            
-            var id = mouseInfo.id;
-            var startDate = mouseInfo.startDate;
-            var endDate = mouseInfo.endDate;
-            
-            
-            var numDays = 0;
-            if(startDate && endDate){
-                var startDateAsDate = luxon.DateTime.fromISO(startDate).startOf("day");
-                var endDateAsDate = luxon.DateTime.fromISO(endDate).startOf("day");
-            
-                numDays = endDateAsDate.diff(startDateAsDate, "days").as("days") + 1;
-            }            
-            // console.log(id, startDateAsDate, endDateAsDate, currentNumDays);
+    adjustScoringRows: function (mouse) {
+        var mouseInfo = my_widget_script.mice[mouse];
+        // console.log(mouseInfo);
+        
+        var startDate = mouseInfo.startDate;
+        var endDate = mouseInfo.endDate;
+        
+        var numDays = 0;
+        if(startDate && endDate){
+            var startDateAsDate = luxon.DateTime.fromISO(startDate).startOf("day");
+            var endDateAsDate = luxon.DateTime.fromISO(endDate).startOf("day");
+        
+            numDays = endDateAsDate.diff(startDateAsDate, "days").as("days") + 1;
+        }            
+        // console.log(id, startDateAsDate, endDateAsDate, currentNumDays);
 
-            my_widget_script.mice[mouse]["numDays"] = numDays;
+        my_widget_script.mice[mouse]["numDays"] = numDays;
 
-            // Reset dates array
-            my_widget_script.mice[mouse]["dates"] = [];
+        // Reset dates array
+        my_widget_script.mice[mouse]["dates"] = [];
 
-            if(numDays > 0){
-                var date = startDateAsDate;
-                for(var j = 0; j < numDays; j++){
-                    var day = j + 1;
-                    var dateOb = my_widget_script.dates[date.toISODate()];
-                    if(! dateOb){
-                        my_widget_script.dates[date.toISODate()] = [];
-                    }
-                    var inDateOb = my_widget_script.checkInArray(mouse, my_widget_script.dates[date.toISODate()]);
-                    if(! inDateOb){
-                        my_widget_script.dates[date.toISODate()].push(mouse);
-                        my_widget_script.makeScoringRow(mouse, date.toISODate(), day);
-                    }
-                    
-                    var inMouseDateOb = my_widget_script.checkInArray(date.toISODate(), my_widget_script.mice[mouse]["dates"]);
-                    if(! inMouseDateOb){
-                        my_widget_script.mice[mouse]["dates"].push(date.toISODate());
-                    }
-                    date = date.plus({days: 1});
+        if(numDays > 0){
+            var date = startDateAsDate;
+            var $cardContainer = $("<div/>");
+            var addedChildren = false;
+            for(var j = 0; j < numDays; j++){
+                var dateString = date.toISODate();
+                var day = j + 1;
+                var dateOb = my_widget_script.dates[dateString];
+                if(! dateOb){
+                    my_widget_script.dates[dateString] = [];
                 }
+                var inDateOb = my_widget_script.checkInArray(mouse, my_widget_script.dates[dateString]);
+                if(! inDateOb){
+                    my_widget_script.dates[dateString].push(mouse);
+                    // console.time("makeScoringRow");
+                    addedChildren = true;
+                    $cardContainer.append(my_widget_script.makeScoringRow(mouse, dateString, day));
+                    // console.timeEnd("makeScoringRow");
+                    // console.log("adjustScoringRow", $cardContainer);
+                }
+                
+                var inMouseDateOb = my_widget_script.checkInArray(dateString, my_widget_script.mice[mouse]["dates"]);
+                if(! inMouseDateOb){
+                    my_widget_script.mice[mouse]["dates"].push(dateString);
+                }
+                date = date.plus({days: 1});
             }
+        }
 
-            // Remove dates that aren't in mouse dates array
-            for(var date in my_widget_script.dates){
-                var inMouseDate = my_widget_script.checkInArray(date, my_widget_script.mice[mouse]["dates"]);
-                if(! inMouseDate){
-                    var inDates = my_widget_script.checkInArray(mouse, my_widget_script.dates[date]);
-                    if(inDates){
-                        var index = my_widget_script.dates[date].indexOf(mouse);
-                        if(index > -1){
-                            my_widget_script.dates[date].splice(index, 1);
-                        }
-                        var mouseSearch = my_widget_script.mouseSearch(mouse);
-                        var dateSearch = my_widget_script.dateSearch(date);
-                        $(mouseSearch+dateSearch).remove();
+        // Remove dates that aren't in mouse dates array
+        for(var date in my_widget_script.dates){
+            var inMouseDate = my_widget_script.checkInArray(date, my_widget_script.mice[mouse]["dates"]);
+            if(! inMouseDate){
+                var inDates = my_widget_script.checkInArray(mouse, my_widget_script.dates[date]);
+                if(inDates){
+                    var index = my_widget_script.dates[date].indexOf(mouse);
+                    if(index > -1){
+                        my_widget_script.dates[date].splice(index, 1);
                     }
+                    var mouseSearch = my_widget_script.mouseSearch(mouse);
+                    var dateSearch = my_widget_script.dateSearch(date);
+                    $(mouseSearch+dateSearch).remove();
                 }
             }
         }
-        my_widget_script.makeTableCols();
 
+        // console.log("End adjustScoringRow", $cardContainer.children());
+        var children = "";
+        if(addedChildren){
+            children = $cardContainer.children();
+        }
+        return(children);
+        // my_widget_script.sortFunc("date");
         // console.log(my_widget_script.dates, my_widget_script.mice);
     },
 
+    maxNumDays: 0,
+
     makeTableCols: function () {
         // console.log(my_widget_script.mice, my_widget_script.dates);
-        var maxNumDays = 0;
-        $("#mouseTable").find(".added").remove();
         var $table = $("#mouseTable");
+
+        newMax = 0;
 
         for( var mouse in my_widget_script.mice ){
             var numDays = my_widget_script.mice[mouse]["numDays"];
-            if(numDays>maxNumDays){maxNumDays = numDays}
+            if(numDays>newMax){newMax = numDays}
+        }
+
+        if(newMax > my_widget_script.maxNumDays){
+            for(var i = my_widget_script.maxNumDays; i < newMax; i++){
+                var day = i+1;
+                $table.find("thead tr").append(
+                    $("<th/>", {
+                        "class": "added",
+                        "data-day": day
+                    }).append("Day " + day)
+                )
+            }
+        } else if(my_widget_script.maxNumDays > newMax){
+            for(var i = newMax; i < my_widget_script.maxNumDays; i++){
+                var day = i+1;
+                var daySearch = my_widget_script.daySearch(day);
+                $table.find("thead tr").find("th"+daySearch).remove();
+            }
+        }
+
+        my_widget_script.maxNumDays = newMax;
+
+        for( var mouse in my_widget_script.mice){
+            var mouseSearch = my_widget_script.mouseSearch(mouse);
+            var $row = $table.find("tr"+mouseSearch);
+
+            var days = [];
+            $row.find("td").each(function () {
+                days.push($(this).data("day"));
+            });
+
+            for(var i = 0; i < newMax; i ++ ){
+                var day = i + 1;
+                if(! my_widget_script.checkInArray(day, days)){
+                    $row.append(
+                        $("<td/>", {
+                            "class": "added",
+                            "data-calc": "final",
+                            "data-day": day,
+                            "data-mouse": mouse
+                        })
+                    );
+                } else {
+                    var index = days.indexOf(day);
+                    if(index > -1){
+                        days.splice(index, 1);
+                    }
+                }
+            }
+
+            if(days){
+                for(var i = 0; i < days.length; i++){
+                    var day = days[i];
+                    var daySearch = my_widget_script.daySearch(day);
+                    $row.find("td"+daySearch).remove();
+                }
+            }
+        
         }
 
         // console.log(maxNumDays);
-
-        for(var i = 0; i < maxNumDays; i++){
-            var day = i+1;
-            $table.find("thead tr").append(
-                $("<th/>", {
-                    "class": "added",
-                    "data-day": day
-                }).append("Day " + day)
-            )
-            for( var mouse in my_widget_script.mice){
-                var mouseSearch = my_widget_script.mouseSearch(mouse);
-                $table.find("tr"+mouseSearch).append(
-                    $("<td/>", {
-                        "class": "added",
-                        "data-calc": "final",
-                        "data-day": day,
-                        "data-mouse": mouse
-                    })
-                );
-            }
-        }
 
         $(".watch").each(function () {
             my_widget_script.watchValue($(this));
