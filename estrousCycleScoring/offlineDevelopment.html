@@ -61,6 +61,7 @@ $(document).ready(function () {
     my_widget_script =
 {
     init: function (mode, json_data) {
+        // console.time("init");
         //uncomment to inspect and view code while developing
         //debugger;
 
@@ -89,6 +90,7 @@ $(document).ready(function () {
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
+        // console.timeEnd("init");
     },
     
     to_json: function () {
@@ -273,26 +275,18 @@ $(document).ready(function () {
 
         // console.log(my_widget_script.mice);
 
-        console.time("initDynamic")
+        // console.time("initDynamic");
         if(parsedJson.mouseNums){
-            var $cardContainer = $("<div/>");
-            var addedChildren = false;
             for (var i = 0; i < parsedJson.mouseNums.length; i++){
                 mouse = parsedJson.mouseNums[i];
                 my_widget_script.mouseNums.push(mouse);
                 my_widget_script.makeMouseCard(mouse);
-                addedChildren = true;
-                $cardContainer.append(my_widget_script.adjustScoringRows(mouse));
-                // console.log("initDynamicContent - mouse", $cardContainer);
-            }
-            if(addedChildren){
-                // console.log($cardContainer.children());
-                $cardContainer.children().appendTo($(".cardContainer"));
+                my_widget_script.adjustScoringRows(mouse);
             }
         } else {
             my_widget_script.mouseNums = [];
         }
-        console.timeEnd("initDynamic");
+        // console.timeEnd("initDynamic");
     },
 
     adjustForMode: function (mode) {
@@ -537,6 +531,7 @@ $(document).ready(function () {
     },
 
     sortFunc: function (sortBy) {
+        // console.time("sortFunc");
         $(".cardContainer").mySort({sortBy: sortBy});
         var sortVals = [];
         $(".sortCard").each(function () {
@@ -580,6 +575,7 @@ $(document).ready(function () {
 
         my_widget_script.toggleSpecs();
         my_widget_script.resize();
+        // console.timeEnd("sortFunc");
     },
     
     // source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
@@ -663,7 +659,6 @@ $(document).ready(function () {
     },
     
     makeScoringRow: function (mouseNum, dateString, day){
-        // var $cardContainer = $(".cardContainer");
         var $cardContainer = $("<div/>", {
             "class": "card sortCard",
             "data-mouse": mouseNum,
@@ -759,14 +754,11 @@ $(document).ready(function () {
             )
         );
         
-        // console.log("makeScoringRow", $cardContainer);
-        // $cardContainer.appendTo(".cardContainer");
+        $cardContainer.appendTo(".cardContainer");
 
         $cardContainer.find(".watch").on("input", function () {
             my_widget_script.watchValue($(this));
         });
-
-        return($cardContainer);
     },
 
     createLabelRow: function () {
@@ -989,7 +981,7 @@ $(document).ready(function () {
                                     }
                                     if(proceed){
                                         my_widget_script.mice[mouseNum]["startDate"]=$(this).val();
-                                        $(".cardContainer").append(my_widget_script.adjustScoringRows(mouseNum));
+                                        my_widget_script.adjustScoringRows(mouseNum);
                                         my_widget_script.sortFunc("date");
                                         my_widget_script.makeTableCols();
                                     } else if(currentDate) {
@@ -1030,7 +1022,7 @@ $(document).ready(function () {
                                     }
                                     if(proceed){
                                         my_widget_script.mice[mouseNum]["endDate"]=$(this).val();
-                                        $(".cardContainer").append(my_widget_script.adjustScoringRows(mouseNum));
+                                        my_widget_script.adjustScoringRows(mouseNum);
                                         my_widget_script.sortFunc("date");
                                         my_widget_script.makeTableCols();
                                     } else if(currentDate) {
@@ -1116,8 +1108,6 @@ $(document).ready(function () {
 
         if(numDays > 0){
             var date = startDateAsDate;
-            var $cardContainer = $("<div/>");
-            var addedChildren = false;
             for(var j = 0; j < numDays; j++){
                 var dateString = date.toISODate();
                 var day = j + 1;
@@ -1129,10 +1119,8 @@ $(document).ready(function () {
                 if(! inDateOb){
                     my_widget_script.dates[dateString].push(mouse);
                     // console.time("makeScoringRow");
-                    addedChildren = true;
-                    $cardContainer.append(my_widget_script.makeScoringRow(mouse, dateString, day));
+                    my_widget_script.makeScoringRow(mouse, dateString, day);
                     // console.timeEnd("makeScoringRow");
-                    // console.log("adjustScoringRow", $cardContainer);
                 }
                 
                 var inMouseDateOb = my_widget_script.checkInArray(dateString, my_widget_script.mice[mouse]["dates"]);
@@ -1160,12 +1148,6 @@ $(document).ready(function () {
             }
         }
 
-        // console.log("End adjustScoringRow", $cardContainer.children());
-        var children = "";
-        if(addedChildren){
-            children = $cardContainer.children();
-        }
-        return(children);
         // my_widget_script.sortFunc("date");
         // console.log(my_widget_script.dates, my_widget_script.mice);
     },
