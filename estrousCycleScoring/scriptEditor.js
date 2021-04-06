@@ -219,18 +219,37 @@ my_widget_script =
 
         // console.log(my_widget_script.mice);
 
-        // console.time("initDynamic");
+        console.time("initDynamic");
         if(parsedJson.mouseNums){
             for (var i = 0; i < parsedJson.mouseNums.length; i++){
                 mouse = parsedJson.mouseNums[i];
                 my_widget_script.mouseNums.push(mouse);
                 my_widget_script.makeMouseCard(mouse);
-                my_widget_script.adjustScoringRows(mouse);
+                my_widget_script.adjustScoringRows(mouse, false);
+            }
+            for(date in this.dates){
+                header = "Date: " + date;                    
+                var cardBody = document.createDocumentFragment();
+                cardBody.appendChild(my_widget_script.createLabelRow());
+                
+                var dateSearch = my_widget_script.dateSearch(date);
+                var x = document.querySelectorAll(".sortCard"+dateSearch);
+                for (var j = 0; j < x.length; j++) {
+                    cardBody.appendChild(x[j]);
+                }
+                
+                my_widget_script.makeCard($(".madeCards"), header, cardBody);
+
+                var $cardBody = $(".madeCards").find(".card-body").last();
+                for(mouse in this.dates[date]){
+                    var day = this.dates[date][mouse];
+                    this.makeScoringRow(mouse, date, day, $cardBody);
+                }
             }
         } else {
             my_widget_script.mouseNums = [];
         }
-        // console.timeEnd("initDynamic");
+        console.timeEnd("initDynamic");
     },
 
     adjustForMode: function (mode) {
@@ -433,9 +452,6 @@ my_widget_script =
         });
 
         my_widget_script.makeTableCols();
-        // console.time("sortFunc");
-        my_widget_script.sortFunc("date");
-        // console.timeEnd("sortFunc");
 
         $(".watch").each(function () {
             my_widget_script.watchValue($(this));
@@ -511,7 +527,7 @@ my_widget_script =
                 
                 my_widget_script.makeCard($(".madeCards"), header, cardBody);
 
-                var $cardBody = $(".madeCards").find(".cardBody").last();
+                var $cardBody = $(".madeCards").find(".card-body").last();
                 $cardBody.mySort({sortBy: "day"});
                 $cardBody.mySort({sortBy: "mouse"});
             }
@@ -612,7 +628,7 @@ my_widget_script =
         my_widget_script.resize();
     },
     
-    makeScoringRow: function (mouseNum, dateString, day){
+    makeScoringRow: function (mouseNum, dateString, day, $appendContainer){
         var $cardContainer = $("<div/>", {
             "class": "card sortCard",
             "data-mouse": mouseNum,
@@ -707,8 +723,8 @@ my_widget_script =
                 }).append('<option value="">[Select]</option><option value="1">Estrus</option><option value="2">Diestrus</option><option value="3">Proestrus</option>')
             )
         );
-        
-        $cardContainer.appendTo(".cardContainer");
+
+        $appendContainer.append($cardContainer);
 
         $cardContainer.find(".watch").on("input", function () {
             my_widget_script.watchValue($(this));
@@ -823,12 +839,9 @@ my_widget_script =
                 if(proceed){
                     this.mice[mouseNum]["dates"] = [];
                     for(var date in this.dates){
-                        var inDates = this.checkInArray(mouseNum, this.dates[date]);
+                        var inDates = my_widget_script.dates[date].hasOwnProperty(mouse);
                         if(inDates){
-                            var index = this.dates[date].indexOf(mouseNum);
-                            if(index > -1){
-                                this.dates[date].splice(index, 1);
-                            }
+                            delete my_widget_script.dates[date][mouse];
                             var mouseSearch = this.mouseSearch(mouseNum);
                             var dateSearch = this.dateSearch(date);
                             $(mouseSearch+dateSearch).remove();
@@ -839,7 +852,7 @@ my_widget_script =
         }
         if(proceed){
             this.mice[mouseNum]["startDate"]=thisDate;
-            this.adjustScoringRows(mouseNum);
+            this.adjustScoringRows(mouseNum, true);
             this.sortFunc("date");
             this.makeTableCols();
         } else if(currentDate) {
@@ -859,7 +872,7 @@ my_widget_script =
         }
         if(proceed){
             this.mice[mouseNum]["endDate"]=$el.val();
-            this.adjustScoringRows(mouseNum);
+            this.adjustScoringRows(mouseNum, true);
             this.sortFunc("date");
             this.makeTableCols();
         } else if(currentDate) {
@@ -1064,10 +1077,11 @@ my_widget_script =
     
             // Remove mouse from dates list
             for(date in my_widget_script.dates){
-                var index = my_widget_script.dates[date].indexOf(mouseNum);
-                if(index > -1){
-                    my_widget_script.dates[date].splice(index, 1);
-                }
+                delete my_widget_script.dates[date][mouse];
+                // var index = my_widget_script.dates[date].indexOf(mouseNum);
+                // if(index > -1){
+                //     my_widget_script.dates[date].splice(index, 1);
+                // }
             }
     
             var mouseSearch = my_widget_script.mouseSearch(mouseNum);
@@ -1079,7 +1093,7 @@ my_widget_script =
         my_widget_script.resize();
     },
 
-    adjustScoringRows: function (mouse) {
+    adjustScoringRows: function (mouse, makeRow) {
         var mouseInfo = my_widget_script.mice[mouse];
         // console.log(mouseInfo);
         
@@ -1107,14 +1121,14 @@ my_widget_script =
                 var day = j + 1;
                 var dateOb = my_widget_script.dates[dateString];
                 if(! dateOb){
-                    my_widget_script.dates[dateString] = [];
+                    my_widget_script.dates[dateString] = {};
                 }
-                var inDateOb = my_widget_script.checkInArray(mouse, my_widget_script.dates[dateString]);
+                var inDateOb = my_widget_script.dates[dateString].hasOwnProperty(mouse);
                 if(! inDateOb){
-                    my_widget_script.dates[dateString].push(mouse);
-                    // console.time("makeScoringRow");
-                    my_widget_script.makeScoringRow(mouse, dateString, day);
-                    // console.timeEnd("makeScoringRow");
+                    my_widget_script.dates[dateString][mouse] = day;
+                    if(makeRow){
+                        my_widget_script.makeScoringRow(mouse, dateString, day, $(".cardContainer"));
+                    }
                 }
                 
                 var inMouseDateOb = my_widget_script.checkInArray(dateString, my_widget_script.mice[mouse]["dates"]);
@@ -1129,12 +1143,9 @@ my_widget_script =
         for(var date in my_widget_script.dates){
             var inMouseDate = my_widget_script.checkInArray(date, my_widget_script.mice[mouse]["dates"]);
             if(! inMouseDate){
-                var inDates = my_widget_script.checkInArray(mouse, my_widget_script.dates[date]);
+                var inDates = my_widget_script.dates[date].hasOwnProperty(mouse);
                 if(inDates){
-                    var index = my_widget_script.dates[date].indexOf(mouse);
-                    if(index > -1){
-                        my_widget_script.dates[date].splice(index, 1);
-                    }
+                    delete my_widget_script.dates[date][mouse];
                     var mouseSearch = my_widget_script.mouseSearch(mouse);
                     var dateSearch = my_widget_script.dateSearch(date);
                     $(mouseSearch+dateSearch).remove();
@@ -1347,7 +1358,7 @@ my_widget_script =
     },
 
     makeCharts: function () {
-        console.log("in make charts");
+        // console.log("in make charts");
         $("#chartDiv").html("");
         $("#mouseTable tbody tr").each(function () {
             var mouseNum = this.dataset.mouse;

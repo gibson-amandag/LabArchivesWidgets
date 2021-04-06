@@ -79,6 +79,8 @@ $(document).ready(function () {
         //resize the content box when the window size changes
         window.onresize = this.resize;
 
+        window.onresize = this.makeCharts;
+
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
         
@@ -91,6 +93,8 @@ $(document).ready(function () {
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
         // console.timeEnd("init");
+
+        this.makeCharts();
     },
     
     to_json: function () {
@@ -275,18 +279,37 @@ $(document).ready(function () {
 
         // console.log(my_widget_script.mice);
 
-        // console.time("initDynamic");
+        console.time("initDynamic");
         if(parsedJson.mouseNums){
             for (var i = 0; i < parsedJson.mouseNums.length; i++){
                 mouse = parsedJson.mouseNums[i];
                 my_widget_script.mouseNums.push(mouse);
                 my_widget_script.makeMouseCard(mouse);
-                my_widget_script.adjustScoringRows(mouse);
+                my_widget_script.adjustScoringRows(mouse, false);
+            }
+            for(date in this.dates){
+                header = "Date: " + date;                    
+                var cardBody = document.createDocumentFragment();
+                cardBody.appendChild(my_widget_script.createLabelRow());
+                
+                var dateSearch = my_widget_script.dateSearch(date);
+                var x = document.querySelectorAll(".sortCard"+dateSearch);
+                for (var j = 0; j < x.length; j++) {
+                    cardBody.appendChild(x[j]);
+                }
+                
+                my_widget_script.makeCard($(".madeCards"), header, cardBody);
+
+                var $cardBody = $(".madeCards").find(".card-body").last();
+                for(mouse in this.dates[date]){
+                    var day = this.dates[date][mouse];
+                    this.makeScoringRow(mouse, date, day, $cardBody);
+                }
             }
         } else {
             my_widget_script.mouseNums = [];
         }
-        // console.timeEnd("initDynamic");
+        console.timeEnd("initDynamic");
     },
 
     adjustForMode: function (mode) {
@@ -303,6 +326,7 @@ $(document).ready(function () {
             $("input[type='time']").each(function () {
                 my_widget_script.checkTimeFormat($(this));
             });
+
         }
     },
 
@@ -488,15 +512,16 @@ $(document).ready(function () {
         });
 
         my_widget_script.makeTableCols();
-        // console.time("sortFunc");
-        my_widget_script.sortFunc("date");
-        // console.timeEnd("sortFunc");
 
         $(".watch").each(function () {
             my_widget_script.watchValue($(this));
         });
-        
+        $("#makeCharts").on("click", function () {my_widget_script.makeCharts()});
         my_widget_script.resize();
+
+        $(".mouseHeader").each(function () {
+            my_widget_script.toggleCard($(this));
+        });
     },
 
     mouseNums: [],
@@ -562,7 +587,7 @@ $(document).ready(function () {
                 
                 my_widget_script.makeCard($(".madeCards"), header, cardBody);
 
-                var $cardBody = $(".madeCards").find(".cardBody").last();
+                var $cardBody = $(".madeCards").find(".card-body").last();
                 $cardBody.mySort({sortBy: "day"});
                 $cardBody.mySort({sortBy: "mouse"});
             }
@@ -653,12 +678,17 @@ $(document).ready(function () {
         if(mouseNum){
             calcSearch += my_widget_script.mouseSearch(mouseNum);
         }
+        if(watch == "mouse"){
+            if(!val){
+                val = "Mouse " + mouseNum;
+            }
+        }
         $(calcSearch).html(val);
 
         my_widget_script.resize();
     },
     
-    makeScoringRow: function (mouseNum, dateString, day){
+    makeScoringRow: function (mouseNum, dateString, day, $appendContainer){
         var $cardContainer = $("<div/>", {
             "class": "card sortCard",
             "data-mouse": mouseNum,
@@ -753,8 +783,8 @@ $(document).ready(function () {
                 }).append('<option value="">[Select]</option><option value="1">Estrus</option><option value="2">Diestrus</option><option value="3">Proestrus</option>')
             )
         );
-        
-        $cardContainer.appendTo(".cardContainer");
+
+        $appendContainer.append($cardContainer);
 
         $cardContainer.find(".watch").on("input", function () {
             my_widget_script.watchValue($(this));
@@ -857,6 +887,59 @@ $(document).ready(function () {
         my_widget_script.resize();
     },
 
+    startDateFuncs: function ($el, mouseNum) {
+        this.checkDateFormat($el);
+        var currentDate = this.mice[mouseNum]["startDate"];
+        var thisDate = $el.val();
+        var proceed = true;
+        if(currentDate && currentDate != thisDate){
+            proceed = confirm("This will reset all sampling days for this mouse. Are you sure you want to proceed?");
+            if(proceed){
+                proceed = confirm("All data you've entered for this mouse will be erased. Are you sure you want to proceed?");
+                if(proceed){
+                    this.mice[mouseNum]["dates"] = [];
+                    for(var date in this.dates){
+                        var inDates = my_widget_script.dates[date].hasOwnProperty(mouse);
+                        if(inDates){
+                            delete my_widget_script.dates[date][mouse];
+                            var mouseSearch = this.mouseSearch(mouseNum);
+                            var dateSearch = this.dateSearch(date);
+                            $(mouseSearch+dateSearch).remove();
+                        }
+                    }
+                }
+            }
+        }
+        if(proceed){
+            this.mice[mouseNum]["startDate"]=thisDate;
+            this.adjustScoringRows(mouseNum, true);
+            this.sortFunc("date");
+            this.makeTableCols();
+        } else if(currentDate) {
+            $el.val(currentDate);
+        }
+    },
+
+    endDateFuncs: function ($el, mouseNum) {
+        this.checkDateFormat($el);
+        var currentDate = this.mice[mouseNum]["endDate"];
+        var thisDate = $el.val();
+        var currentAsDate = luxon.DateTime.fromISO(currentDate).startOf("day");
+        var thisAsDate = luxon.DateTime.fromISO(thisDate).startOf("day");
+        var proceed = true;
+        if(currentDate && currentAsDate > thisAsDate){
+            proceed = confirm("This will remove sampling days. Are you sure you wish to proceed?");
+        }
+        if(proceed){
+            this.mice[mouseNum]["endDate"]=$el.val();
+            this.adjustScoringRows(mouseNum, true);
+            this.sortFunc("date");
+            this.makeTableCols();
+        } else if(currentDate) {
+            $el.val(currentDate);
+        }
+    },
+
     makeMouseCard: function (mouseNum) {
         var $div = $(".mouseInfo");
 
@@ -876,7 +959,7 @@ $(document).ready(function () {
                     "class": "card"
                 }).append(
                     $("<div/>", {
-                        "class": "card-header",
+                        "class": "card-header mouseHeader",
                         "data-calc": "mouse",
                         "data-mouse": mouseNum
                     }).on("click", function () {
@@ -951,41 +1034,24 @@ $(document).ready(function () {
                                     "data-watch": "startDate"
                                 }).each(function () {
                                     my_widget_script.checkDateFormat($(this));
-                                }).on("change", function () {
-                                    my_widget_script.checkDateFormat($(this));
-                                    var currentDate = my_widget_script.mice[mouseNum]["startDate"];
-                                    var thisDate = $(this).val();
-                                    var currentAsDate = luxon.DateTime.fromISO(currentDate).startOf("day");
-                                    var thisAsDate = luxon.DateTime.fromISO(thisDate).startOf("day");
-                                    var proceed = true;
-                                    if(currentDate && currentAsDate != thisAsDate){
-                                        proceed = confirm("This will reset all sampling days for this mouse. Are you sure you want to proceed?");
-                                        if(proceed){
-                                            proceed = confirm("All data you've entered for this mouse will be erased. Are you sure you want to proceed?");
-                                            if(proceed){
-                                                my_widget_script.mice[mouseNum]["dates"] = [];
-                                                for(var date in my_widget_script.dates){
-                                                    var inDates = my_widget_script.checkInArray(mouseNum, my_widget_script.dates[date]);
-                                                    if(inDates){
-                                                        var index = my_widget_script.dates[date].indexOf(mouseNum);
-                                                        if(index > -1){
-                                                            my_widget_script.dates[date].splice(index, 1);
-                                                        }
-                                                        var mouseSearch = my_widget_script.mouseSearch(mouseNum);
-                                                        var dateSearch = my_widget_script.dateSearch(date);
-                                                        $(mouseSearch+dateSearch).remove();
-                                                    }
-                                                }
-                                            }
+                                }).on("change", function () {// For date picker; fires for any possible date; including 0002
+                                    my_widget_script.startDateFuncs($(this), mouseNum);
+                                }).on("keypress", function () { //enter with keyboard
+                                    // https://stackoverflow.com/questions/40762549/html5-input-type-date-onchange-event
+                                    $(this).off("change blur"); // remove change/blur listeners
+                                    $(this).on("blur", function () {
+                                        if(my_widget_script.isValidDate($(this).val())){
+                                            my_widget_script.startDateFuncs($(this), mouseNum);
                                         }
-                                    }
-                                    if(proceed){
-                                        my_widget_script.mice[mouseNum]["startDate"]=$(this).val();
-                                        my_widget_script.adjustScoringRows(mouseNum);
-                                        my_widget_script.sortFunc("date");
-                                        my_widget_script.makeTableCols();
-                                    } else if(currentDate) {
-                                        $(this).val(currentDate);
+                                        $(this).off("blur"); //remove listener
+                                        $(this).on("change", function () { //add back change listener
+                                            my_widget_script.startDateFuncs($(this), mouseNum);
+                                        });
+                                    });
+                                    if (event.keyCode === 13) { // also fire if press enter
+                                        if(my_widget_script.isValidDate($(this).val())){
+                                            my_widget_script.startDateFuncs($(this), mouseNum);
+                                        }
                                     }
                                 })
                             )
@@ -1011,22 +1077,23 @@ $(document).ready(function () {
                                 }).each(function () {
                                     my_widget_script.checkDateFormat($(this));
                                 }).on("change", function () {
-                                    my_widget_script.checkDateFormat($(this));
-                                    var currentDate = my_widget_script.mice[mouseNum]["endDate"];
-                                    var thisDate = $(this).val();
-                                    var currentAsDate = luxon.DateTime.fromISO(currentDate).startOf("day");
-                                    var thisAsDate = luxon.DateTime.fromISO(thisDate).startOf("day");
-                                    var proceed = true;
-                                    if(currentDate && currentAsDate > thisAsDate){
-                                        proceed = confirm("This will remove sampling days. Are you sure you wish to proceed?");
-                                    }
-                                    if(proceed){
-                                        my_widget_script.mice[mouseNum]["endDate"]=$(this).val();
-                                        my_widget_script.adjustScoringRows(mouseNum);
-                                        my_widget_script.sortFunc("date");
-                                        my_widget_script.makeTableCols();
-                                    } else if(currentDate) {
-                                        $(this).val(currentDate);
+                                    my_widget_script.endDateFuncs($(this), mouseNum);
+                                }).on("keypress", function () { //enter with keyboard
+                                    // https://stackoverflow.com/questions/40762549/html5-input-type-date-onchange-event
+                                    $(this).off("change blur"); // remove change/blur listeners
+                                    $(this).on("blur", function () {
+                                        if(my_widget_script.isValidDate($(this).val())){
+                                            my_widget_script.endDateFuncs($(this), mouseNum);
+                                        }
+                                        $(this).off("blur"); //remove listener
+                                        $(this).on("change", function () { //add back change listener
+                                            my_widget_script.endDateFuncs($(this), mouseNum);
+                                        });
+                                    });
+                                    if (event.keyCode === 13) { // also fire if press enter
+                                        if(my_widget_script.isValidDate($(this).val())){
+                                            my_widget_script.endDateFuncs($(this), mouseNum);
+                                        }
                                     }
                                 })
                             )
@@ -1070,10 +1137,11 @@ $(document).ready(function () {
     
             // Remove mouse from dates list
             for(date in my_widget_script.dates){
-                var index = my_widget_script.dates[date].indexOf(mouseNum);
-                if(index > -1){
-                    my_widget_script.dates[date].splice(index, 1);
-                }
+                delete my_widget_script.dates[date][mouse];
+                // var index = my_widget_script.dates[date].indexOf(mouseNum);
+                // if(index > -1){
+                //     my_widget_script.dates[date].splice(index, 1);
+                // }
             }
     
             var mouseSearch = my_widget_script.mouseSearch(mouseNum);
@@ -1085,7 +1153,7 @@ $(document).ready(function () {
         my_widget_script.resize();
     },
 
-    adjustScoringRows: function (mouse) {
+    adjustScoringRows: function (mouse, makeRow) {
         var mouseInfo = my_widget_script.mice[mouse];
         // console.log(mouseInfo);
         
@@ -1113,14 +1181,14 @@ $(document).ready(function () {
                 var day = j + 1;
                 var dateOb = my_widget_script.dates[dateString];
                 if(! dateOb){
-                    my_widget_script.dates[dateString] = [];
+                    my_widget_script.dates[dateString] = {};
                 }
-                var inDateOb = my_widget_script.checkInArray(mouse, my_widget_script.dates[dateString]);
+                var inDateOb = my_widget_script.dates[dateString].hasOwnProperty(mouse);
                 if(! inDateOb){
-                    my_widget_script.dates[dateString].push(mouse);
-                    // console.time("makeScoringRow");
-                    my_widget_script.makeScoringRow(mouse, dateString, day);
-                    // console.timeEnd("makeScoringRow");
+                    my_widget_script.dates[dateString][mouse] = day;
+                    if(makeRow){
+                        my_widget_script.makeScoringRow(mouse, dateString, day, $(".cardContainer"));
+                    }
                 }
                 
                 var inMouseDateOb = my_widget_script.checkInArray(dateString, my_widget_script.mice[mouse]["dates"]);
@@ -1135,12 +1203,9 @@ $(document).ready(function () {
         for(var date in my_widget_script.dates){
             var inMouseDate = my_widget_script.checkInArray(date, my_widget_script.mice[mouse]["dates"]);
             if(! inMouseDate){
-                var inDates = my_widget_script.checkInArray(mouse, my_widget_script.dates[date]);
+                var inDates = my_widget_script.dates[date].hasOwnProperty(mouse);
                 if(inDates){
-                    var index = my_widget_script.dates[date].indexOf(mouse);
-                    if(index > -1){
-                        my_widget_script.dates[date].splice(index, 1);
-                    }
+                    delete my_widget_script.dates[date][mouse];
                     var mouseSearch = my_widget_script.mouseSearch(mouse);
                     var dateSearch = my_widget_script.dateSearch(date);
                     $(mouseSearch+dateSearch).remove();
@@ -1350,8 +1415,66 @@ $(document).ready(function () {
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
-    }
+    },
 
+    makeCharts: function () {
+        // console.log("in make charts");
+        $("#chartDiv").html("");
+        $("#mouseTable tbody tr").each(function () {
+            var mouseNum = this.dataset.mouse;
+            var id = my_widget_script.mice[mouseNum].id;
+            var rowArray = [];
+            var day = 1;
+            $(this).find(".added").each(function (){
+                var stage = $(this).text();
+                if(stage){
+                    stage=parseInt(stage);
+                } else {stage = NaN}
+                rowArray.push([day, stage]);
+                day++;
+            });
+            my_widget_script.GoogleChart(rowArray, id, mouseNum);
+        });
+        my_widget_script.resize();
+    },
+
+    
+
+    GoogleChart: function (rowArray, mouseID, mouseNum) {
+        google.charts.load('current', {packages: ['corechart', 'line'], callback: drawBasic});
+
+        function drawBasic() {
+
+            var data = new google.visualization.DataTable();
+            data.addColumn('number', 'Day');
+            data.addColumn('number', 'Stage');
+
+            data.addRows(rowArray);
+
+            var options = {
+                title: mouseID,
+                hAxis: {
+                title: 'Day',
+                gridlines: {color: 'none', multiple: 1},
+                },
+                vAxis: {
+                title: 'Stage',
+                ticks: [{v: 1, f: "E"}, {v: 2, f: "D"}, {v: 3, f: "P"}],
+                minValue: 0,
+                maxValue: 4,
+                gridlines: {color: 'none'}
+                },
+                legend: "none"
+            };
+
+            $("#chartDiv").append($("<div></div>", {id: "chartDiv"+mouseNum, "style": "height: 200px"}));
+            var chart = new google.visualization.LineChart(document.getElementById("chartDiv"+mouseNum));
+
+            chart.draw(data, options);
+            my_widget_script.resize();
+
+            }
+    },
 };
 
 //**************************************************************************
@@ -1383,6 +1506,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
 <!------------------------------------------------------------------------------------------>
 <!-- #region HTML -->
+<!-- Google Charts -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <!-- Luxon Date Handling -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
@@ -1504,6 +1629,15 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <p>&nbsp;</p>
     </div>
 </div>
+<div class="container">
+    <div class="row">
+        <div class="col"><input type="button" value="Update Charts" id="makeCharts" name="makecharts"></div>
+    </div>
+</div>
+<div class="container" id="chartDiv">&nbsp;
+</div>
+
+<div class="container">&nbsp;</div>
 
 
 <!-- #endregion -->
