@@ -1,3 +1,4 @@
+<!-- #region HTML -->
 <!-- Google Charts -->
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <!-- Luxon Date Handling -->
@@ -90,13 +91,13 @@
         <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable2" name="toggletable2" type="button"
                 value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable"/>
         </div>
-
         <div class="col-12 col-sm-6 col-md-3"><input id="toCSV2" name="tocsv2" type="button" value="Save CSV"
                 class="fullWidth toCSV" data-table="mouseTable" /></div>
 
         <div class="col-12 col-sm-6 col-md-3">
             <input id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable"/>
             <br />Copy Table Head? <input id="copyHead2" name="copyhead2" type="checkbox" class="copyHead" data-table="mouseTable"/>
+            <br />Transpose Table? <input id="transpose2" name="transpose2" type="checkbox" class="transpose" data-table="mouseTable"/>
         </div>
     </div>
 </div>
@@ -128,3 +129,5 @@
 </div>
 <div class="container" id="chartDiv">&nbsp;
 </div>
+
+<div class="container">&nbsp;</div>

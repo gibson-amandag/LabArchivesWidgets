@@ -219,7 +219,7 @@ my_widget_script =
 
         // console.log(my_widget_script.mice);
 
-        console.time("initDynamic");
+        // console.time("initDynamic");
         if(parsedJson.mouseNums){
             for (var i = 0; i < parsedJson.mouseNums.length; i++){
                 mouse = parsedJson.mouseNums[i];
@@ -228,6 +228,9 @@ my_widget_script =
                 my_widget_script.adjustScoringRows(mouse, false);
             }
             for(date in this.dates){
+                today = luxon.DateTime.now().toISODate();
+                var isToday = false;
+                if(date == today){isToday = true}
                 header = "Date: " + date;                    
                 var cardBody = document.createDocumentFragment();
                 cardBody.appendChild(my_widget_script.createLabelRow());
@@ -245,11 +248,14 @@ my_widget_script =
                     var day = this.dates[date][mouse];
                     this.makeScoringRow(mouse, date, day, $cardBody);
                 }
+                if(isToday){
+                    $(".madeCards").find(".card-header").last().addClass("cardToday");
+                }
             }
         } else {
             my_widget_script.mouseNums = [];
         }
-        console.timeEnd("initDynamic");
+        // console.timeEnd("initDynamic");
     },
 
     adjustForMode: function (mode) {
@@ -266,7 +272,7 @@ my_widget_script =
             $("input[type='time']").each(function () {
                 my_widget_script.checkTimeFormat($(this));
             });
-
+            this.toggleCard($(".cardToday"));
         }
     },
 
@@ -447,8 +453,9 @@ my_widget_script =
             var $tableDiv = $tableToCopy.parent();
             var $errorMsg = $("#errorMsg");
             var $divForCopy = $("#forCopy");
+            var $transpose = $(".transpose"+tableSearch);
             
-            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
+            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose)
         });
 
         my_widget_script.makeTableCols();
@@ -1283,36 +1290,37 @@ my_widget_script =
         this.downloadCSV(csv.join("\n"), filename);
     },
 
-    copyTable: function ($table, copyHead, $divForCopy) {
-        //create a temporary text area
+    copyTable: function ($table, copyHead, $divForCopy, transpose) {
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-        var addLine = "";
+        var rows = [];
+        var rowNum = 0;
         if (copyHead) {
-            $table.find("thead").children("tr").each(function () { //add each child of the row
-                var addTab = "";
-                $(this).children().each(function () {
-                    $temp.text($temp.text() + addTab + $(this).text());
-                    addTab = "\t";
+            $table.find("thead").children("tr").each(function () {
+                if(transpose){rowNum = 0;}
+                $(this).find("td, th").each(function () {
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    rows[rowNum].push($(this).text());
+                    if(transpose){rowNum++;}
                 });
+                if(!transpose){rowNum++;}
             });
-            addLine = "\n";
         }
 
-        $table.find("tbody").children("tr").each(function () { //add each child of the row
-            $temp.text($temp.text() + addLine);
-            var addTab = "";
-            $(this).find("td").each(function () {
-                if ($(this).text()) {
-                    var addText = $(this).text();
-                } else {
-                    var addText = "NA"
-                }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                addLine = "\n";
+        $table.find("tbody").children("tr").each(function () {
+            if(transpose){rowNum = 0;} else {}
+            $(this).find("td, th").each(function () {
+                if(rows[rowNum]===undefined){rows[rowNum] = []}
+                rows[rowNum].push($(this).text());
+                if(transpose){rowNum++;}
             });
+            if(!transpose){rowNum++;}
         });
 
+        for(var i = 0; i < rows.length; i++){
+            rows[i] = rows[i].join("\t");
+        }
+
+        $temp.append(rows.join("\n"));
         $temp.appendTo($divForCopy).select(); //add temp to tableDiv and select
         document.execCommand("copy"); //copy the "selected" text
         $temp.remove(); //remove temp
@@ -1336,9 +1344,9 @@ my_widget_script =
         }
     },
 
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy){
+    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
         var data_valid = my_widget_script.data_valid_form();
-        var copyHead
+        var copyHead, transpose;
 
         //only copy the heading when the input box is checked
         if ($copyHead.is(":checked")) {
@@ -1347,10 +1355,16 @@ my_widget_script =
             copyHead = false;
         }
 
+        if ($transpose.is(":checked")) {
+            transpose = true;
+        } else {
+            transpose = false;
+        }
+
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             my_widget_script.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
+            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
@@ -1363,6 +1377,9 @@ my_widget_script =
         $("#mouseTable tbody tr").each(function () {
             var mouseNum = this.dataset.mouse;
             var id = my_widget_script.mice[mouseNum].id;
+            if(!id){
+                id = "Mouse " + mouseNum;
+            }
             var rowArray = [];
             var day = 1;
             $(this).find(".added").each(function (){
@@ -1413,6 +1430,6 @@ my_widget_script =
             chart.draw(data, options);
             my_widget_script.resize();
 
-            }
-    },
+        }
+    }
 };
