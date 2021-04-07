@@ -35,18 +35,12 @@ my_widget_script =
 
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
-
         
         // Set up the form based on previously entered form input
-        this.setUpInitialState();
+        this.setUpInitialState(parsedJson);
         
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
-        
-        if(parsedJson.selectedDays){
-            // Update multi-select list
-            $("#selectMassDays").val(parsedJson.selectedDays);
-        }
     },
 
     to_json: function () {
@@ -470,7 +464,7 @@ my_widget_script =
         }
     },
 
-    setUpInitialState: function () {
+    setUpInitialState: function (parsedJson) {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 text-left text-sm-right");
         $('.myLeftCol2').addClass("col-6 col-md-4 col-lg-3 col-xl-2 text-right");
@@ -507,6 +501,11 @@ my_widget_script =
         my_widget_script.offspringCalculations($("#offspringMassStart"), $(".numPupsStart"), $(".avgMassStart"));
         
         my_widget_script.showWithCheck($("#showDates"), $("#datesList"));
+
+        if(parsedJson.selectedDays){
+            // Update multi-select list
+            $("#selectMassDays").val(parsedJson.selectedDays);
+        }
 
         my_widget_script.updateSelectedMassDays();
 
