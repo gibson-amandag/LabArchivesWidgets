@@ -1,4 +1,3 @@
-<!-- #region HTML -->
 <!-- Google Charts -->
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <!-- Luxon Date Handling -->
@@ -88,16 +87,35 @@
 
 <div class="container mt-2">
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable2" name="toggletable2" type="button"
+        <div class="col-12 col-sm-6"><input id="toggleTable2" name="toggletable2" type="button"
                 value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable"/>
         </div>
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV2" name="tocsv2" type="button" value="Save CSV"
+        
+        <div class="col-12 col-sm-6"><input id="toCSV2" name="tocsv2" type="button" value="Save CSV"
                 class="fullWidth toCSV" data-table="mouseTable" /></div>
-
-        <div class="col-12 col-sm-6 col-md-3">
+    </div>
+    <div class="row">
+        <h4 class="col">Copy Options:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-md-6 col-lg-3">
+            Copy Table Head? <input id="copyHead2" name="copyhead2" type="checkbox" class="copyHead" data-table="mouseTable"/>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            Transpose Table? <input id="transpose2" name="transpose2" type="checkbox" class="transpose" data-table="mouseTable"/>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3 row align-items-center">
+            <div class="col">Start Day:</div>
+            <div class="col"><input type="number" name="startcopy" class="fullWidth" id="startCopy" value="1" step="1"></div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3 row align-items-center">
+            <div class="col">End Day:</div>
+            <div class="col"><input type="number" name="endcopy" class="fullWidth" id="endCopy" value="21" step="1"></div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
             <input id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable"/>
-            <br />Copy Table Head? <input id="copyHead2" name="copyhead2" type="checkbox" class="copyHead" data-table="mouseTable"/>
-            <br />Transpose Table? <input id="transpose2" name="transpose2" type="checkbox" class="transpose" data-table="mouseTable"/>
         </div>
     </div>
 </div>

@@ -454,8 +454,10 @@ my_widget_script =
             var $errorMsg = $("#errorMsg");
             var $divForCopy = $("#forCopy");
             var $transpose = $(".transpose"+tableSearch);
+            var $start = $("#startCopy");
+            var $end = $("#endCopy");
             
-            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose)
+            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose, $start, $end)
         });
 
         my_widget_script.makeTableCols();
@@ -1058,7 +1060,8 @@ my_widget_script =
             }).append(
                 $("<td/>", {
                     "data-calc": "mouse",
-                    "data-mouse": mouseNum
+                    "data-mouse": mouseNum,
+                    "class": "mouse"
                 }).append("Mouse "+mouseNum)
             )
         );
@@ -1290,7 +1293,7 @@ my_widget_script =
         this.downloadCSV(csv.join("\n"), filename);
     },
 
-    copyTable: function ($table, copyHead, $divForCopy, transpose) {
+    copyTable: function ($table, copyHead, $divForCopy, transpose, start, end) {
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
         var rows = [];
         var rowNum = 0;
@@ -1298,9 +1301,12 @@ my_widget_script =
             $table.find("thead").children("tr").each(function () {
                 if(transpose){rowNum = 0;}
                 $(this).find("td, th").each(function () {
-                    if(rows[rowNum]===undefined){rows[rowNum] = []}
-                    rows[rowNum].push($(this).text());
-                    if(transpose){rowNum++;}
+                    var day = this.dataset.day;
+                    if($(this).hasClass("mouse") || (day >= start && day <= end)){
+                        if(rows[rowNum]===undefined){rows[rowNum] = []}
+                        rows[rowNum].push($(this).text());
+                        if(transpose){rowNum++;}
+                    }
                 });
                 if(!transpose){rowNum++;}
             });
@@ -1309,9 +1315,12 @@ my_widget_script =
         $table.find("tbody").children("tr").each(function () {
             if(transpose){rowNum = 0;} else {}
             $(this).find("td, th").each(function () {
-                if(rows[rowNum]===undefined){rows[rowNum] = []}
-                rows[rowNum].push($(this).text());
-                if(transpose){rowNum++;}
+                var day = this.dataset.day;
+                if($(this).hasClass("mouse") || (day >= start && day <= end)){
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    rows[rowNum].push($(this).text());
+                    if(transpose){rowNum++;}
+                }
             });
             if(!transpose){rowNum++;}
         });
@@ -1344,7 +1353,7 @@ my_widget_script =
         }
     },
 
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
+    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose, $start, $end){
         var data_valid = my_widget_script.data_valid_form();
         var copyHead, transpose;
 
@@ -1361,10 +1370,20 @@ my_widget_script =
             transpose = false;
         }
 
+        var start = $start.val();
+        if(start){
+            start = parseInt(start);
+        } else {start = 1}
+
+        var end = $end.val();
+        if(end){
+            end = parseInt(end);
+        }else {end = 21}
+
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             my_widget_script.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
+            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy, transpose, start, end); //copy table
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
@@ -1430,6 +1449,7 @@ my_widget_script =
             chart.draw(data, options);
             my_widget_script.resize();
 
-        }
+            }
     }
+
 };

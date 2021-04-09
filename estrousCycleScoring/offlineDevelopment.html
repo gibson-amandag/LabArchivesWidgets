@@ -514,8 +514,10 @@ $(document).ready(function () {
             var $errorMsg = $("#errorMsg");
             var $divForCopy = $("#forCopy");
             var $transpose = $(".transpose"+tableSearch);
+            var $start = $("#startCopy");
+            var $end = $("#endCopy");
             
-            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose)
+            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose, $start, $end)
         });
 
         my_widget_script.makeTableCols();
@@ -1118,7 +1120,8 @@ $(document).ready(function () {
             }).append(
                 $("<td/>", {
                     "data-calc": "mouse",
-                    "data-mouse": mouseNum
+                    "data-mouse": mouseNum,
+                    "class": "mouse"
                 }).append("Mouse "+mouseNum)
             )
         );
@@ -1350,7 +1353,7 @@ $(document).ready(function () {
         this.downloadCSV(csv.join("\n"), filename);
     },
 
-    copyTable: function ($table, copyHead, $divForCopy, transpose) {
+    copyTable: function ($table, copyHead, $divForCopy, transpose, start, end) {
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
         var rows = [];
         var rowNum = 0;
@@ -1358,9 +1361,12 @@ $(document).ready(function () {
             $table.find("thead").children("tr").each(function () {
                 if(transpose){rowNum = 0;}
                 $(this).find("td, th").each(function () {
-                    if(rows[rowNum]===undefined){rows[rowNum] = []}
-                    rows[rowNum].push($(this).text());
-                    if(transpose){rowNum++;}
+                    var day = this.dataset.day;
+                    if($(this).hasClass("mouse") || (day >= start && day <= end)){
+                        if(rows[rowNum]===undefined){rows[rowNum] = []}
+                        rows[rowNum].push($(this).text());
+                        if(transpose){rowNum++;}
+                    }
                 });
                 if(!transpose){rowNum++;}
             });
@@ -1369,9 +1375,12 @@ $(document).ready(function () {
         $table.find("tbody").children("tr").each(function () {
             if(transpose){rowNum = 0;} else {}
             $(this).find("td, th").each(function () {
-                if(rows[rowNum]===undefined){rows[rowNum] = []}
-                rows[rowNum].push($(this).text());
-                if(transpose){rowNum++;}
+                var day = this.dataset.day;
+                if($(this).hasClass("mouse") || (day >= start && day <= end)){
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    rows[rowNum].push($(this).text());
+                    if(transpose){rowNum++;}
+                }
             });
             if(!transpose){rowNum++;}
         });
@@ -1404,7 +1413,7 @@ $(document).ready(function () {
         }
     },
 
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
+    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose, $start, $end){
         var data_valid = my_widget_script.data_valid_form();
         var copyHead, transpose;
 
@@ -1421,10 +1430,20 @@ $(document).ready(function () {
             transpose = false;
         }
 
+        var start = $start.val();
+        if(start){
+            start = parseInt(start);
+        } else {start = 1}
+
+        var end = $end.val();
+        if(end){
+            end = parseInt(end);
+        }else {end = 21}
+
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             my_widget_script.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
+            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy, transpose, start, end); //copy table
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
@@ -1613,17 +1632,35 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2">
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable2" name="toggletable2" type="button"
+        <div class="col-12 col-sm-6"><input id="toggleTable2" name="toggletable2" type="button"
                 value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable"/>
         </div>
         
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV2" name="tocsv2" type="button" value="Save CSV"
+        <div class="col-12 col-sm-6"><input id="toCSV2" name="tocsv2" type="button" value="Save CSV"
                 class="fullWidth toCSV" data-table="mouseTable" /></div>
-
-        <div class="col-12 col-sm-6 col-md-3">
+    </div>
+    <div class="row">
+        <h4 class="col">Copy Options:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-md-6 col-lg-3">
+            Copy Table Head? <input id="copyHead2" name="copyhead2" type="checkbox" class="copyHead" data-table="mouseTable"/>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            Transpose Table? <input id="transpose2" name="transpose2" type="checkbox" class="transpose" data-table="mouseTable"/>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3 row align-items-center">
+            <div class="col">Start Day:</div>
+            <div class="col"><input type="number" name="startcopy" class="fullWidth" id="startCopy" value="1" step="1"></div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3 row align-items-center">
+            <div class="col">End Day:</div>
+            <div class="col"><input type="number" name="endcopy" class="fullWidth" id="endCopy" value="21" step="1"></div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
             <input id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable"/>
-            <br />Copy Table Head? <input id="copyHead2" name="copyhead2" type="checkbox" class="copyHead" data-table="mouseTable"/>
-            <br />Transpose Table? <input id="transpose2" name="transpose2" type="checkbox" class="transpose" data-table="mouseTable"/>
         </div>
     </div>
 </div>
