@@ -398,10 +398,10 @@ my_widget_script =
 
         $(document).on('click', "a.toggleSpec", function() {
             if($(this).hasClass("hidden")){
-                $(this).text("Show all");
+                $(this).text("Show only scoring");
                 $(this).removeClass("hidden");
             } else {
-                $(this).text("Show only scoring");
+                $(this).text("Show all");
                 $(this).addClass("hidden");
             }
             my_widget_script.toggleSpecs();
@@ -1451,5 +1451,4 @@ my_widget_script =
 
             }
     }
-
 };
