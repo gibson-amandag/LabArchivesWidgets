@@ -1029,10 +1029,10 @@ $(document).ready(function () {
                             dateAtVO = thisVODate;
                             pndAtVO = thisPndAtVO;
                         }
-    
-                        $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow"); 
+                        
+                        $this.closest(".row").addClass("yellowRow");
                     } else {
-                        $this.css("background-color", "").closest(".row").css("background-color", ""); 
+                        $this.closest(".row").removeClass("yellowRow");
                     }
     
                     if(hasReachedVO){
@@ -1134,10 +1134,10 @@ $(document).ready(function () {
                         pndAt1E = thisPndAt1E;
                         massAt1E = this1EMass;
                     }
-    
-                    $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow").find(".firstE_mass").css("background-color", "yellow"); 
+                    
+                    $this.closest(".row").addClass("yellowRow");
                 } else {
-                    $this.css("background-color", "").closest(".row").css("background-color", "").find(".firstE_mass").css("background-color", ""); 
+                    $this.closest(".row").removeClass("yellowRow");
                 }
             });
     
@@ -1585,21 +1585,12 @@ $(document).ready(function () {
                             $("<div/>", {
                                 "class": showChecked + " mouse" + mouseNum
                             }).append(
-                                $("<select/>", {
+                                $("<input/>", {
                                     name: "eartag" + mouseNum,
                                     id: "earTag" + mouseNum,
+                                    type: "number",
                                     "class": "simpleCalc"
-                                }).append(
-                                    "<option value=''>[Select]</option>"+
-                                    "<option value='04'>04</option>"+
-                                    "<option value='06'>06</option>"+
-                                    "<option value='40'>40</option>"+
-                                    "<option value='60'>60</option>"+
-                                    "<option value='44'>44</option>"+
-                                    "<option value='66'>66</option>"+
-                                    "<option value='46'>46</option>"+
-                                    "<option value='64'>64</option>"
-                                )
+                                })
                             )
                         ).append(
                             $("<div/>", {
@@ -1733,6 +1724,9 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     }
     .massDiv, .ifOther, .ifVO, .tableDiv, .forCopy {
         display: none;
+    }
+    .yellowRow, .yellowRow input, .yellowRow select {
+        background-color: yellow;
     }
 </style>
 
@@ -2837,10 +2831,13 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                             <th>Mouse_ID</th>
                             <th>VO_day</th>
                             <th>VO_mass</th>
+                            <th>VO_PND</th>
                             <th>Estrus_day</th>
                             <th>Estrus_mass</th>
+                            <th>Estrus_PND</th>
                             <th>PreputialSep_day</th>
                             <th>PreputialSep_mass</th>
+                            <th>PreputialSep_PND</th>
                             <th>AGD_P22</th>
                             <th>AGD_P23</th>
                             <th>AGD_P24</th>
@@ -2854,8 +2851,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                             <td class="mouseID1_calc">&nbsp;</td>
                             <td class="VO_date1_calc">&nbsp;</td>
                             <td class="VO_mass1_calc">&nbsp;</td>
+                            <td class="VO_PND1_calc">&nbsp;</td>
                             <td class="firstE_date1_calc">&nbsp;</td>
                             <td class="firstE_mass1_calc">&nbsp;</td>
+                            <td class="firstE_PND1_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_1_calc">&nbsp;</td>
@@ -2869,8 +2869,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                             <td class="mouseID2_calc">&nbsp;</td>
                             <td class="VO_date2_calc">&nbsp;</td>
                             <td class="VO_mass2_calc">&nbsp;</td>
+                            <td class="VO_PND2_calc">&nbsp;</td>
                             <td class="firstE_date2_calc">&nbsp;</td>
                             <td class="firstE_mass2_calc">&nbsp;</td>
+                            <td class="firstE_PND2_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_2_calc">&nbsp;</td>
@@ -2884,8 +2887,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                             <td class="mouseID3_calc">&nbsp;</td>
                             <td class="VO_date3_calc">&nbsp;</td>
                             <td class="VO_mass3_calc">&nbsp;</td>
+                            <td class="VO_PND3_calc">&nbsp;</td>
                             <td class="firstE_date3_calc">&nbsp;</td>
                             <td class="firstE_mass3_calc">&nbsp;</td>
+                            <td class="firstE_PND3_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_3_calc">&nbsp;</td>
@@ -2899,8 +2905,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                             <td class="mouseID4_calc">&nbsp;</td>
                             <td class="VO_date4_calc">&nbsp;</td>
                             <td class="VO_mass4_calc">&nbsp;</td>
+                            <td class="VO_PND4_calc">&nbsp;</td>
                             <td class="firstE_date4_calc">&nbsp;</td>
                             <td class="firstE_mass4_calc">&nbsp;</td>
+                            <td class="firstE_PND4_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_4_calc">&nbsp;</td>
@@ -2914,8 +2923,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                             <td class="mouseID5_calc">&nbsp;</td>
                             <td class="VO_date5_calc">&nbsp;</td>
                             <td class="VO_mass5_calc">&nbsp;</td>
+                            <td class="VO_PND5_calc">&nbsp;</td>
                             <td class="firstE_date5_calc">&nbsp;</td>
                             <td class="firstE_mass5_calc">&nbsp;</td>
+                            <td class="firstE_PND5_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_5_calc">&nbsp;</td>

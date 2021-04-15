@@ -1,3 +1,4 @@
+<!-- #region HTML -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -44,6 +45,9 @@
     }
     .massDiv, .ifOther, .ifVO, .tableDiv, .forCopy {
         display: none;
+    }
+    .yellowRow, .yellowRow input, .yellowRow select {
+        background-color: yellow;
     }
 </style>
 
@@ -111,7 +115,7 @@
                     <h4 class="needForTableLab">DOB</h4>
                 </div>
                 <div class="col-12 hideView editDemoChecked">
-                    <input type="date" class="simpleCalc needForTable" id="DOB" name="dob" placeholder="YYYY-MM-DD"/>
+                    <input type="date" class="simpleCalc needForTable" id="DOB" name="dob"/>
                 </div>
                 <div class="col-12 DOB_calc"></div>
             </div>
@@ -802,7 +806,7 @@
                     <input type="button" value="Add VO For Date..." name="vo_addbutton1" id="VO_addButton1" class="addMatCheck VO fullWidth disableOnView" data-num="1"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 VO">
-                    <input type="date" name="vo_adddate1" id="VO_addDate1" class="addMatDate fullWidth" data-num="1" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="vo_adddate1" id="VO_addDate1" class="addMatDate fullWidth" data-num="1" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton1" id="VO_removeButton1" class="removeMatCheck VO fullWidth disableOnView" data-num="1"/>
@@ -836,7 +840,7 @@
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton1" id="firstE_addButton1" class="addMatCheck firstE fullWidth disableOnView" data-num="1"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 firstE">
-                    <input type="date" name="firste_adddate1" id="firstE_addDate1" class="addMatDate fullWidth" data-num="1" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="firste_adddate1" id="firstE_addDate1" class="addMatDate fullWidth" data-num="1" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton1" id="firstE_removeButton1" class="removeMatCheck firstE fullWidth disableOnView" data-num="1"/>
@@ -867,7 +871,7 @@
                     <input type="button" value="Add VO For Date..." name="vo_addbutton2" id="VO_addButton2" class="addMatCheck VO fullWidth disableOnView" data-num="2"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 VO">
-                    <input type="date" name="vo_adddate2" id="VO_addDate2" class="addMatDate fullWidth" data-num="2" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="vo_adddate2" id="VO_addDate2" class="addMatDate fullWidth" data-num="2" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton2" id="VO_removeButton2" class="removeMatCheck VO fullWidth disableOnView" data-num="2"/>
@@ -901,7 +905,7 @@
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton2" id="firstE_addButton2" class="addMatCheck firstE fullWidth disableOnView" data-num="2"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 firstE">
-                    <input type="date" name="firste_adddate2" id="firstE_addDate2" class="addMatDate fullWidth" data-num="2" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="firste_adddate2" id="firstE_addDate2" class="addMatDate fullWidth" data-num="2" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton2" id="firstE_removeButton2" class="removeMatCheck firstE fullWidth disableOnView" data-num="2"/>
@@ -932,7 +936,7 @@
                     <input type="button" value="Add VO For Date..." name="vo_addbutton3" id="VO_addButton3" class="addMatCheck VO fullWidth disableOnView" data-num="3"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 VO">
-                    <input type="date" name="vo_adddate1" id="VO_addDate3" class="addMatDate fullWidth" data-num="3" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="vo_adddate1" id="VO_addDate3" class="addMatDate fullWidth" data-num="3" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton3" id="VO_removeButton3" class="removeMatCheck VO fullWidth disableOnView" data-num="3"/>
@@ -966,7 +970,7 @@
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton3" id="firstE_addButton3" class="addMatCheck firstE fullWidth disableOnView" data-num="3"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 firstE">
-                    <input type="date" name="firste_adddate3" id="firstE_addDate3" class="addMatDate fullWidth" data-num="3" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="firste_adddate3" id="firstE_addDate3" class="addMatDate fullWidth" data-num="3" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton3" id="firstE_removeButton3" class="removeMatCheck firstE fullWidth disableOnView" data-num="3"/>
@@ -997,7 +1001,7 @@
                     <input type="button" value="Add VO For Date..." name="vo_addbutton4" id="VO_addButton4" class="addMatCheck VO fullWidth disableOnView" data-num="4"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 VO">
-                    <input type="date" name="vo_adddate4" id="VO_addDate4" class="addMatDate fullWidth" data-num="4" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="vo_adddate4" id="VO_addDate4" class="addMatDate fullWidth" data-num="4" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton4" id="VO_removeButton4" class="removeMatCheck VO fullWidth disableOnView" data-num="4"/>
@@ -1031,7 +1035,7 @@
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton4" id="firstE_addButton4" class="addMatCheck firstE fullWidth disableOnView" data-num="4"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 firstE">
-                    <input type="date" name="firste_adddate1" id="firstE_addDate4" class="addMatDate fullWidth" data-num="4" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="firste_adddate1" id="firstE_addDate4" class="addMatDate fullWidth" data-num="4" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton4" id="firstE_removeButton4" class="removeMatCheck firstE fullWidth disableOnView" data-num="4"/>
@@ -1062,7 +1066,7 @@
                     <input type="button" value="Add VO For Date..." name="vo_addbutton5" id="VO_addButton5" class="addMatCheck VO fullWidth disableOnView" data-num="5"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 VO">
-                    <input type="date" name="vo_adddate5" id="VO_addDate5" class="addMatDate fullWidth" data-num="5" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="vo_adddate5" id="VO_addDate5" class="addMatDate fullWidth" data-num="5" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 VO">
                     <input type="button" value="Remove Last VO Date" name="vo_removebutton5" id="VO_removeButton5" class="removeMatCheck VO fullWidth disableOnView" data-num="5"/>
@@ -1096,7 +1100,7 @@
                     <input type="button" value="Add Estrus Check For Date..." name="firste_addbutton5" id="firstE_addButton5" class="addMatCheck firstE fullWidth disableOnView" data-num="5"/>
                 </div>
                 <div class="med2 mt-2 mt-md-0 firstE">
-                    <input type="date" name="firste_adddate1" id="firstE_addDate5" class="addMatDate fullWidth" data-num="5" placeholder="YYYY-MM-DD"/>
+                    <input type="date" name="firste_adddate1" id="firstE_addDate5" class="addMatDate fullWidth" data-num="5" />
                 </div>
                 <div class="med2 mt-2 mt-lg-0 firstE">
                     <input type="button" value="Remove Last Estrus Check Date" name="firste_removebutton5" id="firstE_removeButton5" class="removeMatCheck firstE fullWidth disableOnView" data-num="5"/>
@@ -1148,10 +1152,13 @@
                             <th>Mouse_ID</th>
                             <th>VO_day</th>
                             <th>VO_mass</th>
+                            <th>VO_PND</th>
                             <th>Estrus_day</th>
                             <th>Estrus_mass</th>
+                            <th>Estrus_PND</th>
                             <th>PreputialSep_day</th>
                             <th>PreputialSep_mass</th>
+                            <th>PreputialSep_PND</th>
                             <th>AGD_P22</th>
                             <th>AGD_P23</th>
                             <th>AGD_P24</th>
@@ -1165,8 +1172,11 @@
                             <td class="mouseID1_calc">&nbsp;</td>
                             <td class="VO_date1_calc">&nbsp;</td>
                             <td class="VO_mass1_calc">&nbsp;</td>
+                            <td class="VO_PND1_calc">&nbsp;</td>
                             <td class="firstE_date1_calc">&nbsp;</td>
                             <td class="firstE_mass1_calc">&nbsp;</td>
+                            <td class="firstE_PND1_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_1_calc">&nbsp;</td>
@@ -1180,8 +1190,11 @@
                             <td class="mouseID2_calc">&nbsp;</td>
                             <td class="VO_date2_calc">&nbsp;</td>
                             <td class="VO_mass2_calc">&nbsp;</td>
+                            <td class="VO_PND2_calc">&nbsp;</td>
                             <td class="firstE_date2_calc">&nbsp;</td>
                             <td class="firstE_mass2_calc">&nbsp;</td>
+                            <td class="firstE_PND2_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_2_calc">&nbsp;</td>
@@ -1195,8 +1208,11 @@
                             <td class="mouseID3_calc">&nbsp;</td>
                             <td class="VO_date3_calc">&nbsp;</td>
                             <td class="VO_mass3_calc">&nbsp;</td>
+                            <td class="VO_PND3_calc">&nbsp;</td>
                             <td class="firstE_date3_calc">&nbsp;</td>
                             <td class="firstE_mass3_calc">&nbsp;</td>
+                            <td class="firstE_PND3_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_3_calc">&nbsp;</td>
@@ -1210,8 +1226,11 @@
                             <td class="mouseID4_calc">&nbsp;</td>
                             <td class="VO_date4_calc">&nbsp;</td>
                             <td class="VO_mass4_calc">&nbsp;</td>
+                            <td class="VO_PND4_calc">&nbsp;</td>
                             <td class="firstE_date4_calc">&nbsp;</td>
                             <td class="firstE_mass4_calc">&nbsp;</td>
+                            <td class="firstE_PND4_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_4_calc">&nbsp;</td>
@@ -1225,8 +1244,11 @@
                             <td class="mouseID5_calc">&nbsp;</td>
                             <td class="VO_date5_calc">&nbsp;</td>
                             <td class="VO_mass5_calc">&nbsp;</td>
+                            <td class="VO_PND5_calc">&nbsp;</td>
                             <td class="firstE_date5_calc">&nbsp;</td>
                             <td class="firstE_mass5_calc">&nbsp;</td>
+                            <td class="firstE_PND5_calc">&nbsp;</td>
+                            <td>NA</td>
                             <td>NA</td>
                             <td>NA</td>
                             <td class="AGD_pnd22_5_calc">&nbsp;</td>

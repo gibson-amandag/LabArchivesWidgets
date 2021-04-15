@@ -969,10 +969,10 @@ my_widget_script =
                             dateAtVO = thisVODate;
                             pndAtVO = thisPndAtVO;
                         }
-    
-                        $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow"); 
+                        
+                        $this.closest(".row").addClass("yellowRow");
                     } else {
-                        $this.css("background-color", "").closest(".row").css("background-color", ""); 
+                        $this.closest(".row").removeClass("yellowRow");
                     }
     
                     if(hasReachedVO){
@@ -1074,10 +1074,10 @@ my_widget_script =
                         pndAt1E = thisPndAt1E;
                         massAt1E = this1EMass;
                     }
-    
-                    $this.css("background-color", "yellow").closest(".row").css("background-color", "yellow").find(".firstE_mass").css("background-color", "yellow"); 
+                    
+                    $this.closest(".row").addClass("yellowRow");
                 } else {
-                    $this.css("background-color", "").closest(".row").css("background-color", "").find(".firstE_mass").css("background-color", ""); 
+                    $this.closest(".row").removeClass("yellowRow");
                 }
             });
     
@@ -1525,21 +1525,12 @@ my_widget_script =
                             $("<div/>", {
                                 "class": showChecked + " mouse" + mouseNum
                             }).append(
-                                $("<select/>", {
+                                $("<input/>", {
                                     name: "eartag" + mouseNum,
                                     id: "earTag" + mouseNum,
+                                    type: "number",
                                     "class": "simpleCalc"
-                                }).append(
-                                    "<option value=''>[Select]</option>"+
-                                    "<option value='04'>04</option>"+
-                                    "<option value='06'>06</option>"+
-                                    "<option value='40'>40</option>"+
-                                    "<option value='60'>60</option>"+
-                                    "<option value='44'>44</option>"+
-                                    "<option value='66'>66</option>"+
-                                    "<option value='46'>46</option>"+
-                                    "<option value='64'>64</option>"
-                                )
+                                })
                             )
                         ).append(
                             $("<div/>", {
