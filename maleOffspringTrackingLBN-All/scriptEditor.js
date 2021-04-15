@@ -1281,7 +1281,7 @@ my_widget_script =
                             $("<div/>", {
                                 "class": showChecked + " mouse" + mouseNum
                             }).append(
-                                $("<select/>", {
+                                $("<input/>", {
                                     name: "eartag" + mouseNum,
                                     id: "earTag" + mouseNum,
                                     type: "number",
