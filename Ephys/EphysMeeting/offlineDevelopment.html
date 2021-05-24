@@ -60,7 +60,6 @@ $(document).ready(function () {
     form_script = 
     my_widget_script =
 {
-    
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -76,12 +75,6 @@ $(document).ready(function () {
         //uncomment to inspect and view code while developing
         //debugger;
 
-        // Have to un-disable this select field because when viewing, the array comes back false if it's disabled
-        // TO-DO - this still doesn't completely fix the problem, as the widget doesn't reload this properly. 
-        // Need to save the selections in getDynamic content and reload with initDynamic content - although may need to be after calling the widgetData stuff
-        $(".tasks").prop("disabled", false);
-        $(".tasks option").prop("disabled", false);
-
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
 
@@ -93,11 +86,12 @@ $(document).ready(function () {
 
         //resize the content box when the window size changes
         window.onresize = this.resize;
-        
+
+        //Define behavior when buttons are clicked or checkboxes/selctions change
+        this.addEventListeners();
+
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
-
-        this.initSelectedTasks(parsedJson);
 
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
@@ -123,9 +117,7 @@ $(document).ready(function () {
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
         var output = { 
-            widgetData: JSON.parse(widgetJsonString),
-            damList: dynamicContent.damList,
-            selectedTasks: dynamicContent.selectedTasks
+            widgetData: JSON.parse(widgetJsonString)
         };
 
         //uncomment to check stringified output
@@ -163,16 +155,7 @@ $(document).ready(function () {
         var testData = JSON.parse(this.parent_class.test_data());
 
         //If no additional dynamic content 
-        var output = { 
-            widgetData: testData,
-            damList: [1, 4, 5, 7] ,
-            selectedTasks: {
-                1: ["p2_9", "p12_mass"],
-                4: ["p11_mass", "juv_agd"],
-                5: ["p15_mass", "p16_mass", "ad_agd"],
-                7: ["p18_mass", "cycle"]
-            }
-        };
+        var output = { widgetData: testData };
 
         //Add additional content to match the objects in to_json
         //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
@@ -279,33 +262,20 @@ $(document).ready(function () {
     },
 
     /**
+     * TO DO: edit this function to reinitialize any dynamic content that is not explicity
+     * defined within the HTML code. 
+     * 
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        if(parsedJson.damList){
-            for (var i = 0; i < parsedJson.damList.length; i++) {
-                var damNum = parsedJson.damList[i];
-                my_widget_script.createMouseSelect(damNum);
-                my_widget_script.createMouseInfo(damNum);
-                my_widget_script.createMousePrint(damNum);
-            };
-            my_widget_script.damList = parsedJson.damList;
-        }
-    },
-
-    initSelectedTasks: function (parsedJson) {
-        if(parsedJson.damList && parsedJson.selectedTasks){
-            for( var i = 0; i < parsedJson.damList.length; i ++ ){
-                var damNum = parsedJson.damList[i];
-                var damSearch = my_widget_script.damSearch(damNum);
-                var tasks = parsedJson.selectedTasks[damNum];
-                // Update the selected tasks based on the parsedJson list
-                $(".tasks"+damSearch).val(tasks);
-            }
-        }
+        // for (var i = 0; i < parsedJson.addedRows; i++) {
+        // };
     },
 
     /**
+     * TO DO: edit this function to define how the HTML elements should be adjusted
+     * based on the current mode.
+     * 
      * Here, a subset of buttons are disabled when the widget is not being edited.
      * There may be other elements that should be shown/hidden based on the mode
      */
@@ -313,8 +283,24 @@ $(document).ready(function () {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
-            $(".hideView").hide();
+            $("input[type='date']").removeClass(".hasDatePicker");
+        } else {
+            $("input[type='date']").each(function () {
+                my_widget_script.checkDateFormat($(this));
+            });
+            
+            $("input[type='time']").each(function () {
+                my_widget_script.checkTimeFormat($(this));
+            });
         }
+    },
+
+    /**
+     * TO DO: edit this function to define behavior when the user interacts with the form.
+     * This could include when buttons are clicked or when inputs change.
+     */
+    addEventListeners: function () {
+        
     },
 
     /**
@@ -354,6 +340,7 @@ $(document).ready(function () {
             supported = false;
         }
         my_widget_script.timeSupported = supported;
+        input.remove();
         return (supported);
     },
 
@@ -367,6 +354,7 @@ $(document).ready(function () {
             if(!isValid){
                 $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
             }
+            my_widget_script.resize();
         }
     },
 
@@ -391,6 +379,7 @@ $(document).ready(function () {
             supported = false;
         }
         my_widget_script.dateSupported = supported;
+        input.remove();
         return (supported);
     },
 
@@ -405,7 +394,7 @@ $(document).ready(function () {
                 $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
             }
             $dateInput.datepicker({dateFormat: "yy-mm-dd"})
-            console.log($dateInput.val());
+            my_widget_script.resize();
         }
     },
 
@@ -415,90 +404,26 @@ $(document).ready(function () {
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
+        //Add classes to add bootstrap styles for left column in form
+        $('.myLeftCol').addClass("col-12 col-md-4 col-lg-3 text-left text-md-right");
+        
         my_widget_script.isDateSupported();
         my_widget_script.isTimeSupported();
-        
+
+
         $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
-            my_widget_script.checkDateFormat($(this));
-        }).each(function () {
             my_widget_script.checkDateFormat($(this));
         });
         
         $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
             my_widget_script.checkTimeFormat($(this));
-        }).each(function () {
-            my_widget_script.checkTimeFormat($(this));
         });
-        
-        //Add classes to add bootstrap styles for left column in form
-        $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
         $('textarea.autoAdjust').each(function () {
             this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
         }).on('input', function () {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
-            my_widget_script.resize();
-        });
-
-        $(".damID").each(function () {
-            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-            my_widget_script.printID(damSearch);
-        }).on("input", function () {
-            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-            my_widget_script.printID(damSearch);
-            my_widget_script.resize();
-        });
-
-        $(".DOB").each(function () {
-            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-            my_widget_script.printDOB(damSearch);
-        }).on("input", function () {
-            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-            my_widget_script.printDOB(damSearch);
-            my_widget_script.resize();
-        });
-
-        $(".tasks").on("input", function () {
-            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-            my_widget_script.printTasks_today(damSearch);
-            my_widget_script.resize();
-        });
-        
-        $(".stop").each(function() {
-            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-            var show = my_widget_script.checkStopStatus(damSearch);
-            if(show){
-                $(".addedPrint"+damSearch).show();
-            } else {
-                $(".addedPrint"+damSearch).hide();
-            }
-        }).on("input", function () {
-            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-            my_widget_script.printID(damSearch);
-            my_widget_script.printDOB(damSearch);
-            my_widget_script.printTasks_today(damSearch);
-            var show = my_widget_script.checkStopStatus(damSearch);
-            if(show){
-                $(".addedPrint"+damSearch).show();
-            } else {
-                $(".addedPrint"+damSearch).hide();
-            }
-            my_widget_script.resize();
-        });
-
-        $("#addDam").on("click", function () {
-            my_widget_script.addMouseFuncs();
-        })
-
-        // Start without a specific dam selected
-        $("#selectDam").val("");
-        my_widget_script.switchDam("");
-
-        $("#selectDam").on("change", function () {
-            var damNum = $(this).val();
-            var damSearch = my_widget_script.damSearch(damNum);
-            my_widget_script.switchDam(damSearch);
             my_widget_script.resize();
         });
 
@@ -518,24 +443,7 @@ $(document).ready(function () {
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        // Create a selected tasks object
-        var selectedTasks = {};
-
-        var damList = my_widget_script.damList;
-
-        for(var i = 0; i < damList.length; i++){
-            var damNum = damList[i];
-            var damSearch = my_widget_script.damSearch(damNum);
-            var tasks = $(".tasks"+damSearch).val();
-            // Create a property within the selectedTasks object for each dam 
-            // Value equals the selected tasks for that dam
-            selectedTasks[damNum] = tasks
-        }
-
-        var dynamicContent = {
-            damList: damList,
-            selectedTasks: selectedTasks
-        };
+        var dynamicContent = {};
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -571,448 +479,7 @@ $(document).ready(function () {
         }
 
         return valid;
-    },
-
-    dataSearch: function (dataName, dataValue) {
-        var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
-        return dataSearch
-    },
-
-    damSearch: function (damNum) {
-        var damSearch = my_widget_script.dataSearch("dam", damNum);
-        return damSearch
-    },
-
-    checkStopStatus: function (damSearch) {
-        var proceed = true;
-        if($(".stop"+damSearch).is(":checked")){
-            proceed = false;
-        }
-        return proceed
-    },
-
-    printID: function (damSearch) {
-        var id = $(".damID"+damSearch).val();
-        $(".idPrint"+damSearch).text(id);
-    },
-
-    printDOB: function (damSearch) {
-        var dob = $(".DOB"+damSearch).val();
-        var pnd, dobPrint;
-        if (dob){
-            var day = luxon.DateTime.fromISO(dob).toLocaleString({weekday: "long"})
-            dobPrint = dob + "<br/>" + day;
-            pnd = my_widget_script.getPND_today(damSearch);
-        } else {
-            dobPrint = "";
-            pnd = "";
-        }
-        
-        $(".DOBPrint"+damSearch).html(dobPrint);
-        $(".PNDPrint"+damSearch).text(pnd);
-        my_widget_script.printTasks_today(damSearch);
-    },
-
-    getPND_today: function (damSearch) {
-        var $DOBVal = $(".DOB"+damSearch).val();
-
-        if($DOBVal){
-            var startDate = luxon.DateTime.fromISO($DOBVal).startOf("day");
-            var todayDate = luxon.DateTime.now().startOf("day")
-            var dateDiff_days = todayDate.diff(startDate, "days").as("day");
-    
-        } else {
-            var dateDiff_days = NaN;
-        }
-        return(dateDiff_days);
-    },
-
-    checkInArray: function (searchVal, array){
-        var proceed = $.inArray(searchVal, array) !== -1;
-        return proceed
-    },
-
-    printTasks_today: function (damSearch) {
-        // Have to un-disable this select field because when viewing, the array comes back false if it's disabled
-        $(".tasks").prop("disabled", false);
-        $(".tasks option").prop("disabled", false);
-
-        var selectedTasks = $(".tasks"+damSearch).val();
-        // console.log(selectedTasks);
-        var $taskPrint = $(".taskPrint"+damSearch);
-        $taskPrint.html("");
-        var pndToday = my_widget_script.getPND_today(damSearch);
-        // If there's a pnd today
-        if(pndToday){
-            // console.log("We've got a pndToday");
-            var proceed_p2_9 = my_widget_script.checkInArray("p2_9", selectedTasks);
-            if(pndToday == 2 && proceed_p2_9){
-                $taskPrint.append("<div>Start the paradigm</div>");
-            }
-            var proceed_p4_11 = my_widget_script.checkInArray("p4_11", selectedTasks);
-            if(pndToday == 4 && proceed_p4_11){
-                $taskPrint.append("<div>Start the paradigm</div>");
-            }
-            if(pndToday == 9 && proceed_p2_9){
-                $taskPrint.append("<div>End the paradigm and ear tag</div>");
-            }
-            var proceed_p4_11 = my_widget_script.checkInArray("p4_11", selectedTasks);
-            if(pndToday == 11 && proceed_p4_11){
-                $taskPrint.append("<div>End the paradigm and ear tag</div>");
-            }
-            var possibleMassDays = [2, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
-            for (var i = 0; i<possibleMassDays.length; i++ ){
-                var day = possibleMassDays[i];
-                if(pndToday == day){
-                    var checkDay = my_widget_script.checkInArray("p"+day+"_mass", selectedTasks);
-                    if(checkDay){
-                        $taskPrint.append("<div>Take masses</div>");
-                    }
-                }
-            }
-            if(pndToday == 21){
-                $taskPrint.append("<div>Wean</div>");
-            }
-            var proceed_juv_agd = my_widget_script.checkInArray("juv_agd", selectedTasks);
-            var proceed_juv_agd_dates = my_widget_script.checkInArray(pndToday, [22, 23, 24]);
-            if( proceed_juv_agd && proceed_juv_agd_dates){
-                $taskPrint.append("<div>Check AGD</div>");
-            }
-            var proceed_ad_agd = my_widget_script.checkInArray("ad_agd", selectedTasks);
-            var proceed_ad_agd_dates = my_widget_script.checkInArray(pndToday, [70, 71, 72]);
-            if( proceed_ad_agd && proceed_ad_agd_dates){
-                $taskPrint.append("<div>Check AGD and take mass</div>");
-            }
-            var proceed_weeklyMass = my_widget_script.checkInArray("weekly_mass", selectedTasks);
-            if(proceed_weeklyMass){
-                var weeklyMassDays = [28, 35, 42, 49, 56, 63, 70];
-                if(my_widget_script.checkInArray(pndToday, weeklyMassDays)){
-                    $taskPrint.append("<div>Take masses</div>");
-                }
-            }
-            var proceed_cycle = my_widget_script.checkInArray("cycle", selectedTasks)
-            if(proceed_cycle && pndToday >= 70 && pndToday <= 90 ){
-                $taskPrint.append("<div>Cycle females</div>")
-            }
-        }
-    },
-
-    switchDam: function (damSearch) {
-        $(".mouseInfo"+damSearch).show();
-        $(".mouseInfo").not(damSearch).hide();
-    },
-
-    damList: [],
-
-    addMouseFuncs: function () {
-        var lastDam = my_widget_script.damList[my_widget_script.damList.length - 1];
-        var thisDam;
-        if(lastDam){
-            thisDam = lastDam + 1;
-        } else {
-            thisDam = 1;
-        }
-        
-        my_widget_script.damList[my_widget_script.damList.length] = thisDam;
-        // console.log(my_widget_script.damList);
-
-        my_widget_script.createMouseSelect(thisDam);
-        my_widget_script.createMouseInfo(thisDam);
-        my_widget_script.createMousePrint(thisDam);
-
-        $("#selectDam").val(thisDam);
-        my_widget_script.switchDam(my_widget_script.damSearch(thisDam));
-
-        my_widget_script.resize();
-    },
-
-    deleteMouseFuncs: function (damNum) {
-        // Remove it from the damList
-        var index = my_widget_script.damList.indexOf(damNum);
-        if(index > -1){
-            my_widget_script.damList.splice(index, 1);
-        }
-
-        // console.log(my_widget_script.damList);
-
-        var damSearch = my_widget_script.damSearch(damNum);
-        $("option"+damSearch).remove();
-        $(".mouseInfo"+damSearch).remove();
-        $(".addedPrint"+damSearch).remove();
-
-        my_widget_script.resize();
-    },
-
-    createMouseSelect: function (thisDam) {
-        var $select = $("#selectDam");
-        // Pass thisDam to the function to be able to use on loading
-        // var lastDam = $select.find(".added").last().data("dam");
-        // if(lastDam){
-        //     thisDam = lastDam + 1;
-        // } else {
-        //     thisDam = 1;
-        // }
-
-        $select.append(
-            $("<option/>", {
-                value: thisDam,
-                "class": "added idPrint",
-                "data-dam": thisDam
-            }).append(
-                "Dam " + thisDam
-            )
-        );
-    },
-
-    createMouseInfo: function (thisDam) {
-        var $div = $(".mouseDemoDiv");
-        // var lastDam = $div.find(".mouseInfo").last().data("dam");
-        // var thisDam;
-        // if(lastDam){
-        //     thisDam = lastDam + 1;
-        // } else {
-        //     thisDam = 1;
-        // }
-        
-        var myLeftCol = "col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right"
-        $div.append(
-            $("<div/>", {
-                "class": "mouseInfo",
-                "data-dam": thisDam
-            }).append(
-                $("<div/>", {
-                    "class": "row mt-2"
-                }).append(
-                    $("<div/>", {
-                        "class": myLeftCol
-                    }).append("Dam ID:")
-                ).append(
-                    $("<div/>", {
-                        "class": "col"
-                    }).append(
-                        $( "<input/>", {
-                            type: "text",
-                            "class": "fullWidth damID",
-                            id: "damID"+thisDam,
-                            name:"damid"+thisDam,
-                            "data-dam": thisDam
-                        }).on("input", function () {
-                            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-                            my_widget_script.printID(damSearch);
-                            my_widget_script.resize();
-                        })
-                    )
-                )
-            ).append(
-                $("<div/>", {
-                    "class": "row mt-2"
-                }).append(
-                    $("<div/>", {
-                        "class": myLeftCol
-                    }).append("DOB (pups):")
-                ).append(
-                    $("<div/>", {
-                        "class": "col"
-                    }).append(
-                        $( "<input/>", {
-                            type: "date",
-                            "class": "fullWidth DOB",
-                            id: "DOB"+thisDam,
-                            name:"dob"+thisDam,
-                            "data-dam": thisDam,
-                            "placeholder": "YYYY-MM-DD"
-                        }).each(function () {
-                            my_widget_script.checkDateFormat($(this));
-                        }).on("input", function () {
-                            my_widget_script.checkDateFormat($(this));
-                            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-                            my_widget_script.printDOB(damSearch);
-                            my_widget_script.resize();
-                        })
-                    )
-                )
-            ).append(
-                $("<div/>", {
-                    "class": "row mt-2"
-                }).append(
-                    $("<div/>", {
-                        "class": myLeftCol
-                    }).append("Select Tasks:")
-                ).append(
-                    $("<div/>", {
-                        "class": "col"
-                    }).append(
-                        $( "<select/>", {
-                            multiple: true,
-                            "class": "fullWidth tasks",
-                            id: "tasks"+thisDam,
-                            name:"tasks"+thisDam,
-                            "data-dam": thisDam
-                        }).on("input", function () {
-                            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-                            my_widget_script.printTasks_today(damSearch);
-                            my_widget_script.resize();
-                        })
-                    )
-                )
-            ).append(
-                $("<div/>", {
-                    "class": "row mt-2 align-items-center"
-                }).append(
-                    $("<div/>", {
-                        "class": myLeftCol
-                    }).append("Stop Tracking:")
-                ).append(
-                    $("<div/>", {
-                        "class": "col"
-                    }).append(
-                        $( "<input/>", {
-                            type: "checkbox",
-                            "class": "stop",
-                            id: "stop"+thisDam,
-                            name:"stop"+thisDam,
-                            "data-dam": thisDam
-                        }).on("input", function () {
-                            var damSearch = my_widget_script.damSearch($(this).data("dam"));
-                            my_widget_script.printID(damSearch);
-                            my_widget_script.printDOB(damSearch);
-                            my_widget_script.printTasks_today(damSearch);
-                            my_widget_script.resize();
-                        })
-                    )
-                )
-            ).append(
-                $("<div/>", {
-                    "class": "row mt-2 align-items-center"
-                }).append(
-                    $("<div/>", {
-                        "class": myLeftCol
-                    }).append("Remove dam entirely:")
-                ).append(
-                    $("<div/>", {
-                        "class": "col"
-                    }).append(
-                        $( "<input/>", {
-                            type: "button",
-                            "class": "removeDam",
-                            id: "remove"+thisDam,
-                            name:"remove"+thisDam,
-                            "data-dam": thisDam,
-                            value: "Delete this dam"
-                        }).on("click", function () {
-                            var proceed = confirm ("Are you sure you want to completely remove this dam?");
-                            if(proceed){
-                                var damNum = $(this).data("dam");
-                                my_widget_script.deleteMouseFuncs(damNum);
-                            }
-
-                        })
-                    )
-                )
-            )
-        );
-
-        var $tasksTag = $div.find(".tasks").last();
-
-        $tasksTag.append(
-            $("<option/>", {
-                value: "p2_9"
-            }).append(
-                "P2-P9 paradigm"
-            )
-        ).append(
-            $("<option/>", {
-                value: "p4_11",
-                selected: true
-            }).append(
-                "P4-P11 paradigm"
-            )
-        )
-
-        var massDays = [2, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
-        var selectedKey = [false, true, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true]
-
-        for(var i = 0; i < massDays.length; i ++ ){
-            var day = massDays[i];
-            var selectedVal = selectedKey[i];
-            $tasksTag.append(
-                $("<option/>", {
-                    value: "p" + day + "_mass",
-                    selected: selectedVal
-                }).append(
-                    "P" + day + " mass"
-                )
-            );
-        }
-
-        $tasksTag.append(
-            $("<option/>", {
-                value: "juv_agd"
-            }).append(
-                "Juvenile AGD"
-            )
-        ).append(
-            $("<option/>", {
-                value: "ad_agd",
-                selected: true
-            }).append(
-                "Adult AGD"
-            )
-        ).append(
-            $("<option/>", {
-                value: "weekly_mass",
-                selected: true
-            }).append(
-                "Weekly adult mass"
-            )
-        ).append(
-            $("<option/>", {
-                value: "cycle",
-                selected: true
-            }).append(
-                "Cycle in adulthood"
-            )
-        )
-    },
-
-    createMousePrint: function (thisDam) {
-        var $div = $(".mousePrint");
-        // var lastDam = $div.find(".added").last().data("dam");
-        // var thisDam;
-        // if(lastDam){
-        //     thisDam = lastDam + 1;
-        // } else {
-        //     thisDam = 1;
-        // }
-
-        $div.append(
-            $("<div/>", {
-                "class": "row addedPrint mt-2",
-                "data-dam": thisDam
-            }).append(
-                $("<div/>", {
-                    "class": "col idPrint",
-                    "data-dam": thisDam
-                })
-            ).append(
-                $("<div/>", {
-                    "class": "col DOBPrint",
-                    "data-dam": thisDam
-                })
-            ).append(
-                $("<div/>", {
-                    "class": "col PNDPrint",
-                    "data-dam": thisDam
-                })
-            ).append(
-                $("<div/>", {
-                    "class": "col taskPrint",
-                    "data-dam": thisDam
-                })
-            )
-        );
     }
-
 };
 
 //**************************************************************************
@@ -1086,59 +553,70 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     }
 
     .fullWidth {
-        width: 90%
-    }
-    .strong{
-        font-weight: bold;
-    }
-    .mouseInfo{
-        display: none;
+        width: 100%
     }
 </style>
 
-<!-- TO DO Begin typing your HTML code here -->
-<div class="container hideView">
-    <div class="row">
-        <h3 class="col">Edit Dam Info:</h3>
+
+<div class="container">
+    <div class="row align-items-center mt-2">
+        <h2 class="myLeftCol">Title:</h2>
+        <div class="col">
+            <textarea name="semtitle" id="semTitle" rows="1" class="autoAdjust fullWidth"></textarea>
+        </div>
+    </div>
+    <div class="row align-items-center mt-2">
+        <h3 class="myLeftCol">Date:</h3>
+        <div class="col">
+            <input type="date" name="semdate" id="semDate" class="fullWidth"/>
+        </div>
+    </div>
+    <div class="row align-items-center mt-2">
+        <h3 class="myLeftCol">Presenter:</h3>
+        <div class="col">
+            <input name="presenter" id="presenter" class="fullWidth"/>
+        </div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol">Add Dam:</div>
+        <div class="myLeftCol">&nbsp;</div>
+        <div class="col">Seminar notes should be entered within a rich text entry. The following fields can be used for post-seminar reflection</div>
+    </div>
+    
+    <div class="row align-items-start mt-2">
+        <div class="myLeftCol font-weight-bold">
+            Main Question:
+        </div>
         <div class="col">
-            <input type="button" value="Add Dam" name="add_dam" id="addDam"/>
+            <textarea name="mainquestion" id="mainquestion" rows="1" class="autoAdjust fullWidth"></textarea>
         </div>
     </div>
-    <div class="row mt-2">
-        <div class="myLeftCol">Select Dam to Edit:</div>
+    <div class="row align-items-start mt-2">
+        <div class="myLeftCol font-weight-bold">
+            Hypothesis:
+        </div>
         <div class="col">
-            <select name="selectdam" id="selectDam" class="fullWidth">
-                <option value="" class="original">[select]</option>
-            </select>
+            <textarea name="hypothesis" id="hypothesis" rows="1" class="autoAdjust fullWidth"></textarea>
         </div>
     </div>
-</div>
-<div class="container mt-2 hideView mouseDemoDiv">
-    &nbsp;
+    <div class="row align-items-start mt-2">
+        <div class="myLeftCol font-weight-bold">
+            Core Methods:
+        </div>
+        <div class="col">
+            <textarea name="methods" id="methods" rows="1" class="autoAdjust fullWidth"></textarea>
+        </div>
+    </div>
+    <div class="row align-items-start mt-2">
+        <div class="myLeftCol font-weight-bold">
+            Applicable to My Project:
+        </div>
+        <div class="col">
+            <textarea name="applicability" id="applicability" rows="1" class="autoAdjust fullWidth"></textarea>
+        </div>
+    </div>
+
 </div>
 
-<div class="container mt-2 mousePrint">
-    <div class="row original">
-        <div class="col strong">Dam</div>
-        <div class="col strong">DOB</div>
-        <div class="col strong">PND Today</div>
-        <div class="col strong">Tasks Today</div>
-    </div>
-</div>
-
-<div class="container mt-2">
-    <div class="row original">
-        <div class="col">
-            <p>This widget can be used to keep track of birth dates and tasks for dams and offspring based on the offspring date of birth.</p>
-            <p>When editing the page, you can select from a list of options which tasks you intend to complete for each litter.</p>
-            <p>The widget will print out the accompanying task based on the current post natal day.</p>
-            <p>Note that this widget does NOT attempt to track preputial separation, vaginal opening, etc where actions depend on the individual offspring and will vary by days. For this, use the appropriate individual widget.</p>
-        </div>
-    </div>
-</div>
 
 <!-- #endregion -->
 <!------------------------------------------------------------------------------------------>

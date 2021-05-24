@@ -1681,7 +1681,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("edit", function() {return form_script.test_data()});
+      form_script.init("view", function() {return form_script.test_data()});
 
 
     }
@@ -1905,7 +1905,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
 
         <!-- Add/remove pup buttons -->
-        <div class="row mt-2">
+        <div class="row mt-2 hideView">
             <div class="myLeftCol"><input class="fullWidth" id="addPupStart" name="add_pup_start" type="button"
                     value="Add Pup" /></div>
 

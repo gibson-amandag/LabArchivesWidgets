@@ -163,6 +163,28 @@ my_widget_script =
             }
         });
 
+        $("input[type='date']").each(function () {
+            var date = $(this).val();
+            if(date){
+                var validDate = my_widget_script.isValidDate(date);
+                if(!validDate){
+                    fail = true;
+                    fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
+                }
+            }
+        });
+
+        $("input[type='time']").each(function () {
+            var time = $(this).val();
+            if(time){
+                var validtime = my_widget_script.isValidTime(time);
+                if(!validtime){
+                    fail = true;
+                    fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
+                }
+            }
+        });
+
         if (fail) { //if fail is true (meaning a required element didn't have a value)
             return alert(fail_log); //return the fail log as an alert
         } else {
@@ -254,12 +276,100 @@ my_widget_script =
         });
     },
 
+    isValidTime: function (timeString) {
+        var regEx = "^(((([0-1][0-9])|(2[0-3])):[0-5][0-9]))$";
+        if(!timeString.match(regEx)){
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    isTimeSupported: function () {
+        // Check if browser has support for input type=time
+        var input = document.createElement('input');
+        input.setAttribute('type', 'time');
+        var supported = true;
+        if(input.type !== "time"){
+            supported = false;
+        }
+        my_widget_script.timeSupported = supported;
+        return (supported);
+    },
+
+    timeSupported: true,
+
+    checkTimeFormat: function ($timeInput) {
+        if(!my_widget_script.timeSupported){ // if not supported
+            $timeInput.next(".timeWarning").remove();
+            var time = $timeInput.val();
+            var isValid = my_widget_script.isValidTime(time);
+            if(!isValid){
+                $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
+            }
+        }
+    },
+
+    isValidDate: function (dateString) {
+        // https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery/18759013
+        var regEx = /^\d{4}-\d{2}-\d{2}$/;
+        if(!dateString.match(regEx)) return false;  // Invalid format
+        var d = new Date(dateString);
+        var dNum = d.getTime();
+        if(!dNum && dNum !== 0) return false; // NaN value, Invalid date
+        return d.toISOString().slice(0,10) === dateString;
+    },
+
+    isDateSupported: function () {
+        // https://gomakethings.com/how-to-check-if-a-browser-supports-native-input-date-pickers/
+        // Check if browser has support for input type=date
+        var input = document.createElement('input');
+        // var value = 'a';
+        input.setAttribute('type', 'date');
+        var supported = true;
+        if(input.type !== "date"){
+            supported = false;
+        }
+        my_widget_script.dateSupported = supported;
+        return (supported);
+    },
+
+    dateSupported: true,
+
+    checkDateFormat: function ($dateInput) {
+        if(!my_widget_script.dateSupported){ // if not supported
+            $dateInput.next(".dateWarning").remove();
+            var date = $dateInput.val();
+            var isValid = my_widget_script.isValidDate(date);
+            if(!isValid){
+                $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
+            }
+            $dateInput.datepicker({dateFormat: "yy-mm-dd"})
+            console.log($dateInput.val());
+        }
+    },
+
     /**
      * TO DO: edit this function to define how the form should be initilized based 
      * on the existing form values. This is particularly important for when the 
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
+        my_widget_script.isDateSupported();
+        my_widget_script.isTimeSupported();
+        
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
+            my_widget_script.checkDateFormat($(this));
+        }).each(function () {
+            my_widget_script.checkDateFormat($(this));
+        });
+        
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
+            my_widget_script.checkTimeFormat($(this));
+        }).each(function () {
+            my_widget_script.checkTimeFormat($(this));
+        });
+        
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
@@ -270,6 +380,14 @@ my_widget_script =
             this.style.height = (this.scrollHeight) + 'px';
             my_widget_script.resize();
         });
+
+        $('#checkDate').val(luxon.DateTime.now().toISODate()).on('input', function () {
+            for(var i = 0; i < my_widget_script.damList.length; i++){
+                var damNum = i + 1;
+                var damSearch = my_widget_script.damSearch(damNum);
+                my_widget_script.printDOB(damSearch);
+            }
+        })
 
         $(".damID").each(function () {
             var damSearch = my_widget_script.damSearch($(this).data("dam"));
@@ -331,6 +449,10 @@ my_widget_script =
             my_widget_script.switchDam(damSearch);
             my_widget_script.resize();
         });
+
+        $("#copyTasks").on("click", function () {
+            my_widget_script.copyTasks();
+        })
 
         my_widget_script.resize();
     },
@@ -432,7 +554,8 @@ my_widget_script =
         if (dob){
             var day = luxon.DateTime.fromISO(dob).toLocaleString({weekday: "long"})
             dobPrint = dob + "<br/>" + day;
-            pnd = my_widget_script.getPND_today(damSearch);
+            pnd = my_widget_script.getPND(damSearch);
+            // pnd = my_widget_script.getPND_today(damSearch);
         } else {
             dobPrint = "";
             pnd = "";
@@ -457,6 +580,21 @@ my_widget_script =
         return(dateDiff_days);
     },
 
+    getPND: function (damSearch, date) {
+        var $DOBVal = $(".DOB"+damSearch).val();
+        var checkDate = $("#checkDate").val();
+
+        if($DOBVal){
+            var startDate = luxon.DateTime.fromISO($DOBVal).startOf("day");
+            var endDate = luxon.DateTime.fromISO(checkDate).startOf("day")
+            var dateDiff_days = endDate.diff(startDate, "days").as("day");
+    
+        } else {
+            var dateDiff_days = NaN;
+        }
+        return(dateDiff_days);
+    },
+
     checkInArray: function (searchVal, array){
         var proceed = $.inArray(searchVal, array) !== -1;
         return proceed
@@ -471,7 +609,8 @@ my_widget_script =
         // console.log(selectedTasks);
         var $taskPrint = $(".taskPrint"+damSearch);
         $taskPrint.html("");
-        var pndToday = my_widget_script.getPND_today(damSearch);
+        // var pndToday = my_widget_script.getPND_today(damSearch);
+        var pndToday = my_widget_script.getPND(damSearch);
         // If there's a pnd today
         if(pndToday){
             // console.log("We've got a pndToday");
@@ -479,16 +618,28 @@ my_widget_script =
             if(pndToday == 2 && proceed_p2_9){
                 $taskPrint.append("<div>Start the paradigm</div>");
             }
+            if(pndToday == 3 && proceed_p2_9){
+                $taskPrint.append("<div>Start video monitoring</div>")
+            }
+            if(pndToday == 4 && proceed_p2_9){
+                $taskPrint.append("<div>End video monitoring</div>")
+            }
             var proceed_p4_11 = my_widget_script.checkInArray("p4_11", selectedTasks);
             if(pndToday == 4 && proceed_p4_11){
                 $taskPrint.append("<div>Start the paradigm</div>");
             }
+            if(pndToday == 5 && proceed_p4_11){
+                $taskPrint.append("<div>Start video monitoring</div>");
+            }
+            if(pndToday == 6 && proceed_p4_11){
+                $taskPrint.append("<div>End video monitoring</div>");
+            }
             if(pndToday == 9 && proceed_p2_9){
-                $taskPrint.append("<div>End the paradigm and ear tag</div>");
+                $taskPrint.append("<div>End the paradigm, ear tag, & dam cort</div>");
             }
             var proceed_p4_11 = my_widget_script.checkInArray("p4_11", selectedTasks);
             if(pndToday == 11 && proceed_p4_11){
-                $taskPrint.append("<div>End the paradigm and ear tag</div>");
+                $taskPrint.append("<div>End the paradigm, ear tag, & dam cort</div>");
             }
             var possibleMassDays = [2, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
             for (var i = 0; i<possibleMassDays.length; i++ ){
@@ -649,8 +800,12 @@ my_widget_script =
                             "class": "fullWidth DOB",
                             id: "DOB"+thisDam,
                             name:"dob"+thisDam,
-                            "data-dam": thisDam
+                            "data-dam": thisDam,
+                            "placeholder": "YYYY-MM-DD"
+                        }).each(function () {
+                            my_widget_script.checkDateFormat($(this));
                         }).on("input", function () {
+                            my_widget_script.checkDateFormat($(this));
                             var damSearch = my_widget_script.damSearch($(this).data("dam"));
                             my_widget_script.printDOB(damSearch);
                             my_widget_script.resize();
@@ -756,7 +911,7 @@ my_widget_script =
         )
 
         var massDays = [2, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
-        var selectedKey = [false, true, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true]
+        var selectedKey = [false, true, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true]
 
         for(var i = 0; i < massDays.length; i ++ ){
             var day = massDays[i];
@@ -837,6 +992,33 @@ my_widget_script =
                 })
             )
         );
+    },
+
+    copyTasks: function () {
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var rows = [];
+        var rowNum = 0;
+        var $divForCopy = $("#forCopy");
+        
+        rows[rowNum] = [];
+        rows[rowNum].push($("#checkDate").val());
+        rowNum++
+        $('.mousePrint').find('.addedPrint:not([style*="display: none"])').each(function () {
+            $(this).find(".col:not('.DOBPrint')").each(function () {
+                if(rows[rowNum]===undefined){rows[rowNum] = []}
+                rows[rowNum].push($(this).text());
+            });
+            rowNum++;
+        });
+
+        for(var i = 0; i < rows.length; i++){
+            rows[i] = rows[i].join("\t");
+        }
+
+        $temp.append(rows.join("\n"));
+        $temp.appendTo($divForCopy).select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
     }
 
 };
