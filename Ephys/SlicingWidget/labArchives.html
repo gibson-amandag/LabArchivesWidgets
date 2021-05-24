@@ -1,3 +1,5 @@
+<!-- Luxon Date Handling -->
+<script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -48,18 +50,15 @@
 
 <!-- TO DO Begin typing your HTML code here -->
 
-<div class="container">
+<div class="container firstDiv">
     <div class="row">
         <h1 class="col-12">Slicing</h1>
-        <div class="col-12">
-            <em>I'm slow to load. Please be patient with me</em>
-        </div>
     </div>
 </div>
 
-<div class="container mt-2">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
+<div class="container mt-2 reqTextInfo">
+    <p>Elements that are required to save this page are marked with a red asterisk. <span
+        style="color:red">*</span> <em>Don't forget about the Google sheet at the bottom of the form</em><br />
         Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
             style="color:blue">#</span></p>
 </div>
@@ -91,7 +90,7 @@
             <div class="mt-2">Cage #</div>
             <div><input id="Cage" name="cagenum" class="fullWidth simpleCalc"/></div>
 
-            <div class="needForTableLab mt-2" >Date of Birth</div>
+            <div class="needForTableLab requiredLab mt-2" >Date of Birth</div>
             <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Date_of_birth" name="dob" required="" type="date" /></div>
 
             <div class="mt-2">DOB Counts as...</div>
@@ -104,18 +103,25 @@
 
             <div class="mt-2">Treatment</div>
             <div>
-                <select id="Treatment" name="treatment" class="fullWidth simpleCalc">
+                <div><em>Project Type:</em></div>
+                <select name="projecttype" id="projectType" class="fullWidth treatmentCalc">
+                    <option value="">[Select]</option>
+                    <option value="PNA">Prenatal Androgenization</option>
+                    <option value="other">Other</option>
+                </select>
+                <select id="pnaTreatment" name="pnatreatment" class="fullWidth treatmentCalc mt-1">
                     <option value="">[Select]</option>
                     <option value="CON">Control</option>
                     <option value="CON_main">Main colony control</option>
                     <option value="VEH">Vehicle</option>
                     <option value="DHT">DHT</option> 
                 </select>
+                <input type="text" id="otherTreatment" name="othertreatment" class="fullWidth treatmentCalc mt-1"/>
             </div>
         </div>
 
         <div class="col-12 col-md-4">
-            <div class="needForTableLab mt-2">Sex</div>
+            <div class="needForTableLab requiredLab mt-2">Sex</div>
             <div>
                 <select class="needForTable fullWidth simpleCalc massCalc cycleCalc" id="sex" name="sex" required="">
                     <option value="">[Select]</option>
@@ -130,11 +136,11 @@
             </div>
 
             <!-- If only want this to appear when animals are intact, add "isIntact" label -->
-            <div id="gonadMassDiv">
+            <div id="reproTractMassDiv">
                 <div class="female mt-2 needForTableLab">Uterine Mass (mg)</div>
                 <div class="male mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
                 <div>
-                    <input class="fullWidth anySex simpleCalc massCalc needForTable" id="gonadMass" name="gonadmass" step="0.01" type="number" />
+                    <input class="fullWidth anySex simpleCalc massCalc needForTable" id="reproTractMass" name="reprotractmass" step="0.01" type="number" />
                 </div>
             </div>
 
@@ -318,7 +324,7 @@
 
         <div class="col-12 col-md-4 mt-2 mt-md-0">
             <h5 class="mt-2">Internal</h5>
-            <div>Internal Solution</div>
+            <div>Internal/Pipette Solution</div>
             <div><input id="internalsoln" name="internalsoln" class="fullWidth simpleCalc" /></div>
             <div class="mt-2">Internal Date</div>
             <div><input id="internaldate" name="internaldate" type="date" class="fullWidth simpleCalc" /></div>
@@ -352,7 +358,7 @@
     </div>
 </div>
 
-<div class="container">
+<div class="container outTableContainer">
     <div class="row mt-2">
         <h2 class="col">Output Table</h2>
     </div>
@@ -360,9 +366,8 @@
     <div class="row">
         <div class="col-12">
             <!-- took out the iFrame Google Doc since it was slow and was causing errors -->
-            <!-- <input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc"/> or  -->
-            <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Click here</a></big> 
-            to open the Google Sheet in a new window
+            <big>Open the <a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Slicing Database</a></big> 
+            Google Sheet in a new window
         </div>
         <div class="col-12">
             <label class="requiredLab" for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> 
@@ -472,8 +477,8 @@
                         <th>Zygosity</th>
                         <th>Sex</th>
                         <th>BodyMass_g</th>
-                        <th>GonadMass_mg</th>
-                        <th>GonadMass_mg_per_BodyMass_g</th>
+                        <th>ReproTractMass_mg</th>
+                        <th>ReproTractMass_mg_per_BodyMass_g</th>
                         <th>Gonad_Status</th>
                         <th>CycleStage</th>
                         <th>Stage_Comment</th>
@@ -516,8 +521,8 @@
                         <td class="zygosity_calc">&nbsp;</td>
                         <td class="sex_calc">&nbsp;</td>
                         <td class="BodyMass_g_calc">&nbsp;</td>
-                        <td class="gonadMass_calc">&nbsp;</td>
-                        <td class="gonad_mg_per_g_calc">&nbsp;</td>
+                        <td class="reproTractMass_calc">&nbsp;</td>
+                        <td class="reprotract_mg_per_g_calc">&nbsp;</td>
                         <td class="gonadstatus_calc">&nbsp;</td>
                         <td class="CycleStage_calc">&nbsp;</td>
                         <td class="stageComment_calc">&nbsp;</td>
@@ -575,9 +580,4 @@
 <!-- Copy Div -->
 <div class="row">
     <div class="col" id="forCopy">&nbsp;</div>
-</div>
-
-<div class="container mt-2 iFrameDiv" id="labGoogleSheet">
-    <div id="forFocus"></div>
-    <!-- <iframe id="sheetFrame" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" frameborder="0" scrolling="auto"></iframe> -->
 </div>

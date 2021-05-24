@@ -586,7 +586,7 @@ my_widget_script =
         if($("#DOB").val()){
             if(dateInputVal){
                 var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
-                var DOB = luxon.DateTime.fromISO($("#DOB").val()).startOf("day").plus({ days: DOBisDay });
+                var DOB = luxon.DateTime.fromISO($("#DOB").val()).startOf("day").minus({ days: DOBisDay });
                 var pnd = compDate.diff(DOB, "days").as("day");
                 // console.log(pnd);
                 textOutput = pnd;

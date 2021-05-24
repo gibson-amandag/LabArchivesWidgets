@@ -160,6 +160,28 @@ my_widget_script =
             }
         });
 
+        $("input[type='date']").each(function () {
+            var date = $(this).val();
+            if(date){
+                var validDate = my_widget_script.isValidDate(date);
+                if(!validDate){
+                    fail = true;
+                    fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
+                }
+            }
+        });
+
+        $("input[type='time']").each(function () {
+            var time = $(this).val();
+            if(time){
+                var validtime = my_widget_script.isValidTime(time);
+                if(!validtime){
+                    fail = true;
+                    fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
+                }
+            }
+        });
+
         if (fail) { //if fail is true (meaning a required element didn't have a value)
             return alert(fail_log); //return the fail log as an alert
         } else {
@@ -222,6 +244,10 @@ my_widget_script =
             $(".disableOnView").prop("disabled", true);
 
             $("#tableDiv").show();
+
+            $(".outTableContainer").insertAfter($(".firstDiv"));
+
+            $(".reqTextInfo").hide();
         }
     },
 
@@ -370,13 +396,6 @@ my_widget_script =
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
         });
 
-        //when the showGoogleDoc button is clicked, resize the containers, and toggle visability
-        $("#showGoogleDoc").on("click", function () {
-            $("#labGoogleSheet").toggle();
-            my_widget_script.resize();
-            $("#forFocus").focus();
-        });
-
         //Show/hide elements based on sex
         $("#sex").on("change", function () { //when sex is changed
             my_widget_script.checkSexAndGonadStatus();
@@ -427,8 +446,8 @@ my_widget_script =
             my_widget_script.calcImplant();
         });
 
-        $("#Treatment").on("change", function () {
-            my_widget_script.calcGenTreatment();
+        $(".treatmentCalc").on("change", function () {
+            my_widget_script.calcTreatment();
         });
 
         $(".cycleCalc").on("change", function () {
@@ -438,7 +457,7 @@ my_widget_script =
         $(".massCalc").on("input", function () {
             my_widget_script.calcUterineMass();
             my_widget_script.calcUterineMass_perBodyMass();
-            my_widget_script.calcGonadMass_perBodyMass();
+            my_widget_script.calcReproTractMass_perBodyMass();
         });
 
         $(".ageCalc").on("input", function () {
@@ -473,12 +492,101 @@ my_widget_script =
         });
     },
 
+    isValidTime: function (timeString) {
+        var regEx = "^(((([0-1][0-9])|(2[0-3])):[0-5][0-9]))$";
+        if(!timeString.match(regEx)){
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    isTimeSupported: function () {
+        // Check if browser has support for input type=time
+        var input = document.createElement('input');
+        input.setAttribute('type', 'time');
+        var supported = true;
+        if(input.type !== "time"){
+            supported = false;
+        }
+        my_widget_script.timeSupported = supported;
+        return (supported);
+    },
+
+    timeSupported: true,
+
+    checkTimeFormat: function ($timeInput) {
+        if(!my_widget_script.timeSupported){ // if not supported
+            $timeInput.next(".timeWarning").remove();
+            var time = $timeInput.val();
+            var isValid = my_widget_script.isValidTime(time);
+            if(!isValid){
+                $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
+            }
+            my_widget_script.resize();
+        }
+    },
+
+    isValidDate: function (dateString) {
+        // https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery/18759013
+        var regEx = /^\d{4}-\d{2}-\d{2}$/;
+        if(!dateString.match(regEx)) return false;  // Invalid format
+        var d = new Date(dateString);
+        var dNum = d.getTime();
+        if(!dNum && dNum !== 0) return false; // NaN value, Invalid date
+        return d.toISOString().slice(0,10) === dateString;
+    },
+
+    isDateSupported: function () {
+        // https://gomakethings.com/how-to-check-if-a-browser-supports-native-input-date-pickers/
+        // Check if browser has support for input type=date
+        var input = document.createElement('input');
+        // var value = 'a';
+        input.setAttribute('type', 'date');
+        var supported = true;
+        if(input.type !== "date"){
+            supported = false;
+        }
+        my_widget_script.dateSupported = supported;
+        return (supported);
+    },
+
+    dateSupported: true,
+
+    checkDateFormat: function ($dateInput) {
+        if(!my_widget_script.dateSupported){ // if not supported
+            $dateInput.next(".dateWarning").remove();
+            var date = $dateInput.val();
+            var isValid = my_widget_script.isValidDate(date);
+            if(!isValid){
+                $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
+            }
+            $dateInput.datepicker({dateFormat: "yy-mm-dd"})
+            my_widget_script.resize();
+        }
+    },
+
     /**
      * TO DO: edit this function to define how the form should be initilized based 
      * on the existing form values. This is particularly important for when the 
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
+        my_widget_script.isDateSupported();
+        my_widget_script.isTimeSupported();
+        
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
+            my_widget_script.checkDateFormat($(this));
+        }).each(function () {
+            my_widget_script.checkDateFormat($(this));
+        });
+        
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
+            my_widget_script.checkTimeFormat($(this));
+        }).each(function () {
+            my_widget_script.checkTimeFormat($(this));
+        });
+
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
@@ -507,14 +615,6 @@ my_widget_script =
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
-
-        //Change height of frame
-        var frameHeight = window.innerHeight;
-
-        //Change width of frame
-        var frameWidth = window.innerWidth * .9;
-
-        $("#sheetFrame").prop("height", frameHeight).prop("width", frameWidth);
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -564,21 +664,46 @@ my_widget_script =
         return valid;
     },
 
-    calcGenTreatment: function () {
-        // for normal treatment
-        // if want text from selected, instead of value $("#Treatment").children("option:selected").text())
+    calcTreatment: function(){
+        var genTreatment, treatment;
 
-        if (
-            $("#Treatment").val() === "CON" || //if Treatment_calc equals CON, CON_main, or VEH,
-            $("#Treatment").val() === "CON_main" ||
-            $("#Treatment").val() === "VEH"
+        if ($("#projectType").val() === "PNA"){
+            $("#pnaTreatment").show();
+            $("#otherTreatment").hide();
+            var pnaTreatment = $("#pnaTreatment").val();
+            
+            if (
+                pnaTreatment === "CON" || //if pnaTreatment equals CON, CON_main, or VEH,
+                pnaTreatment === "CON_main" ||
+                pnaTreatment === "VEH"
             ) {
-                $(".GenTreatment_calc").text("Control"); //GenTreatment_calc equals "Control"
-        } else if($("#Treatment").val() === "DHT") {
-            $(".GenTreatment_calc").text("PNA"); //else equals "PNA"
+                genTreatment = "Control";
+                treatment = pnaTreatment;
+            } else if(pnaTreatment === "DHT") {
+                genTreatment = "PNA";
+                treatment = pnaTreatment;
+            } else {
+                genTreatment = "NA";
+                treatment = "NA";
+            }
+        } else if ($("#projectType").val() === "other"){
+            $("#otherTreatment").show();
+            $("#pnaTreatment").hide();
+            var otherTreatment = $("#otherTreatment").val();
+            if(!otherTreatment){
+                treatment = "NA"
+            } else {
+                treatment = otherTreatment
+            }
+            genTreatment = "NA"
         } else {
-            $(".GenTreatment_calc").text("NA");
+            $("#pnaTreatment").hide();
+            $("#otherTreatment").hide()
+            genTreatment = "NA";
+            treatment = "NA";
         }
+        $(".GenTreatment_calc").text(genTreatment);
+        $(".Treatment_calc").text(treatment);
     },
 
     calcCycleStage: function () {
@@ -592,13 +717,13 @@ my_widget_script =
     },
 
     calcUterineMass: function () {
-        var gonadMass;
+        var reproTractMass;
         if ($("#sex").val() === "female") {
-            var gonadMass = $("#gonadMass").val();
+            var reproTractMass = $("#reproTractMass").val();
         }
 
-        if (isFinite(gonadMass) && gonadMass) {
-            $(".uterineMass_calc").text(gonadMass);
+        if (isFinite(reproTractMass) && reproTractMass) {
+            $(".uterineMass_calc").text(reproTractMass);
         } else {
             $(".uterineMass_calc").text("NA");
         }
@@ -607,7 +732,7 @@ my_widget_script =
     calcUterineMass_perBodyMass: function () {
         var uterine_mg_per_g;
         if ($("#sex").val() === "female") {
-            var uterine_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
+            var uterine_mg_per_g = $("#reproTractMass").val() / $("#BodyMass_g").val();
         }
 
         if (isFinite(uterine_mg_per_g) && uterine_mg_per_g) {
@@ -617,26 +742,44 @@ my_widget_script =
         }
     },
 
-    calcGonadMass_perBodyMass: function () {
-        var gonad_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
-        if(isFinite(gonad_mg_per_g) && gonad_mg_per_g){
-            $(".gonad_mg_per_g_calc").text(gonad_mg_per_g.toFixed(4));
+    calcReproTractMass_perBodyMass: function () {
+        var reprotract_mg_per_g = $("#reproTractMass").val() / $("#BodyMass_g").val();
+        if(isFinite(reprotract_mg_per_g) && reprotract_mg_per_g){
+            $(".reprotract_mg_per_g_calc").text(reprotract_mg_per_g.toFixed(4));
         } else {
-            $(".gonad_mg_per_g_calc").text("NA");
+            $(".reprotract_mg_per_g_calc").text("NA");
         }
     },
 
-    calcAgeInDays: function () {
+    getPND: function (dateInputVal, DOBisDay) {
         //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
-        var DOBisDay = parseInt($("#DOB_equals").val());
-        var Recording_date_as_ms = new Date($("#Recording_date").val()).getTime();
-        var DOB_as_ms = new Date($("#Date_of_birth").val()).getTime();
-        var Age_in_days = (Recording_date_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
-        if(isFinite(Age_in_days)){
-            $(".Age_in_days_calc").text(Age_in_days);
+        var textOutput;
+        var DOB_val = $("#Date_of_birth").val()
+        if(DOB_val){
+            if(dateInputVal){
+                var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
+                var DOB = luxon.DateTime.fromISO(DOB_val).startOf("day").minus({ days: DOBisDay });
+                var pnd = compDate.diff(DOB, "days").as("day");
+                // console.log(pnd);
+                textOutput = pnd;
+            } else {
+                textOutput = "[Enter Recording Date]";
+            }
         } else {
-            $(".Age_in_days_calc").text("NA");
+            textOutput = "[Enter DOB]";
         }
+        
+        return textOutput;
+    },
+
+    calcAgeInDays: function () {
+        var DOBisDay = parseInt($("#DOB_equals").val());
+        var recDate = $("#Recording_date").val()
+
+        var AgeInDays = my_widget_script.getPND(recDate, DOBisDay);
+        // console.log(AgeInDays);
+
+        $(".Age_in_days_calc").text(AgeInDays);
     },
 
     calcSavedPit: function () {
@@ -649,40 +792,25 @@ my_widget_script =
     },
 
     calcHoursPostLightsOn: function () {
-        //http://jsfiddle.net/44NCk/4/
-        var time_sac = $("#Time_sac").val().split(":");
+        var time_sac_dur = luxon.Duration.fromISOTime($("#Time_sac").val());
+        
         if ($("#Daylight_Savings").val() === "Y") { //if daylight savings time
-            var lights_on = "04:00"; //lights on at 4am
-            var lights_on_split = lights_on.split(":");
+            var lights_on = "04:00";
         } else if ($("#Daylight_Savings").val() === "N") {
-            var lights_on = "03:00" //otherwise, lights on at 3a
-            var lights_on_split = lights_on.split(":");
+            var lights_on = "03:00";
         } else {
             $(".Sac_hr_calc").text("Select daylight saving");
             return
         }
-        var hours_sac = parseInt(time_sac[0], 10), //get the hours component for time sac
-            hours_lights = parseInt(lights_on_split[0], 10),
-            min_sac = parseInt(time_sac[1], 10), //get the min component
-            min_lights = parseInt(lights_on_split[1], 10);
-        var hours = hours_sac - hours_lights, mins = 0; //subtract time of sac from lights on
-        if (hours < 0) hours = 24 + hours; //if a negative number, add 24
-        if (min_sac >= min_lights) { //if the min time of sac is greater than min time lights on
-            mins = min_sac - min_lights; //subtract as is
-        } else {
-            mins = (min_sac + 60) - min_lights; //otherwise add 60 min and remove an hour
-            hours--;
-        }
+        var lights_on_dur = luxon.Duration.fromISOTime(lights_on);
+        var hours = time_sac_dur.minus(lights_on_dur).as("hour");
 
-        mins = mins / 60; //divide min by 60 to get decimal
-        hours += mins; //add min to hours
-        hours = hours.toFixed(3); //three decimal points
+        hours = hours.toFixed(2); //two decimal points
         if (isFinite(hours)) {
             $(".Sac_hr_calc").text(hours);
         } else {
             $(".Sac_hr_calc").text("NA");
         }
-        
     },
 
     calcSurgeryDate: function () {
@@ -716,8 +844,8 @@ my_widget_script =
             my_widget_script.watchValue($(this), $(calcID));
         });
 
-        //generic treatment
-        my_widget_script.calcGenTreatment();
+        //treatment
+        my_widget_script.calcTreatment();
 
         //Cycle stage
         my_widget_script.calcCycleStage();
@@ -728,8 +856,8 @@ my_widget_script =
         //uterine mass per body mass
         my_widget_script.calcUterineMass_perBodyMass();
 
-        //gonad mass per body mass
-        my_widget_script.calcGonadMass_perBodyMass();
+        //repro tract mass per body mass
+        my_widget_script.calcReproTractMass_perBodyMass();
 
         //Age in days
         my_widget_script.calcAgeInDays();
@@ -982,18 +1110,6 @@ my_widget_script =
         my_widget_script.resize();
     },
 
-    makeSheetIframe: function (show) {
-        if(show){
-            var frameHeight = window.innerHeight;
-            var frameWidth = window.innerWidth * .9;
-            var iframeHTML = '<iframe id="sheetFrame" width="' + frameWidth + 'px" height="' + frameHeight + 'px" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing&amp;single=true&amp;widget=true&amp;headers=false" frameborder="0" scrolling="auto"></iframe><p>&nbsp;</p>'
-            $("#labGoogleSheet").html(iframeHTML).show();
-            $("#forCopy").focus();
-        } else {
-            $("#labGoogleSheet").html("").hide();
-        }
-    },
-
     addSoln: function (internalOrExternal) {
         var $solnDiv, basename
         if(internalOrExternal === "internal") {
@@ -1041,11 +1157,15 @@ my_widget_script =
                         id: additionDateID,
                         name: additionDateID,
                         class: "fullWidth simpleCalc",
-                        type: "date"
+                        type: "date",
+                        "placeholder": "YYYY-MM-DD"
+                    }).each(function () {
+                        my_widget_script.checkDateFormat($(this));
                     }).on("input", function () {
                         var elementID = this.id;
                         var calcID = "." + elementID + "_calc";
                         my_widget_script.watchValue($(this), $(calcID));
+                        my_widget_script.checkDateFormat($(this));
                     })
                 )
             )

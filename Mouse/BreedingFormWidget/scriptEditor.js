@@ -1017,7 +1017,7 @@ my_widget_script =
         if($("#breedDate").val()){
             if(dateInputVal){
                 var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
-                var breedDate = luxon.DateTime.fromISO($("#breedDate").val()).startOf("day").plus({ days: breedDateisDay });
+                var breedDate = luxon.DateTime.fromISO($("#breedDate").val()).startOf("day").minus({ days: breedDateisDay });
                 var gestDay = compDate.diff(breedDate, "days").as("day");
                 // console.log(gestDay);
                 textOutput = gestDay;

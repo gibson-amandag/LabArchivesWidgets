@@ -304,6 +304,10 @@ $(document).ready(function () {
             $(".disableOnView").prop("disabled", true);
 
             $("#tableDiv").show();
+
+            $(".outTableContainer").insertAfter($(".firstDiv"));
+
+            $(".reqTextInfo").hide();
         }
     },
 
@@ -452,13 +456,6 @@ $(document).ready(function () {
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
         });
 
-        //when the showGoogleDoc button is clicked, resize the containers, and toggle visability
-        $("#showGoogleDoc").on("click", function () {
-            $("#labGoogleSheet").toggle();
-            my_widget_script.resize();
-            $("#forFocus").focus();
-        });
-
         //Show/hide elements based on sex
         $("#sex").on("change", function () { //when sex is changed
             my_widget_script.checkSexAndGonadStatus();
@@ -509,8 +506,8 @@ $(document).ready(function () {
             my_widget_script.calcImplant();
         });
 
-        $("#Treatment").on("change", function () {
-            my_widget_script.calcGenTreatment();
+        $(".treatmentCalc").on("change", function () {
+            my_widget_script.calcTreatment();
         });
 
         $(".cycleCalc").on("change", function () {
@@ -520,7 +517,7 @@ $(document).ready(function () {
         $(".massCalc").on("input", function () {
             my_widget_script.calcUterineMass();
             my_widget_script.calcUterineMass_perBodyMass();
-            my_widget_script.calcGonadMass_perBodyMass();
+            my_widget_script.calcReproTractMass_perBodyMass();
         });
 
         $(".ageCalc").on("input", function () {
@@ -678,14 +675,6 @@ $(document).ready(function () {
     resize: function () {
         //resize the container
         my_widget_script.parent_class.resize_container();
-
-        //Change height of frame
-        var frameHeight = window.innerHeight;
-
-        //Change width of frame
-        var frameWidth = window.innerWidth * .9;
-
-        $("#sheetFrame").prop("height", frameHeight).prop("width", frameWidth);
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -735,21 +724,46 @@ $(document).ready(function () {
         return valid;
     },
 
-    calcGenTreatment: function () {
-        // for normal treatment
-        // if want text from selected, instead of value $("#Treatment").children("option:selected").text())
+    calcTreatment: function(){
+        var genTreatment, treatment;
 
-        if (
-            $("#Treatment").val() === "CON" || //if Treatment_calc equals CON, CON_main, or VEH,
-            $("#Treatment").val() === "CON_main" ||
-            $("#Treatment").val() === "VEH"
+        if ($("#projectType").val() === "PNA"){
+            $("#pnaTreatment").show();
+            $("#otherTreatment").hide();
+            var pnaTreatment = $("#pnaTreatment").val();
+            
+            if (
+                pnaTreatment === "CON" || //if pnaTreatment equals CON, CON_main, or VEH,
+                pnaTreatment === "CON_main" ||
+                pnaTreatment === "VEH"
             ) {
-                $(".GenTreatment_calc").text("Control"); //GenTreatment_calc equals "Control"
-        } else if($("#Treatment").val() === "DHT") {
-            $(".GenTreatment_calc").text("PNA"); //else equals "PNA"
+                genTreatment = "Control";
+                treatment = pnaTreatment;
+            } else if(pnaTreatment === "DHT") {
+                genTreatment = "PNA";
+                treatment = pnaTreatment;
+            } else {
+                genTreatment = "NA";
+                treatment = "NA";
+            }
+        } else if ($("#projectType").val() === "other"){
+            $("#otherTreatment").show();
+            $("#pnaTreatment").hide();
+            var otherTreatment = $("#otherTreatment").val();
+            if(!otherTreatment){
+                treatment = "NA"
+            } else {
+                treatment = otherTreatment
+            }
+            genTreatment = "NA"
         } else {
-            $(".GenTreatment_calc").text("NA");
+            $("#pnaTreatment").hide();
+            $("#otherTreatment").hide()
+            genTreatment = "NA";
+            treatment = "NA";
         }
+        $(".GenTreatment_calc").text(genTreatment);
+        $(".Treatment_calc").text(treatment);
     },
 
     calcCycleStage: function () {
@@ -763,13 +777,13 @@ $(document).ready(function () {
     },
 
     calcUterineMass: function () {
-        var gonadMass;
+        var reproTractMass;
         if ($("#sex").val() === "female") {
-            var gonadMass = $("#gonadMass").val();
+            var reproTractMass = $("#reproTractMass").val();
         }
 
-        if (isFinite(gonadMass) && gonadMass) {
-            $(".uterineMass_calc").text(gonadMass);
+        if (isFinite(reproTractMass) && reproTractMass) {
+            $(".uterineMass_calc").text(reproTractMass);
         } else {
             $(".uterineMass_calc").text("NA");
         }
@@ -778,7 +792,7 @@ $(document).ready(function () {
     calcUterineMass_perBodyMass: function () {
         var uterine_mg_per_g;
         if ($("#sex").val() === "female") {
-            var uterine_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
+            var uterine_mg_per_g = $("#reproTractMass").val() / $("#BodyMass_g").val();
         }
 
         if (isFinite(uterine_mg_per_g) && uterine_mg_per_g) {
@@ -788,26 +802,44 @@ $(document).ready(function () {
         }
     },
 
-    calcGonadMass_perBodyMass: function () {
-        var gonad_mg_per_g = $("#gonadMass").val() / $("#BodyMass_g").val();
-        if(isFinite(gonad_mg_per_g) && gonad_mg_per_g){
-            $(".gonad_mg_per_g_calc").text(gonad_mg_per_g.toFixed(4));
+    calcReproTractMass_perBodyMass: function () {
+        var reprotract_mg_per_g = $("#reproTractMass").val() / $("#BodyMass_g").val();
+        if(isFinite(reprotract_mg_per_g) && reprotract_mg_per_g){
+            $(".reprotract_mg_per_g_calc").text(reprotract_mg_per_g.toFixed(4));
         } else {
-            $(".gonad_mg_per_g_calc").text("NA");
+            $(".reprotract_mg_per_g_calc").text("NA");
         }
     },
 
-    calcAgeInDays: function () {
+    getPND: function (dateInputVal, DOBisDay) {
         //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
-        var DOBisDay = parseInt($("#DOB_equals").val());
-        var Recording_date_as_ms = new Date($("#Recording_date").val()).getTime();
-        var DOB_as_ms = new Date($("#Date_of_birth").val()).getTime();
-        var Age_in_days = (Recording_date_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
-        if(isFinite(Age_in_days)){
-            $(".Age_in_days_calc").text(Age_in_days);
+        var textOutput;
+        var DOB_val = $("#Date_of_birth").val()
+        if(DOB_val){
+            if(dateInputVal){
+                var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
+                var DOB = luxon.DateTime.fromISO(DOB_val).startOf("day").minus({ days: DOBisDay });
+                var pnd = compDate.diff(DOB, "days").as("day");
+                // console.log(pnd);
+                textOutput = pnd;
+            } else {
+                textOutput = "[Enter Recording Date]";
+            }
         } else {
-            $(".Age_in_days_calc").text("NA");
+            textOutput = "[Enter DOB]";
         }
+        
+        return textOutput;
+    },
+
+    calcAgeInDays: function () {
+        var DOBisDay = parseInt($("#DOB_equals").val());
+        var recDate = $("#Recording_date").val()
+
+        var AgeInDays = my_widget_script.getPND(recDate, DOBisDay);
+        // console.log(AgeInDays);
+
+        $(".Age_in_days_calc").text(AgeInDays);
     },
 
     calcSavedPit: function () {
@@ -820,40 +852,25 @@ $(document).ready(function () {
     },
 
     calcHoursPostLightsOn: function () {
-        //http://jsfiddle.net/44NCk/4/
-        var time_sac = $("#Time_sac").val().split(":");
+        var time_sac_dur = luxon.Duration.fromISOTime($("#Time_sac").val());
+        
         if ($("#Daylight_Savings").val() === "Y") { //if daylight savings time
-            var lights_on = "04:00"; //lights on at 4am
-            var lights_on_split = lights_on.split(":");
+            var lights_on = "04:00";
         } else if ($("#Daylight_Savings").val() === "N") {
-            var lights_on = "03:00" //otherwise, lights on at 3a
-            var lights_on_split = lights_on.split(":");
+            var lights_on = "03:00";
         } else {
             $(".Sac_hr_calc").text("Select daylight saving");
             return
         }
-        var hours_sac = parseInt(time_sac[0], 10), //get the hours component for time sac
-            hours_lights = parseInt(lights_on_split[0], 10),
-            min_sac = parseInt(time_sac[1], 10), //get the min component
-            min_lights = parseInt(lights_on_split[1], 10);
-        var hours = hours_sac - hours_lights, mins = 0; //subtract time of sac from lights on
-        if (hours < 0) hours = 24 + hours; //if a negative number, add 24
-        if (min_sac >= min_lights) { //if the min time of sac is greater than min time lights on
-            mins = min_sac - min_lights; //subtract as is
-        } else {
-            mins = (min_sac + 60) - min_lights; //otherwise add 60 min and remove an hour
-            hours--;
-        }
+        var lights_on_dur = luxon.Duration.fromISOTime(lights_on);
+        var hours = time_sac_dur.minus(lights_on_dur).as("hour");
 
-        mins = mins / 60; //divide min by 60 to get decimal
-        hours += mins; //add min to hours
-        hours = hours.toFixed(3); //three decimal points
+        hours = hours.toFixed(2); //two decimal points
         if (isFinite(hours)) {
             $(".Sac_hr_calc").text(hours);
         } else {
             $(".Sac_hr_calc").text("NA");
         }
-        
     },
 
     calcSurgeryDate: function () {
@@ -887,8 +904,8 @@ $(document).ready(function () {
             my_widget_script.watchValue($(this), $(calcID));
         });
 
-        //generic treatment
-        my_widget_script.calcGenTreatment();
+        //treatment
+        my_widget_script.calcTreatment();
 
         //Cycle stage
         my_widget_script.calcCycleStage();
@@ -899,8 +916,8 @@ $(document).ready(function () {
         //uterine mass per body mass
         my_widget_script.calcUterineMass_perBodyMass();
 
-        //gonad mass per body mass
-        my_widget_script.calcGonadMass_perBodyMass();
+        //repro tract mass per body mass
+        my_widget_script.calcReproTractMass_perBodyMass();
 
         //Age in days
         my_widget_script.calcAgeInDays();
@@ -1153,18 +1170,6 @@ $(document).ready(function () {
         my_widget_script.resize();
     },
 
-    makeSheetIframe: function (show) {
-        if(show){
-            var frameHeight = window.innerHeight;
-            var frameWidth = window.innerWidth * .9;
-            var iframeHTML = '<iframe id="sheetFrame" width="' + frameWidth + 'px" height="' + frameHeight + 'px" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing&amp;single=true&amp;widget=true&amp;headers=false" frameborder="0" scrolling="auto"></iframe><p>&nbsp;</p>'
-            $("#labGoogleSheet").html(iframeHTML).show();
-            $("#forCopy").focus();
-        } else {
-            $("#labGoogleSheet").html("").hide();
-        }
-    },
-
     addSoln: function (internalOrExternal) {
         var $solnDiv, basename
         if(internalOrExternal === "internal") {
@@ -1288,6 +1293,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
 <!------------------------------------------------------------------------------------------>
 <!-- #region HTML -->
+<!-- Luxon Date Handling -->
+<script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -1338,18 +1345,15 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <!-- TO DO Begin typing your HTML code here -->
 
-<div class="container">
+<div class="container firstDiv">
     <div class="row">
         <h1 class="col-12">Slicing</h1>
-        <div class="col-12">
-            <em>I'm slow to load. Please be patient with me</em>
-        </div>
     </div>
 </div>
 
-<div class="container mt-2">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
+<div class="container mt-2 reqTextInfo">
+    <p>Elements that are required to save this page are marked with a red asterisk. <span
+        style="color:red">*</span> <em>Don't forget about the Google sheet at the bottom of the form</em><br />
         Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
             style="color:blue">#</span></p>
 </div>
@@ -1381,7 +1385,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <div class="mt-2">Cage #</div>
             <div><input id="Cage" name="cagenum" class="fullWidth simpleCalc"/></div>
 
-            <div class="needForTableLab mt-2" >Date of Birth</div>
+            <div class="needForTableLab requiredLab mt-2" >Date of Birth</div>
             <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Date_of_birth" name="dob" required="" type="date" /></div>
 
             <div class="mt-2">DOB Counts as...</div>
@@ -1394,18 +1398,25 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
             <div class="mt-2">Treatment</div>
             <div>
-                <select id="Treatment" name="treatment" class="fullWidth simpleCalc">
+                <div><em>Project Type:</em></div>
+                <select name="projecttype" id="projectType" class="fullWidth treatmentCalc">
+                    <option value="">[Select]</option>
+                    <option value="PNA">Prenatal Androgenization</option>
+                    <option value="other">Other</option>
+                </select>
+                <select id="pnaTreatment" name="pnatreatment" class="fullWidth treatmentCalc mt-1">
                     <option value="">[Select]</option>
                     <option value="CON">Control</option>
                     <option value="CON_main">Main colony control</option>
                     <option value="VEH">Vehicle</option>
                     <option value="DHT">DHT</option> 
                 </select>
+                <input type="text" id="otherTreatment" name="othertreatment" class="fullWidth treatmentCalc mt-1"/>
             </div>
         </div>
 
         <div class="col-12 col-md-4">
-            <div class="needForTableLab mt-2">Sex</div>
+            <div class="needForTableLab requiredLab mt-2">Sex</div>
             <div>
                 <select class="needForTable fullWidth simpleCalc massCalc cycleCalc" id="sex" name="sex" required="">
                     <option value="">[Select]</option>
@@ -1420,11 +1431,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </div>
 
             <!-- If only want this to appear when animals are intact, add "isIntact" label -->
-            <div id="gonadMassDiv">
+            <div id="reproTractMassDiv">
                 <div class="female mt-2 needForTableLab">Uterine Mass (mg)</div>
                 <div class="male mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
                 <div>
-                    <input class="fullWidth anySex simpleCalc massCalc needForTable" id="gonadMass" name="gonadmass" step="0.01" type="number" />
+                    <input class="fullWidth anySex simpleCalc massCalc needForTable" id="reproTractMass" name="reprotractmass" step="0.01" type="number" />
                 </div>
             </div>
 
@@ -1608,7 +1619,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
         <div class="col-12 col-md-4 mt-2 mt-md-0">
             <h5 class="mt-2">Internal</h5>
-            <div>Internal Solution</div>
+            <div>Internal/Pipette Solution</div>
             <div><input id="internalsoln" name="internalsoln" class="fullWidth simpleCalc" /></div>
             <div class="mt-2">Internal Date</div>
             <div><input id="internaldate" name="internaldate" type="date" class="fullWidth simpleCalc" /></div>
@@ -1642,7 +1653,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<div class="container">
+<div class="container outTableContainer">
     <div class="row mt-2">
         <h2 class="col">Output Table</h2>
     </div>
@@ -1650,9 +1661,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row">
         <div class="col-12">
             <!-- took out the iFrame Google Doc since it was slow and was causing errors -->
-            <!-- <input id="showGoogleDoc" name="showgoogledoc" type="button" value="Show/Hide Google Doc"/> or  -->
-            <big><a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Click here</a></big> 
-            to open the Google Sheet in a new window
+            <big>Open the <a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Slicing Database</a></big> 
+            Google Sheet in a new window
         </div>
         <div class="col-12">
             <label class="requiredLab" for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> 
@@ -1762,8 +1772,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <th>Zygosity</th>
                         <th>Sex</th>
                         <th>BodyMass_g</th>
-                        <th>GonadMass_mg</th>
-                        <th>GonadMass_mg_per_BodyMass_g</th>
+                        <th>ReproTractMass_mg</th>
+                        <th>ReproTractMass_mg_per_BodyMass_g</th>
                         <th>Gonad_Status</th>
                         <th>CycleStage</th>
                         <th>Stage_Comment</th>
@@ -1806,8 +1816,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <td class="zygosity_calc">&nbsp;</td>
                         <td class="sex_calc">&nbsp;</td>
                         <td class="BodyMass_g_calc">&nbsp;</td>
-                        <td class="gonadMass_calc">&nbsp;</td>
-                        <td class="gonad_mg_per_g_calc">&nbsp;</td>
+                        <td class="reproTractMass_calc">&nbsp;</td>
+                        <td class="reprotract_mg_per_g_calc">&nbsp;</td>
                         <td class="gonadstatus_calc">&nbsp;</td>
                         <td class="CycleStage_calc">&nbsp;</td>
                         <td class="stageComment_calc">&nbsp;</td>
@@ -1865,11 +1875,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!-- Copy Div -->
 <div class="row">
     <div class="col" id="forCopy">&nbsp;</div>
-</div>
-
-<div class="container mt-2 iFrameDiv" id="labGoogleSheet">
-    <div id="forFocus"></div>
-    <!-- <iframe id="sheetFrame" src="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" frameborder="0" scrolling="auto"></iframe> -->
 </div>
 
 
