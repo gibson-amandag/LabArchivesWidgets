@@ -37,8 +37,13 @@ my_widget_script =
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
     toggleCard: function ($cardHead) {
-        console.log($cardHead.next());
+        // console.log($cardHead.next());
         $cardHead.next().toggleClass("collapse");
+        $cardHead.next().find("textarea.autoAdjust").each(function () {
+            if(! $(this).is(":hidden")) {
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            } 
+        });
         my_widget_script.resize();
     },
 

@@ -505,6 +505,7 @@ my_widget_script =
     },
 
     sortFunc: function (sortBy) {
+        console.log("running sort func");
         // console.time("sortFunc");
         $(".cardContainer").mySort({sortBy: sortBy});
         var sortVals = [];
@@ -774,7 +775,7 @@ my_widget_script =
         extraClasses = ["sortCol", "sortCol", "sortCol", "showCol", "showCol", "showCol", "showCol", "showCol", "showCol"];
         
         $div.append(
-            $("<div/>", {
+            $("<div></div>", {
                 "class": "card d-none d-md-flex topLabelRow"
             }).append(
                 $("<div/>", {
@@ -810,8 +811,9 @@ my_widget_script =
             $("<div/>", {
                 "class": "card"
             }).append(
-                $("<div/>", {
-                    "class": "card-header"
+                $("<button></button>", {
+                    "type": "button",
+                    "class": "card-header",
                 }).on("click", function () {
                     my_widget_script.toggleCard($(this));
                 }).append(cardHeadContent)
@@ -907,8 +909,9 @@ my_widget_script =
                 $("<div/>", {
                     "class": "card"
                 }).append(
-                    $("<div/>", {
+                    $("<button></button>", {
                         "class": "card-header mouseHeader",
+                        "type": "button",
                         "data-calc": "mouse",
                         "data-mouse": mouseNum
                     }).on("click", function () {
@@ -1451,4 +1454,5 @@ my_widget_script =
 
             }
     }
+
 };
