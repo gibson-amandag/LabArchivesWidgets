@@ -518,8 +518,9 @@ my_widget_script =
             $("<div/>", {
                 "class": "card"
             }).append(
-                $("<div/>", {
-                    "class": "card-header"
+                $("<button></button>", {
+                    "type": "button",
+                    "class": "card-header",
                 }).on("click", function () {
                     // console.log($(this));
                     my_widget_script.toggleCard($(this));

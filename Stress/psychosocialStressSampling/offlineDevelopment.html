@@ -622,7 +622,8 @@ $(document).ready(function () {
                     $("<div/>", {
                         "class": "card"
                     }).append(
-                        $("<div/>", {
+                        $("<button></button>", {
+                            type: "button",
                             "class": "card-header mouseIDCalc",
                             "data-mouse": mouseNum
                         }).on("click", function () {
@@ -812,6 +813,27 @@ $(document).ready(function () {
                                     })
                                 )
                             )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Ovarian/Testicular Mass (mg):")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<input/>", {
+                                        type: "text", 
+                                        "data-mouse": mouseNum,
+                                        id: "gonadMass"+mouseNum,
+                                        name: "gonadmass"+mouseNum,
+                                        "class": "gonadMass fullWidth watch",
+                                        "data-watch": "gonadMass"
+                                    })
+                                )
+                            )
                         )
                     )
                 )
@@ -825,7 +847,7 @@ $(document).ready(function () {
                 })
             );
 
-            var calcs = ["mouseID", "sex", "stage", "treatment", "mass", "reproMass"];
+            var calcs = ["mouseID", "sex", "stage", "treatment", "mass", "reproMass", "gonadMass"];
             var mouseSearch = my_widget_script.mouseSearch(mouseNum);
 
             for(var i = 0; i < calcs.length; i++){
@@ -977,7 +999,8 @@ $(document).ready(function () {
                     "class": "card sampleInfo",
                     "data-sample": sampleNum
                 }).append(
-                    $("<div/>", {
+                    $("<button></button>", {
+                        type: "button",
                         "class": "card-header"
                     }).on("click", function () {my_widget_script.toggleCard($(this))}).append("Sample " + sampleNum)
                 ).append(
@@ -1108,7 +1131,8 @@ $(document).ready(function () {
                 "class": "card samplingCard",
                 "data-sample": sampleNum
             }).append(
-                $("<div/>", {
+                $("<button></button>", {
+                    type: "button",
                     "class": "card-header samplingHead",
                     id: "samplingHead"+sampleNum
                 }).on("click", function () {my_widget_script.toggleCard($(this))}).append(
@@ -1147,7 +1171,8 @@ $(document).ready(function () {
                 "data-sample": sampleNum,
                 "data-mouse": mouseNum
             }).append(
-                $("<div/>", {
+                $("<button></button>", {
+                    type: "button",
                     "class": "card-header",
                     id: "heading"+sampMouseID
                 }).on("click", function () {my_widget_script.toggleCard($(this))}).append(
@@ -1607,6 +1632,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     .forTextBox, .ifOther, .ifFemale {
         display: none;
     }
+
+    button.card-header{
+        border: none;
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
@@ -1763,6 +1792,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <th>Treatment</th>
                     <th>BodyMass</th>
                     <th>ReproTractMass</th>
+                    <th>GonadMass</th>
                 </tr>
             </thead>
             <tbody>

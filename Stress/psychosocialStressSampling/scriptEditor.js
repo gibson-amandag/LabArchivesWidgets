@@ -562,7 +562,8 @@ my_widget_script =
                     $("<div/>", {
                         "class": "card"
                     }).append(
-                        $("<div/>", {
+                        $("<button></button>", {
+                            type: "button",
                             "class": "card-header mouseIDCalc",
                             "data-mouse": mouseNum
                         }).on("click", function () {
@@ -752,6 +753,27 @@ my_widget_script =
                                     })
                                 )
                             )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Ovarian/Testicular Mass (mg):")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<input/>", {
+                                        type: "text", 
+                                        "data-mouse": mouseNum,
+                                        id: "gonadMass"+mouseNum,
+                                        name: "gonadmass"+mouseNum,
+                                        "class": "gonadMass fullWidth watch",
+                                        "data-watch": "gonadMass"
+                                    })
+                                )
+                            )
                         )
                     )
                 )
@@ -765,7 +787,7 @@ my_widget_script =
                 })
             );
 
-            var calcs = ["mouseID", "sex", "stage", "treatment", "mass", "reproMass"];
+            var calcs = ["mouseID", "sex", "stage", "treatment", "mass", "reproMass", "gonadMass"];
             var mouseSearch = my_widget_script.mouseSearch(mouseNum);
 
             for(var i = 0; i < calcs.length; i++){
@@ -917,7 +939,8 @@ my_widget_script =
                     "class": "card sampleInfo",
                     "data-sample": sampleNum
                 }).append(
-                    $("<div/>", {
+                    $("<button></button>", {
+                        type: "button",
                         "class": "card-header"
                     }).on("click", function () {my_widget_script.toggleCard($(this))}).append("Sample " + sampleNum)
                 ).append(
@@ -1048,7 +1071,8 @@ my_widget_script =
                 "class": "card samplingCard",
                 "data-sample": sampleNum
             }).append(
-                $("<div/>", {
+                $("<button></button>", {
+                    type: "button",
                     "class": "card-header samplingHead",
                     id: "samplingHead"+sampleNum
                 }).on("click", function () {my_widget_script.toggleCard($(this))}).append(
@@ -1087,7 +1111,8 @@ my_widget_script =
                 "data-sample": sampleNum,
                 "data-mouse": mouseNum
             }).append(
-                $("<div/>", {
+                $("<button></button>", {
+                    type: "button",
                     "class": "card-header",
                     id: "heading"+sampMouseID
                 }).on("click", function () {my_widget_script.toggleCard($(this))}).append(

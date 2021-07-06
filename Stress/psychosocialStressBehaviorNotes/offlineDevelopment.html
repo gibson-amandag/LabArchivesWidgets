@@ -578,8 +578,9 @@ $(document).ready(function () {
             $("<div/>", {
                 "class": "card"
             }).append(
-                $("<div/>", {
-                    "class": "card-header"
+                $("<button></button>", {
+                    "type": "button",
+                    "class": "card-header",
                 }).on("click", function () {
                     // console.log($(this));
                     my_widget_script.toggleCard($(this));
@@ -873,6 +874,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
     .forTextBox {
         display: none;
+    }
+
+    button.card-header{
+        border: none;
     }
 </style>
 
