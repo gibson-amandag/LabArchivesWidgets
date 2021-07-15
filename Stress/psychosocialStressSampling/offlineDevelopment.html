@@ -479,11 +479,20 @@ $(document).ready(function () {
             my_widget_script.watchSampleLabel(this);
         });
 
+        $(".treatment").each(function(){
+            if($(this).val() == "control"){
+                $(this).val("CON")
+            }else if($(this).val()=="stress"){
+                $(this).val("ALPS")
+            }
+        });
+
         $(".watch").each(function () {
             my_widget_script.watchValue($(this));
         });
 
         my_widget_script.resize();
+
     },
 
     toggleCard: function ($cardHead) {
@@ -696,7 +705,7 @@ $(document).ready(function () {
                                         name: "treatment"+mouseNum,
                                         "class": "treatment fullWidth watch",
                                         "data-watch": "treatment"
-                                    }).append('<option value="control">Control</option><option value="stress">Stress</option>')
+                                    }).append('<option value="control">Control</option><option value="stress">Stress</option><option value="CON">Control</option><option value="ALPS">Stress</option>')
                                 )
                             )
                         ).append(
@@ -847,7 +856,15 @@ $(document).ready(function () {
                 })
             );
 
+            var $mouseTable2 = $("#mouseTable2");
+            $mouseTable2.find("tbody").append(
+                $("<tr/>", {
+                    "data-mouse": mouseNum
+                })
+            );
+
             var calcs = ["mouseID", "sex", "stage", "treatment", "mass", "reproMass", "gonadMass"];
+            var calcs2 = ["mouseID", "date", "stage", "treatment", "mass", "reproMass", "gonadMass"];
             var mouseSearch = my_widget_script.mouseSearch(mouseNum);
 
             for(var i = 0; i < calcs.length; i++){
@@ -858,6 +875,24 @@ $(document).ready(function () {
                         "data-mouse": mouseNum
                     })
                 );
+            }
+            for(var i = 0; i < calcs2.length; i++){
+                var calc = calcs2[i];
+                if(calc !== "date"){
+                    console.log(calc)
+                    $mouseTable2.find("tbody").find("tr"+mouseSearch).append(
+                        $("<td/>", {
+                            "data-calc": calc,
+                            "data-mouse": mouseNum
+                        })
+                    );
+                } else{
+                    $mouseTable2.find("tbody").find("tr"+mouseSearch).append(
+                        $("<td/>", {
+                            "data-calc": calc
+                        })
+                    );
+                }
             }
 
             my_widget_script.resize();
@@ -889,6 +924,7 @@ $(document).ready(function () {
             var mouseSearch = my_widget_script.mouseSearch(mouseNum);
             $(".mouseCard"+mouseSearch).remove();
             $(".mouseSampleCard"+mouseSearch).remove();
+            $("tr"+mouseSearch).remove();
         }
 
         my_widget_script.resize();
@@ -928,13 +964,16 @@ $(document).ready(function () {
         }
         if(my_widget_script.sampleNums){
             var proceed = true;
-            for(var i = 0; i < my_widget_script.sampleNums.length; i++){
+            for(var i = my_widget_script.sampleNums.length; i > -1; i--){
                 if(proceed){
                     var sampleNum = my_widget_script.sampleNums[i];
                     if(sampleNum>totalNumSamples){
                         proceed = confirm("Are sure that you want to remove a sampling time?");
                         if(proceed){
                             $(my_widget_script.sampleSearch(sampleNum)).remove();
+                            my_widget_script.sampleNums.splice(i, 1);
+                            // Need to remove it from my_widget_script.SampleNums
+                            console.log(my_widget_script.sampleNums)
                         } else {
                             $("#numSamples").val(my_widget_script.sampleNums.length);
                         }
@@ -1366,6 +1405,29 @@ $(document).ready(function () {
                                 })
                             )
                         )
+                    ).append(
+                        $("<div/>", {
+                            "class": "row mt-2"
+                        }).append(
+                            $("<div/>", {
+                                "class": "col-12 col-md-6"
+                            }).append(
+                                "LH Sample ID"
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": "col-12 col-md-6 mt-2 mt-md-0"
+                            }).append(
+                                $('<input></input>', {
+                                    "type": "number",
+                                    id: "lhnum"+sampMouseID,
+                                    name: "lhnum"+sampMouseID,
+                                    "class": "lhnum fullWidth",
+                                    "data-mouse": mouseNum,
+                                    "data-sample": sampleNum
+                                })
+                            )
+                        )
                     )
                 )
             )
@@ -1646,7 +1708,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row mt-2">
         <div class="myLeftCol">Date:</div>
         <div class="col">
-            <input type="date" name="expdate" id="expDate" class="fullWidth" placeholder="YYYY-MM-DD"/>
+            <input type="date" name="expdate" id="expDate" class="fullWidth watch" placeholder="YYYY-MM-DD" data-watch="date"/>
         </div>
     </div>
     <div class="row mt-2">
@@ -1677,6 +1739,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row mt-2 purposeRow">
         <div class="myLeftCol">Purpose:</div>
         <div class="col"><textarea name="exppurpose" id="expPurpose" class="autoAdjust fullWidth" placeholder="Purpose of experiment"></textarea></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Starting LH sample ID:</div>
+        <div class="col"><input type="number" class="fullWidth" name="lhstart" id="lhstart"></div>
     </div>
 </div>
 
@@ -1802,6 +1868,45 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
+<div class="container mt-2">
+    <div class="row">
+        <h4 class="col">Mouse Info:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable3" name="toggletable3" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable2"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV3" name="tocsv3" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="mouseTable2" /></div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton2" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable2"/>
+            <br />Copy Table Head? <input id="copyHead3" name="copyhead3" type="checkbox" class="copyHead" data-table="mouseTable2"/>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="mouseTable2">
+            <thead>
+                <tr>
+                    <th>Mouse</th>
+                    <th>Date</th>
+                    <th>CycleStage</th>
+                    <th>Treatment</th>
+                    <th>BodyMass</th>
+                    <th>ReproTractMass</th>
+                    <th>GonadMass</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
 
 <!-- #endregion -->
 <!------------------------------------------------------------------------------------------>

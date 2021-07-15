@@ -60,7 +60,7 @@
     <div class="row mt-2">
         <div class="myLeftCol">Date:</div>
         <div class="col">
-            <input type="date" name="expdate" id="expDate" class="fullWidth" placeholder="YYYY-MM-DD"/>
+            <input type="date" name="expdate" id="expDate" class="fullWidth watch" placeholder="YYYY-MM-DD" data-watch="date"/>
         </div>
     </div>
     <div class="row mt-2">
@@ -91,6 +91,10 @@
     <div class="row mt-2 purposeRow">
         <div class="myLeftCol">Purpose:</div>
         <div class="col"><textarea name="exppurpose" id="expPurpose" class="autoAdjust fullWidth" placeholder="Purpose of experiment"></textarea></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Starting LH sample ID:</div>
+        <div class="col"><input type="number" class="fullWidth" name="lhstart" id="lhstart"></div>
     </div>
 </div>
 
@@ -202,6 +206,46 @@
                 <tr>
                     <th>Mouse</th>
                     <th>Sex</th>
+                    <th>CycleStage</th>
+                    <th>Treatment</th>
+                    <th>BodyMass</th>
+                    <th>ReproTractMass</th>
+                    <th>GonadMass</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h4 class="col">Mouse Info:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable3" name="toggletable3" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable2"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV3" name="tocsv3" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="mouseTable2" /></div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton2" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable2"/>
+            <br />Copy Table Head? <input id="copyHead3" name="copyhead3" type="checkbox" class="copyHead" data-table="mouseTable2"/>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="mouseTable2">
+            <thead>
+                <tr>
+                    <th>Mouse</th>
+                    <th>Date</th>
                     <th>CycleStage</th>
                     <th>Treatment</th>
                     <th>BodyMass</th>

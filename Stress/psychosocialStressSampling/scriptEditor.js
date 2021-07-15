@@ -419,11 +419,20 @@ my_widget_script =
             my_widget_script.watchSampleLabel(this);
         });
 
+        $(".treatment").each(function(){
+            if($(this).val() == "control"){
+                $(this).val("CON")
+            }else if($(this).val()=="stress"){
+                $(this).val("ALPS")
+            }
+        });
+
         $(".watch").each(function () {
             my_widget_script.watchValue($(this));
         });
 
         my_widget_script.resize();
+
     },
 
     toggleCard: function ($cardHead) {
@@ -636,7 +645,7 @@ my_widget_script =
                                         name: "treatment"+mouseNum,
                                         "class": "treatment fullWidth watch",
                                         "data-watch": "treatment"
-                                    }).append('<option value="control">Control</option><option value="stress">Stress</option>')
+                                    }).append('<option value="control">Control</option><option value="stress">Stress</option><option value="CON">Control</option><option value="ALPS">Stress</option>')
                                 )
                             )
                         ).append(
@@ -787,7 +796,15 @@ my_widget_script =
                 })
             );
 
+            var $mouseTable2 = $("#mouseTable2");
+            $mouseTable2.find("tbody").append(
+                $("<tr/>", {
+                    "data-mouse": mouseNum
+                })
+            );
+
             var calcs = ["mouseID", "sex", "stage", "treatment", "mass", "reproMass", "gonadMass"];
+            var calcs2 = ["mouseID", "date", "stage", "treatment", "mass", "reproMass", "gonadMass"];
             var mouseSearch = my_widget_script.mouseSearch(mouseNum);
 
             for(var i = 0; i < calcs.length; i++){
@@ -798,6 +815,24 @@ my_widget_script =
                         "data-mouse": mouseNum
                     })
                 );
+            }
+            for(var i = 0; i < calcs2.length; i++){
+                var calc = calcs2[i];
+                if(calc !== "date"){
+                    console.log(calc)
+                    $mouseTable2.find("tbody").find("tr"+mouseSearch).append(
+                        $("<td/>", {
+                            "data-calc": calc,
+                            "data-mouse": mouseNum
+                        })
+                    );
+                } else{
+                    $mouseTable2.find("tbody").find("tr"+mouseSearch).append(
+                        $("<td/>", {
+                            "data-calc": calc
+                        })
+                    );
+                }
             }
 
             my_widget_script.resize();
@@ -829,6 +864,7 @@ my_widget_script =
             var mouseSearch = my_widget_script.mouseSearch(mouseNum);
             $(".mouseCard"+mouseSearch).remove();
             $(".mouseSampleCard"+mouseSearch).remove();
+            $("tr"+mouseSearch).remove();
         }
 
         my_widget_script.resize();
@@ -868,13 +904,16 @@ my_widget_script =
         }
         if(my_widget_script.sampleNums){
             var proceed = true;
-            for(var i = 0; i < my_widget_script.sampleNums.length; i++){
+            for(var i = my_widget_script.sampleNums.length; i > -1; i--){
                 if(proceed){
                     var sampleNum = my_widget_script.sampleNums[i];
                     if(sampleNum>totalNumSamples){
                         proceed = confirm("Are sure that you want to remove a sampling time?");
                         if(proceed){
                             $(my_widget_script.sampleSearch(sampleNum)).remove();
+                            my_widget_script.sampleNums.splice(i, 1);
+                            // Need to remove it from my_widget_script.SampleNums
+                            console.log(my_widget_script.sampleNums)
                         } else {
                             $("#numSamples").val(my_widget_script.sampleNums.length);
                         }
@@ -1303,6 +1342,29 @@ my_widget_script =
                                     this.style.height = 'auto';
                                     this.style.height = (this.scrollHeight) + 'px';
                                     my_widget_script.resize();
+                                })
+                            )
+                        )
+                    ).append(
+                        $("<div/>", {
+                            "class": "row mt-2"
+                        }).append(
+                            $("<div/>", {
+                                "class": "col-12 col-md-6"
+                            }).append(
+                                "LH Sample ID"
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": "col-12 col-md-6 mt-2 mt-md-0"
+                            }).append(
+                                $('<input></input>', {
+                                    "type": "number",
+                                    id: "lhnum"+sampMouseID,
+                                    name: "lhnum"+sampMouseID,
+                                    "class": "lhnum fullWidth",
+                                    "data-mouse": mouseNum,
+                                    "data-sample": sampleNum
                                 })
                             )
                         )
