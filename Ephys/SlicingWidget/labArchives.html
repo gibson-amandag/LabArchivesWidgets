@@ -1,3 +1,4 @@
+<!-- #region HTML -->
 <!-- Luxon Date Handling -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
@@ -107,6 +108,7 @@
                 <select name="projecttype" id="projectType" class="fullWidth treatmentCalc">
                     <option value="">[Select]</option>
                     <option value="PNA">Prenatal Androgenization</option>
+                    <option value="ALPS">Adult Stress</option>
                     <option value="other">Other</option>
                 </select>
                 <select id="pnaTreatment" name="pnatreatment" class="fullWidth treatmentCalc mt-1">
@@ -115,6 +117,11 @@
                     <option value="CON_main">Main colony control</option>
                     <option value="VEH">Vehicle</option>
                     <option value="DHT">DHT</option> 
+                </select>
+                <select id="ALPSTreatment" name="alpstreatment" class="fullWidth treatmentCalc mt-1">
+                    <option value="">[Select]</option>
+                    <option value="CON">Control</option>
+                    <option value="ALPS">ALPS</option> 
                 </select>
                 <input type="text" id="otherTreatment" name="othertreatment" class="fullWidth treatmentCalc mt-1"/>
             </div>
@@ -246,6 +253,7 @@
             <div>
                 <input class="needForTable fullWidth simpleCalc" id="tubeLabel" name="tubelabel" />
             </div>
+            <div><label for="bloodserum">Saved blood</label> <input id="Saved_blood" name="bloodserum" type="checkbox" /></div>
             
             <div class="mt-2">Pituitary</div>
             <div><label for="pituitary">Saved pituitary</label> <input id="Saved_pit" name="pituitary" type="checkbox" /></div>
@@ -389,6 +397,8 @@
                 <option value="labOutTable">Standard Lab Output</option>
                 <option value="externalAdditionsTable">External Additions</option>
                 <option value="internalAdditionsTable">Internal Additions</option>
+                <option value="JennPNA">Jenn PNA project</option>
+                <option value="sacTimeTable">Sacrifice Time</option>
             </select> <br/>
             Select output table
         </div>
@@ -571,6 +581,74 @@
                     </tr>
                 </thead>
                 <tbody>
+                </tbody>
+            </table>
+
+            <table id="JennPNA" class="outTable table">
+                <thead>
+                    <tr>
+                        <th>CellID</th>
+                        <th>MouseID</th>
+                        <th>Exclude reason</th>
+                        <th>Cage</th>
+                        <th>TX</th>
+                        <th>Group</th>
+                        <th>DOB</th>
+                        <th>Age</th>
+                        <th>RecordingAge</th>
+                        <th>RecordingDay</th>
+                        <th>Mass (g)</th>
+                        <th>Ut. mass (g)</th>
+                        <th>Ut. mass (mg)</th>
+                        <th>Cycle Stage</th>
+                        <th>Sac time</th>
+                        <th>Sac hour</th>
+                        <th>Pit (Y/N)</th>
+                        <th>Blood (Y/N)</th>
+                        <th>Notes:</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td class="MouseID_calc">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td class="Cage_calc">&nbsp;</td>
+                        <td class="Treatment_calc">&nbsp;</td>
+                        <td class="GenTreatment_calc">&nbsp;</td>
+                        <td class="Date_of_birth_calc">&nbsp;</td>
+                        <td class="AgeGroup_calc">&nbsp;</td>
+                        <td class="Age_in_days_calc">&nbsp;</td>
+                        <td class="Recording_date_calc">&nbsp;</td>
+                        <td class="BodyMass_g_calc">&nbsp;</td>
+                        <td class="reproTractMass_g_calc">&nbsp;</td>
+                        <td class="reproTractMass_calc">&nbsp;</td>
+                        <td class="CycleStage_calc">&nbsp;</td>
+                        <td class="Time_sac_calc">&nbsp;</td>
+                        <td class="Sac_hr_calc">&nbsp;</td>
+                        <td class="Saved_pit_calc">&nbsp;</td>
+                        <td class="Saved_blood_calc">&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table id="sacTimeTable" class="outTable table">
+                <thead>
+                    <tr>
+                        <th>MouseID</th>
+                        <th>Daylight_Savings</th>
+                        <th>Time_sac</th>
+                        <th>Sac_hr</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="MouseID_calc">&nbsp;</td>
+                        <td class="Daylight_Savings_calc">&nbsp;</td>
+                        <td class="Time_sac_calc">&nbsp;</td>
+                        <td class="Sac_hr_calc">&nbsp;</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

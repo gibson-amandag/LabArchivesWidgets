@@ -329,7 +329,9 @@ my_widget_script =
                 "Enter '1' for KNDy PNA Extracellular Analysis Project\n" +
                 "Enter '2' for the standard lab output table\n" + 
                 "Enter '3' for the external additions table\n" + 
-                "Enter '4' for the internal additions table\n"
+                "Enter '4' for the internal additions table\n" +
+                "Enter '5' for Jenn's PNA project\n" +
+                "Enter '6' for sacrifice timing table"
             );
             var tableID, fileName;
             switch (selectedTable) {
@@ -348,6 +350,14 @@ my_widget_script =
                 case '4': 
                     tableID = "internalAdditionsTable";       
                     fileName = "internalSolutionAdditions_" + $("#MouseID").val();
+                    break;
+                case '5':
+                    tableID = "JennPNA";       
+                    fileName = "JennPNA_recordingNotes_" + $("#MouseID").val();
+                    break;  
+                case '6':
+                    tableID = "sacTimeTable";       
+                    fileName = "sacrificeTiming_" + $("#MouseID").val();
                     break;     
                 default:
                     tableID = "labOutTable";
@@ -367,7 +377,9 @@ my_widget_script =
                 "Enter '1' for KNDy PNA Extracellular Analysis Project\n" +
                 "Enter '2' for the standard lab output table\n" + 
                 "Enter '3' for the external additions table\n" + 
-                "Enter '4' for the internal additions table\n"
+                "Enter '4' for the internal additions table\n" +
+                "Enter '5' for Jenn's PNA project\n" +
+                "Enter '6' for sacrifice timing table"
             );
             
             var $tableToCopy;
@@ -383,6 +395,12 @@ my_widget_script =
                     break;
                 case '4': 
                     $tableToCopy = $("#internalAdditionsTable");       
+                    break;
+                case '5':
+                    $tableToCopy = $("#JennPNA");
+                    break;  
+                case '6':
+                    $tableToCopy = $("#sacTimeTable");
                     break;     
                 default:
                     $tableToCopy = $("#labOutTable");
@@ -466,6 +484,9 @@ my_widget_script =
 
         $("#Saved_pit").on("change", function () {
             my_widget_script.calcSavedPit();
+        });
+        $("#Saved_blood").on("change", function () {
+            my_widget_script.calcSavedBlood();
         });
 
         $(".timeCalc").on("input", function () {
@@ -669,6 +690,7 @@ my_widget_script =
 
         if ($("#projectType").val() === "PNA"){
             $("#pnaTreatment").show();
+            $("#ALPSTreatment").hide();
             $("#otherTreatment").hide();
             var pnaTreatment = $("#pnaTreatment").val();
             
@@ -677,7 +699,7 @@ my_widget_script =
                 pnaTreatment === "CON_main" ||
                 pnaTreatment === "VEH"
             ) {
-                genTreatment = "Control";
+                genTreatment = "control";
                 treatment = pnaTreatment;
             } else if(pnaTreatment === "DHT") {
                 genTreatment = "PNA";
@@ -686,8 +708,27 @@ my_widget_script =
                 genTreatment = "NA";
                 treatment = "NA";
             }
+        } else if ($("#projectType").val() === "ALPS"){
+            $("#pnaTreatment").hide();
+            $("#ALPSTreatment").show();
+            $("#otherTreatment").hide();
+            var ALPSTreatment = $("#ALPSTreatment").val();
+            
+            if (
+                ALPSTreatment === "CON"
+            ) {
+                genTreatment = "control";
+                treatment = ALPSTreatment;
+            } else if(ALPSTreatment === "ALPS") {
+                genTreatment = "stress";
+                treatment = ALPSTreatment;
+            } else {
+                genTreatment = "NA";
+                treatment = "NA";
+            }
         } else if ($("#projectType").val() === "other"){
             $("#otherTreatment").show();
+            $("#ALPSTreatment").hide();
             $("#pnaTreatment").hide();
             var otherTreatment = $("#otherTreatment").val();
             if(!otherTreatment){
@@ -698,6 +739,7 @@ my_widget_script =
             genTreatment = "NA"
         } else {
             $("#pnaTreatment").hide();
+            $("#ALPSTreatment").hide();
             $("#otherTreatment").hide()
             genTreatment = "NA";
             treatment = "NA";
@@ -749,6 +791,7 @@ my_widget_script =
         } else {
             $(".reprotract_mg_per_g_calc").text("NA");
         }
+        $(".reproTractMass_g_calc").text($("#reproTractMass").val()/1000);
     },
 
     getPND: function (dateInputVal, DOBisDay) {
@@ -780,6 +823,13 @@ my_widget_script =
         // console.log(AgeInDays);
 
         $(".Age_in_days_calc").text(AgeInDays);
+        if(AgeInDays>=50){
+            $(".AgeGroup_calc").text("adult");
+        }else if(AgeInDays>=18 && AgeInDays <=21){
+            $(".AgeGroup_calc").text("3wk");
+        }else{
+            $(".AgeGroup_calc").text("");
+        }
     },
 
     calcSavedPit: function () {
@@ -789,6 +839,14 @@ my_widget_script =
             var Saved_pit = "N";
         }
         $(".Saved_pit_calc").text(Saved_pit);
+    },
+    calcSavedBlood: function () {
+        if ($("#Saved_blood").is(":checked")) {
+            var Saved_blood = "Y";
+        } else {
+            var Saved_blood = "N";
+        }
+        $(".Saved_blood_calc").text(Saved_blood);
     },
 
     calcHoursPostLightsOn: function () {
