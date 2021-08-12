@@ -5,47 +5,25 @@ my_widget_script =
     startTime: "",
 
     init: function (mode, json_data) {
-        //uncomment to inspect and view code while developing
-        // debugger;
-
-        //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
-
-        //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
-
-        //resize the content box when the window size changes
         window.onresize = this.resize;
-
-        //Define behavior when buttons are clicked or checkboxes/selctions change
         this.addEventListeners();
-
-        // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
         if(parsedJson.sampleNums){
             $("#numSamples").val(parsedJson.sampleNums.length);
         }
 
-        // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
-
-        // Set up the form based on previously entered form input
         this.setUpInitialState();
-
-        //adjust form design and buttons based on mode
         this.adjustForMode(mode);
     },
     
     to_json: function () {
-        //Acquire input data from the form using the parent_class.to_json() function
         var widgetJsonString = this.parent_class.to_json();
-
-        //Get information about any dynamic content that may have been created
         var dynamicContent = this.getDynamicContent();
-
-        // Add widgetData and any additional dynamic content to an output object
-        // Will be accessed within the init and from_json methods
+        
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
             mouseNums: dynamicContent.mouseNums,
@@ -55,7 +33,6 @@ my_widget_script =
         //uncomment to check stringified output
         //console.log("to JSON", JSON.stringify(output));
 
-        // return stringified output
         return JSON.stringify(output);
     },
 
@@ -86,19 +63,19 @@ my_widget_script =
     },
 
     is_valid: function (b_suppress_message) {
-        var fail = false; //begin with a fail variable that is false
-        var fail_log = ''; //begin with an empty fail log
-        var name; //create a name variable
+        var fail = false; 
+        var fail_log = '';
+        var name; 
 
         //search the_form for all elements that are of type select, textarea, or input
         $('#the_form').find('select, textarea, input').each(function () {
-            if (!$(this).prop('required')) { //if this element does not have a required attribute
-                //don't change anything (fail remains false)
-            } else { //if there is a required attribute
-                if (!$(this).val()) { //if there is not a value for this input
-                    fail = true; //change fail to true
-                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
-                    fail_log += name + " is required \n"; //add to the fail log that this name is required
+            if (!$(this).prop('required')) { 
+                //don't change anything 
+            } else { 
+                if (!$(this).val()) { 
+                    fail = true;
+                    name = $(this).attr('id');
+                    fail_log += name + " is required \n";
                 }
 
             }
@@ -126,12 +103,12 @@ my_widget_script =
             }
         });
 
-        if (fail) { //if fail is true (meaning a required element didn't have a value)
-            return alert(fail_log); //return the fail log as an alert
+        if (fail) { 
+            return alert(fail_log);
         } else {
             var noErrors = [];
             return noErrors;
-        } //otherwise, return empty array
+        }
     },
 
     is_edited: function () {
@@ -141,7 +118,6 @@ my_widget_script =
 
     reset_edited: function () {
         //typically called have a save
-        //TO DO write code specific to your form
         return this.parent_class.reset_edited();
     },
 
@@ -195,14 +171,12 @@ my_widget_script =
     },
 
     addEventListeners: function () {
-        //Show/hide the table
-        $(".toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
+        $(".toggleTable").on("click", function () {
             var tableID = $(this).data("table");
             var $table = $("#"+tableID);
             my_widget_script.toggleTableFuncs($table);
         });
 
-        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
         $('.toCSV').on("click", function () {
             var tableID = $(this).data("table");
             var dateToday = luxon.DateTime.now().toISODate();
@@ -212,8 +186,7 @@ my_widget_script =
             my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
         });
 
-        //When the copy button is clicked, run the copyTable function
-        $(".copyData").on("click", function () {
+       $(".copyData").on("click", function () {
             var tableID = $(this).data("table");
             var tableSearch = my_widget_script.tableSearch(tableID);
             var $copyHead = $(".copyHead"+tableSearch);
@@ -236,7 +209,6 @@ my_widget_script =
     },
 
     isTimeSupported: function () {
-        // Check if browser has support for input type=time
         var input = document.createElement('input');
         input.setAttribute('type', 'time');
         input.setAttribute("name", "testTime");
@@ -306,12 +278,10 @@ my_widget_script =
 
     addRequiredFieldIndicators: function () {
         $('.needForTableLab').each(function () { //find element with class "needForFormLab"
-            //alert($(this).val());
             $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
         });
 
         $('.requiredLab').each(function () { //find element with class "requiredLab"
-            //alert($(this).val());
             $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
         });
     },
@@ -328,7 +298,6 @@ my_widget_script =
             my_widget_script.checkTimeFormat($(this));
         });
         
-        //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
         $('textarea.autoAdjust').each(function () {
@@ -463,10 +432,7 @@ my_widget_script =
         //resize the container
         my_widget_script.parent_class.resize_container();
     },
-    // ********************** END CUSTOM INIT METHODS **********************
-
-
-    // ********************** START CUSTOM TO_JSON METHODS **********************
+    
     getDynamicContent: function () {
         var dynamicContent = {
             mouseNums: my_widget_script.mouseNums,
@@ -474,8 +440,7 @@ my_widget_script =
         };
         return dynamicContent;
     },
-    // ********************** END CUSTOM TO_JSON METHODS **********************
-
+    
     //source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      data_valid_form: function () {
         var valid = true; 
@@ -645,7 +610,7 @@ my_widget_script =
                                         name: "treatment"+mouseNum,
                                         "class": "treatment fullWidth watch",
                                         "data-watch": "treatment"
-                                    }).append('<option value="control">Control</option><option value="stress">Stress</option><option value="CON">Control</option><option value="ALPS">Stress</option>')
+                                    }).append('<option value="CON">Control</option><option value="ALPS">Stress</option>')
                                 )
                             )
                         ).append(
@@ -1440,25 +1405,18 @@ my_widget_script =
         var csvFile;
         var downloadLink;
 
-        // CSV file
         csvFile = new Blob([csv], { type: "text/csv" });
 
-        // Download link
         downloadLink = document.createElement("a");
 
-        // File name
         downloadLink.download = filename;
 
-        // Create a link to the file
         downloadLink.href = window.URL.createObjectURL(csvFile);
 
-        // Hide download link
         downloadLink.style.display = "none";
 
-        // Add the link to DOM
         document.body.appendChild(downloadLink);
 
-        // Click download link
         downloadLink.click();
     },
     
@@ -1478,12 +1436,10 @@ my_widget_script =
             csv.push(row.join(","));
         }
 
-        // Download CSV file
         this.downloadCSV(csv.join("\n"), filename);
     },
 
     copyTable: function ($table, copyHead, $divForCopy) {
-        //create a temporary text area
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
         var addLine = "";
         if (copyHead) {
@@ -1497,7 +1453,7 @@ my_widget_script =
             addLine = "\n";
         }
 
-        $table.find("tbody").children("tr").each(function () { //add each child of the row
+        $table.find("tbody").children("tr").each(function () {
             $temp.text($temp.text() + addLine);
             var addTab = "";
             $(this).find("td").each(function () {
@@ -1512,14 +1468,14 @@ my_widget_script =
             });
         });
 
-        $temp.appendTo($divForCopy).select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
-        $temp.remove(); //remove temp
+        $temp.appendTo($divForCopy).select();
+        document.execCommand("copy");
+        $temp.remove();
     },
 
     toggleTableFuncs: function ($table) {
         my_widget_script.resize();
-        my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+        my_widget_script.data_valid_form();
         $table.toggle();
         my_widget_script.parent_class.resize_container();
     },
@@ -1546,10 +1502,10 @@ my_widget_script =
             copyHead = false;
         }
 
-        if (data_valid) { //if data is valid
-            $tableDiv.show(); //show the table
-            my_widget_script.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
+        if (data_valid) {
+            $tableDiv.show(); 
+            my_widget_script.resize();
+            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy);
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
