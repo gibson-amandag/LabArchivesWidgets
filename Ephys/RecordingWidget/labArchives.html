@@ -43,7 +43,7 @@
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container">
+<div class="container infoContainer">
     <p>Elements that are required to save this page are marked with a red asterisk <span
             style="color:red">*</span><br />
         Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
@@ -171,7 +171,7 @@
         <div class="col-12 col-md-6 container">
             <div class="row">
                 <div class="col-6 col-md-3 text-right"><label for="eventName">Event: </label></div>
-                <div class="col"><textarea id="eventName" name="eventname" rows="1" class="fullWidth"></textarea></div>
+                <div class="col"><textarea id="eventName" name="eventname" rows="1" class="fullWidth autoAdjust"></textarea></div>
             </div>
         </div>
         <div class="col-12 col-md-6 container">
@@ -240,14 +240,6 @@
 </div>
 
 <div class="container mt-2">
-    <div class="row mt-2">
-        <h3 class="col-12">Patchmaster Notebook:</h3>
-        <p class="col-12">You can paste the contents of the Patchmaster Notebook here if you desire</p>
-        <div class="col-12"><textarea name="recordingcomments" id="recordingComments" rows="7" class="fullWidth"></textarea></div>
-    </div>
-</div>
-
-<div class="container mt-2">
     <div class="row">
         <div class="col-12">
             <h3>Other Comments:</h3>
@@ -255,5 +247,13 @@
         <div class="col-12">
             <textarea name="finalcomments" id="finalComments" rows="1" class="fullWidth autoAdjust"></textarea>
         </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row mt-2">
+        <h3 class="col-12">Patchmaster Notebook:</h3>
+        <p class="col-12">You can paste the contents of the Patchmaster Notebook here if you desire</p>
+        <div class="col-12"><textarea name="recordingcomments" id="recordingComments" rows="1" class="fullWidth autoAdjust"></textarea></div>
     </div>
 </div>

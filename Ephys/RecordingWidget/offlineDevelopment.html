@@ -287,6 +287,7 @@ $(document).ready(function () {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
+            $(".infoContainer").hide();
         }
     },
 
@@ -811,7 +812,8 @@ $(document).ready(function () {
                         "<option value=''>[Select]</option>",
                         "<option value='Stabilization'>Stabilization</option>",
                         "<option value='Spontaneous'>Spontaneous</option>",
-                        "<option value='Addition'>Addition</option>"
+                        "<option value='Addition'>Addition</option>",
+                        "<option value='Washout'>Washout</option>"
                     ).on("change", function () {
                         my_widget_script.calcSpontLength();
                     })
@@ -883,7 +885,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("edit", function() {return form_script.test_data()});
+      form_script.init("view", function() {return form_script.test_data()});
 
 
     }
@@ -947,7 +949,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container">
+<div class="container infoContainer">
     <p>Elements that are required to save this page are marked with a red asterisk <span
             style="color:red">*</span><br />
         Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
@@ -1075,7 +1077,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="col-12 col-md-6 container">
             <div class="row">
                 <div class="col-6 col-md-3 text-right"><label for="eventName">Event: </label></div>
-                <div class="col"><textarea id="eventName" name="eventname" rows="1" class="fullWidth"></textarea></div>
+                <div class="col"><textarea id="eventName" name="eventname" rows="1" class="fullWidth autoAdjust"></textarea></div>
             </div>
         </div>
         <div class="col-12 col-md-6 container">
@@ -1144,14 +1146,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </div>
 
 <div class="container mt-2">
-    <div class="row mt-2">
-        <h3 class="col-12">Patchmaster Notebook:</h3>
-        <p class="col-12">You can paste the contents of the Patchmaster Notebook here if you desire</p>
-        <div class="col-12"><textarea name="recordingcomments" id="recordingComments" rows="7" class="fullWidth"></textarea></div>
-    </div>
-</div>
-
-<div class="container mt-2">
     <div class="row">
         <div class="col-12">
             <h3>Other Comments:</h3>
@@ -1159,6 +1153,14 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="col-12">
             <textarea name="finalcomments" id="finalComments" rows="1" class="fullWidth autoAdjust"></textarea>
         </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row mt-2">
+        <h3 class="col-12">Patchmaster Notebook:</h3>
+        <p class="col-12">You can paste the contents of the Patchmaster Notebook here if you desire</p>
+        <div class="col-12"><textarea name="recordingcomments" id="recordingComments" rows="1" class="fullWidth autoAdjust"></textarea></div>
     </div>
 </div>
 
