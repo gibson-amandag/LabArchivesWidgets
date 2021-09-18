@@ -447,17 +447,29 @@ my_widget_script =
         //When the copy button is clicked, run the copyTable function
         $(".copyData").on("click", function () {
             var tableID = $(this).data("table");
+            var copyType = $(this).data("copy");
             var tableSearch = my_widget_script.tableSearch(tableID);
-            var $copyHead = $(".copyHead"+tableSearch);
+            // var $copyHead = $(".copyHead"+tableSearch);
             var $tableToCopy = $("#"+tableID);
             var $tableDiv = $tableToCopy.parent();
             var $errorMsg = $("#errorMsg");
-            var $divForCopy = $("#forCopy");
-            var $transpose = $(".transpose"+tableSearch);
-            var $start = $("#startCopy");
-            var $end = $("#endCopy");
+
+            var startDay, endDay, copyHead, transpose;
+
+            if(copyType === "simple"){
+                copyHead = false;
+                transpose = false;
+                startDay = 1;
+                var numAddedCols = $tableToCopy.find("thead").find(".added").length
+                endDay = numAddedCols;
+            } else {
+                copyHead = confirm("Copy table head? - Cancel = 'no'");
+                transpose = confirm("Transpose table? - Cancel = 'no'");
+                startDay = parseInt(prompt("Enter start day (#):"));
+                endDay = parseInt(prompt("Enter end day (#):"));
+            }
             
-            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose, $start, $end)
+            my_widget_script.copyDataFuncs(copyHead, $tableToCopy, $tableDiv, $errorMsg, transpose, startDay, endDay)
         });
 
         my_widget_script.makeTableCols();
@@ -945,6 +957,29 @@ my_widget_script =
                         )
                     ).append(
                         $("<div/>", {
+                            "class": row
+                        }).append(
+                            $("<div/>", {
+                                "class": col
+                            }).append("<h5>Cycle Num:</h5>")
+                        ).append(
+                            $("<div/>", {
+                                "class": "col"
+                            }).append(
+                                $("<input/>", {
+                                    type: "text", 
+                                    "data-mouse": mouseNum,
+                                    id: "cycleNum"+mouseNum,
+                                    name: "cyclenum"+mouseNum,
+                                    "class": "cycleNum fullWidth watch",
+                                    "data-watch": "cycleNum"
+                                }).on("change", function () {
+                                    my_widget_script.mice[mouseNum]["cycleNum"] = $(this).val();
+                                })
+                            )
+                        )
+                    ).append(
+                        $("<div/>", {
                             "class": row + " hideView"
                         }).append(
                             $("<div/>", {
@@ -1066,6 +1101,18 @@ my_widget_script =
                     "data-mouse": mouseNum,
                     "class": "mouse"
                 }).append("Mouse "+mouseNum)
+            ).append(
+                $("<td/>", {
+                    "data-calc": "cycleNum",
+                    "data-mouse": mouseNum,
+                    "class": "cycleNum"
+                })
+            ).append(
+                $("<td/>", {
+                    "data-calc": "startDate",
+                    "data-mouse": mouseNum,
+                    "class": "startDate"
+                })
             )
         );
 
@@ -1296,8 +1343,8 @@ my_widget_script =
         this.downloadCSV(csv.join("\n"), filename);
     },
 
-    copyTable: function ($table, copyHead, $divForCopy, transpose, start, end) {
-        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+    copyTable: function ($table, copyHead, transpose, start, end) {
+        // console.log(start, end, copyHead, transpose);
         var rows = [];
         var rowNum = 0;
         if (copyHead) {
@@ -1305,7 +1352,7 @@ my_widget_script =
                 if(transpose){rowNum = 0;}
                 $(this).find("td, th").each(function () {
                     var day = this.dataset.day;
-                    if($(this).hasClass("mouse") || (day >= start && day <= end)){
+                    if($(this).is(".mouse, .cycleNum, .startDate") || (day >= start && day <= end)){
                         if(rows[rowNum]===undefined){rows[rowNum] = []}
                         rows[rowNum].push($(this).text());
                         if(transpose){rowNum++;}
@@ -1319,7 +1366,7 @@ my_widget_script =
             if(transpose){rowNum = 0;} else {}
             $(this).find("td, th").each(function () {
                 var day = this.dataset.day;
-                if($(this).hasClass("mouse") || (day >= start && day <= end)){
+                if($(this).is(".mouse, .cycleNum, .startDate") || (day >= start && day <= end)){
                     if(rows[rowNum]===undefined){rows[rowNum] = []}
                     rows[rowNum].push($(this).text());
                     if(transpose){rowNum++;}
@@ -1332,10 +1379,9 @@ my_widget_script =
             rows[i] = rows[i].join("\t");
         }
 
-        $temp.append(rows.join("\n"));
-        $temp.appendTo($divForCopy).select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
-        $temp.remove(); //remove temp
+        // console.log(rows);
+
+        navigator.clipboard.writeText(rows.join("\n"));
     },
 
     toggleTableFuncs: function ($table) {
@@ -1356,40 +1402,18 @@ my_widget_script =
         }
     },
 
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose, $start, $end){
+    copyDataFuncs: function (copyHead, $tableToCopy, $tableDiv, $errorMsg, transpose, start, end){
         var data_valid = my_widget_script.data_valid_form();
-        var copyHead, transpose;
-
-        //only copy the heading when the input box is checked
-        if ($copyHead.is(":checked")) {
-            copyHead = true;
-        } else {
-            copyHead = false;
-        }
-
-        if ($transpose.is(":checked")) {
-            transpose = true;
-        } else {
-            transpose = false;
-        }
-
-        var start = $start.val();
-        if(start){
-            start = parseInt(start);
-        } else {start = 1}
-
-        var end = $end.val();
-        if(end){
-            end = parseInt(end);
-        }else {end = 21}
 
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             my_widget_script.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy, transpose, start, end); //copy table
+            my_widget_script.copyTable($tableToCopy, copyHead, transpose, start, end); //copy table
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            my_widget_script.resize(); //resize
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+            my_widget_script.resize(); //resize
         }
     },
 
