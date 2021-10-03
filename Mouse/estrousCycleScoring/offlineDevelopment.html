@@ -70,7 +70,7 @@ $(document).ready(function () {
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
 
-        //Uncomment to print parsedJson to consol
+        //Uncomment to print parsedJson to console
         // console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
@@ -145,13 +145,13 @@ $(document).ready(function () {
             widgetData: testData,
             mouseNums: [1, 2, 3, 4, 5, 6, 7],
             mice: {
-                1: {id: "CRH-01", startDate: "2021-04-01", endDate: "2021-04-17"},
-                2: {id: "CRH-02", startDate: "2021-04-01", endDate: "2021-04-17"},
-                3: {id: "CRH-03", startDate: "2021-04-01", endDate: "2021-04-17"},
-                4: {id: "CRH-04", startDate: "2021-04-01", endDate: "2021-04-17"},
-                5: {id: "CRH-05", startDate: "2021-04-01", endDate: "2021-04-17"},
-                6: {id: "CRH-06", startDate: "2021-04-01", endDate: "2021-04-17"},
-                7: {id: "CRH-07", startDate: "2021-04-01", endDate: "2021-04-17"},
+                1: {id: "CRH-01", cycleNum: "1", startDate: "2021-04-01", endDate: "2021-04-17"},
+                2: {id: "CRH-02", cycleNum: "2", startDate: "2021-04-01", endDate: "2021-04-17"},
+                3: {id: "CRH-03", cycleNum: "3", startDate: "2021-04-01", endDate: "2021-04-17"},
+                4: {id: "CRH-04", cycleNum: "4", startDate: "2021-04-01", endDate: "2021-04-17"},
+                5: {id: "CRH-05", cycleNum: "5", startDate: "2021-04-01", endDate: "2021-04-17"},
+                6: {id: "CRH-06", cycleNum: "6", startDate: "2021-04-01", endDate: "2021-04-17"},
+                7: {id: "CRH-07", cycleNum: "7", startDate: "2021-04-01", endDate: "2021-04-17"},
             }
         };
 
@@ -507,17 +507,36 @@ $(document).ready(function () {
         //When the copy button is clicked, run the copyTable function
         $(".copyData").on("click", function () {
             var tableID = $(this).data("table");
+            var copyType = $(this).data("copy");
             var tableSearch = my_widget_script.tableSearch(tableID);
-            var $copyHead = $(".copyHead"+tableSearch);
+            // var $copyHead = $(".copyHead"+tableSearch);
             var $tableToCopy = $("#"+tableID);
             var $tableDiv = $tableToCopy.parent();
             var $errorMsg = $("#errorMsg");
             var $divForCopy = $("#forCopy");
-            var $transpose = $(".transpose"+tableSearch);
-            var $start = $("#startCopy");
-            var $end = $("#endCopy");
+
+            var startDay, endDay, copyHead, transpose;
+
+            if(copyType === "simple"){
+                copyHead = false;
+                transpose = false;
+                startDay = 1;
+                var numAddedCols = $tableToCopy.find("thead").find(".added").length
+                endDay = numAddedCols;
+            } else {
+                startDay = parseInt(prompt("Enter start day (#):"));
+                endDay = parseInt(prompt("Enter end day (#):"));
+
+                copyHead = $(this).data("head");
+                transpose = $(this).data("transpose");
+
+                // startDay = 1;
+                // endDay = 4;
+                
+                console.log(copyHead, transpose, startDay, endDay);
+            }
             
-            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose, $start, $end)
+            my_widget_script.copyDataFuncs(copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, transpose, startDay, endDay)
         });
 
         my_widget_script.makeTableCols();
@@ -1005,6 +1024,29 @@ $(document).ready(function () {
                         )
                     ).append(
                         $("<div/>", {
+                            "class": row
+                        }).append(
+                            $("<div/>", {
+                                "class": col
+                            }).append("<h5>Cycle ID #:</h5>")
+                        ).append(
+                            $("<div/>", {
+                                "class": "col"
+                            }).append(
+                                $("<input/>", {
+                                    type: "number", 
+                                    "data-mouse": mouseNum,
+                                    id: "cycleNum"+mouseNum,
+                                    name: "cyclenum"+mouseNum,
+                                    "class": "cycleNum fullWidth watch",
+                                    "data-watch": "cycleNum"
+                                }).on("change", function () {
+                                    my_widget_script.mice[mouseNum]["cycleNum"] = $(this).val();
+                                })
+                            )
+                        )
+                    ).append(
+                        $("<div/>", {
                             "class": row + " hideView"
                         }).append(
                             $("<div/>", {
@@ -1126,6 +1168,18 @@ $(document).ready(function () {
                     "data-mouse": mouseNum,
                     "class": "mouse"
                 }).append("Mouse "+mouseNum)
+            ).append(
+                $("<td/>", {
+                    "data-calc": "cycleNum",
+                    "data-mouse": mouseNum,
+                    "class": "cycleNum"
+                })
+            ).append(
+                $("<td/>", {
+                    "data-calc": "startDate",
+                    "data-mouse": mouseNum,
+                    "class": "startDate"
+                })
             )
         );
 
@@ -1250,7 +1304,7 @@ $(document).ready(function () {
                     $("<th/>", {
                         "class": "added",
                         "data-day": day
-                    }).append("Day " + day)
+                    }).append("Day" + day)
                 )
             }
         } else if(my_widget_script.maxNumDays > newMax){
@@ -1365,7 +1419,7 @@ $(document).ready(function () {
                 if(transpose){rowNum = 0;}
                 $(this).find("td, th").each(function () {
                     var day = this.dataset.day;
-                    if($(this).hasClass("mouse") || (day >= start && day <= end)){
+                    if($(this).is(".mouse, .cycleNum, .startDate") || (day >= start && day <= end)){
                         if(rows[rowNum]===undefined){rows[rowNum] = []}
                         rows[rowNum].push($(this).text());
                         if(transpose){rowNum++;}
@@ -1379,7 +1433,7 @@ $(document).ready(function () {
             if(transpose){rowNum = 0;} else {}
             $(this).find("td, th").each(function () {
                 var day = this.dataset.day;
-                if($(this).hasClass("mouse") || (day >= start && day <= end)){
+                if($(this).is(".mouse, .cycleNum, .startDate") || (day >= start && day <= end)){
                     if(rows[rowNum]===undefined){rows[rowNum] = []}
                     rows[rowNum].push($(this).text());
                     if(transpose){rowNum++;}
@@ -1393,9 +1447,13 @@ $(document).ready(function () {
         }
 
         $temp.append(rows.join("\n"));
-        $temp.appendTo($divForCopy).select(); //add temp to tableDiv and select
+        $temp.appendTo($divForCopy)
+        console.log($divForCopy.find("textarea").text());
+        $divForCopy.find("textarea").select(); //add temp to tableDiv and select
         document.execCommand("copy"); //copy the "selected" text
+        // console.log();
         $temp.remove(); //remove temp
+        // navigator.clipboard.writeText(rows.join("\n"));
     },
 
     toggleTableFuncs: function ($table) {
@@ -1416,40 +1474,18 @@ $(document).ready(function () {
         }
     },
 
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose, $start, $end){
+    copyDataFuncs: function (copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, transpose, start, end){
         var data_valid = my_widget_script.data_valid_form();
-        var copyHead, transpose;
-
-        //only copy the heading when the input box is checked
-        if ($copyHead.is(":checked")) {
-            copyHead = true;
-        } else {
-            copyHead = false;
-        }
-
-        if ($transpose.is(":checked")) {
-            transpose = true;
-        } else {
-            transpose = false;
-        }
-
-        var start = $start.val();
-        if(start){
-            start = parseInt(start);
-        } else {start = 1}
-
-        var end = $end.val();
-        if(end){
-            end = parseInt(end);
-        }else {end = 21}
 
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             my_widget_script.resize(); //resize
             my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy, transpose, start, end); //copy table
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copy attempted</span>") //update error message
+            my_widget_script.resize(); //resize
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+            my_widget_script.resize(); //resize
         }
     },
 
@@ -1461,6 +1497,10 @@ $(document).ready(function () {
             var id = my_widget_script.mice[mouseNum].id;
             if(!id){
                 id = "Mouse " + mouseNum;
+            }
+            var cycleNum = my_widget_script.mice[mouseNum].cycleNum;
+            if(cycleNum){
+                id = id + "-" + cycleNum
             }
             var rowArray = [];
             var day = 1;
@@ -1647,27 +1687,30 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 class="fullWidth toCSV" data-table="mouseTable" /></div>
     </div>
     <div class="row">
-        <h4 class="col">Copy Options:</h4>
+        <h4 class="col">Copy options:</h4>
     </div>
     <div class="row mt-2">
-        <div class="col-12 col-md-6 col-lg-3">
-            Copy Table Head? <input id="copyHead2" name="copyhead2" type="checkbox" class="copyHead" data-table="mouseTable"/>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3">
-            Transpose Table? <input id="transpose2" name="transpose2" type="checkbox" class="transpose" data-table="mouseTable"/>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3 row align-items-center">
-            <div class="col">Start Day:</div>
-            <div class="col"><input type="number" name="startcopy" class="fullWidth" id="startCopy" value="1" step="1"></div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3 row align-items-center">
-            <div class="col">End Day:</div>
-            <div class="col"><input type="number" name="endcopy" class="fullWidth" id="endCopy" value="21" step="1"></div>
-        </div>
-    </div>
-    <div class="row mt-2">
+        <div class="col-12 col-sm-6">Copy all days, mice as row, without head</div>
         <div class="col">
-            <input id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable"/>
+            <input type="button" id="copyDataButton" name="copydatabutton" value="Copy all" class="fullWidth copyData" data-table="mouseTable" data-copy="simple">
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col">These buttons will allow you to select the days you want to copy. If it doesn't work the first time, try it again.
+            It can be a bit glitchy with user entry</div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton2" name="copydatabutton2" type="button" value="Mice as rows, no head" class="fullWidth copyData" data-table="mouseTable" data-copy="options" data-head="false" data-transpose="false"/>
+        </div>
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton3" name="copydatabutton3" type="button" value="Mice as cols, no head" class="fullWidth copyData" data-table="mouseTable" data-copy="options" data-head="false" data-transpose="true"/>
+        </div>
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton4" name="copydatabutton4" type="button" value="Mice as rows, heading" class="fullWidth copyData" data-table="mouseTable" data-copy="options" data-head="true" data-transpose="false"/>
+        </div>
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton5" name="copydatabutton5" type="button" value="Mice as cols, heading" class="fullWidth copyData" data-table="mouseTable" data-copy="options" data-head="true" data-transpose="true"/>
         </div>
     </div>
 </div>
@@ -1683,7 +1726,9 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <table class="table" id="mouseTable">
             <thead>
                 <tr>
-                    <th class="mouse">Mouse</th>
+                    <th class="mouse">mouseID</th>
+                    <th class="cycleNum">cycleID</th>
+                    <th class="startDate">cycleStartDate</th>
                 </tr>
             </thead>
             <tbody>

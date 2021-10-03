@@ -453,6 +453,7 @@ my_widget_script =
             var $tableToCopy = $("#"+tableID);
             var $tableDiv = $tableToCopy.parent();
             var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
 
             var startDay, endDay, copyHead, transpose;
 
@@ -463,13 +464,19 @@ my_widget_script =
                 var numAddedCols = $tableToCopy.find("thead").find(".added").length
                 endDay = numAddedCols;
             } else {
-                copyHead = confirm("Copy table head? - Cancel = 'no'");
-                transpose = confirm("Transpose table? - Cancel = 'no'");
                 startDay = parseInt(prompt("Enter start day (#):"));
                 endDay = parseInt(prompt("Enter end day (#):"));
+
+                copyHead = $(this).data("head");
+                transpose = $(this).data("transpose");
+
+                // startDay = 1;
+                // endDay = 4;
+                
+                console.log(copyHead, transpose, startDay, endDay);
             }
             
-            my_widget_script.copyDataFuncs(copyHead, $tableToCopy, $tableDiv, $errorMsg, transpose, startDay, endDay)
+            my_widget_script.copyDataFuncs(copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, transpose, startDay, endDay)
         });
 
         my_widget_script.makeTableCols();
@@ -961,13 +968,13 @@ my_widget_script =
                         }).append(
                             $("<div/>", {
                                 "class": col
-                            }).append("<h5>Cycle Num:</h5>")
+                            }).append("<h5>Cycle ID #:</h5>")
                         ).append(
                             $("<div/>", {
                                 "class": "col"
                             }).append(
                                 $("<input/>", {
-                                    type: "text", 
+                                    type: "number", 
                                     "data-mouse": mouseNum,
                                     id: "cycleNum"+mouseNum,
                                     name: "cyclenum"+mouseNum,
@@ -1237,7 +1244,7 @@ my_widget_script =
                     $("<th/>", {
                         "class": "added",
                         "data-day": day
-                    }).append("Day " + day)
+                    }).append("Day" + day)
                 )
             }
         } else if(my_widget_script.maxNumDays > newMax){
@@ -1343,8 +1350,8 @@ my_widget_script =
         this.downloadCSV(csv.join("\n"), filename);
     },
 
-    copyTable: function ($table, copyHead, transpose, start, end) {
-        // console.log(start, end, copyHead, transpose);
+    copyTable: function ($table, copyHead, $divForCopy, transpose, start, end) {
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
         var rows = [];
         var rowNum = 0;
         if (copyHead) {
@@ -1379,9 +1386,14 @@ my_widget_script =
             rows[i] = rows[i].join("\t");
         }
 
-        // console.log(rows);
-
-        navigator.clipboard.writeText(rows.join("\n"));
+        $temp.append(rows.join("\n"));
+        $temp.appendTo($divForCopy)
+        console.log($divForCopy.find("textarea").text());
+        $divForCopy.find("textarea").select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        // console.log();
+        $temp.remove(); //remove temp
+        // navigator.clipboard.writeText(rows.join("\n"));
     },
 
     toggleTableFuncs: function ($table) {
@@ -1402,14 +1414,14 @@ my_widget_script =
         }
     },
 
-    copyDataFuncs: function (copyHead, $tableToCopy, $tableDiv, $errorMsg, transpose, start, end){
+    copyDataFuncs: function (copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, transpose, start, end){
         var data_valid = my_widget_script.data_valid_form();
 
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             my_widget_script.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, transpose, start, end); //copy table
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy, transpose, start, end); //copy table
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copy attempted</span>") //update error message
             my_widget_script.resize(); //resize
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
@@ -1425,6 +1437,10 @@ my_widget_script =
             var id = my_widget_script.mice[mouseNum].id;
             if(!id){
                 id = "Mouse " + mouseNum;
+            }
+            var cycleNum = my_widget_script.mice[mouseNum].cycleNum;
+            if(cycleNum){
+                id = id + "-" + cycleNum
             }
             var rowArray = [];
             var day = 1;
