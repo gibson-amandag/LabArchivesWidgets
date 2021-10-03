@@ -108,7 +108,7 @@
             &nbsp;
         </div>
         <div class="col">
-            Remove materials from refrigerator and allow to warm to room temperature for ~ 30 min
+            Remove materials from refridgerator and allow to warm to room temperature for ~ 30 min
         </div>
     </div>
     <div class="row">
@@ -193,23 +193,96 @@
         <div class="col">Pipette <span class="green">475 &micro;L</span> of <span class="lightBlue">Assay Buffer</span> into tube <span class="red">S1</span></div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol3">3. <input type="checkbox" name="step3" id="step3"></div>
-        <div class="col">Vortex <span class="lightBlue">Corticosterone Stock Solution</span> <em>labeled "standard"</em></div>
+        <div class="myLeftCol3">3. <input type="checkbox" name="step5" id="step5"></div>
+        <div class="col">Pipette <span class="green">250 &micro;L</span> of <span class="lightBlue">Assay Buffer</span> into tubes <span class="red">S2</span> to <span class="red">S7</span></div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Sample Preparation:</h3>
+    </div>
+    <div class="row">
+        <div class="col"><em>Dilution factor: 1 to 100</em></div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="myLeftCol3">1. <input type="checkbox" name="step12" id="step12"></div>
+        <div class="col">
+            <span class="blue">Label</span> tubes (<em>0.5 mL microcentrifuge tubes</em>)
+            <br/> Add 1 tube for C2 (cort quality control sample)
+        </div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol3">4. <input type="checkbox" name="step4" id="step4"></div>
+        <div class="myLeftCol3">2. <input type="checkbox" name="step14" id="step14"></div>
+        <div class="col">
+            <span class="blue">Vortex</span> <span class="lightBlue">dissociation reagent</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">3. <input type="checkbox" name="step15" id="step15"></div>
+        <div class="col">
+            Pipette <span class="green">2 &micro;L</span> <span class="lightBlue">dissociation reagent</span> into each tube
+            <br/><span class="orange">Use a P2</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">4. <input type="checkbox" name="step13" id="step13"></div>
+        <div class="col">
+            <span class="blue">Vortex</span> serum samples after thawing, immediately before adding each sample
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">5. <input type="checkbox" name="step16" id="step16"></div>
+        <div class="col">
+            Pipette <span class="green">2 &micro;L</span> of <span class="lightBlue">serum sample</span> into appropriate tube
+            <br/><span class="orange">Use a P2</span>. <span class="blue">Vortex</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">6. <input type="checkbox" name="step17" id="step17"></div>
+        <div class="col">
+            Allow samples to incubate for <span class="blue">5 minutes</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="myLeftCol"><input type="time" name="dissoctime" id="dissocTime" class="watchTime"></div>
+        <div class="col">
+            Incubation complete at <span class="fillTime purple" data-time="00:05">{Enter Start Time}</span>
+            <br/><span class="orange">While you're waiting, return the stock samples to the freezer and finish the standard curve</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col"><em>These steps are necessary to dissociate the corticosterone from the binding protein to which is associates in the blood</em></div>
+    </div>
+</div>
+
+<!-- Add cort standard -->
+<div class="container mt-2">
+    <h4 class="row col">
+        Finish preparing standard curve
+    </h4>
+    <div class="row mt-2">
+        <div class="col">
+            The standard samples seem to degrade a bit with time,
+            so waiting until this stage to prepare them may lead to better results.
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">1. <input type="checkbox" name="step3" id="step3"></div>
+        <div class="col">Vortex <span class="lightBlue">Corticosterone Stock Solution</span> <em>labeled "standard"</em>
+        <br/><em>The instructions say to pre-wash the pipette tip as this solution contains an organic solvent</em></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">2. <input type="checkbox" name="step4" id="step4"></div>
         <div class="col">Pipette <span class="green">25 &micro;L</span> of <span class="lightBlue">Corticosterone Stock Solution</span> into <span class="red">S1</span><br/><span class="blue">Vortex</span></div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol3">5. <input type="checkbox" name="step5" id="step5"></div>
-        <div class="col">Pipette <span class="green">250 &micro;L</span> of <span class="lightBlue">Assay Buffer</span> into tubes <span class="red">S2</span> to <span class="red">S7</span></div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol3">6. <input type="checkbox" name="step6" id="step6"></div>
+        <div class="myLeftCol3">3. <input type="checkbox" name="step6" id="step6"></div>
         <div class="col">Take <span class="green">250 &micro;L</span> from <span class="red">S1</span> and add to <span class="red">S2</span><br/><span class="blue">Vortex</span></div>
     </div>
     <div class="row mt-2">
-       <div class="col">7. Repeat serial dilutions for tubes <span class="red">S3</span> to <span class="red">S7</span>
+       <div class="col">4. Repeat serial dilutions for tubes <span class="red">S3</span> to <span class="red">S7</span>
         <br/><em class="orange">Use a new tip for each standard</em>
     </div>
     </div>
@@ -282,68 +355,25 @@
 </div>
 
 <div class="container mt-2">
-    <div class="row">
-        <h3 class="col">Sample Preparation:</h3>
-    </div>
-    <div class="row">
-        <div class="col"><em>Dilution factor: 1 to 100</em></div>
-    </div>
-
+    <h4 class="row col">Finish sample preparation</h4>
     <div class="row mt-2">
-        <div class="myLeftCol3">1. <input type="checkbox" name="step12" id="step12"></div>
+        <div class="myLeftCol3">1. <input type="checkbox" name="step18" id="step18"></div>
         <div class="col">
-            <span class="blue">Label</span> tubes (<em>0.5 mL microcentrifuge tubes</em>)
-            <br/> Add 1 tube for C1 (cort standard sample)
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol3">2. <input type="checkbox" name="step13" id="step13"></div>
-        <div class="col">
-            <span class="blue">Vortes</span> serum samples after thawing
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol3">3. <input type="checkbox" name="step14" id="step14"></div>
-        <div class="col">
-            <span class="blue">Vortex</span> <span class="lightBlue">dissociation reagent</span>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol3">4. <input type="checkbox" name="step15" id="step15"></div>
-        <div class="col">
-            Pipette <span class="green">2 &micro;L</span> <span class="lightBlue">dissociation reagent</span> into each tube
-            <br/><span class="orange">Use a P2</span>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol3">5. <input type="checkbox" name="step16" id="step16"></div>
-        <div class="col">
-            Pipette <span class="green">2 &micro;L</span> of <span class="lightBlue">serum sample</span> into appropriate tube
-            <br/><span class="orange">Use a P2</span>. <span class="blue">Vortex</span>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol3">6. <input type="checkbox" name="step17" id="step17"></div>
-        <div class="col">
-            Allow samples to incubate for <span class="blue">5 minutes</span>
-        </div>
-    </div>
-    <div class="row">
-        <div class="myLeftCol"><input type="time" name="dissoctime" id="dissocTime" class="watchTime"></div>
-        <div class="col">
-            Incubation complete at <span class="fillTime purple" data-time="00:05">{Enter Start Time}</span>
-            <br/><span class="orange">While you're waiting, return the stock samples to the freezer</span>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol3">7. <input type="checkbox" name="step18" id="step18"></div>
-        <div class="col">
-            Pipette <span class="green">196 &micro;L</span> of <span class="lightBlue">assay buffer</span> to each tube.
+            Pipette <span class="green">196 &micro;L</span> of <span class="lightBlue">assay buffer</span> to each tube using a <span class="orange">repeat pipettor</span>.
             <br/><span class="blue">Vortex</span>
+            <ul>
+                <li>Syringes are labeled for solution they should be used with</li>
+                <li>Add syringe to pipettor</li>
+                <li>Insert into solution. Press button on back to uptake solution</li>
+                <li>Change volume by pressing menu button then &uarr; &darr; arrows</li>
+                <li>Eject first aliquot into solution container</li>
+                <li>Press button on back once to eject approriate aliquot into each well</li>
+                <li>Pay attention to when the syringe needs to be refilled if using a full plate</li>
+                <li>When finished, press down arrow. Screen should say E - pressing button will now eject entire contents</li>
+                <li>Eject remaining solution back into container</li>
+                <li>Rinse syringe with H<sub>2</sub>O. Return syringe to bag</li>
+            </ul>
         </div>
-    </div>
-    <div class="row mt-2">
-        <div class="col"><em>These steps are necessary to dissociate the corticosterone from the binding protein to which is associates in the blood</em></div>
     </div>
 </div>
 
@@ -365,41 +395,32 @@
         </div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol3">3. <input type="checkbox" name="step21" id="step21"></div>
+        <div class="myLeftCol3">3. <input type="checkbox" name="step22" id="step22"></div>
         <div class="col">
-            Pipette <span class="green">75 &micro;L</span> of <span class="lightBlue">assay buffer</span> into <span class="red">non-specific binding (NSB) well</span>
-            <br/>Will be used to determine non-specific binding of corticosterone conjugate to IgG antibody
+            Pipette <span class="green">50 &micro;L</span> of <span class="lightBlue">assay buffer</span> into <span class="red">buffer control wells</span>
+            <br/>These are just after the standards (A3 + B3)
+            <br/>Will serve as a measure of maximal binding without any displacement of conjugate by sample
         </div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol3">4. <input type="checkbox" name="step22" id="step22"></div>
+        <div class="myLeftCol3">4. <input type="checkbox" name="step21" id="step21"></div>
         <div class="col">
-            Pipette <span class="green">50 &micro;L</span> of <span class="lightBlue">assay buffer</span> into <span class="red">buffer control well</span>
-            <br/>Will serve as a measure of maximal binding without any displacement of conjugate by sample
+            Pipette <span class="green">75 &micro;L</span> of <span class="lightBlue">assay buffer</span> into <span class="red">non-specific binding (NSB) wells</span>
+            <br/>These are the first two wells (A1 + B1)
+            <br/>Will be used to determine non-specific binding of corticosterone conjugate to IgG antibody
         </div>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol3">5. <input type="checkbox" name="step23" id="step23"></div>
         <div class="col">
             Add <span class="green">25 &micro;L</span> of the <span class="lightBlue">DetectX Corticosterone Conjugate</span> to each well using a <span class="orange">repeat pipettor</span>
-            <ul>
-                <li>Syringes are labeled for solution they should be used with</li>
-                <li>Add syringe to pipettor</li>
-                <li>Insert into solution. Press button on back to uptake solution</li>
-                <li>Change volume by pressing menu button then &uarr; &darr; arrows</li>
-                <li>Eject first aliquot into solution container</li>
-                <li>Press button on back once to eject approriate aliquot into each well</li>
-                <li>Pay attention to when the syringe needs to be refilled if using a full plate</li>
-                <li>When finished, press down arrow. Screen should say E - pressing button will now eject entire contents</li>
-                <li>Eject remaining solution back into container</li>
-                <li>Rinse syringe with H<sub>2</sub>O. Return syringe to bag</li>
-            </ul>
         </div>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol3">6. <input type="checkbox" name="step24" id="step24"></div>
         <div class="col">
             Add <span class="green">25 &micro;L</span> of the <span class="lightBlue">DetectX Corticosterone Antibody</span> to each well <span class="red"><strong>EXCEPT</strong> the NSB wells</span> using <span class="orange">repeat pipettor</span>
+            <br/><em class="red">NOT the first two spaces (A1 + B1)</em>
         </div>
     </div>
     <div class="row mt-2">
