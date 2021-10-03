@@ -150,6 +150,28 @@ my_widget_script =
             }
         });
 
+        $("input[type='date']").each(function () {
+            var date = $(this).val();
+            if(date){
+                var validDate = my_widget_script.isValidDate(date);
+                if(!validDate){
+                    fail = true;
+                    fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
+                }
+            }
+        });
+
+        $("input[type='time']").each(function () {
+            var time = $(this).val();
+            if(time){
+                var validtime = my_widget_script.isValidTime(time);
+                if(!validtime){
+                    fail = true;
+                    fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
+                }
+            }
+        });
+
         if (fail) { //if fail is true (meaning a required element didn't have a value)
             return alert(fail_log); //return the fail log as an alert
         } else {
@@ -253,6 +275,14 @@ my_widget_script =
 
             my_widget_script.copySampleIDsFuncs($errorMsg, $divForCopy, duplicate);
         });
+
+        $("#copyMouseIDsButton").on("click", function (){
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            
+            my_widget_script.copyMouseIDs($divForCopy);
+        });
+
     },
 
     /**
@@ -274,12 +304,100 @@ my_widget_script =
         });
     },
 
+    isValidTime: function (timeString) {
+        var regEx = "^(((([0-1][0-9])|(2[0-3])):[0-5][0-9]))$";
+        if(!timeString.match(regEx)){
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    isTimeSupported: function () {
+        // Check if browser has support for input type=time
+        var input = document.createElement('input');
+        input.setAttribute('type', 'time');
+        var supported = true;
+        if(input.type !== "time"){
+            supported = false;
+        }
+        my_widget_script.timeSupported = supported;
+        return (supported);
+    },
+
+    timeSupported: true,
+
+    checkTimeFormat: function ($timeInput) {
+        if(!my_widget_script.timeSupported){ // if not supported
+            $timeInput.next(".timeWarning").remove();
+            var time = $timeInput.val();
+            var isValid = my_widget_script.isValidTime(time);
+            if(!isValid){
+                $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
+            }
+        }
+    },
+
+    isValidDate: function (dateString) {
+        // https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery/18759013
+        var regEx = /^\d{4}-\d{2}-\d{2}$/;
+        if(!dateString.match(regEx)) return false;  // Invalid format
+        var d = new Date(dateString);
+        var dNum = d.getTime();
+        if(!dNum && dNum !== 0) return false; // NaN value, Invalid date
+        return d.toISOString().slice(0,10) === dateString;
+    },
+
+    isDateSupported: function () {
+        // https://gomakethings.com/how-to-check-if-a-browser-supports-native-input-date-pickers/
+        // Check if browser has support for input type=date
+        var input = document.createElement('input');
+        // var value = 'a';
+        input.setAttribute('type', 'date');
+        var supported = true;
+        if(input.type !== "date"){
+            supported = false;
+        }
+        my_widget_script.dateSupported = supported;
+        return (supported);
+    },
+
+    dateSupported: true,
+
+    checkDateFormat: function ($dateInput) {
+        if(!my_widget_script.dateSupported){ // if not supported
+            $dateInput.next(".dateWarning").remove();
+            var date = $dateInput.val();
+            var isValid = my_widget_script.isValidDate(date);
+            if(!isValid){
+                $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
+            }
+            $dateInput.datepicker({dateFormat: "yy-mm-dd"})
+            console.log($dateInput.val());
+        }
+    },
+
     /**
      * TO DO: edit this function to define how the form should be initilized based 
      * on the existing form values. This is particularly important for when the 
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
+        my_widget_script.isDateSupported();
+        my_widget_script.isTimeSupported();
+        
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
+            my_widget_script.checkDateFormat($(this));
+        }).each(function () {
+            my_widget_script.checkDateFormat($(this));
+        });
+        
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
+            my_widget_script.checkTimeFormat($(this));
+        }).each(function () {
+            my_widget_script.checkTimeFormat($(this));
+        });
+        
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
@@ -318,7 +436,59 @@ my_widget_script =
             my_widget_script.updatePlateValsSamples(dataSample);
         });
 
+        if($("#useTextEntry").is(":checked")){
+            $("#idEntry").each(function () {
+                my_widget_script.fillSampleIDsFromList($(this));
+            }).on("change", function () {
+                my_widget_script.fillSampleIDsFromList($(this));
+            });
+        }
+
+        $("#useTextEntry").on("change", function () {
+            if($("#useTextEntry").is(":checked")){
+                $("#idEntry").each(function () {
+                    my_widget_script.fillSampleIDsFromList($(this));
+                }).on("change", function () {
+                    my_widget_script.fillSampleIDsFromList($(this));
+                });
+            } else {
+                $("#idEntry").off("change");
+            }
+        })
+
         my_widget_script.adjustForNumSamples();
+        my_widget_script.resize();
+    },
+
+    fillSampleIDsFromList: function ($list){
+        var fullList = $list.val();
+        var splitList = fullList.split(/[\r\n]+/);
+        if(splitList.length <= 19){
+            $("#sampleNum").val(splitList.length * 2);
+            my_widget_script.adjustForNumSamples()
+        } else if(splitList.length > 19){
+            $("#sampleNum").val(38);
+            my_widget_script.adjustForNumSamples()
+        }
+        sampleNum = 0;
+        for (var i = 0; i < splitList.length && i < 19; i++ ){
+            mouseID = splitList[i];
+            sampleNum++;
+            $preSample = $("#sample"+sampleNum);
+            $preSample.val(
+                mouseID + " pre"
+            );
+            var dataPreSample = $preSample.data("sample");
+            my_widget_script.updatePlateValsSamples(dataPreSample);
+
+            sampleNum++;
+            $postSample = $("#sample"+sampleNum);
+            $postSample.val(
+                mouseID + " post"
+            );
+            var dataPostSample = $postSample.data("sample");
+            my_widget_script.updatePlateValsSamples(dataPostSample);
+        }
         my_widget_script.resize();
     },
 
@@ -735,6 +905,40 @@ my_widget_script =
         my_widget_script.resize();
     },
 
+    toggleCard: function ($cardHead) {
+        // console.log($cardHead.next());
+        $cardHead.next().toggleClass("collapse");
+        $cardHead.next().find("textarea.autoAdjust").each(function () {
+            if(! $(this).is(":hidden")) {
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            } 
+        });
+        my_widget_script.resize();
+    },
+
+    makeCard: function ($div, cardHeadContent, cardBodyContent) {
+        // Add extras to header, such as classes or data attributes in calling function after making the card
+        $div.append(
+            $("<div/>", {
+                "class": "card"
+            }).append(
+                $("<div/>", {
+                    "class": "card-header"
+                }).on("click", function () {
+                    // console.log($(this));
+                    my_widget_script.toggleCard($(this));
+                }).append(cardHeadContent)
+            ).append(
+                $("<div/>", {
+                    "class": "card-body"
+                }).append(
+                    cardBodyContent
+                )
+            )
+        )
+        my_widget_script.resize();
+    },
+
     /**
      * This function takes a csv element and filename that are passed from the
      * exportTableToCSV function.
@@ -854,6 +1058,28 @@ my_widget_script =
                 addLine = "\n";
             });
         });
+
+        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
+    },
+
+    copyMouseIDs: function($divForCopy){
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addLine = "";
+
+        var fullList = $("#idEntry").val();
+        var splitList = fullList.split(/[\r\n]+/);
+        var addText;
+
+        for (var i = 0; i < splitList.length && i < 19; i++ ){
+            mouseID = splitList[i];
+            $temp.text($temp.text() + addLine);
+            addLine = "\n";
+            totalText = mouseID + addLine + mouseID + addLine + mouseID + addLine + mouseID;
+            $temp.text($temp.text() + totalText);
+        }
 
         $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
         document.execCommand("copy"); //copy the "selected" text

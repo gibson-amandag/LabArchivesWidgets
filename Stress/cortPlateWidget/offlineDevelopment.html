@@ -3,8 +3,7 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<!-- START:stylesheet
--->
+<!-- START:stylesheet-->
 
   <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/stylesheets/labarchive.css">
   <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery-ui.css">
@@ -335,6 +334,14 @@ $(document).ready(function () {
 
             my_widget_script.copySampleIDsFuncs($errorMsg, $divForCopy, duplicate);
         });
+
+        $("#copyMouseIDsButton").on("click", function (){
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            
+            my_widget_script.copyMouseIDs($divForCopy);
+        });
+
     },
 
     /**
@@ -488,7 +495,59 @@ $(document).ready(function () {
             my_widget_script.updatePlateValsSamples(dataSample);
         });
 
+        if($("#useTextEntry").is(":checked")){
+            $("#idEntry").each(function () {
+                my_widget_script.fillSampleIDsFromList($(this));
+            }).on("change", function () {
+                my_widget_script.fillSampleIDsFromList($(this));
+            });
+        }
+
+        $("#useTextEntry").on("change", function () {
+            if($("#useTextEntry").is(":checked")){
+                $("#idEntry").each(function () {
+                    my_widget_script.fillSampleIDsFromList($(this));
+                }).on("change", function () {
+                    my_widget_script.fillSampleIDsFromList($(this));
+                });
+            } else {
+                $("#idEntry").off("change");
+            }
+        })
+
         my_widget_script.adjustForNumSamples();
+        my_widget_script.resize();
+    },
+
+    fillSampleIDsFromList: function ($list){
+        var fullList = $list.val();
+        var splitList = fullList.split(/[\r\n]+/);
+        if(splitList.length <= 19){
+            $("#sampleNum").val(splitList.length * 2);
+            my_widget_script.adjustForNumSamples()
+        } else if(splitList.length > 19){
+            $("#sampleNum").val(38);
+            my_widget_script.adjustForNumSamples()
+        }
+        sampleNum = 0;
+        for (var i = 0; i < splitList.length && i < 19; i++ ){
+            mouseID = splitList[i];
+            sampleNum++;
+            $preSample = $("#sample"+sampleNum);
+            $preSample.val(
+                mouseID + " pre"
+            );
+            var dataPreSample = $preSample.data("sample");
+            my_widget_script.updatePlateValsSamples(dataPreSample);
+
+            sampleNum++;
+            $postSample = $("#sample"+sampleNum);
+            $postSample.val(
+                mouseID + " post"
+            );
+            var dataPostSample = $postSample.data("sample");
+            my_widget_script.updatePlateValsSamples(dataPostSample);
+        }
         my_widget_script.resize();
     },
 
@@ -905,6 +964,40 @@ $(document).ready(function () {
         my_widget_script.resize();
     },
 
+    toggleCard: function ($cardHead) {
+        // console.log($cardHead.next());
+        $cardHead.next().toggleClass("collapse");
+        $cardHead.next().find("textarea.autoAdjust").each(function () {
+            if(! $(this).is(":hidden")) {
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            } 
+        });
+        my_widget_script.resize();
+    },
+
+    makeCard: function ($div, cardHeadContent, cardBodyContent) {
+        // Add extras to header, such as classes or data attributes in calling function after making the card
+        $div.append(
+            $("<div/>", {
+                "class": "card"
+            }).append(
+                $("<div/>", {
+                    "class": "card-header"
+                }).on("click", function () {
+                    // console.log($(this));
+                    my_widget_script.toggleCard($(this));
+                }).append(cardHeadContent)
+            ).append(
+                $("<div/>", {
+                    "class": "card-body"
+                }).append(
+                    cardBodyContent
+                )
+            )
+        )
+        my_widget_script.resize();
+    },
+
     /**
      * This function takes a csv element and filename that are passed from the
      * exportTableToCSV function.
@@ -1024,6 +1117,28 @@ $(document).ready(function () {
                 addLine = "\n";
             });
         });
+
+        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
+        document.execCommand("copy"); //copy the "selected" text
+        $temp.remove(); //remove temp
+    },
+
+    copyMouseIDs: function($divForCopy){
+        //create a temporary text area
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var addLine = "";
+
+        var fullList = $("#idEntry").val();
+        var splitList = fullList.split(/[\r\n]+/);
+        var addText;
+
+        for (var i = 0; i < splitList.length && i < 19; i++ ){
+            mouseID = splitList[i];
+            $temp.text($temp.text() + addLine);
+            addLine = "\n";
+            totalText = mouseID + addLine + mouseID + addLine + mouseID + addLine + mouseID;
+            $temp.text($temp.text() + totalText);
+        }
 
         $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
         document.execCommand("copy"); //copy the "selected" text
@@ -1230,6 +1345,22 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
     </div>
 </div>
+<div class="container mt-4">
+    <div class="row hideView">
+        <div class="myLeftCol">Use text entry of IDs</div>
+        <div class="col"><input type="checkbox" name="usetextentry" id="useTextEntry"/></div>
+    </div>
+    <div class="row hideView">
+        <div class="myLeftCol">Enter mouse IDs. Put each mouse on a new line. Tip: copy/paste from a spreadsheet column</div>
+        <div class="col"><textarea name="identry" id="idEntry" rows="10" class="fullWidth" placeholder="Enter IDs"></textarea></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Copy IDs with 4 repeats</div>
+        <div class="col">
+            <input type="button" value="Copy Mouse IDs Quadruple" class="fullWidth" name="copymouseidsbutton" id="copyMouseIDsButton">
+        </div>
+    </div>
+</div>
 <div class="container mt-2 hideView">
     <div class="row stdsEntry">
         <!-- Where standard entries will go -->
@@ -1252,6 +1383,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         &nbsp; 
     </div>
 </div>
+
 
 <div class="container mt-4">
     <div class="row">
