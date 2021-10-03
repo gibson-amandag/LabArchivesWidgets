@@ -1,0 +1,1214 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<!-- START:stylesheet
+-->
+
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/stylesheets/labarchive.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery-ui.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/themes/base/ui.all.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/chosen/chosen.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/css/jquery.dataTables_themeroller.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/css/TableTools.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/css/ColVis.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.css">
+          <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-1.7.2.min.js"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-ui-1.9.1.custom.min.js"></script>
+                    <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/populate/jquery.populate.pack.js" defer="defer"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/numeric/jquery.numeric.js" defer="defer"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.js" defer="defer"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/daepark-postmessage/postmessage.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/widget_proxy.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/parent_form_script.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/database_form_script.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/js/jquery.dataTables.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/TableTools.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/ZeroClipboard.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/js/ColVis.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColResize/ColReorderWithResize.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/chosen/chosen.jquery_modified.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/autoresize/jquery.autoresize.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/freezerbox_form_script.js" ></script>
+    
+<title></title>
+</head>
+<body>
+<script>
+    // #region
+var form_script = null;
+try {
+$(document).ready(function () {
+      
+      
+      // Create window var to store the locale for the datepicker
+      window.datepicker_locale = '';
+//***************************************************************************
+//***************************************************************************
+//***************************************************************************
+//place your javascript code below and when you have it the way you want it
+//just paste it into the LA Dev tool
+//***************************************************************************
+//***************************************************************************
+//***************************************************************************
+// #endregion
+    form_script = 
+    my_widget_script =
+{
+    
+    init: function (mode, json_data) {
+        //this method is called when the form is being constructed
+        // parameters
+        // mode = if it equals 'view' than it should not be editable
+        //        if it equals 'edit' then it will be used for entry
+        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
+        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
+
+        // json_data will contain the data to populate the form with, it will be in the form of the data
+        // returned from a call to to_json or empty if this is a new form.
+        //By default it calls the parent_class's init.
+
+        //uncomment to inspect and view code while developing
+        //debugger;
+
+        //Get the parsed JSON data
+        var parsedJson = this.parseInitJson(json_data);
+
+        //Uncomment to print parsedJson to consol
+        //console.log("init", parsedJson);
+
+        //check parsedJson for info not contained in form inputs and reinitialize
+        this.initDynamicContent(parsedJson);
+
+        //resize the content box when the window size changes
+        window.onresize = this.resize;
+
+        //Define behavior when buttons are clicked or checkboxes/selctions change
+        this.addEventListeners();
+
+        // Initialize the form with the stored widgetData using the parent_class.init() function
+        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
+
+        // Add * and # to mark required field indicators
+        this.addRequiredFieldIndicators();
+
+        // Set up the form based on previously entered form input
+        this.setUpInitialState();
+
+        //adjust form design and buttons based on mode
+        this.adjustForMode(mode);
+    },
+    
+    to_json: function () {
+        //should return a json string containing the data entered into the form by the user
+        //whatever is return from the method is persisted in LabArchives.  must not be binary data.
+        //called when the user hits the save button, when adding or editing an entry
+
+        //Acquire input data from the form using the parent_class.to_json() function
+        var widgetJsonString = this.parent_class.to_json();
+
+        //Get information about any dynamic content that may have been created
+        var dynamicContent = this.getDynamicContent();
+
+        // Add widgetData and any additional dynamic content to an output object
+        // Will be accessed within the init and from_json methods
+        var output = { 
+            widgetData: JSON.parse(widgetJsonString)
+        };
+
+        //uncomment to check stringified output
+        //console.log("to JSON", JSON.stringify(output));
+
+        // return stringified output
+        return JSON.stringify(output);
+    },
+
+    from_json: function (json_data) {
+        //populates the form with json_data
+
+        // all data in string format within json_data is parsed into an object parsedJson
+        var parsedJson = JSON.parse(json_data);
+
+        //use parsedJson to get widgetData and turn into a string
+        //parent class uses the widget data to fill in inputs
+        this.parent_class.from_json(JSON.stringify(parsedJson.widgetData));
+    },
+
+    /**
+     * In preview, the form is populated with test data when the
+     * parent_class.test_data() function is called. This randomly selects options for 
+     * dropdown select menus, radio buttons, and checkboxes.
+     */
+    test_data: function () {
+        //during development this method is called to populate your form while in preview mode
+
+        // ORIGINAL LABARCHIVES RETURN FOR TEST DATA
+        //return this.parent_class.test_data();
+
+        // CUSTOM TEST DATA
+
+        //store the outcome of the the test data within the testData variable
+        var testData = JSON.parse(this.parent_class.test_data());
+
+        //If no additional dynamic content 
+        var output = { widgetData: testData };
+
+        //Add additional content to match the objects in to_json
+        //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
+
+        //return the stringified output for use by the init function
+        return JSON.stringify(output);
+    },
+
+    /**
+     * This function determines whether or not the user is allowed to save the widget to the page
+     * 
+     * The original LabArchives function checks for fields that have _mandatory appended to the name attribute
+     * 
+     * The custom function checks for fields with the required attribute. If any of these fields are blank, 
+     * an alert is returns that provides a fail log with the ids of the elements that are missing. If there are
+     * no blank required fields, an empty array is returned.
+     * 
+     * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+     */
+    is_valid: function (b_suppress_message) {
+        //called when the user hits the save button, to allow for form validation.
+        //returns an array of dom elements that are not valid - default is those elements marked as mandatory
+        // that have no data in them.
+        //You can modify this method, to highlight bad form elements etc...
+        //LA calls this method with b_suppress_message and relies on your code to communicate issues to the user
+        //Returning an empty array [] or NULL equals no error
+        //TO DO write code specific to your form
+
+        //ORIGINAL LABARCHIVES IS_VALID FUNCTION
+        //return this.parent_class.is_valid(b_suppress_message);
+
+        //CUSTOM FUNCTION TO CHECK REQUIRED ITEMS
+        var fail = false; //begin with a fail variable that is false
+        var fail_log = ''; //begin with an empty fail log
+        var name; //create a name variable
+
+        //search the_form for all elements that are of type select, textarea, or input
+        $('#the_form').find('select, textarea, input').each(function () {
+            if (!$(this).prop('required')) { //if this element does not have a required attribute
+                //don't change anything (fail remains false)
+            } else { //if there is a required attribute
+                if (!$(this).val()) { //if there is not a value for this input
+                    fail = true; //change fail to true
+                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                    fail_log += name + " is required \n"; //add to the fail log that this name is required
+                }
+
+            }
+        });
+
+        $("input[type='date']").each(function () {
+            var date = $(this).val();
+            if(date){
+                var validDate = my_widget_script.isValidDate(date);
+                if(!validDate){
+                    fail = true;
+                    fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
+                }
+            }
+        });
+
+        $("input[type='time']").each(function () {
+            var time = $(this).val();
+            if(time){
+                var validtime = my_widget_script.isValidTime(time);
+                if(!validtime){
+                    fail = true;
+                    fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
+                }
+            }
+        });
+
+        if (fail) { //if fail is true (meaning a required element didn't have a value)
+            return alert(fail_log); //return the fail log as an alert
+        } else {
+            var noErrors = [];
+            return noErrors;
+        } //otherwise, return empty array
+    },
+
+    is_edited: function () {
+        //should return true if the form has been edited since it was loaded or since reset_edited was called
+        return this.parent_class.is_edited();
+    },
+
+    reset_edited: function () {
+        //typically called have a save
+        //TO DO write code specific to your form
+        return this.parent_class.reset_edited();
+    },
+
+    // ********************** CUSTOM METHODS USED BY INIT METHOD **********************
+    parseInitJson: function (json_data) {
+        var jsonString;
+        //check if string or function because preview test is function and page is string
+        if (typeof json_data === "string") {
+            jsonString = json_data;
+        } else {
+            jsonString = json_data();
+        }
+        //Take input string into js object to be able to use elsewhere
+        var parsedJson = JSON.parse(jsonString);
+        return (parsedJson);
+    },
+
+    /**
+     * TO DO: edit this function to reinitialize any dynamic content that is not explicity
+     * defined within the HTML code. 
+     * 
+     * This function requires the parsedJson object.
+     */
+    initDynamicContent: function (parsedJson) {
+        // for (var i = 0; i < parsedJson.addedRows; i++) {
+        // };
+    },
+
+    /**
+     * TO DO: edit this function to define how the HTML elements should be adjusted
+     * based on the current mode.
+     * 
+     * Here, a subset of buttons are disabled when the widget is not being edited.
+     * There may be other elements that should be shown/hidden based on the mode
+     */
+    adjustForMode: function (mode) {
+        if (mode !== "edit" && mode !== "edit_dev") {
+            //disable when not editing
+            $(".disableOnView").prop("disabled", true);
+            $(".hideView").hide();
+            $("input[type='date']").removeClass(".hasDatePicker");
+        } else {
+            $("input[type='date']").each(function () {
+                my_widget_script.checkDateFormat($(this));
+            });
+            
+            $("input[type='time']").each(function () {
+                my_widget_script.checkTimeFormat($(this));
+            });
+            this.toggleCard($(".cardToday"));
+        }
+    },
+
+    /**
+     * TO DO: edit this function to define behavior when the user interacts with the form.
+     * This could include when buttons are clicked or when inputs change.
+     */
+    addEventListeners: function () {
+        
+    },
+
+    /**
+     * TO DO: edit this function to define the symbols that should be added to the HTML
+     * page based on whether or not a field is required to save the widget to the page
+     * 
+     * Here, the function adds a blue # before fields of the class "needForFormLab" and a 
+     * red * before fields with the "requiredLab" property
+     */
+    addRequiredFieldIndicators: function () {
+        $('.needForTableLab').each(function () { //find element with class "needForFormLab"
+            //alert($(this).val());
+            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
+        });
+
+        $('.requiredLab').each(function () { //find element with class "requiredLab"
+            //alert($(this).val());
+            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
+        });
+    },
+
+    isValidTime: function (timeString) {
+        var regEx = "^(((([0-1][0-9])|(2[0-3])):[0-5][0-9]))$";
+        if(!timeString.match(regEx)){
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    isTimeSupported: function () {
+        // Check if browser has support for input type=time
+        var input = document.createElement('input');
+        input.setAttribute('type', 'time');
+        var supported = true;
+        if(input.type !== "time"){
+            supported = false;
+        }
+        my_widget_script.timeSupported = supported;
+        return (supported);
+    },
+
+    timeSupported: true,
+
+    checkTimeFormat: function ($timeInput) {
+        if(!my_widget_script.timeSupported){ // if not supported
+            $timeInput.next(".timeWarning").remove();
+            var time = $timeInput.val();
+            var isValid = my_widget_script.isValidTime(time);
+            if(!isValid){
+                $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
+            }
+        }
+    },
+
+    isValidDate: function (dateString) {
+        // https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery/18759013
+        var regEx = /^\d{4}-\d{2}-\d{2}$/;
+        if(!dateString.match(regEx)) return false;  // Invalid format
+        var d = new Date(dateString);
+        var dNum = d.getTime();
+        if(!dNum && dNum !== 0) return false; // NaN value, Invalid date
+        return d.toISOString().slice(0,10) === dateString;
+    },
+
+    isDateSupported: function () {
+        // https://gomakethings.com/how-to-check-if-a-browser-supports-native-input-date-pickers/
+        // Check if browser has support for input type=date
+        var input = document.createElement('input');
+        // var value = 'a';
+        input.setAttribute('type', 'date');
+        var supported = true;
+        if(input.type !== "date"){
+            supported = false;
+        }
+        my_widget_script.dateSupported = supported;
+        return (supported);
+    },
+
+    dateSupported: true,
+
+    checkDateFormat: function ($dateInput) {
+        if(!my_widget_script.dateSupported){ // if not supported
+            $dateInput.next(".dateWarning").remove();
+            var date = $dateInput.val();
+            var isValid = my_widget_script.isValidDate(date);
+            if(!isValid){
+                $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
+            }
+            $dateInput.datepicker({dateFormat: "yy-mm-dd"})
+            console.log($dateInput.val());
+        }
+    },
+
+    /**
+     * TO DO: edit this function to define how the form should be initilized based 
+     * on the existing form values. This is particularly important for when the 
+     * widget already has data entered, such as when saved to a page.
+     */
+    setUpInitialState: function () {
+        my_widget_script.isDateSupported();
+        my_widget_script.isTimeSupported();
+        
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
+            my_widget_script.checkDateFormat($(this));
+        }).each(function () {
+            my_widget_script.checkDateFormat($(this));
+        });
+        
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
+            my_widget_script.checkTimeFormat($(this));
+        }).each(function () {
+            my_widget_script.checkTimeFormat($(this));
+        });
+        
+        //Add classes to add bootstrap styles for left column in form
+        $('.myLeftCol').addClass("col-4 col-sm-5 col-md-4 col-lg-5 text-right");
+        $('.myLeftCol2').addClass("col-12 col-sm-5 col-md-4 col-lg-5 text-left text-sm-right");
+        $('.myLeftCol3').addClass("col-2 text-right"); //col-lg-1 - with splitting lists into two columns, this isn't great
+        $('.myLeftCol4').addClass("col-2 col-lg-1 text-right");
+
+        $('textarea.autoAdjust').each(function () {
+            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            my_widget_script.resize();
+        });
+
+        $(".watchTime").each(function () {
+            var $elToWatch = $(this);
+            var $elToFill = $(this).parent().next().find($(".fillTime"));
+            console.log($elToFill);
+
+            my_widget_script.watchTime($elToWatch, $elToFill);
+        }).on("input", function () {
+            var $elToWatch = $(this);
+            var $elToFill = $(this).parent().next().find($(".fillTime"));
+            console.log($elToFill);
+
+            my_widget_script.watchTime($elToWatch, $elToFill);
+        });
+
+        $(".card-header").on("click", function () {
+            // console.log($(this));
+            my_widget_script.toggleCard($(this));
+        });
+
+        my_widget_script.resize();
+    },
+
+    /**
+     * TO DO: edit this function to define which <div>s or other elements
+     * should be adjusted based on the current width of the window
+     */
+    resize: function () {
+        //resize the container
+        my_widget_script.parent_class.resize_container();
+    },
+    // ********************** END CUSTOM INIT METHODS **********************
+
+
+    // ********************** START CUSTOM TO_JSON METHODS **********************
+    getDynamicContent: function () {
+        var dynamicContent = {};
+        return dynamicContent;
+    },
+    // ********************** END CUSTOM TO_JSON METHODS **********************
+
+    /** -----------------------------------------------------------------------------
+     * VALIDATE FORM ENTRY BEFORE COPYING OR SAVING TABLE TO CSV
+     *
+     * This function will check that elements with a class "needForTable"
+     * are not blank. If there are blank elements, it will return false
+     * and will post an error message "Please fill out all elements marked by a blue #"
+     *
+     * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
+     * -----------------------------------------------------------------------------
+     */
+    data_valid_form: function () {
+        var valid = true; //begin with a valid value of true
+        //var fail_log = ''; //begin with an empty fail log
+        //var name; //create a name variable
+
+        //search the_form for all elements that are of class "needForForm"
+        $('.needForTable').each(function () {
+            if (!$(this).val()) { //if there is not a value for this input
+                valid = false; //change valid to false
+                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
+                //fail_log += name + " is required \n"; //add to the fail log that this name is required
+            }
+        });
+
+        if (!valid) {
+            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+        } else {
+            $("#errorMsg").html("");
+        }
+
+        return valid;
+    },
+
+    getHoursMin: function (timeString) {
+        timeString = timeString.split(":");
+        var hours = parseInt(timeString[0], 10), mins = parseInt(timeString[1], 10);
+        return( 
+            split = {
+                hours: hours,
+                mins: mins
+            }
+        )
+    },
+
+    watchTime: function ($elToWatch, $elToFill) {
+        var addTime = $elToFill.data("time");
+        // console.log(length);
+
+        var startTime = $elToWatch.val();
+        if(startTime){
+            var time = new Date();
+            startTimeSplit = my_widget_script.getHoursMin(startTime);
+            addTimeSplit = my_widget_script.getHoursMin(addTime);
+            // set start time
+            time.setHours(startTimeSplit.hours, startTimeSplit.mins, 00, 000);
+            time.setHours(time.getHours() + addTimeSplit.hours);
+            time.setMinutes(time.getMinutes() + addTimeSplit.mins);
+            console.log(time);
+            $elToFill.text(time.toLocaleTimeString());
+        } else{
+            $elToFill.text("{Enter Start Time}")
+        }
+
+        my_widget_script.resize();
+    },
+
+    toggleCard: function ($cardHead) {
+        // console.log($cardHead.next());
+        $cardHead.next().toggleClass("collapse");
+        $cardHead.next().find("textarea.autoAdjust").each(function () {
+            if(! $(this).is(":hidden")) {
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            } 
+        });
+        my_widget_script.resize();
+    }
+};
+
+//**************************************************************************
+//End of your code
+//**************************************************************************
+//**************************************************************************
+      //the parent class functionality is added to your class below.
+      form_script.parent_class = parent_form_script;
+      //**************************************************************************
+      //**************************************************************************
+      //call to the init function in your script.  Note that you can change the mode in the call here.
+      //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
+      form_script.init("edit", function() {return form_script.test_data()});
+
+
+    }
+)
+
+}
+catch (e) {
+
+}
+
+parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00:23-05:00","last_modified_at":"2021-01-03T18:51:34-05:00","last_modified_by":"Amanda Gibson","owned_by":"unknown"};
+
+</script>
+<form id="the_form" style="display:table">
+<!------------------------------------------------------------------------------------------>
+<!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
+<!------------------------------------------------------------------------------------------>
+<!-- #region HTML -->
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<!-- Load jQuery for Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<!-- Load bootstrap java -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+<!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
+<script>
+    var $jq351 = jQuery.noConflict(true);
+</script>
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 90%
+    }
+
+    .green{
+        color: green;
+    }
+
+    .bottomLine{
+        border-bottom: 2px solid black;
+    }
+
+    .blue{
+        color: blue;
+    }
+
+    .orange{
+        color: orange;
+    }
+
+    .lightBlue{
+        color: rgb(77, 167, 246);
+    }
+
+    .red{
+        color: red;
+    }
+
+    .purple{
+        color: purple;
+    }
+
+    ul {
+        margin-left: 0;
+        padding-left: 20px;
+    }
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="container">
+    <div class="row">
+        <h3 class="col">Perfusion Preparation</h3>
+    </div>
+</div>
+
+<!-- solutions -->
+<div class="card">
+    <button class="card-header" type="button">
+        Solutions
+    </button>
+
+    <div class="card-body collapse container">
+        <div class="row">
+            <!-- Saline -->
+            <div class="col-12 col-lg-6">
+                <div class="card">
+                    <button type="button" class="card-header">
+                        0.9% Filtered NaCl
+                    </button>
+                    <div class="card-body container collapse">
+                        <div class="row mt-2 align-items-start">
+                            <div class="myLeftCol green">4.5 g</div>
+                            <div class="col">NaCl</div>
+                        </div>
+                        <div class="row mt-2 align-items-start">
+                            <div class="myLeftCol bottomLine">
+                                <div class="row">
+                                    <div class="col-2 text-left">
+                                        +
+                                    </div>
+                                    <div class="col green">x mL</div>
+                                </div>
+                            </div>
+                            <div class="col">H<sub>2</sub>O <em>use milliQ water and fill to 500 mL </em></div>
+                        </div>
+                        <div class="row mt-2 align-items-start">
+                            <div class="myLeftCol">500 mL</div>
+                            <div class="col"><strong>total - filter using vacuum filtration</strong></div>
+                        </div>
+                        <div class="row mt-2 align-items-end">
+                            <div class="myLeftCol2">
+                                <input type="date" name="nacldate" id="NaClDate">
+                            </div>
+                            <div class="col">Date of filtered NaCl</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Formalin -->
+            <div class="col-12 col-lg-6">
+                <div class="card">
+                    <button type="button" class="card-header">
+                        10% buffered formalin
+                    </button>
+                    <div class="card-body container collapse">
+                        <div class="row align-items-end mt-2">
+                            <div class="myLeftCol">
+                                <input type="text" name="lotnum" id="lotNum" class="fullWidth">
+                            </div>
+                            <div class="col">
+                                Lot Number
+                            </div>
+                        </div>
+                        <div class="row mt-2 align-items-end">
+                            <div class="myLeftCol2">
+                                <input type="date" name="formalindate" id="formalinDate">
+                            </div>
+                            <div class="col">Expiration date of formalin</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Isoflurane -->
+            <div class="col-12 col-lg-6">
+                <div class="card">
+                    <button type="button" class="card-header">
+                        Isoflurane
+                    </button>
+                    <div class="card-body container collapse">
+                        <div class="row align-items-end mt-2">
+                            <div class="myLeftCol">
+                                <input type="text" name="lotnumiso" id="lotNumIso" class="fullWidth">
+                            </div>
+                            <div class="col">
+                                Lot Number
+                            </div>
+                        </div>
+                        <div class="row mt-2 align-items-end">
+                            <div class="myLeftCol2">
+                                <input type="date" name="isofluranedate" id="isofluraneDate">
+                            </div>
+                            <div class="col">Expiration date of isoflurane</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sucrose -->
+            <div class="col-12 col-lg-6">
+                <div class="card">
+                    <button type="button" class="card-header">
+                        20% sucrose
+                    </button>
+
+                    <div class="card-body container collapse">
+                        <div class="row mt-2 align-items-start">
+                            <div class="myLeftCol green">80 g</div>
+                            <div class="col">sucrose</div>
+                        </div>
+                        <div class="row mt-2 align-items-start">
+                            <div class="myLeftCol bottomLine">
+                                <div class="row">
+                                    <div class="col-2 text-left">
+                                        +
+                                    </div>
+                                    <div class="col green">(200-300) mL</div>
+                                </div>
+                            </div>
+                            <div class="col">H<sub>2</sub>O <em> to dissolve. Use milliQ water, then fill to <strong>400 mL</strong> </em></div>
+                        </div>
+                        <div class="row mt-2 align-items-start">
+                            <div class="myLeftCol">400 mL</div>
+                            <div class="col"><strong>total</strong></div>
+                        </div>
+                        <div class="row mt-2 align-items-end">
+                            <div class="myLeftCol2">
+                                <input type="date" name="nacldate" id="NaClDate">
+                            </div>
+                            <div class="col">Date of sucrose</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="row">        
+        <!-- Materials -->
+        <div class="container col-12 col-md-6">
+            <div class="row">
+                <h4 class="col">Materials:</h4>
+            </div>
+        
+            <div class="row mt-2">
+                <div class="myLeftCol3">1. <input type="checkbox" name="materials1" id="materials1"></div>
+                <div class="col">
+                    Hazardous waste bottle <em>labeled 10% formalin + blood</em>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">2. <input type="checkbox" name="materials2" id="materials2"></div>
+                <div class="col">
+                    Absorbent blue pads
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">3. <input type="checkbox" name="materials3" id="materials3"></div>
+                <div class="col">
+                    Stack of paper towels
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">4. <input type="checkbox" name="materials4" id="materials4"></div>
+                <div class="col">
+                    Perfusion pump with tubing
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">5. <input type="checkbox" name="materials5" id="materials5"></div>
+                <div class="col">
+                    2 buckets of ice
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">6. <input type="checkbox" name="materials6" id="materials6"></div>
+                <div class="col">
+                    Timer
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">7. <input type="checkbox" name="materials7" id="materials7"></div>
+                <div class="col">
+                    Conical tube with kimwipes for isoflurane
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">7. <input type="checkbox" name="materials7" id="materials7"></div>
+                <div class="col">
+                    <strong class="red">Lab coat</strong>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">8. <input type="checkbox" name="materials8" id="materials8"></div>
+                <div class="col">
+                    <strong class="red">Safety glasses</strong>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">9. <input type="checkbox" name="materials9" id="materials9"></div>
+                <div class="col">
+                    Foam lid for dissection surface
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">10. <input type="checkbox" name="materials10" id="materials10"></div>
+                <div class="col">
+                    <strong>Dissection supplies</strong> <em>in perfusion supplies draw near cycling scope</em>
+                    <br/>Needles, including one blunted
+                    <br/>Scissors
+                    <br/>Forceps
+                    <br/>Hemostat
+                    <br/>Funnels
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">11. <input type="checkbox" name="materials11" id="materials11"></div>
+                <div class="col">
+                    Erlenmeyer flask for formalin
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">12. <input type="checkbox" name="materials12" id="materials12"></div>
+                <div class="col">
+                    Bottle for NaCl
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">13. <input type="checkbox" name="materials13" id="materials13"></div>
+                <div class="col">
+                    3 100mL beakers (formalin, rinse, clean H<sub>2</sub>O)
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">14. <input type="checkbox" name="materials14" id="materials14"></div>
+                <div class="col">
+                    20mL scintillation vials (1/mouse - label)
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">15. <input type="checkbox" name="materials15" id="materials15"></div>
+                <div class="col">
+                   Sucrose
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">15. <input type="checkbox" name="materials15" id="materials15"></div>
+                <div class="col">
+                   Black trash bags labeled with <em>formalin</em>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Set-up -->
+        <div class="container col-12 col-md-6 mt-2 mt-md-0">
+            <div class="row">
+                <h4 class="col">Set-up:</h4>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">1. <input type="checkbox" name="setupstep1" id="setupstep1"></div>
+                <div class="col">
+                    <span class="blue">Cover surface</span> of chemical flow hood with <span class="lightBlue">absorbent blue pads</span> and a layer of paper towels
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">2. <input type="checkbox" name="setupstep2" id="setupstep2"></div>
+                <div class="col">
+                    Add the <span class="lightBlue">foam lid</span> on top of the paper towels
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">3. <input type="checkbox" name="setupstep3" id="setupstep3"></div>
+                <div class="col">
+                    Add <span class="green">4 g</span> of <span class="lightBlue">sucrose</span> to each of the <span class="red">scintillation vials</span>
+                    <br/><em>Will be used to make 20% sucrose/10% formalin</em>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">4. <input type="checkbox" name="setupstep4" id="setupstep4"></div>
+                <div class="col">
+                    Fill each of the <span class="red">20mL scintillation vials</span> with <span class="lightBlue">formalin</span>
+                    <br/>Shake until sucrose dissolves. <span class="blue">Place on ice</span>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">5. <input type="checkbox" name="setupstep5" id="setupstep5"></div>
+                <div class="col">
+                    Add <span class="lightBlue">formalin</span> to <span class="red">Erlenmeyer flask</span> and <span class="blue">place on ice</span>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">6. <input type="checkbox" name="setupstep6" id="setupstep6"></div>
+                <div class="col">
+                    Add <span class="lightBlue">filtered NaCl</span> to one of the <span class="red">100mL beakers</span>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">7. <input type="checkbox" name="setupstep7" id="setupstep7"></div>
+                <div class="col">
+                    <span class="blue">Plug in</span> the perfusion pump.
+                    <br/>Attach the <span class="lightBlue">blunted needle</span>
+                    <br/>Using NaCl to test, <span class="blue">adjust the flow</span> so that there is a pulse of fluid ejection, like a heart beat
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">8. <input type="checkbox" name="setupstep8" id="setupstep8"></div>
+                <div class="col">
+                    Add ~1/3 of of a pipette of <span class="lightBlue">isoflurane</span> onto the kimwipe within the <span class="red">conical tube</span>
+                </div>
+            </div>
+            <!-- <div class="row mt-2">
+                <div class="myLeftCol3">8. <input type="checkbox" name="setupstep8" id="setupstep8"></div>
+                <div class="col">
+                    Add formalin to one of the 100mL beakers for use with the perfusion pump
+                </div>
+            </div> -->
+
+            <div class="row mt-2">
+                <h4 class="col">Notebook preparation (for each mouse):</h4>
+            </div>
+            
+            <div class="row mt-2">
+                <div class="myLeftCol3">1. <input type="checkbox" name="notebookstep1" id="notebookstep1"></div>
+                <div class="col">
+                    Date
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">2. <input type="checkbox" name="notebookstep2" id="notebookstep2"></div>
+                <div class="col">
+                    Time of transport
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">2. <input type="checkbox" name="notebookstep2" id="notebookstep2"></div>
+                <div class="col">
+                    Time of sacrifice
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">3. <input type="checkbox" name="notebookstep3" id="notebookstep3"></div>
+                <div class="col">
+                    Time of perfusion start
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">4. <input type="checkbox" name="notebookstep4" id="notebookstep4"></div>
+                <div class="col">
+                    Time brain extracted
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">5. <input type="checkbox" name="notebookstep5" id="notebookstep5"></div>
+                <div class="col">
+                    Time transferred to sucrose
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="myLeftCol3">6. <input type="checkbox" name="notebookstep6" id="notebookstep6"></div>
+                <div class="col">
+                    Additional notes
+                </div>
+            </div>
+        
+            
+        </div>
+    </div>
+</div>
+
+<!-- Perfusion -->
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Perfusion:</h3>
+    </div>
+    <div class="row">
+        <em class="col">
+            Note: This is primarily for reference, and not intended to have to check each step as you are actually doing the perfusion
+            <br/>You'll be working with formalin, so if you are checking off on a device, you would need to use a bag to cover your phone and mark as formalin contaminated
+            <br/>Track the timing as you go in your physical paper notebook, and then transfer information for the perfusion timing widget
+        </em>
+    </div>
+    
+    <div class="row mt-2">
+        <div class="myLeftCol4">1. <input type="checkbox" name="perfstep1" id="perfstep1"></div>
+        <div class="col">
+            <span class="blue">Scruff</span> the mouse and <span class="blue">anesthetize</span> with the <span class="lightBlue">isoflurane</span> in the conical tube
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">2. <input type="checkbox" name="perfstep2" id="perfstep2"></div>
+        <div class="col">
+            Once anesthetized, keeping the conical tube over the mouse's head, <span class="blue">transfer to the foam lid</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">3. <input type="checkbox" name="perfstep3" id="perfstep3"></div>
+        <div class="col">
+            <span class="blue">Pin</span> down each limb into the foam lid
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">4. <input type="checkbox" name="perfstep4" id="perfstep4"></div>
+        <div class="col">
+            Open the mouse's body cavity to <span class="blue">expose the diaphragm</span> 
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">5. <input type="checkbox" name="perfstep5" id="perfstep5"></div>
+        <div class="col">
+            <span class="blue">Cut a hole</span> in the <span class="lightBlue">diaphragm</span>, then <span class="blue">cut</span> along the <span class="lightBlue">lateral edges of the ribs</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">6. <input type="checkbox" name="perfstep6" id="perfstep6"></div>
+        <div class="col">
+            Use the <span class="red">hemostat</span> to grasp the <span class="lightBlue">base of the rib cage</span> and then <span class="blue">fold</span> back towards head to expose the <span class="lightBlue">heart</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">7. <input type="checkbox" name="perfstep7" id="perfstep7"></div>
+        <div class="col">
+            <span class="blue">Insert</span> the <span class="red">blunted needle</span> into the <span class="lightBlue">left ventricle</span>; use the apex of the heart as a guide
+            <br/><em>You want this needle to be stable. Determine for yourself if this is most consistently achieved by holding the needle yourself during the saline rinse, or by using other needles to stabilize the pump tubing</em>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">8. <input type="checkbox" name="perfstep8" id="perfstep8"></div>
+        <div class="col">
+            <span class="blue">Clip</span> the <span class="lightBlue">right atrium</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">9. <input type="checkbox" name="perfstep9" id="perfstep9"></div>
+        <div class="col">
+            <span class="blue">Turn on</span> the pump to perfuse <span class="lightBlue">filtered saline</span> through the mouse for <span class="purple">~2 min</span> until the liver has cleared of blood
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">10. <input type="checkbox" name="perfstep10" id="perfstep19"></div>
+        <div class="col">
+            <span class="blue">Turn off</span> the pump. Switch the line to <span class="lightBlue">formalin</span>. <span class="blue">Turn back on</span> the pump. Perfuse with <span class="lightBlue">formalin</span> for <span class="purple">10 min</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">11. <input type="checkbox" name="perfstep11" id="perfstep11"></div>
+        <div class="col">
+            <span class="blue">Turn off</span> the pump. <span class="blue">Remove the needles</span> from the heart and the limbs
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">12. <input type="checkbox" name="perfstep12" id="perfstep12"></div>
+        <div class="col">
+            <span class="blue">Extract</span> the <span class="lightBlue">brain</span> from the skull. Note the visual condition of the brain
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">13. <input type="checkbox" name="perfstep13" id="perfstep13"></div>
+        <div class="col">
+            Place the <span class="lightBlue">brain</span> in one of the <span class="red">20mL scintillation vials</span> filled with <span class="lightBlue">20% sucrose / 10% formalin</span>. Note the <span class="green">time</span>. <span class="blue">Place the vial back on ice</span>.
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">14. <input type="checkbox" name="perfstep14" id="perfstep14"></div>
+        <div class="col">
+            <span class="blue">Rinse</span> the pump lines with <span class="lightBlue">saline</span> before starting next animal
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">15. <input type="checkbox" name="perfstep15" id="perfstep15"></div>
+        <div class="col">
+            <span class="blue">Carefully pour</span> the <span class="lightBlue">formalin + blood waste</span> from the lid into the <span class="red">waste container, using the funnel</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">16. <input type="checkbox" name="perfstep16" id="perfstep16"></div>
+        <div class="col">
+            Place the animal in the black trash bag
+        </div>
+    </div>
+</div>
+
+<!-- Clean-up -->
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Clean-Up:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">1. <input type="checkbox" name="cleanstep1" id="cleanstep1"></div>
+        <div class="col">
+            Place all items to be discarded that touched formalin into the labeled black trash bag (bodies, paper towels, blue pads, etc)
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">2. <input type="checkbox" name="cleanstep2" id="cleanstep2"></div>
+        <div class="col">
+            Run clean water through the perfusion pump. Discard initial washes in formalin waste container
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">3. <input type="checkbox" name="cleanstep3" id="cleanstep3"></div>
+        <div class="col">
+            Rinse off instruments and containers. Add tergazyme to each item and allow to soak for a few minutes
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">4. <input type="checkbox" name="cleanstep4" id="cleanstep4"></div>
+        <div class="col">
+            Rinse off the tergazyme. Soak items in bleach
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">5. <input type="checkbox" name="cleanstep5" id="cleanstep5"></div>
+        <div class="col">
+            Carefully rinse off bleach. Run 3x under tap water and 3x under milliQ
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">6. <input type="checkbox" name="cleanstep6" id="cleanstep6"></div>
+        <div class="col">
+            Ensure formalin waste container is closed. Store in fume hood.
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">7. <input type="checkbox" name="cleanstep7" id="cleanstep7"></div>
+        <div class="col">
+            Wipe down hood surface with ethanol
+        </div>
+    </div>
+</div>
+
+<!-- Brain -->
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Brain Prepation:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">1. <input type="checkbox" name="brainstep1" id="brainstep1"></div>
+        <div class="col">
+            After <span class="purple">90 min</span>, <span class="blue">replace</span> the 20% sucrose / 10% formalin in the <span class="red">scintillation vial</span> with <span class="lightBlue">20% sucrose</span> 
+        </div>
+    </div>
+</div>
+<!-- #endregion -->
+<!------------------------------------------------------------------------------------------>
+<!--end of your code-->
+<!------------------------------------------------------------------------------------------>
+
+</form>
+</body>
+</html>
