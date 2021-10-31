@@ -15,7 +15,9 @@ my_widget_script =
         //uncomment to inspect and view code while developing
         //debugger;
 
-        my_widget_script.makePlateTable();
+        my_widget_script.makePlateTable("plateID");
+        my_widget_script.makePlateTable("mouseID");
+        my_widget_script.makePlateTable("time");
         my_widget_script.makeStdEntry();
         my_widget_script.makeSampleEntry();
 
@@ -243,19 +245,24 @@ my_widget_script =
         //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
         $('#toCSV').on("click", function () {
             var fileName = "cortEIA_Plate";
-            var tableID = "plateImg";
+            var tableID = "plateIDImg";
             var $errorMsg = $("#errorMsg");
             
             my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
         });
 
         //When the copy button is clicked, run the copyTable function
-        $("#copyDataButton").on("click", function () {
+        // $("#copyDataButton").on("click", function () {
+        $(".copyPlate").on("click", function () {
             var $copyHead = true;
-            var $tableToCopy = $("#plateImg");
-            var $tableDiv = $(".plateDiv");
-            var $errorMsg = $("#errorMsg");
-            var $divForCopy = $("#forCopy");
+            var plateType = $(this).data("plate");
+            var plateSearch = my_widget_script.dataSearch("plate", plateType);
+            console.log(plateSearch);
+            var $tableToCopy = $(".plateImg" + plateSearch);
+            var $tableDiv = $(".plateDiv" + plateSearch);
+            var $errorMsg = $(".errorMsg"+plateSearch);
+            console.log($errorMsg);
+            var $divForCopy = $(".forCopy"+plateSearch);
             
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
         });
@@ -430,10 +437,24 @@ my_widget_script =
 
         $(".sample").each(function () {
             var dataSample = $(this).data("sample");
-            my_widget_script.updatePlateValsSamples(dataSample);
+            my_widget_script.updatePlateValsSamples(dataSample, "plateID", "sample");
         }).on("input", function () {
             var dataSample = $(this).data("sample");
-            my_widget_script.updatePlateValsSamples(dataSample);
+            my_widget_script.updatePlateValsSamples(dataSample, "plateID", "sample");
+        });
+        $(".mouseID").each(function () {
+            var dataSample = $(this).data("sample");
+            my_widget_script.updatePlateValsSamples(dataSample, "mouseID", "mouseID");
+        }).on("input", function () {
+            var dataSample = $(this).data("sample");
+            my_widget_script.updatePlateValsSamples(dataSample, "mouseID", "mouseID");
+        });
+        $(".time").each(function () {
+            var dataSample = $(this).data("sample");
+            my_widget_script.updatePlateValsSamples(dataSample, "time", "time");
+        }).on("input", function () {
+            var dataSample = $(this).data("sample");
+            my_widget_script.updatePlateValsSamples(dataSample, "time", "time");
         });
 
         if($("#useTextEntry").is(":checked")){
@@ -474,20 +495,34 @@ my_widget_script =
         for (var i = 0; i < splitList.length && i < 19; i++ ){
             mouseID = splitList[i];
             sampleNum++;
+
+            // Sample ID
             $preSample = $("#sample"+sampleNum);
             $preSample.val(
                 mouseID + " pre"
             );
             var dataPreSample = $preSample.data("sample");
-            my_widget_script.updatePlateValsSamples(dataPreSample);
+            my_widget_script.updatePlateValsSamples(dataPreSample, "plateID", "sample");
+            
+            // Mouse ID
+            $preMouseID = $("#mouse"+sampleNum);
+            $preMouseID.val(mouseID);
+            my_widget_script.updatePlateValsSamples(dataPreSample, "mouseID", "mouseID");
 
+
+            // Sample ID
             sampleNum++;
             $postSample = $("#sample"+sampleNum);
             $postSample.val(
                 mouseID + " post"
             );
             var dataPostSample = $postSample.data("sample");
-            my_widget_script.updatePlateValsSamples(dataPostSample);
+            my_widget_script.updatePlateValsSamples(dataPostSample, "plateID", "sample");
+
+            // Mouse ID
+            $postMouseID = $("#mouse"+sampleNum);
+            $postMouseID.val(mouseID);
+            my_widget_script.updatePlateValsSamples(dataPostSample, "mouseID", "mouseID");
         }
         my_widget_script.resize();
     },
@@ -554,8 +589,9 @@ my_widget_script =
         $elToUpdate.text(value);
     },
 
-    makePlateTable: function () {
-        var $table = $("#plateImg")
+    makePlateTable: function (plateType) {
+        var plateSearch = my_widget_script.dataSearch("plate", plateType);
+        var $table = $(".plateImg" + plateSearch);
 
         // Add the first row
         $table.append(
@@ -571,7 +607,7 @@ my_widget_script =
             // If it's column 0, leave it blank
             if(col == 0){
                 $tableRow.append(
-                    $("<th/>").append("")
+                    $("<th/>").append(plateType)
                 )
             } else { // otherwise, make it class by column number and append the column number in a cell
                 $tableRow.append(
@@ -642,12 +678,24 @@ my_widget_script =
             for(i = 0; i < numSamples; i++){
                 var dataSearch = my_widget_script.dataSearch("sample", i+1);
                 $(".sampleDiv" + dataSearch).show();
+                var defaultTime;
+                if(!my_widget_script.isEven(i + 1)){
+                    defaultTime = 0
+                } else {
+                    defaultTime = 5
+                }
+                $(".time"+dataSearch).val(defaultTime);
+                my_widget_script.updatePlateValsSamples(i+1, "time", "time");
             }
 
             for(i; i < 38; i ++ ){
                 var dataSearch = my_widget_script.dataSearch("sample", i+1);
                 $(".sample" + dataSearch).val("");
-                my_widget_script.updatePlateValsSamples(i+1);
+                $(".mouseID" + dataSearch).val("");
+                $(".time" + dataSearch).val("");
+                my_widget_script.updatePlateValsSamples(i+1, "plateID", "sample");
+                my_widget_script.updatePlateValsSamples(i+1, "mouseID", "mouseID");
+                my_widget_script.updatePlateValsSamples(i+1, "time", "time");
             }
             $(".sampleNum_calc").html("");
         } else {
@@ -697,7 +745,7 @@ my_widget_script =
                         id: "std"+stdNum,
                         "class": "std",
                         "data-std": stdNum,
-                        value: "Std " + stdNum
+                        value: "STD " + stdNum
                     })
                 )
             );
@@ -716,7 +764,7 @@ my_widget_script =
                     id: "buffCon",
                     "class": "std",
                     "data-std": "buffCon",
-                    value: "Buffer Ctrl"
+                    value: "bufferCtrl"
                 })
             )
         ).append(
@@ -732,7 +780,7 @@ my_widget_script =
                     id: "cort",
                     "class": "std",
                     "data-std": "cort",
-                    value: "C_1"
+                    value: "C_2"
                 })
             )
         );
@@ -747,13 +795,19 @@ my_widget_script =
 
         for(i = 0; i < 38; i ++ ) {
             sampleNum = i + 1;
+            var defaultTime;
+            if (my_widget_script.isEven(sampleNum)){
+                defaultTime = 5
+            } else {
+                defaultTime = 0
+            }
 
             $entryDiv.append(
                 $("<div/>", {
                     "class": colClasses + "sampleDiv",
                     "data-sample": sampleNum
                 }).append(
-                    "Sample " + sampleNum + ": <br/>"
+                    "<strong>Sample " + sampleNum + ":</strong> <br/>"
                 ).append(
                     $("<input/>", {
                         type: "text",
@@ -762,14 +816,30 @@ my_widget_script =
                         "class": "sample",
                         "data-sample": sampleNum
                     })
+                ).append(
+                    "<br/>Mouse: <br/>"
+                ).append(
+                    $("<input/>", {
+                        type: "text",
+                        name: "mouse"+sampleNum,
+                        id: "mouse"+sampleNum,
+                        "class": "mouseID",
+                        "data-sample": sampleNum
+                    })
+                ).append(
+                    "<br/>Time: <br/>"
+                ).append(
+                    $("<input/>", {
+                        type: "number",
+                        name: "time"+sampleNum,
+                        id: "time"+sampleNum,
+                        "class": "time",
+                        "data-sample": sampleNum,
+                        value: defaultTime
+                    })
                 )
             )
         }
-    },
-
-    watchValue: function ($elToWatch, $elToUpdate) {
-        var value = $elToWatch.val();
-        $elToUpdate.text(value);
     },
 
     updatePlateValsStd: function (stdVal) {
@@ -844,14 +914,15 @@ my_widget_script =
         dataSearchWell1 = my_widget_script.dataSearch("well", "" + col+row1);
         dataSearchWell2 = my_widget_script.dataSearch("well", "" + col+row2);
 
-        my_widget_script.watchValue($(".std" + dataSearchVal), $(".well" + dataSearchWell1));
-        my_widget_script.watchValue($(".std" + dataSearchVal), $(".well" + dataSearchWell2));
+        my_widget_script.watchValue($(".std" + dataSearchVal), $("#plateIDImg").find(".well" + dataSearchWell1));
+        my_widget_script.watchValue($(".std" + dataSearchVal), $("#plateIDImg").find(".well" + dataSearchWell2));
     },
 
-    updatePlateValsSamples: function (sampleNum) {
+    updatePlateValsSamples: function (sampleNum, plateType, valType) {
         var dataSearchVal = my_widget_script.dataSearch("sample", sampleNum);
         var col, row1, row2
         var dataSearchWell1, dataSearchWell2
+        var plateSearch = my_widget_script.dataSearch("plate", plateType);
 
         cols = [
             "", 3, 3,
@@ -899,8 +970,8 @@ my_widget_script =
         dataSearchWell1 = my_widget_script.dataSearch("well", "" + col+row1);
         dataSearchWell2 = my_widget_script.dataSearch("well", "" + col+row2);
 
-        my_widget_script.watchValue($(".sample" + dataSearchVal), $(".well" + dataSearchWell1));
-        my_widget_script.watchValue($(".sample" + dataSearchVal), $(".well" + dataSearchWell2));
+        my_widget_script.watchValue($("." + valType + dataSearchVal), $(".plateImg"+plateSearch).find(".well" + dataSearchWell1));
+        my_widget_script.watchValue($("." + valType + dataSearchVal), $(".plateImg"+plateSearch).find(".well" + dataSearchWell2));
 
         my_widget_script.resize();
     },

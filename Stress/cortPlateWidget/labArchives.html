@@ -74,7 +74,7 @@
 </div>
 <div class="container mt-4">
     <div class="row hideView">
-        <div class="myLeftCol">Use text entry of IDs</div>
+        <div class="myLeftCol" style="color: red;">Use text entry of IDs</div>
         <div class="col"><input type="checkbox" name="usetextentry" id="useTextEntry"/></div>
     </div>
     <div class="row hideView">
@@ -123,7 +123,7 @@
                 class="fullWidth95" /></div>
 
         <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth95" />
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth95 copyPlate" data-plate="plateID"/>
         </div>
 
         <div class="col-12 col-sm-6 col-md-3">
@@ -137,13 +137,74 @@
 </div>
 
 <!-- Error Message Div -->
-<div class="container" id="errorMsg">&nbsp;</div>
-<div id="forCopy">&nbsp;</div>
+<div class="container errorMsg" id="errorMsg" data-plate="plateID">&nbsp;</div>
+<div id="forCopy" class="forCopy" data-plate="plateID">&nbsp;</div>
 
 
 <div class="container mt-2">
-    <div class="table-responsive xsTableDiv plateDiv">
-        <table class="table" id="plateImg">
+    <div class="table-responsive xsTableDiv plateDiv" data-plate="plateID">
+        <table class="table plateImg" id="plateIDImg" data-plate="plateID">
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            <h3>Plate Template - MouseID</h3>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" class="fullWidth95 copyPlate" data-plate="mouseID"/>
+        </div>
+        
+        <!-- <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
+        </div>
+        
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
+        </div> -->
+    </div>
+</div>
+
+<div class="container errorMsg" data-plate="mouseID">&nbsp;</div>
+<div class="forCopy" data-plate="mouseID">&nbsp;</div>
+<div class="container mt-2">
+    <div class="table-responsive xsTableDiv plateDiv" data-plate="mouseID">
+        <table class="table plateImg" id="mouseIDImg" data-plate="mouseID">
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            <h3>Plate Template - Time</h3>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton3" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth95 copyPlate" data-plate="time"/>
+        </div>
+        
+        <!-- <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
+        </div>
+        
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
+        </div> -->
+    </div>
+</div>
+
+<div class="container errorMsg" data-plate="time">&nbsp;</div>
+<div class="forCopy" data-plate="time">&nbsp;</div>
+<div class="container mt-2">
+    <div class="table-responsive xsTableDiv plateDiv" data-plate="time">
+        <table class="table plateImg" id="timeImg" data-plate="time">
         </table>
         <p>&nbsp;</p>
     </div>
