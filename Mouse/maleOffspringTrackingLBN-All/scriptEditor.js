@@ -572,6 +572,9 @@ my_widget_script =
             } else if($(this).hasClass("mass")){
                 $tableDiv = $(".tableDiv.mass");
                 $errorMsgDiv = $(".errorMsg.mass");
+            } else if($(this).hasClass("demo")){
+                $tableDiv = $(".tableDiv.demo");
+                $errorMsgDiv = $(".errorMsg.demo");
             }
 
             if($tableDiv && $errorMsgDiv){
@@ -585,13 +588,17 @@ my_widget_script =
             var tableID 
             var $errorMsg 
             if($(this).hasClass("maturation")) {
-                fileName = "maturation_" + $("#damID").val() + "_males";
+                fileName = "maturation_" + $("#damID").val() + "_females";
                 tableID = "maturationTable";
                 $errorMsg = $(".errorMsg.maturation");
             } else if($(this).hasClass("mass")){
-                fileName = "mass_" + $("#damID").val() + "_males";
+                fileName = "mass_" + $("#damID").val() + "_females";
                 tableID = "massTable";
                 $errorMsg = $(".errorMsg.mass");
+            } else if($(this).hasClass("demo")){
+                fileName = "demo_" + $("#damID").val() + "_females";
+                tableID = "demoTable";
+                $errorMsg = $(".errorMsg.demo");
             }
 
             if(fileName && tableID && $errorMsg){
@@ -619,6 +626,12 @@ my_widget_script =
                 $tableDiv = $(".tableDiv.mass");
                 $errorMsg = $(".errorMsg.mass");
                 $divForCopy = $(".forCopy.mass");
+            } else if($(this).hasClass("demo")) {
+                $copyHead = $(".copyHead.demo");
+                $tableToCopy = $("#demoTable");
+                $tableDiv = $(".tableDiv.demo");
+                $errorMsg = $(".errorMsg.demo");
+                $divForCopy = $(".forCopy.demo");
             }
             
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy);
@@ -1333,6 +1346,7 @@ my_widget_script =
         for(i=0; i < numMice; i++) {
             var mouseNum = i + 1;
             var $tr = $massTable.find("tr.mouse"+mouseNum).html("");
+            $tr.append('<td class="mouseID'+mouseNum+'_calc">&nbsp;</td>')
             for (j = 0; j < pnds.length; j ++ ){
                 var pnd = pnds[j];
                 $tr.append(

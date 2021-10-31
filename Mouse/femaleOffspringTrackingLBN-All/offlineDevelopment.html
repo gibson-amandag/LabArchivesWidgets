@@ -252,16 +252,6 @@ $(document).ready(function () {
 
     initDynamicContent: function (parsedJson) {
         var maxOffspring = 5;
-        // console.log("Parsed Json");
-        // console.log(parsedJson);
-        // console.log(
-        //     "Tail Marks: "  + parsedJson.tailMarks + "\n" + 
-        //     "addedRows_VOs: " + parsedJson.addedRows_VOs + "\n" + 
-        //     "addedRows_1Es: " + parsedJson.addedRows_1Es + "\n" +
-        //     "allVO_dates: " + parsedJson.allVO_dates + "\n" + 
-        //     "all1E_dates: " + parsedJson.all1E_dates
-        // );
-
         //The first time that this runs when making a new widget, tailMarks (and the other components) are undefined
         //parsedJson (json_data) is just an object with various methods, but it doesn't have these parameters yet
         if(parsedJson.tailMarks) {
@@ -672,6 +662,9 @@ $(document).ready(function () {
             } else if($(this).hasClass("mass")){
                 $tableDiv = $(".tableDiv.mass");
                 $errorMsgDiv = $(".errorMsg.mass");
+            } else if($(this).hasClass("demo")){
+                $tableDiv = $(".tableDiv.demo");
+                $errorMsgDiv = $(".errorMsg.demo");
             }
 
             if($tableDiv && $errorMsgDiv){
@@ -692,6 +685,10 @@ $(document).ready(function () {
                 fileName = "mass_" + $("#damID").val() + "_females";
                 tableID = "massTable";
                 $errorMsg = $(".errorMsg.mass");
+            } else if($(this).hasClass("demo")){
+                fileName = "demo_" + $("#damID").val() + "_females";
+                tableID = "demoTable";
+                $errorMsg = $(".errorMsg.demo");
             }
 
             if(fileName && tableID && $errorMsg){
@@ -701,11 +698,11 @@ $(document).ready(function () {
 
         //When the copy button is clicked, run the copyTable function
         $(".copyDataButton").on("click", function () {
-            var $copyHead //TO DO add table
-            var $tableToCopy //TO DO add table
-            var $tableDiv //TO DO add tableDiv
-            var $errorMsg //TO DO add error message
-            var $divForCopy //TO DO add div where the table copies to
+            var $copyHead
+            var $tableToCopy
+            var $tableDiv
+            var $errorMsg
+            var $divForCopy
 
             if($(this).hasClass("maturation")) {
                 $copyHead = $(".copyHead.maturation");
@@ -719,6 +716,12 @@ $(document).ready(function () {
                 $tableDiv = $(".tableDiv.mass");
                 $errorMsg = $(".errorMsg.mass");
                 $divForCopy = $(".forCopy.mass");
+            } else if($(this).hasClass("demo")) {
+                $copyHead = $(".copyHead.demo");
+                $tableToCopy = $("#demoTable");
+                $tableDiv = $(".tableDiv.demo");
+                $errorMsg = $(".errorMsg.demo");
+                $divForCopy = $(".forCopy.demo");
             }
             
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy);
@@ -779,13 +782,6 @@ $(document).ready(function () {
             }
 
 
-            // console.log(
-            //     "Tail Mark: "  + tailMark + "\n" + 
-            //     "addedRows_VO: " + addedRows_VO + "\n" + 
-            //     "addedRows_1E: " + addedRows_1E + "\n" +
-            //     "dates_VO: " + dates_VO + "\n" + 
-            //     "dates_1E: " + dates_1E
-            // );
             if(tailMark) {
                 tailMarks[j] = tailMark;
             } else {
@@ -1497,6 +1493,7 @@ $(document).ready(function () {
         my_widget_script.make1EStatusMsg(numMice);
         my_widget_script.makeDemoEntries(numMice);
         my_widget_script.makeMassRows(numMice);
+        my_widget_script.makeDemoRows(numMice);
     },
 
     makeVOStatusMsg: function (numMice) {
@@ -1637,6 +1634,7 @@ $(document).ready(function () {
         for(i=0; i < numMice; i++) {
             var mouseNum = i + 1;
             var $tr = $massTable.find("tr.mouse"+mouseNum).html("");
+            $tr.append('<td class="mouseID'+mouseNum+'_calc">&nbsp;</td>')
             for (j = 0; j < pnds.length; j ++ ){
                 var pnd = pnds[j];
                 $tr.append(
@@ -1645,6 +1643,22 @@ $(document).ready(function () {
                     })
                 )
             }
+        }
+    },
+
+    makeDemoRows: function (numMice) {
+        var $demoTable = $("#demoTable");
+        
+        for(i=0; i < numMice; i++) {
+            var mouseNum = i + 1;
+            var $tr = $demoTable.find("tr.mouse"+mouseNum).html("");
+            $tr.append(
+                '<td class="mouseID'+mouseNum+'_calc"></td>'+
+                '<td class="earTag'+mouseNum+'_calc"></td>'+
+                '<td>F</td>'+
+                '<td class="damID_calc"></td>'+
+                '<td class="cageNum_calc"></td>'
+                )
         }
     }
 };
@@ -2973,6 +2987,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <table id="massTable" class="table">
                     <thead>
                         <tr>
+                            <th>mouseID</th>
                             <th>Mass_P22</th>
                             <th>Mass_P23</th>
                             <th>Mass_P24</th>
@@ -2985,6 +3000,65 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                             <th>Mass_P70</th>
                             <th>Mass_P71</th>
                             <th>Mass_P72</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="mouse1">
+                            &nbsp;
+                        </tr>
+                        <tr class="mouse2">
+                            &nbsp;
+                        </tr>
+                        <tr class="mouse3">
+                            &nbsp;
+                        </tr>
+                        <tr class="mouse4">
+                            &nbsp;
+                        </tr>
+                        <tr class="mouse5">
+                            &nbsp;
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h3>Demographics</h3>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md"><input id="toggleTable_demo" name="toggletable_demo" type="button"
+                    value="Show/Hide Table" class="fullWidth toggleTable demo" />
+            </div>
+    
+            <div class="col-12 col-sm-6 col-md"><input id="toCSV_demo" name="tocsv_demo" type="button" value="Save CSV"
+                    class="fullWidth toCSV demo" /></div>
+    
+            <div class="col-12 col-sm-6 col-md">
+                <input id="copyDataButton_demo" name="copydatabutton_demo" type="button" value="Copy Data" class="fullWidth copyDataButton demo" />
+                <br />Copy Table Head? <input id="copyHead_demo" name="copyhead" type="checkbox" class="copyHead demo"/>
+            </div>
+        </div>
+    
+        <div id="forCopy_demo" class="forCopy demo">&nbsp;</div>
+        <!-- Error Message Div -->
+        <div class="container errorMsg demo" id="errorMsg_demo">&nbsp;</div>
+    
+        <div class="row mt-2">
+            <div class="col-12 table-responsive xsTableDiv tableDiv demo" id="demoTableDiv">
+                <table id="demoTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>mouseID</th>
+                            <th>earTag</th>
+                            <th>sex</th>
+                            <th>damID</th>
+                            <th>weanCage</th>
                         </tr>
                     </thead>
                     <tbody>

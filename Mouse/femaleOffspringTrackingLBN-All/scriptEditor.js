@@ -192,16 +192,6 @@ my_widget_script =
 
     initDynamicContent: function (parsedJson) {
         var maxOffspring = 5;
-        // console.log("Parsed Json");
-        // console.log(parsedJson);
-        // console.log(
-        //     "Tail Marks: "  + parsedJson.tailMarks + "\n" + 
-        //     "addedRows_VOs: " + parsedJson.addedRows_VOs + "\n" + 
-        //     "addedRows_1Es: " + parsedJson.addedRows_1Es + "\n" +
-        //     "allVO_dates: " + parsedJson.allVO_dates + "\n" + 
-        //     "all1E_dates: " + parsedJson.all1E_dates
-        // );
-
         //The first time that this runs when making a new widget, tailMarks (and the other components) are undefined
         //parsedJson (json_data) is just an object with various methods, but it doesn't have these parameters yet
         if(parsedJson.tailMarks) {
@@ -612,6 +602,9 @@ my_widget_script =
             } else if($(this).hasClass("mass")){
                 $tableDiv = $(".tableDiv.mass");
                 $errorMsgDiv = $(".errorMsg.mass");
+            } else if($(this).hasClass("demo")){
+                $tableDiv = $(".tableDiv.demo");
+                $errorMsgDiv = $(".errorMsg.demo");
             }
 
             if($tableDiv && $errorMsgDiv){
@@ -632,6 +625,10 @@ my_widget_script =
                 fileName = "mass_" + $("#damID").val() + "_females";
                 tableID = "massTable";
                 $errorMsg = $(".errorMsg.mass");
+            } else if($(this).hasClass("demo")){
+                fileName = "demo_" + $("#damID").val() + "_females";
+                tableID = "demoTable";
+                $errorMsg = $(".errorMsg.demo");
             }
 
             if(fileName && tableID && $errorMsg){
@@ -641,11 +638,11 @@ my_widget_script =
 
         //When the copy button is clicked, run the copyTable function
         $(".copyDataButton").on("click", function () {
-            var $copyHead //TO DO add table
-            var $tableToCopy //TO DO add table
-            var $tableDiv //TO DO add tableDiv
-            var $errorMsg //TO DO add error message
-            var $divForCopy //TO DO add div where the table copies to
+            var $copyHead
+            var $tableToCopy
+            var $tableDiv
+            var $errorMsg
+            var $divForCopy
 
             if($(this).hasClass("maturation")) {
                 $copyHead = $(".copyHead.maturation");
@@ -659,6 +656,12 @@ my_widget_script =
                 $tableDiv = $(".tableDiv.mass");
                 $errorMsg = $(".errorMsg.mass");
                 $divForCopy = $(".forCopy.mass");
+            } else if($(this).hasClass("demo")) {
+                $copyHead = $(".copyHead.demo");
+                $tableToCopy = $("#demoTable");
+                $tableDiv = $(".tableDiv.demo");
+                $errorMsg = $(".errorMsg.demo");
+                $divForCopy = $(".forCopy.demo");
             }
             
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy);
@@ -719,13 +722,6 @@ my_widget_script =
             }
 
 
-            // console.log(
-            //     "Tail Mark: "  + tailMark + "\n" + 
-            //     "addedRows_VO: " + addedRows_VO + "\n" + 
-            //     "addedRows_1E: " + addedRows_1E + "\n" +
-            //     "dates_VO: " + dates_VO + "\n" + 
-            //     "dates_1E: " + dates_1E
-            // );
             if(tailMark) {
                 tailMarks[j] = tailMark;
             } else {
@@ -1437,6 +1433,7 @@ my_widget_script =
         my_widget_script.make1EStatusMsg(numMice);
         my_widget_script.makeDemoEntries(numMice);
         my_widget_script.makeMassRows(numMice);
+        my_widget_script.makeDemoRows(numMice);
     },
 
     makeVOStatusMsg: function (numMice) {
@@ -1577,6 +1574,7 @@ my_widget_script =
         for(i=0; i < numMice; i++) {
             var mouseNum = i + 1;
             var $tr = $massTable.find("tr.mouse"+mouseNum).html("");
+            $tr.append('<td class="mouseID'+mouseNum+'_calc">&nbsp;</td>')
             for (j = 0; j < pnds.length; j ++ ){
                 var pnd = pnds[j];
                 $tr.append(
@@ -1585,6 +1583,22 @@ my_widget_script =
                     })
                 )
             }
+        }
+    },
+
+    makeDemoRows: function (numMice) {
+        var $demoTable = $("#demoTable");
+        
+        for(i=0; i < numMice; i++) {
+            var mouseNum = i + 1;
+            var $tr = $demoTable.find("tr.mouse"+mouseNum).html("");
+            $tr.append(
+                '<td class="mouseID'+mouseNum+'_calc"></td>'+
+                '<td class="earTag'+mouseNum+'_calc"></td>'+
+                '<td>F</td>'+
+                '<td class="damID_calc"></td>'+
+                '<td class="cageNum_calc"></td>'
+                )
         }
     }
 };

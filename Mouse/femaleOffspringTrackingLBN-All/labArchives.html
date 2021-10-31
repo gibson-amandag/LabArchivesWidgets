@@ -1,4 +1,3 @@
-<!-- #region HTML -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -1294,6 +1293,7 @@
                 <table id="massTable" class="table">
                     <thead>
                         <tr>
+                            <th>mouseID</th>
                             <th>Mass_P22</th>
                             <th>Mass_P23</th>
                             <th>Mass_P24</th>
@@ -1306,6 +1306,65 @@
                             <th>Mass_P70</th>
                             <th>Mass_P71</th>
                             <th>Mass_P72</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="mouse1">
+                            &nbsp;
+                        </tr>
+                        <tr class="mouse2">
+                            &nbsp;
+                        </tr>
+                        <tr class="mouse3">
+                            &nbsp;
+                        </tr>
+                        <tr class="mouse4">
+                            &nbsp;
+                        </tr>
+                        <tr class="mouse5">
+                            &nbsp;
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h3>Demographics</h3>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md"><input id="toggleTable_demo" name="toggletable_demo" type="button"
+                    value="Show/Hide Table" class="fullWidth toggleTable demo" />
+            </div>
+    
+            <div class="col-12 col-sm-6 col-md"><input id="toCSV_demo" name="tocsv_demo" type="button" value="Save CSV"
+                    class="fullWidth toCSV demo" /></div>
+    
+            <div class="col-12 col-sm-6 col-md">
+                <input id="copyDataButton_demo" name="copydatabutton_demo" type="button" value="Copy Data" class="fullWidth copyDataButton demo" />
+                <br />Copy Table Head? <input id="copyHead_demo" name="copyhead" type="checkbox" class="copyHead demo"/>
+            </div>
+        </div>
+    
+        <div id="forCopy_demo" class="forCopy demo">&nbsp;</div>
+        <!-- Error Message Div -->
+        <div class="container errorMsg demo" id="errorMsg_demo">&nbsp;</div>
+    
+        <div class="row mt-2">
+            <div class="col-12 table-responsive xsTableDiv tableDiv demo" id="demoTableDiv">
+                <table id="demoTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>mouseID</th>
+                            <th>earTag</th>
+                            <th>sex</th>
+                            <th>damID</th>
+                            <th>weanCage</th>
                         </tr>
                     </thead>
                     <tbody>
