@@ -8,43 +8,38 @@ my_widget_script =
     },
 
     addEventListeners: function () {
-        //Show/hide the table
-        $("#toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
-            var $table //TO DO add table
+        $(".toggleTable").on("click", function () {
+            var tableID = $(this).data("table");
+            var $table = $("#"+tableID);
             my_widget_script.toggleTableFuncs($table);
         });
 
-        //when the calculate button is clicked, run the calcValues function
-        $('#calculate').on("click", function () {
-            my_widget_script.calcTableFuncs();
-        });
-
-        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
-        $('#toCSV').on("click", function () {
-            var fileName //TO DO add fileName
-            var tableID //TO DO add tableID
-            var $errorMsg //TO DO add error message as jQuery
+        $('.toCSV').on("click", function () {
+            var tableID = $(this).data("table");
+            var dateToday = luxon.DateTime.now().toISODate(); // Luxon has to be added in HTML
+            var fileName = "table_"+tableID+"_"+dateToday;
+            var $errorMsg = $("#errorMsg");
             
             my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
         });
 
-        //When the copy button is clicked, run the copyTable function
-        $("#copyDataButton").on("click", function () {
-            var $copyHead //TO DO add table
-            var $tableToCopy //TO DO add table
-            var $tableDiv //TO DO add tableDiv
-            var $errorMsg //TO DO add error message
-            var $divForCopy //TO DO add div where the table copies to
-            var $transpose //TO DO add transpose checkbox
+       $(".copyData").on("click", function () {
+            var tableID = $(this).data("table");
+            // Get the data-table text string to add to the query to find the table
+            var tableSearch = my_widget_script.tableSearch(tableID);
+            // Find the element that tells whether or not to copy the table
+            var $copyHead = $(".copyHead"+tableSearch);
+            var $transpose = $(".transpose"+tableSearch);
+            var $tableToCopy = $("#"+tableID);
+            var $tableDiv = $tableToCopy.parent();
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
             
             my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose)
         });
     },
 
     setUpInitialState: function () {
-        //Run the calculate values method to fill with the loaded data
-        this.calcValues();
-
         this.watchValue($elToWatch, $eltoUpdate);
     },
     
@@ -74,28 +69,41 @@ my_widget_script =
     },
 
     /**
-    * This function takes form input and adds them to the corresponding
-    * divs within the output table.
-    * 
-    * For elements that are blank or NaN, the function provides an output of NA
-    * 
-    * Calls the resize function at the end
-    */
-    calcValues: function () {
-        //TO DO add calc functions
+     * Build a string for search for a HTML element that has a particular data value
+     * ex: mouseSearch = dataSearch("mouse", 1) -> mouseSearch = "[data-mouse=1]"
+     * $(".mouseID" + mouseSearch) would find an element with class mouseID and data-mouse = 1
+     * 
+     * @param {*} dataName String for the name of the data attribute within the HTML form 
+     * @param {*} dataValue Value you want to match
+     * @returns A text string that can be added to a jQuery search for an element that matches the data value
+     */
+    dataSearch: function (dataName, dataValue) {
+        var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
+        return dataSearch
+    },
 
-        $("#outTable tr").each(function () { //for each row
-            $("td", this).each(function () { //for each cell
-                var value = $(this).text(); //get the value of the text
-                if (value === "" || value === "NaN") { //if blank or NaN
-                    $(this).text("NA"); //make NA
-                }
-            })
-        });
+    /**
+     * Builds a string "[data-table=table]". See dataSearch explanation
+     * @param {*} table string for data-table value that you want to match
+     * @returns 
+     */
+    tableSearch: function (table){
+        var tableSearch = my_widget_script.dataSearch("table", table);
+        return tableSearch;
+    },
 
-        //resize the tableDiv
+    /**
+     * This either shows or hides (toggles) the table provided as a parameter. 
+     * It checks if the data is valid, but this doesn't stop it from running.
+     * It resizes the widget in the process.
+     * 
+     * @param {*} $table - jQuery object for table
+     */
+    toggleTableFuncs: function ($table) {
         my_widget_script.resize();
-
+        my_widget_script.data_valid_form();
+        $table.toggle();
+        my_widget_script.parent_class.resize_container();
     },
 
     /**
@@ -188,6 +196,7 @@ my_widget_script =
      * @param {*} $divForCopy - where the temp textarea should be added
      * @param {*} transpose - true if table should be transposed
      */
+     
      copyTable: function ($table, copyHead, $divForCopy, transpose) {
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
         var rows = [];
@@ -222,37 +231,28 @@ my_widget_script =
         $temp.appendTo($divForCopy).select(); //add temp to tableDiv and select
         document.execCommand("copy"); //copy the "selected" text
         $temp.remove(); //remove temp
+        // Doesn't work within LA b/c of permissions, but would be easier way to copy w/o appending to page
+        // navigator.clipboard.writeText(rows.join("\n")); 
     },
 
     /**
      * Set of functions when toggleTableButton clicked
-     * resize, run data_valid_form, run calcValues, 
+     * resize, run data_valid_form,
      * toggle the table (show/hide), resize the container
      * 
      * @param {*} $table - jQuery object that is the table that will be shown/hidden
      */
     toggleTableFuncs: function ($table) {
         my_widget_script.resize();
-        my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
-        my_widget_script.calcValues();
+        my_widget_script.data_valid_form(); //run to give error, but allow to show regardless
         $table.toggle();
         my_widget_script.parent_class.resize_container();
     },
 
     /**
-     * Set of functions when calcValuesButton clicked
-     * Run data_valid_form
-     * Calculate values
-     */
-    calcTableFuncs: function() {
-        my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
-        my_widget_script.calcValues();
-    },
-
-    /**
      * Set of functions when toCSVButton clicked
      * 
-     * Checked if data is valid, then re-calculates values, exports the table to a CSV
+     * Checked if data is valid, exports the table to a CSV
      * Updates the error message accordingly
      * 
      * @param {string} fileName - fileName for the CSV that will be produced
@@ -263,7 +263,6 @@ my_widget_script =
         var data_valid = my_widget_script.data_valid_form();
 
         if (data_valid) {
-            my_widget_script.calcValues();
             my_widget_script.exportTableToCSV(fileName, tableID);
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
         } else {
@@ -273,7 +272,7 @@ my_widget_script =
 
     /**
      * The steps that should be taken when the copy data button is pressed
-     * Checks if the $copyHead is checked, runs the calcValues function and then
+     * Checks if the $copyHead is checked, and then
      * checks if the data is valid. If it is, it shows the table, resizes, and then
      * copies the table (via a temporary textarea that is then removed). 
      * 
