@@ -301,6 +301,12 @@ my_widget_script =
             my_widget_script.resize();
         });
 
+        $("#toggleTableDemo").on("click", function () { //when the showTable button is clicked. Run this function
+            my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+            $("#offspringDemoOutDiv").toggle();
+            my_widget_script.resize();
+        });
+
         $("#toggleTableDam").on("click", function () { //when the showTable button is clicked. Run this function
             my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
             $("#damOutDiv").toggle();
@@ -312,6 +318,10 @@ my_widget_script =
             my_widget_script.runCSV_buttonFunc("offspring");
         });
 
+        $('#toCSVDemo').on("click", function () {
+            my_widget_script.runCSV_buttonFunc("demo");
+        });
+
         //when the toCSV button is clicked, run the exportTableToCSV function
         $('#toCSVDam').on("click", function () {
            my_widget_script.runCSV_buttonFunc("dam");
@@ -320,6 +330,11 @@ my_widget_script =
         //When the copy button is clicked, run the copyTable function
         $("#copyDataButton").on("click", function () {
             my_widget_script.copyData_buttonFunc("offspring", $("#copyHead"));
+        });
+
+        //When the copy button is clicked, run the copyTable function
+        $("#copyDataButtonDemo").on("click", function () {
+            my_widget_script.copyData_buttonFunc("demo", $("#copyHeadDemo"));
         });
 
         //When the copy button is clicked, run the copyTable function
@@ -1011,6 +1026,7 @@ my_widget_script =
         var offID = damID + "_" + earTag;
         var dataSearch = my_widget_script.dataSearch("mouse", mouseNum);
         $(".idCalc"+dataSearch).text(offID);
+        $(".earTagCalc"+dataSearch).text(earTag);
     },
 
     updateOffspringSex: function (mouseNum, sex) {
@@ -1281,6 +1297,7 @@ my_widget_script =
 
     createRow_summaryMassTable: function () {
         var $table = $("#offspringMassOutTable");
+        var $demoTable = $("#offspringDemoOutTable");
         var lastMouseNum = $table.find(".myRow").last().data("mouse");
         var mouseNum;
         if(lastMouseNum){
@@ -1306,6 +1323,33 @@ my_widget_script =
                 )
             )
         );
+
+        $demoTable.find("tbody").append(
+            $('<tr></tr>', { //add a new row
+                "class": "myRow added",
+                "data-mouse": mouseNum
+            }).append( //Mouse_ID
+                $('<td></td>', {
+                    "class": "idCalc",
+                    "data-mouse": mouseNum
+                })
+            ).append( //earTag
+                $('<td></td>', {
+                    "class": "earTagCalc",
+                    "data-mouse": mouseNum
+                })
+            ).append( // sex
+                $('<td></td>', {
+                    "class": "sexCalc",
+                    "data-mouse": mouseNum
+                })
+            ).append( // damID
+                $('<td></td>', {
+                    "class": "damID_calc",
+                    "data-mouse": mouseNum
+                })
+            )
+        )
 
         var massDays = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
         for(i = 0; i < massDays.length; i++ ){
@@ -1486,6 +1530,9 @@ my_widget_script =
         } else if (whichGeneration === "offspring") {
             fileName = "massOffspring";
             outTable = "offspringMassOutTable";
+        } else if(whichGeneration === "demo"){
+            fileName = "offspringDemo";
+            outTable = "offspringDemoOutTable";
         }
 
         var data_valid = my_widget_script.data_valid_form();
@@ -1564,6 +1611,9 @@ my_widget_script =
         } else if (whichGeneration === "offspring") {
             $outDiv = $("#offspringMassOutDiv");
             $outTable = $("#offspringMassOutTable");
+        } else if (whichGeneration === "demo") {
+            $outDiv = $("#offspringDemoOutDiv");
+            $outTable = $("#offspringDemoOutTable");
         }
 
         var data_valid = my_widget_script.data_valid_form();

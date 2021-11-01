@@ -1,3 +1,4 @@
+<!-- #region HTML -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -93,7 +94,7 @@
         <div class="myLeftCol"><span style="color:red">*</span><span style="color:blue">#</span>Dam ID:</div>
         <!-- myLeftCol adds additional classes in init function-->
 
-        <div class="col"><input class="needForTable fullWidth" id="damID" name="damid" required="" /></div>
+        <div class="col"><input class="needForTable fullWidth simpleCalc" id="damID" name="damid" required="" /></div>
     </div>
 
     <div class="row align-items-center mt-2">
@@ -518,6 +519,43 @@
             </thead>
             <tbody>
                 <!-- TO-DO Change the create row info for this -->
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+<div class="container mt-2 selectPara">
+    <div class="row mt-2">
+        <h3 class="col">Offspring Demo Output Table</h3>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="toggleTableDemo" name="toggletabledemo" type="button"
+                value="Show/Hide Table" /></div>
+
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="toCSVDemo" name="tocsvdemo" type="button"
+                value="Save CSV" /></div>
+
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="copyDataButtonDemo" name="copydatabuttondemo"
+                type="button" value="Copy Data" /><br />
+            Copy Head? <input id="copyHeadDemo" name="copyheaddemo" type="checkbox" />
+            <p>&nbsp;</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2" id="offspringDemoOutDiv" style="display:none">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="offspringDemoOutTable">
+            <thead>
+                <tr class="original">
+                    <th>mouseID</th>
+                    <th>earTag</th>
+                    <th>sex</th>
+                    <th>damID</th>
+                </tr>
+            </thead>
+            <tbody>
             </tbody>
         </table>
         <p>&nbsp;</p>

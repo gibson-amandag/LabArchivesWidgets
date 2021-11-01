@@ -359,6 +359,12 @@ $(document).ready(function () {
             my_widget_script.resize();
         });
 
+        $("#toggleTableDemo").on("click", function () { //when the showTable button is clicked. Run this function
+            my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+            $("#offspringDemoOutDiv").toggle();
+            my_widget_script.resize();
+        });
+
         $("#toggleTableDam").on("click", function () { //when the showTable button is clicked. Run this function
             my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
             $("#damOutDiv").toggle();
@@ -370,6 +376,10 @@ $(document).ready(function () {
             my_widget_script.runCSV_buttonFunc("offspring");
         });
 
+        $('#toCSVDemo').on("click", function () {
+            my_widget_script.runCSV_buttonFunc("demo");
+        });
+
         //when the toCSV button is clicked, run the exportTableToCSV function
         $('#toCSVDam').on("click", function () {
            my_widget_script.runCSV_buttonFunc("dam");
@@ -378,6 +388,11 @@ $(document).ready(function () {
         //When the copy button is clicked, run the copyTable function
         $("#copyDataButton").on("click", function () {
             my_widget_script.copyData_buttonFunc("offspring", $("#copyHead"));
+        });
+
+        //When the copy button is clicked, run the copyTable function
+        $("#copyDataButtonDemo").on("click", function () {
+            my_widget_script.copyData_buttonFunc("demo", $("#copyHeadDemo"));
         });
 
         //When the copy button is clicked, run the copyTable function
@@ -1069,6 +1084,7 @@ $(document).ready(function () {
         var offID = damID + "_" + earTag;
         var dataSearch = my_widget_script.dataSearch("mouse", mouseNum);
         $(".idCalc"+dataSearch).text(offID);
+        $(".earTagCalc"+dataSearch).text(earTag);
     },
 
     updateOffspringSex: function (mouseNum, sex) {
@@ -1339,6 +1355,7 @@ $(document).ready(function () {
 
     createRow_summaryMassTable: function () {
         var $table = $("#offspringMassOutTable");
+        var $demoTable = $("#offspringDemoOutTable");
         var lastMouseNum = $table.find(".myRow").last().data("mouse");
         var mouseNum;
         if(lastMouseNum){
@@ -1364,6 +1381,33 @@ $(document).ready(function () {
                 )
             )
         );
+
+        $demoTable.find("tbody").append(
+            $('<tr></tr>', { //add a new row
+                "class": "myRow added",
+                "data-mouse": mouseNum
+            }).append( //Mouse_ID
+                $('<td></td>', {
+                    "class": "idCalc",
+                    "data-mouse": mouseNum
+                })
+            ).append( //earTag
+                $('<td></td>', {
+                    "class": "earTagCalc",
+                    "data-mouse": mouseNum
+                })
+            ).append( // sex
+                $('<td></td>', {
+                    "class": "sexCalc",
+                    "data-mouse": mouseNum
+                })
+            ).append( // damID
+                $('<td></td>', {
+                    "class": "damID_calc",
+                    "data-mouse": mouseNum
+                })
+            )
+        )
 
         var massDays = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
         for(i = 0; i < massDays.length; i++ ){
@@ -1544,6 +1588,9 @@ $(document).ready(function () {
         } else if (whichGeneration === "offspring") {
             fileName = "massOffspring";
             outTable = "offspringMassOutTable";
+        } else if(whichGeneration === "demo"){
+            fileName = "offspringDemo";
+            outTable = "offspringDemoOutTable";
         }
 
         var data_valid = my_widget_script.data_valid_form();
@@ -1622,6 +1669,9 @@ $(document).ready(function () {
         } else if (whichGeneration === "offspring") {
             $outDiv = $("#offspringMassOutDiv");
             $outTable = $("#offspringMassOutTable");
+        } else if (whichGeneration === "demo") {
+            $outDiv = $("#offspringDemoOutDiv");
+            $outTable = $("#offspringDemoOutTable");
         }
 
         var data_valid = my_widget_script.data_valid_form();
@@ -1681,7 +1731,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("view", function() {return form_script.test_data()});
+      form_script.init("edit", function() {return form_script.test_data()});
 
 
     }
@@ -1795,7 +1845,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="myLeftCol"><span style="color:red">*</span><span style="color:blue">#</span>Dam ID:</div>
         <!-- myLeftCol adds additional classes in init function-->
 
-        <div class="col"><input class="needForTable fullWidth" id="damID" name="damid" required="" /></div>
+        <div class="col"><input class="needForTable fullWidth simpleCalc" id="damID" name="damid" required="" /></div>
     </div>
 
     <div class="row align-items-center mt-2">
@@ -2220,6 +2270,43 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </thead>
             <tbody>
                 <!-- TO-DO Change the create row info for this -->
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+<div class="container mt-2 selectPara">
+    <div class="row mt-2">
+        <h3 class="col">Offspring Demo Output Table</h3>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="toggleTableDemo" name="toggletabledemo" type="button"
+                value="Show/Hide Table" /></div>
+
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="toCSVDemo" name="tocsvdemo" type="button"
+                value="Save CSV" /></div>
+
+        <div class="col-12 col-sm-4 col-lg-3"><input class="fullWidth" id="copyDataButtonDemo" name="copydatabuttondemo"
+                type="button" value="Copy Data" /><br />
+            Copy Head? <input id="copyHeadDemo" name="copyheaddemo" type="checkbox" />
+            <p>&nbsp;</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2" id="offspringDemoOutDiv" style="display:none">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="offspringDemoOutTable">
+            <thead>
+                <tr class="original">
+                    <th>mouseID</th>
+                    <th>earTag</th>
+                    <th>sex</th>
+                    <th>damID</th>
+                </tr>
+            </thead>
+            <tbody>
             </tbody>
         </table>
         <p>&nbsp;</p>
