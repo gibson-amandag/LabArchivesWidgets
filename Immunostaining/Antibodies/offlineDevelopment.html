@@ -498,24 +498,24 @@ $(document).ready(function () {
     },
 
     alexaFluorDyes: {
-        350: {absorption: 346, emission: 442, color: "blue", csscolor: "blue"},
-        405: {absorption: 401, emission: 421, color: "blue", csscolor: "blue"},
-        430: {absorption: 433, emission: 541, color: "green/yellow", csscolor: "greenyellow"},
-        488: {absorption: 496, emission: 519, color: "green", csscolor: "gree"},
-        532: {absorption: 532, emission: 553, color: "yellow", csscolor: "yellow"},
-        546: {absorption: 556, emission: 573, color: "orange", csscolor: "orange"},
-        555: {absorption: 555, emission: 565, color: "orange", csscolor: "orange"},
-        568: {absorption: 578, emission: 603, color: "orange/red", csscolor: "orangered"},
-        594: {absorption: 590, emission: 617, color: "red", csscolor: "red"},
-        610: {absorption: 612, emission: 628, color: "red", csscolor: "red"},
-        633: {absorption: 632, emission: 647, color: "far red", csscolor: "darkred"},
-        635: {absorption: 633, emission: 647, color: "far red", csscolor: "darkred"},
-        647: {absorption: 650, emission: 665, color: "near-ir", csscolor: "grey"},
-        660: {absorption: 663, emission: 690, color: "near-ir", csscolor: "grey"},
-        680: {absorption: 679, emission: 702, color: "near-ir", csscolor: "grey"},
-        700: {absorption: 702, emission: 723, color: "near-ir", csscolor: "grey"},
-        750: {absorption: 749, emission: 775, color: "near-ir", csscolor: "grey"},
-        790: {absorption: 784, emission: 814, color: "near-ir", csscolor: "grey"},
+        350: {absorption: 346, emission: 442, cssTextColor: "white", color: "blue", cssBackColor: "blue"},
+        405: {absorption: 401, emission: 421, cssTextColor: "white", color: "blue", cssBackColor: "blue"},
+        430: {absorption: 433, emission: 541, cssTextColor: "black", color: "green/yellow", cssBackColor: "greenyellow"},
+        488: {absorption: 496, emission: 519, cssTextColor: "black", color: "green", cssBackColor: "green"},
+        532: {absorption: 532, emission: 553, cssTextColor: "black", color: "yellow", cssBackColor: "yellow"},
+        546: {absorption: 556, emission: 573, cssTextColor: "black", color: "orange", cssBackColor: "orange"},
+        555: {absorption: 555, emission: 565, cssTextColor: "black", color: "orange", cssBackColor: "orange"},
+        568: {absorption: 578, emission: 603, cssTextColor: "white", color: "orange/red", cssBackColor: "orangered"},
+        594: {absorption: 590, emission: 617, cssTextColor: "white", color: "red", cssBackColor: "red"},
+        610: {absorption: 612, emission: 628, cssTextColor: "white", color: "red", cssBackColor: "red"},
+        633: {absorption: 632, emission: 647, cssTextColor: "white", color: "far red", cssBackColor: "darkred"},
+        635: {absorption: 633, emission: 647, cssTextColor: "white", color: "far red", cssBackColor: "darkred"},
+        647: {absorption: 650, emission: 665, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
+        660: {absorption: 663, emission: 690, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
+        680: {absorption: 679, emission: 702, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
+        700: {absorption: 702, emission: 723, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
+        750: {absorption: 749, emission: 775, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
+        790: {absorption: 784, emission: 814, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
     },
 
     primaryAbsNums: [],
@@ -596,6 +596,7 @@ $(document).ready(function () {
         }
 
         $(".abName"+search).text(name);
+        my_widget_script.resize();
     },
 
     capitalize: function (string) {
@@ -611,6 +612,53 @@ $(document).ready(function () {
             $other.css("height", thisScrollHeight).css("overflow-y", "hidden");
         } else {
             $this.next(".ifOther").hide();
+        }
+        my_widget_script.resize();
+    },
+
+    colorFluorOptions: function () {
+        var $selection = $("select.alexafluor");
+        $selection.find("option").each(function() {
+            var val = $(this).val();
+            if(val !== "Other"){
+                var thisAF = my_widget_script.alexaFluorDyes[val];
+                $(this).css("background-color", thisAF.cssBackColor).css(
+                    "color", thisAF.cssTextColor
+                );
+            }
+        })
+    },
+
+    updateFluorInfo: function ($el) {
+        var thisVal = $el.val();
+
+        var abType = $el.data("abtype");
+        var abNum = $el.data("abnum");
+        var abSearch = my_widget_script.abSearch(abType, abNum);
+        var fieldsToUpdate = ["color", "absorption", "emission"];
+        
+        if(thisVal != "Other"){
+            var thisAF = my_widget_script.alexaFluorDyes[thisVal];
+    
+            for(i = 0; i<fieldsToUpdate.length; i++){
+                var field = fieldsToUpdate[i];
+                var watchSearch = my_widget_script.watchSearch(field);
+                var calcSearch = my_widget_script.calcSearch(field);
+                $(abSearch + watchSearch).val(thisAF[field]);
+                $(abSearch + calcSearch).html(thisAF[field]);
+            }
+            $(my_widget_script.calcSearch("color")+abSearch).css("background-color", thisAF.cssBackColor).css("color", thisAF.cssTextColor);
+            $(".alexafluor"+abSearch).css("background-color", thisAF.cssBackColor).css("color", thisAF.cssTextColor);
+        } else{
+            for(i = 0; i<fieldsToUpdate.length; i++){
+                var field = fieldsToUpdate[i];
+                var watchSearch = my_widget_script.watchSearch(field);
+                var calcSearch = my_widget_script.calcSearch(field);
+                $(abSearch + watchSearch).val("");
+                $(abSearch + calcSearch).html("");
+            }
+            $(my_widget_script.calcSearch("color")+abSearch).css("background-color", "").css("color", "black");
+            $(".alexafluor"+abSearch).css("background-color", "").css("color", "black");
         }
         my_widget_script.resize();
     },
@@ -810,6 +858,7 @@ $(document).ready(function () {
                     )
                 ).on("change", function () {
                     my_widget_script.showOther($(this));
+                    my_widget_script.updateFluorInfo($(this));
                 })
             } else {
                 var $input = $("<input/>", inputObject);
@@ -848,10 +897,13 @@ $(document).ready(function () {
                         "data-abnum": abNum,
                         "data-watch": type 
                     })
-                )
+                );
             }
         }
 
+        cardBody.find(".watch").not(".ifOther").each(function() { // Don't fill with empty if other
+            my_widget_script.watchValue($(this));
+        });
         cardBody.find(".watch").on("input", function () {
             my_widget_script.watchValue($(this));
         });
@@ -863,70 +915,13 @@ $(document).ready(function () {
             cardHead,
             cardBody
         );
+
+        cardBody.find(".alexafluor").not(".ifOther").each(function(){
+            my_widget_script.updateFluorInfo($(this));
+        });
+
+        my_widget_script.colorFluorOptions();
     },
-    addPrimaryCard: function(abNum) {
-        // console.log("addPrimaryCard");
-        var $cardDiv = $("#primaryCardDiv");
-        var cardHead = $("<div/>", {
-            "data-abtype": "primary",
-            "data-abnum": abNum,
-            "class": "primaryName"
-        }).append("Primary Antibody " + abNum);
-
-        var cardBody = $("<div/>", {
-            "data-abtype": "primary",
-            "data-abnum": abNum,
-            "class": "container"
-        });
-
-        var watchNames= ["target", "species", "dilution", "lot", "ref", "company"];
-        var colNames= ["Target", "Species", "Dilution", "Lot #", "Ref/Cat #", "Company"];
-
-        var lengthEntries = watchNames.length;
-
-        for(i = 0; i < lengthEntries; i++){
-            console.log(colNames[i]);
-            cardBody.append(
-                $("<div/>", {
-                    "class": "row"
-                }).append(
-                    $("<div/>", {
-                        "class": "col-12 col-md font-weight-bold"
-                    }).append(
-                        colNames[i]
-                    )
-                ).append(
-                    $("<div/>", {
-                        "class": "col",
-                    }).append(
-                        $("<input/>", {
-                            "class": "fullWidth watch " + watchNames[i],
-                            "data-abtype": "primary",
-                            "data-abnum": abNum,
-                            "data-watch": watchNames[i] 
-                        })
-                    )
-                )
-            );
-
-            if(watchNames[i] === "target" || watchNames[i] === "species"){
-                cardBody.find("input").last().on("input", function(){
-                    my_widget_script.updateAbName("primary", abNum);
-                })
-            }
-        }
-        cardBody.find(".watch").on("input", function () {
-            my_widget_script.watchValue($(this));
-        });
-
-        cardBody.find(".watch"+my_widget_script.watchSearch())
-        
-        my_widget_script.makeCard(
-            $cardDiv,
-            cardHead,
-            cardBody
-        );
-    }
 };
 
 //**************************************************************************
