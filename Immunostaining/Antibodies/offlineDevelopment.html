@@ -155,7 +155,10 @@ $(document).ready(function () {
         var testData = JSON.parse(this.parent_class.test_data());
 
         //If no additional dynamic content 
-        var output = { widgetData: testData };
+        var output = { 
+            widgetData: testData, 
+            abNums: [1] 
+        };
 
         //Add additional content to match the objects in to_json
         //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
@@ -268,8 +271,10 @@ $(document).ready(function () {
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        // for (var i = 0; i < parsedJson.addedRows; i++) {
-        // };
+        for(var i = 0; i < parsedJson.abNums.length; i++){
+            var abNum = parsedJson.abNums[i];
+            my_widget_script.addAntibodies(abNum);
+        }
     },
 
     /**
@@ -302,6 +307,9 @@ $(document).ready(function () {
      * This could include when buttons are clicked or when inputs change.
      */
     addEventListeners: function () {
+        $("#addAntibody").on("click", function () {
+            my_widget_script.addAntibodyClick();
+        });
         $("#addPrimary").on("click", function(){
             my_widget_script.addPrimary();
         });
@@ -436,12 +444,15 @@ $(document).ready(function () {
             my_widget_script.resize();
         });
 
-        // console.log(my_widget_script.alexaFluorDyes[488]["color"]);
+        $("select.alexafluor").each(function(){
+            my_widget_script.showOther($(this));
+            console.log("calling update fluor info with setUpInitialState")
+            my_widget_script.updateFluorInfo($(this));
+        });
+         
+        my_widget_script.updateWatched();
 
-        for(dye in my_widget_script.alexaFluorDyes){
-            console.log("Alexa Fluor" + dye);
-            console.log(my_widget_script.alexaFluorDyes[dye].color);
-        }
+
 
         my_widget_script.resize();
     },
@@ -459,7 +470,9 @@ $(document).ready(function () {
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var dynamicContent = {};
+        var dynamicContent = {
+            abNums: my_widget_script.abNums
+        };
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -501,7 +514,7 @@ $(document).ready(function () {
         350: {absorption: 346, emission: 442, cssTextColor: "white", color: "blue", cssBackColor: "blue"},
         405: {absorption: 401, emission: 421, cssTextColor: "white", color: "blue", cssBackColor: "blue"},
         430: {absorption: 433, emission: 541, cssTextColor: "black", color: "green/yellow", cssBackColor: "greenyellow"},
-        488: {absorption: 496, emission: 519, cssTextColor: "black", color: "green", cssBackColor: "green"},
+        488: {absorption: 496, emission: 519, cssTextColor: "white", color: "green", cssBackColor: "green"},
         532: {absorption: 532, emission: 553, cssTextColor: "black", color: "yellow", cssBackColor: "yellow"},
         546: {absorption: 556, emission: 573, cssTextColor: "black", color: "orange", cssBackColor: "orange"},
         555: {absorption: 555, emission: 565, cssTextColor: "black", color: "orange", cssBackColor: "orange"},
@@ -518,9 +531,13 @@ $(document).ready(function () {
         790: {absorption: 784, emission: 814, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
     },
 
+    otherObj: {absorption: "", emission: "", cssTextColor: "black", color: "", cssBackColor: "white"},
+
     primaryAbsNums: [],
 
     secondaryAbsNums: [],
+
+    abNums: [],
 
     primaryWatchNames: ["target", "species", "dilution", "lot", "ref", "company"],
     primaryColNames: ["Target", "Species", "Dilution", "Lot #", "Ref/Cat #", "Company"],
@@ -570,12 +587,17 @@ $(document).ready(function () {
         var abNum = $el.data("abnum");
         
         var val = $el.val();
+
+        // console.log("watch: " + watch + "; val: " + val);
         
         if(abType){
             calcSearch += my_widget_script.abTypeSearch(abType);
         }
         if(abNum){
             calcSearch += my_widget_script.abNumSearch(abNum);
+        }
+        if(watch === "alexafluor" && val !== "Other"){
+            val = "AF" + val;
         }
 
         $(calcSearch).html(val);
@@ -589,6 +611,9 @@ $(document).ready(function () {
         var target = $(".target"+search).val();
         var species = $(".species"+search).val();
         
+        // console.log("target" + target);
+        // console.log("species "+ species);
+
         if(target && species){
             var name = my_widget_script.capitalize(species) + " anti-" + target;
         } else {
@@ -605,7 +630,7 @@ $(document).ready(function () {
 
     showOther: function ($this) {
         if($this.val() === "Other") {
-            console.log("showing other");
+            // console.log("showing other");
             var $other = $this.next(".ifOther").show();
             // Adjust height
             var thisScrollHeight = $other.prop("scrollHeight");
@@ -622,13 +647,17 @@ $(document).ready(function () {
             var val = $(this).val();
             if(val !== "Other"){
                 var thisAF = my_widget_script.alexaFluorDyes[val];
-                $(this).css("background-color", thisAF.cssBackColor).css(
-                    "color", thisAF.cssTextColor
-                );
+            } else{
+                var thisAF = my_widget_script.otherObj;
             }
-        })
+            my_widget_script.colorFluor($(this), thisAF)
+        });
     },
 
+    colorFluor: function($el, alexaFluorObj) {
+        $el.css("background-color", alexaFluorObj.cssBackColor).css("color", alexaFluorObj.cssTextColor);
+    },
+    
     updateFluorInfo: function ($el) {
         var thisVal = $el.val();
 
@@ -637,34 +666,26 @@ $(document).ready(function () {
         var abSearch = my_widget_script.abSearch(abType, abNum);
         var fieldsToUpdate = ["color", "absorption", "emission"];
         
-        if(thisVal != "Other"){
+        if(thisVal !== "Other"){
             var thisAF = my_widget_script.alexaFluorDyes[thisVal];
-    
-            for(i = 0; i<fieldsToUpdate.length; i++){
-                var field = fieldsToUpdate[i];
-                var watchSearch = my_widget_script.watchSearch(field);
-                var calcSearch = my_widget_script.calcSearch(field);
-                $(abSearch + watchSearch).val(thisAF[field]);
-                $(abSearch + calcSearch).html(thisAF[field]);
-            }
-            $(my_widget_script.calcSearch("color")+abSearch).css("background-color", thisAF.cssBackColor).css("color", thisAF.cssTextColor);
-            $(".alexafluor"+abSearch).css("background-color", thisAF.cssBackColor).css("color", thisAF.cssTextColor);
-        } else{
-            for(i = 0; i<fieldsToUpdate.length; i++){
-                var field = fieldsToUpdate[i];
-                var watchSearch = my_widget_script.watchSearch(field);
-                var calcSearch = my_widget_script.calcSearch(field);
-                $(abSearch + watchSearch).val("");
-                $(abSearch + calcSearch).html("");
-            }
-            $(my_widget_script.calcSearch("color")+abSearch).css("background-color", "").css("color", "black");
-            $(".alexafluor"+abSearch).css("background-color", "").css("color", "black");
+        }else{
+            var thisAF = my_widget_script.otherObj;
         }
+    
+        for(i = 0; i<fieldsToUpdate.length; i++){
+            var field = fieldsToUpdate[i];
+            var watchSearch = my_widget_script.watchSearch(field);
+            $(abSearch + watchSearch).val(thisAF[field]).each(function () {
+                my_widget_script.watchValue($(this));
+            });
+        }
+        my_widget_script.colorFluor($(my_widget_script.calcSearch("color")+abSearch), thisAF);
+        my_widget_script.colorFluor($(".alexafluor"+abSearch), thisAF);
+
         my_widget_script.resize();
     },
 
     toggleCard: function ($cardHead) {
-        // console.log($cardHead.next());
         $cardHead.next().toggleClass("collapse");
         $cardHead.next().find("textarea.autoAdjust").each(function () {
             if(! $(this).is(":hidden")) {
@@ -674,101 +695,193 @@ $(document).ready(function () {
         my_widget_script.resize();
     },
 
-    makeCard: function ($div, cardHeadContent, cardBodyContent) {
+    makeCard: function ($div, cardHeadContent, cardBodyContent, abNum) {
         // Add extras to header, such as classes or data attributes in calling function after making the card
         $div.append(
             $("<div/>", {
-                "class": "card"
+                "class": "col col-md-6",
+                "data-abnum": abNum
             }).append(
-                $("<button></button>", {
-                    "type": "button",
-                    "class": "card-header",
-                }).on("click", function () {
-                    my_widget_script.toggleCard($(this));
-                }).append(cardHeadContent)
-            ).append(
                 $("<div/>", {
-                    "class": "card-body collapse"
+                    "class": "card"
                 }).append(
-                    cardBodyContent
+                    $("<button></button>", {
+                        "type": "button",
+                        "class": "card-header",
+                    }).on("click", function () {
+                        my_widget_script.toggleCard($(this));
+                    }).append(cardHeadContent)
+                ).append(
+                    $("<div/>", {
+                        "class": "card-body collapse"
+                    }).append(
+                        cardBodyContent
+                    )
                 )
             )
-        )
+        );
         my_widget_script.resize();
     },
 
-    addPrimary: function() {
+    addAntibodyClick: function (){
         var abNum = 1;
-        if(my_widget_script.primaryAbsNums.length > 0){
-            var lastAb = my_widget_script.primaryAbsNums[my_widget_script.primaryAbsNums.length - 1];
-            console.log("lastAb: " + lastAb);
+        if(my_widget_script.abNums.length > 0){
+            var lastAb = my_widget_script.abNums[my_widget_script.abNums.length - 1];
+            // console.log("lastAb: " + lastAb);
             abNum = lastAb + 1;
         }
 
-        var inArray = my_widget_script.checkInArray(abNum, my_widget_script.primaryAbsNums);
+        var inArray = my_widget_script.checkInArray(abNum, my_widget_script.abNums);
         if(! inArray){
-            my_widget_script.primaryAbsNums.push(abNum);
-            // my_widget_script.primaryAbs[abNum] = {} // haven't made yet, not sure if needed
-            my_widget_script.addAbTableRow(
-                "primary", 
-                abNum,
-                my_widget_script.primaryWatchNames
-            );
-            my_widget_script.addAbCard(
-                "primary", 
-                abNum, 
-                my_widget_script.primaryWatchNames, 
-                my_widget_script.primaryColNames
-            );
+            my_widget_script.addAntibodies(abNum);
         }
     },
 
-    addSecondary: function() {
-        var abNum = 1;
-        if(my_widget_script.secondaryAbsNums.length > 0){
-            var lastAb = my_widget_script.secondaryAbsNums[my_widget_script.secondaryAbsNums.length - 1];
-            abNum = lastAb + 1;
-        }
+    addAntibodies: function(abNum) {
+        my_widget_script.abNums.push(abNum);
+        // my_widget_script.primaryAbs[abNum] = {} // haven't made yet, not sure if needed
+        $(".cardDiv").append(
+            $("<h3/>", {
+                "data-abnum": abNum,
+                "class": "col-12"
+            }).append("Antibody Series " + abNum)
+        ).append(
+            $("<div/>", {
+                "class": "col-12 mb-2",
+                "data-abnum": abNum
+            }).append(
+                $("<input/>", {
+                    "type": "button",
+                    "data-abnum": abNum,
+                    "value": "Delete antibody",
+                    name: "deleteab",
+                    id: "deleteAb",
+                    "class": "fullWidth deleteAb hideView"
+                }).on("click", function (){
+                    my_widget_script.deleteAb(abNum)
+                })
+            )
+        );
 
-        var inArray = my_widget_script.checkInArray(abNum, my_widget_script.secondaryAbsNums);
-        if(! inArray){
-            console.log("not in secondary array");
-            my_widget_script.secondaryAbsNums.push(abNum);
-            // my_widget_script.secondaryAbs[abNum] = {} // haven't made yet, not sure if needed
-            my_widget_script.addAbTableRow(
-                "secondary", 
-                abNum,
-                my_widget_script.secondaryCalcNames
-            );
-            my_widget_script.addAbCard(
-                "secondary", 
-                abNum, 
-                my_widget_script.secondaryWatchNames, 
-                my_widget_script.secondaryColNames
-            );
-        }
+        my_widget_script.addAbTableRow(
+            "primary", 
+            abNum,
+            my_widget_script.primaryWatchNames
+        );
+
+        my_widget_script.addAbCard(
+            "primary", 
+            abNum, 
+            my_widget_script.primaryWatchNames, 
+            my_widget_script.primaryColNames
+        );
+        my_widget_script.addAbTableRow(
+            "secondary", 
+            abNum,
+            my_widget_script.secondaryCalcNames
+        );
+        my_widget_script.addAbCard(
+            "secondary", 
+            abNum, 
+            my_widget_script.secondaryWatchNames, 
+            my_widget_script.secondaryColNames
+        );
+        
+        var primaryAbSearch = my_widget_script.abSearch("primary", abNum);
+        var secondaryAbSearch = my_widget_script.abSearch("secondary", abNum);
+        $(".species"+primaryAbSearch).on("input", function(){
+            var thisVal = $(this).val();
+            $(".target"+secondaryAbSearch).val(thisVal)
+            my_widget_script.updateAbName("secondary", abNum);
+            my_widget_script.updateWatched();
+            // $(my_widget_script.calcSearch("target")+secondaryAbSearch).text(thisVal);
+        })
     },
 
-    deleteAb: function (abType, abNum, $el){
+    // not yet used anywhere
+    updateWatched: function() {
+        console.log("Update Watched");
+        $(".watch").each(function(){
+            console.log($(this));
+            var watch = $(this).data("watch");
+            if(watch !== "alexafluor"){
+                console.log("in update: watch: " + watch + "; val: " +$(this).val());
+                my_widget_script.watchValue($(this));
+            } else{
+                console.log("alexafluor");
+                if($(this).val() !== "Other"){
+                    my_widget_script.watchValue($(this));
+                } else {
+                    var other = $(this).next(".ifOther").val();
+                    var calcSearch = my_widget_script.calcSearch("alexafluor");
+                    var abSearch = my_widget_script.abSearch(abType, abNum);
+                    $(abSearch + calcSearch).text(other);
+                }
+            }
+        })
+    },
+
+    // addPrimary: function() {
+    //     var abNum = 1;
+    //     if(my_widget_script.primaryAbsNums.length > 0){
+    //         var lastAb = my_widget_script.primaryAbsNums[my_widget_script.primaryAbsNums.length - 1];
+    //         console.log("lastAb: " + lastAb);
+    //         abNum = lastAb + 1;
+    //     }
+
+    //     var inArray = my_widget_script.checkInArray(abNum, my_widget_script.primaryAbsNums);
+    //     if(! inArray){
+    //         my_widget_script.primaryAbsNums.push(abNum);
+    //         // my_widget_script.primaryAbs[abNum] = {} // haven't made yet, not sure if needed
+    //         my_widget_script.addAbTableRow(
+    //             "primary", 
+    //             abNum,
+    //             my_widget_script.primaryWatchNames
+    //         );
+    //         my_widget_script.addAbCard(
+    //             "primary", 
+    //             abNum, 
+    //             my_widget_script.primaryWatchNames, 
+    //             my_widget_script.primaryColNames
+    //         );
+    //     }
+    // },
+
+    // addSecondary: function() {
+    //     var abNum = 1;
+    //     if(my_widget_script.secondaryAbsNums.length > 0){
+    //         var lastAb = my_widget_script.secondaryAbsNums[my_widget_script.secondaryAbsNums.length - 1];
+    //         abNum = lastAb + 1;
+    //     }
+
+    //     var inArray = my_widget_script.checkInArray(abNum, my_widget_script.secondaryAbsNums);
+    //     if(! inArray){
+    //         console.log("not in secondary array");
+    //         my_widget_script.secondaryAbsNums.push(abNum);
+    //         // my_widget_script.secondaryAbs[abNum] = {} // haven't made yet, not sure if needed
+    //         my_widget_script.addAbTableRow(
+    //             "secondary", 
+    //             abNum,
+    //             my_widget_script.secondaryCalcNames
+    //         );
+    //         my_widget_script.addAbCard(
+    //             "secondary", 
+    //             abNum, 
+    //             my_widget_script.secondaryWatchNames, 
+    //             my_widget_script.secondaryColNames
+    //         );
+    //     }
+    // },
+
+    deleteAb: function (abNum){
         var proceed = confirm("Are you sure that you wish to delete this antibody?");
         if(proceed){
-            $card = $el.parents(".card");
-            $card.remove();
-
-            var search = my_widget_script.abSearch(abType, abNum);
+            var search = my_widget_script.abNumSearch(abNum);
             $(search).remove(); 
-
-            // Remove it from the mouseNums
-            if(abType === "primary"){
-                var index = my_widget_script.primaryAbsNums.indexOf(abNum);
-                if(index > -1){
-                    my_widget_script.primaryAbsNums.splice(index, 1);
-                }
-            } else if(abType == "secondary"){
-                var index = my_widget_script.secondaryAbsNums.indexOf(abNum);
-                if(index > -1){
-                    my_widget_script.secondaryAbsNums.splice(index, 1);
-                }
+            
+            var index = my_widget_script.abNums.indexOf(abNum);
+            if(index > -1){
+                my_widget_script.abNums.splice(index, 1);
             }
         }
     },
@@ -793,7 +906,7 @@ $(document).ready(function () {
 
     addAbCard: function(abType, abNum, watchNames, colNames) {
         // console.log("addPrimaryCard");
-        var $cardDiv = $(".cardDiv"+my_widget_script.abTypeSearch(abType));
+        var $cardDiv = $(".cardDiv");
         var cardHead = $("<div/>", {
             "data-abtype": abType,
             "data-abnum": abNum,
@@ -804,27 +917,7 @@ $(document).ready(function () {
             "data-abtype": abType,
             "data-abnum": abNum,
             "class": "container"
-        }).append(
-            $("<div/>", {
-                "class": "row"
-            }).append(
-                $("<div/>", {
-                    "class": "col"
-                }).append(
-                    $("<input/>", {
-                        "type": "button",
-                        id: abType+"delete"+abNum,
-                        name: abType+"delete"+abNum,
-                        "class": "fullWidth col deleteAb",
-                        "data-abtype": abType,
-                        "data-abnum": abNum,
-                        value: "Delete"
-                    }).on("click", function (){
-                        my_widget_script.deleteAb(abType, abNum, $(this));
-                    })
-                )
-            )
-        );
+        });
 
         var lengthEntries = watchNames.length;
 
@@ -832,6 +925,7 @@ $(document).ready(function () {
             var type = watchNames[i];
             var thisID = abType + type + abNum;
 
+            // Properties for input object
             var inputObject = {
                 "class": "fullWidth watch " + type,
                 id: thisID,
@@ -841,6 +935,7 @@ $(document).ready(function () {
                 "data-watch": type 
             }
 
+            // Selection for the fluorophore, others input
             if(type === "alexafluor"){
                 var $input = $("<select/>", inputObject)
                 for(dye in my_widget_script.alexaFluorDyes){
@@ -856,13 +951,15 @@ $(document).ready(function () {
                     }).append(
                         "Other"
                     )
-                ).on("change", function () {
+                ).on("input", function () {
                     my_widget_script.showOther($(this));
+                    console.log("calling update fluor info with alexafluor changes")
                     my_widget_script.updateFluorInfo($(this));
                 })
             } else {
                 var $input = $("<input/>", inputObject);
             }
+
             cardBody.append(
                 $("<div/>", {
                     "class": "row"
@@ -882,7 +979,7 @@ $(document).ready(function () {
             );
 
             if(type === "target" || type === "species"){
-                cardBody.find("input").last().on("input", function(){
+                cardBody.find("input").last().on("change", function(){
                     my_widget_script.updateAbName(abType, abNum);
                 })
             }
@@ -894,8 +991,12 @@ $(document).ready(function () {
                         id: thisID+"other",
                         name: thisID+"other",
                         "data-abtype": abType,
-                        "data-abnum": abNum,
-                        "data-watch": type 
+                        "data-abnum": abNum
+                        // "data-watch": type 
+                    }).on("input", function(){
+                        var calcSearch = my_widget_script.calcSearch("alexafluor");
+                        var abSearch = my_widget_script.abSearch(abType, abNum);
+                        $(abSearch + calcSearch).text($(this).val());
                     })
                 );
             }
@@ -913,10 +1014,12 @@ $(document).ready(function () {
         my_widget_script.makeCard(
             $cardDiv,
             cardHead,
-            cardBody
+            cardBody,
+            abNum
         );
 
         cardBody.find(".alexafluor").not(".ifOther").each(function(){
+            console.log("calling update fluor info within addAbCard");
             my_widget_script.updateFluorInfo($(this));
         });
 
@@ -934,7 +1037,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("edit", function() {return form_script.test_data()});
+      form_script.init("view", function() {return form_script.test_data()});
 
 
     }
@@ -1015,6 +1118,15 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2">
     <div class="row">
+        <div class="col"><input type="button" value="Add Antibody Series" class="fullWidth hideView" id="addAntibody" name="addantibody"/></div>
+    </div>
+    <div class="row cardDiv mt-2">
+        &nbsp;
+    </div>
+</div>
+
+<!-- <div class="container mt-2">
+    <div class="row">
         <h3 class="col">Primary Antibodies</h3>
     </div>
     <div class="row mt-2">
@@ -1044,6 +1156,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
     </div>
 </div>
+-->
 
 <div class="container mt-2">
     <div class="row">
