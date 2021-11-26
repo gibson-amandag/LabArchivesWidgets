@@ -121,7 +121,7 @@ $(document).ready(function () {
                 console.log("no name");
                 console.log($(this));
             } else{
-                console.log("name");
+                // console.log("name");
             }
         })
     },
@@ -140,7 +140,8 @@ $(document).ready(function () {
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
         var output = { 
-            widgetData: JSON.parse(widgetJsonString)
+            widgetData: JSON.parse(widgetJsonString),
+            abNums: my_widget_script.abNums
         };
 
         //uncomment to check stringified output
@@ -180,7 +181,7 @@ $(document).ready(function () {
         //If no additional dynamic content 
         var output = { 
             widgetData: testData,
-            abNums: [1, 2, 4] 
+            abNums: [1] 
         };
 
         //Add additional content to match the objects in to_json
@@ -294,9 +295,13 @@ $(document).ready(function () {
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        for(var i = 0; i < parsedJson.abNums.length; i++){
-            var abNum = parsedJson.abNums[i];
-            my_widget_script.addAntibodies(abNum);
+        console.log("parsedJson, initDynamic:", parsedJson);
+        if(parsedJson.abNums){
+            console.log("initDynamic: abNums", parsedJson.abNums);
+            for(var i = 0; i < parsedJson.abNums.length; i++){
+                var abNum = parsedJson.abNums[i];
+                my_widget_script.addAntibodies(abNum);
+            }
         }
     },
 
@@ -447,8 +452,8 @@ $(document).ready(function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
         
-        my_widget_script.isDateSupported();
-        my_widget_script.isTimeSupported();
+        this.isDateSupported();
+        this.isTimeSupported();
 
 
         $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
@@ -473,11 +478,14 @@ $(document).ready(function () {
             my_widget_script.updateFluorInfo($(this));
         });
          
-        my_widget_script.updateWatched();
+        this.updateWatched();
 
+        for(var i=0; i<my_widget_script.abNums.length; i++){
+            my_widget_script.updateAbName("primary", my_widget_script.abNums[i]);
+            my_widget_script.updateAbName("secondary", my_widget_script.abNums[i]);
+        }
 
-
-        my_widget_script.resize();
+        this.resize();
     },
 
     /**
@@ -494,7 +502,6 @@ $(document).ready(function () {
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
         var dynamicContent = {
-            abNums: my_widget_script.abNums
         };
         return dynamicContent;
     },
@@ -665,7 +672,6 @@ $(document).ready(function () {
     },
 
     colorFluorOptions: function ($selection) {
-        // var $selection = $("select.alexafluor");
         console.log($selection);
         $selection.find("option").each(function() {
             var val = $(this).val();
@@ -706,6 +712,7 @@ $(document).ready(function () {
             }
             my_widget_script.colorFluor($(my_widget_script.calcSearch("color")+abSearch), thisAF);
             my_widget_script.colorFluor($(".alexafluor"+abSearch), thisAF);
+            my_widget_script.colorFluor($el.parents(".card-body").prev(), thisAF)
     
             my_widget_script.resize();
         }
@@ -726,11 +733,11 @@ $(document).ready(function () {
     makeCard: function ($div, cardHeadContent, cardBodyContent, abNum) {
         // Add extras to header, such as classes or data attributes in calling function after making the card
         $div.append(
-            $("<div/>", {
+            $("<div></div>", {
                 "class": "col col-md-6",
                 "data-abnum": abNum
             }).append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "card"
                 }).append(
                     $("<button></button>", {
@@ -740,7 +747,7 @@ $(document).ready(function () {
                         my_widget_script.toggleCard($(this));
                     }).append(cardHeadContent)
                 ).append(
-                    $("<div/>", {
+                    $("<div></div>", {
                         "class": "card-body collapse"
                     }).append(
                         cardBodyContent
@@ -774,11 +781,11 @@ $(document).ready(function () {
                 "class": "col-12"
             }).append("Antibody Series " + abNum)
         ).append(
-            $("<div/>", {
+            $("<div></div>", {
                 "class": "col-12 mb-2",
                 "data-abnum": abNum
             }).append(
-                $("<input/>", {
+                $("<input></input>", {
                     "type": "button",
                     "data-abnum": abNum,
                     "value": "Delete antibody",
@@ -827,7 +834,7 @@ $(document).ready(function () {
     },
 
     updateWatched: function() {
-        console.log("Update Watched");
+        // console.log("Update Watched");
         $(".watch").each(function(){
             // console.log($(this));
             var watch = $(this).data("watch");
@@ -885,13 +892,13 @@ $(document).ready(function () {
     addAbCard: function(abType, abNum, watchNames, colNames) {
         // console.log("addPrimaryCard");
         var $cardDiv = $(".cardDiv");
-        var cardHead = $("<div/>", {
+        var cardHead = $("<div></div>", {
             "data-abtype": abType,
             "data-abnum": abNum,
             "class": "abName"
         }).append(my_widget_script.capitalize(abType) + " Antibody " + abNum);
 
-        var cardBody = $("<div/>", {
+        var cardBody = $("<div></div>", {
             "data-abtype": abType,
             "data-abnum": abNum,
             "class": "container"
@@ -915,18 +922,16 @@ $(document).ready(function () {
 
             // Selection for the fluorophore, others input
             if(type === "alexafluor"){
-                var $input = $("<select/>", inputObject)
+                var $input = $("<select></select>", inputObject)
                 for(dye in my_widget_script.alexaFluorDyes){
-                    if(dye === "488"){
-                        $input.append(
-                            $("<option/>", {
-                                value: dye
-                            }).append("AlexaFluor "+dye)
-                        );
-                    }
-                    }
+                    $input.append(
+                        $("<option></option>", {
+                            value: dye
+                        }).append("AlexaFluor "+dye)
+                    );
+                }
                 $input.append(
-                    $("<option/>", {
+                    $("<option></option>", {
                         value: "Other"
                     }).append(
                         "Other"
@@ -938,20 +943,20 @@ $(document).ready(function () {
                 }
                 )
             } else {
-                var $input = $("<input/>", inputObject);
+                var $input = $("<input></input>", inputObject);
             }
 
             cardBody.append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "row"
                 }).append(
-                    $("<div/>", {
+                    $("<div></div>", {
                         "class": "col-12 col-md font-weight-bold"
                     }).append(
                         colNames[i]
                     )
                 ).append(
-                    $("<div/>", {
+                    $("<div></div>", {
                         "class": "col",
                     }).append(
                         $input
@@ -967,7 +972,7 @@ $(document).ready(function () {
 
             if(type === "alexafluor"){
                 cardBody.find("select").parent().append(
-                    $("<texta" +"rea/>", {
+                    $("<texta" +"rea></texta" +"rea>", {
                         "class": "fullWidth watch autoAdjust ifOther " + type,
                         id: thisID+"other",
                         name: thisID+"other",
@@ -1020,7 +1025,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("view", function() {return form_script.test_data()});
+      form_script.init("edit", function() {return form_script.test_data()});
 
 
     }
@@ -1101,7 +1106,9 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2">
     <div class="row">
-        <div class="col"><input type="button" value="Add Antibody Series" class="fullWidth hideView" id="addAntibody" name="addantibody"/></div>
+        <div class="col">
+            <input type="button" value="Add Antibody Series" class="fullWidth hideView" id="addAntibody" name="addantibody"></input>
+        </div>
     </div>
     <div class="row cardDiv mt-2">
         &nbsp;
