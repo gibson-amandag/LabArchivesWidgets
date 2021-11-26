@@ -41,7 +41,7 @@ my_widget_script =
         $cardHead.next().toggleClass("collapse");
         $cardHead.next().find("textarea.autoAdjust").each(function () {
             if(! $(this).is(":hidden")) {
-                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
             } 
         });
         my_widget_script.resize();
