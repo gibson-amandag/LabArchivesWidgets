@@ -284,6 +284,7 @@ $(document).ready(function () {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
             $("input[type='date']").removeClass(".hasDatePicker");
+            $(".hideView").hide();
         } else {
             $("input[type='date']").each(function () {
                 my_widget_script.checkDateFormat($(this));
@@ -313,12 +314,12 @@ $(document).ready(function () {
     addRequiredFieldIndicators: function () {
         $('.needForTableLab').each(function () { //find element with class "needForFormLab"
             //alert($(this).val());
-            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
+            $(this).html("<span class='hideView' style='color:blue'>#</span>" + $(this).html()); //add # before
         });
 
         $('.requiredLab').each(function () { //find element with class "requiredLab"
             //alert($(this).val());
-            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
+            $(this).html("<span class='hideView' style='color:red'>*</span>" + $(this).html()); //add # before
         });
     },
 
@@ -558,7 +559,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container">
+<div class="container hideView">
     <p>Elements that are required to save this page are marked with a red asterisk <span
             style="color:red">*</span><br />
         Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span

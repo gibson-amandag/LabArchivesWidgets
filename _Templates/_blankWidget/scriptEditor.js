@@ -224,6 +224,7 @@ my_widget_script =
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
             $("input[type='date']").removeClass(".hasDatePicker");
+            $(".hideView").hide();
         } else {
             $("input[type='date']").each(function () {
                 my_widget_script.checkDateFormat($(this));
@@ -253,12 +254,12 @@ my_widget_script =
     addRequiredFieldIndicators: function () {
         $('.needForTableLab').each(function () { //find element with class "needForFormLab"
             //alert($(this).val());
-            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
+            $(this).html("<span class='hideView' style='color:blue'>#</span>" + $(this).html()); //add # before
         });
 
         $('.requiredLab').each(function () { //find element with class "requiredLab"
             //alert($(this).val());
-            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
+            $(this).html("<span class='hideView' style='color:red'>*</span>" + $(this).html()); //add # before
         });
     },
 
@@ -280,6 +281,7 @@ my_widget_script =
             supported = false;
         }
         my_widget_script.timeSupported = supported;
+        input.remove();
         return (supported);
     },
 
@@ -318,6 +320,7 @@ my_widget_script =
             supported = false;
         }
         my_widget_script.dateSupported = supported;
+        input.remove();
         return (supported);
     },
 
