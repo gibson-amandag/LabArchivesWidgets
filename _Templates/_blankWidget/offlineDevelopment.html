@@ -73,7 +73,7 @@ $(document).ready(function () {
         //By default it calls the parent_class's init.
 
         //uncomment to inspect and view code while developing
-        //debugger;
+        // debugger;
 
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
@@ -193,23 +193,23 @@ $(document).ready(function () {
         var name; //create a name variable
 
         //search the_form for all elements that are of type select, textarea, or input
-        $('#the_form').find('select, textarea, input').each(function () {
-            if (!$(this).prop('required')) { //if this element does not have a required attribute
+        $('#the_form').find('select, textarea, input').each((i, e)=> {
+            if (!$(e).prop('required')) { //if this element does not have a required attribute
                 //don't change anything (fail remains false)
             } else { //if there is a required attribute
-                if (!$(this).val()) { //if there is not a value for this input
+                if (!$(e).val()) { //if there is not a value for this input
                     fail = true; //change fail to true
-                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                    name = $(e).attr('id'); //replace the name variable with the name attribute of this element
                     fail_log += name + " is required \n"; //add to the fail log that this name is required
                 }
 
             }
         });
 
-        $("input[type='date']").each(function () {
-            var date = $(this).val();
+        $("input[type='date']").each((i, e)=> {
+            var date = $(e).val();
             if(date){
-                var validDate = my_widget_script.isValidDate(date);
+                var validDate = this.isValidDate(date);
                 if(!validDate){
                     fail = true;
                     fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
@@ -217,10 +217,12 @@ $(document).ready(function () {
             }
         });
 
-        $("input[type='time']").each(function () {
-            var time = $(this).val();
+        $("input[type='time']").each((i, e)=> {
+            var time = $(e).val();
+            console.log("time", time);
             if(time){
-                var validtime = my_widget_script.isValidTime(time);
+                var validtime = this.isValidTime(time);
+                console.log("valid time", validtime);
                 if(!validtime){
                     fail = true;
                     fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
@@ -228,8 +230,11 @@ $(document).ready(function () {
             }
         });
 
+        console.log("fail", fail);
+        console.log("fail log", fail_log);
+
         if (fail) { //if fail is true (meaning a required element didn't have a value)
-            return alert(fail_log); //return the fail log as an alert
+            return bootbox.alert(fail_log); //return the fail log as an alert
         } else {
             var noErrors = [];
             return noErrors;
@@ -286,12 +291,12 @@ $(document).ready(function () {
             $("input[type='date']").removeClass(".hasDatePicker");
             $(".hideView").hide();
         } else {
-            $("input[type='date']").each(function () {
-                my_widget_script.checkDateFormat($(this));
+            $("input[type='date']").each((i, e)=> {
+                this.checkDateFormat($(e));
             });
             
-            $("input[type='time']").each(function () {
-                my_widget_script.checkTimeFormat($(this));
+            $("input[type='time']").each((i, e)=> {
+                this.checkTimeFormat($(e));
             });
         }
     },
@@ -312,14 +317,14 @@ $(document).ready(function () {
      * red * before fields with the "requiredLab" property
      */
     addRequiredFieldIndicators: function () {
-        $('.needForTableLab').each(function () { //find element with class "needForFormLab"
-            //alert($(this).val());
-            $(this).html("<span class='hideView' style='color:blue'>#</span>" + $(this).html()); //add # before
+        $('.needForTableLab').each((i, e)=> { //find element with class "needForFormLab"
+            //alert($(e).val());
+            $(e).html("<span class='hideView' style='color:blue'>#</span>" + $(e).html()); //add # before
         });
 
-        $('.requiredLab').each(function () { //find element with class "requiredLab"
-            //alert($(this).val());
-            $(this).html("<span class='hideView' style='color:red'>*</span>" + $(this).html()); //add # before
+        $('.requiredLab').each((i, e)=> { //find element with class "requiredLab"
+            //alert($(e).val());
+            $(e).html("<span class='hideView' style='color:red'>*</span>" + $(e).html()); //add # before
         });
     },
 
@@ -340,7 +345,7 @@ $(document).ready(function () {
         if(input.type !== "time"){
             supported = false;
         }
-        my_widget_script.timeSupported = supported;
+        this.timeSupported = supported;
         input.remove();
         return (supported);
     },
@@ -348,14 +353,15 @@ $(document).ready(function () {
     timeSupported: true,
 
     checkTimeFormat: function ($timeInput) {
-        if(!my_widget_script.timeSupported){ // if not supported
+        console.log("checking time");
+        if(!this.timeSupported){ // if not supported
             $timeInput.next(".timeWarning").remove();
             var time = $timeInput.val();
-            var isValid = my_widget_script.isValidTime(time);
+            var isValid = this.isValidTime(time);
             if(!isValid){
                 $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
             }
-            my_widget_script.resize();
+            this.resize();
         }
     },
 
@@ -379,7 +385,7 @@ $(document).ready(function () {
         if(input.type !== "date"){
             supported = false;
         }
-        my_widget_script.dateSupported = supported;
+        this.dateSupported = supported;
         input.remove();
         return (supported);
     },
@@ -387,15 +393,16 @@ $(document).ready(function () {
     dateSupported: true,
 
     checkDateFormat: function ($dateInput) {
-        if(!my_widget_script.dateSupported){ // if not supported
+        if(!this.dateSupported){ // if not supported
+            console.log("date not supported");
             $dateInput.next(".dateWarning").remove();
             var date = $dateInput.val();
-            var isValid = my_widget_script.isValidDate(date);
+            var isValid = this.isValidDate(date);
             if(!isValid){
                 $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
             }
             $dateInput.datepicker({dateFormat: "yy-mm-dd"})
-            my_widget_script.resize();
+            this.resize();
         }
     },
 
@@ -408,27 +415,31 @@ $(document).ready(function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
         
-        my_widget_script.isDateSupported();
-        my_widget_script.isTimeSupported();
+        this.isDateSupported();
+        this.isTimeSupported();
 
 
-        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
-            my_widget_script.checkDateFormat($(this));
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", (e)=> {
+            this.checkDateFormat($(e.target));
         });
         
-        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
-            my_widget_script.checkTimeFormat($(this));
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", (e)=> {
+            this.checkTimeFormat($(e.target));
         });
 
-        $('textarea.autoAdjust').each(function () {
-            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-        }).on('input', function () {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-            my_widget_script.resize();
+        $('textarea.autoAdjust').each((i,textArea)=> { // i is the index for each match, textArea is the object
+            textArea.setAttribute('style', 'height:' + (textArea.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', (e)=> {
+            e.target.style.height = 'auto';
+            e.target.style.height = (e.target.scrollHeight) + 'px';
+            this.resize();
         });
 
-        my_widget_script.resize();
+        $("#myButton").on("click", (e)=>{
+            this.is_valid();
+        });
+
+        this.resize();
     },
 
     /**
@@ -437,7 +448,7 @@ $(document).ready(function () {
      */
     resize: function () {
         //resize the container
-        my_widget_script.parent_class.resize_container();
+        this.parent_class.resize_container();
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -465,10 +476,10 @@ $(document).ready(function () {
         //var name; //create a name variable
 
         //search the_form for all elements that are of class "needForForm"
-        $('.needForTable').each(function () {
-            if (!$(this).val()) { //if there is not a value for this input
+        $('.needForTable').each((i, e)=> {
+            if (!$(e).val()) { //if there is not a value for this input
                 valid = false; //change valid to false
-                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
+                //name = $(e).attr('id'); //replace the name variable with the id attribute of this element
                 //fail_log += name + " is required \n"; //add to the fail log that this name is required
             }
         });
@@ -619,13 +630,13 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 
     <div class="row align-items-end mt-2">
-        <div class="myLeftCol requiredLab">Row 2</div>
+        <div class="myLeftCol">Row 2</div>
 
         <div class="col"></div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol">Date:</div>
-        <div class="col"><input type="date" name="testdate" id="testDate" /></div>
+        <div class="myLeftCol requiredLab">Date:</div>
+        <div class="col"><input type="date" name="testdate" id="testDate" required/></div>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol">Time:</div>
@@ -633,6 +644,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <input type="time" name="testtime" id="testtime" pattern="[0-9]{2}:[0-9]{2}"/>
             <span class="validity"></span>
         </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Textarea:</div>
+        <div class="col"><textarea name="testtext" id="testText" class="autoAdjust"></textarea></div>
     </div>
     <div class="col"><input type="text" name="fordatepicker" id="forDatePicker"/></div>
 </div>
