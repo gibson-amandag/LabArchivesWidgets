@@ -84,23 +84,19 @@ $(document).ready(function () {
         //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
 
-        $("select.alexafluor").each(function(){
-            console.log($(this).val());
-        });
+        // $("select.alexafluor").each(function(){
+        //     console.log("Select after creation", $(this).val());
+        // });
 
         //resize the content box when the window size changes
         window.onresize = this.resize;
 
-        //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners();
-
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
-        $("select.alexafluor").each(function(){
-            // $(this).val(488);
-            console.log("Select after init: " + $(this).val());
-        });
+        // $("select.alexafluor").each(function(){
+        //     console.log("Select after init: ", $(this).val());
+        // });
 
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
@@ -108,9 +104,9 @@ $(document).ready(function () {
         // Set up the form based on previously entered form input
         this.setUpInitialState();
 
-        $("select.alexafluor").each(function(){
-            console.log("Select after setUpInitialState: " + $(this).val());
-        });
+        // $("select.alexafluor").each(function(){
+        //     console.log("Select after setUpInitialState: ", $(this).val());
+        // });
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
@@ -118,8 +114,7 @@ $(document).ready(function () {
         $("input, select, textarea").each(function(){
             var hasName = $(this).attr("name");
             if(!hasName){
-                console.log("no name");
-                console.log($(this));
+                console.log("There is no name attribute for: ", this.id);
             } else{
                 // console.log("name");
             }
@@ -181,7 +176,7 @@ $(document).ready(function () {
         //If no additional dynamic content 
         var output = { 
             widgetData: testData,
-            abNums: [1] 
+            abNums: [1, 3] 
         };
 
         //Add additional content to match the objects in to_json
@@ -295,9 +290,9 @@ $(document).ready(function () {
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        console.log("parsedJson, initDynamic:", parsedJson);
+        // console.log("parsedJson, initDynamic:", parsedJson);
         if(parsedJson.abNums){
-            console.log("initDynamic: abNums", parsedJson.abNums);
+            // console.log("initDynamic: abNums", parsedJson.abNums);
             for(var i = 0; i < parsedJson.abNums.length; i++){
                 var abNum = parsedJson.abNums[i];
                 my_widget_script.addAntibodies(abNum);
@@ -328,24 +323,6 @@ $(document).ready(function () {
                 my_widget_script.checkTimeFormat($(this));
             });
         }
-    },
-
-    /**
-     * TO DO: edit this function to define behavior when the user interacts with the form.
-     * This could include when buttons are clicked or when inputs change.
-     */
-    addEventListeners: function () {
-        $("#addAntibody").on("click", function () {
-            my_widget_script.addAntibodyClick();
-        });
-        $("#addPrimary").on("click", function(){
-            my_widget_script.addPrimary();
-        });
-
-        $("#addSecondary").on("click", function(){
-            my_widget_script.addSecondary();
-        });
-
     },
 
     /**
@@ -472,9 +449,13 @@ $(document).ready(function () {
             my_widget_script.resize();
         });
 
+        $("#addAntibody").on("click", function () {
+            my_widget_script.addAntibodyClick();
+        });
+
         $("select.alexafluor").each(function(){
             my_widget_script.showOther($(this));
-            console.log("calling update fluor info with setUpInitialState")
+            // console.log("calling update fluor info with setUpInitialState")
             my_widget_script.updateFluorInfo($(this));
         });
          
@@ -660,7 +641,7 @@ $(document).ready(function () {
 
     showOther: function ($this) {
         if($this.val() === "Other") {
-            console.log("showing other");
+            // console.log("showing other");
             var $other = $this.next(".ifOther").show();
             // Adjust height
             var thisScrollHeight = $other.prop("scrollHeight");
@@ -672,7 +653,7 @@ $(document).ready(function () {
     },
 
     colorFluorOptions: function ($selection) {
-        console.log($selection);
+        // console.log($selection);
         $selection.find("option").each(function() {
             var val = $(this).val();
             if(val !== "Other"){
@@ -859,16 +840,18 @@ $(document).ready(function () {
     },
 
     deleteAb: function (abNum){
-        var proceed = confirm("Are you sure that you wish to delete this antibody?");
-        if(proceed){
-            var search = my_widget_script.abNumSearch(abNum);
-            $(search).remove(); 
-            
-            var index = my_widget_script.abNums.indexOf(abNum);
-            if(index > -1){
-                my_widget_script.abNums.splice(index, 1);
+        my_widget_script.runIfConfirmed(
+            "Are you sure that you wish to delete this antibody?",
+            ()=>{
+                var search = my_widget_script.abNumSearch(abNum);
+                $(search).remove(); 
+                
+                var index = my_widget_script.abNums.indexOf(abNum);
+                if(index > -1){
+                    my_widget_script.abNums.splice(index, 1);
+                }
             }
-        }
+        )
     },
 
     addAbTableRow: function(abType, abNum, colNames) {
@@ -938,7 +921,7 @@ $(document).ready(function () {
                     )
                 ).on("input", function () {
                     my_widget_script.showOther($(this));
-                    console.log("calling update fluor info with alexafluor changes")
+                    // console.log("calling update fluor info with alexafluor changes")
                     my_widget_script.updateFluorInfo($(this));
                 }
                 )
@@ -1005,7 +988,7 @@ $(document).ready(function () {
         );
 
         cardBody.find(".alexafluor").not(".ifOther").each(function(){
-            console.log("calling update fluor info within addAbCard");
+            // console.log("calling update fluor info within addAbCard");
             my_widget_script.updateFluorInfo($(this));
         });
 
@@ -1013,6 +996,47 @@ $(document).ready(function () {
 
         my_widget_script.colorFluorOptions(cardBody.find("select.alexafluor"));
     },
+
+    runIfConfirmed: function(text, functionToCall){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
+            }
+        });
+    },
+
+    dialogConfirm: function(text, functionToCall){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        })
+    },
+
+    runBasedOnInput: function(prompt, functionToCall){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+    }
 };
 
 //**************************************************************************
@@ -1056,6 +1080,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
+<!-- Bootbox for dialogs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
 <script>
     var $jq351 = jQuery.noConflict(true);
@@ -1215,7 +1241,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <p>&nbsp;</p>
     </div>
 </div>
-
 
 <!-- #endregion -->
 <!------------------------------------------------------------------------------------------>
