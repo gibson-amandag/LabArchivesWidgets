@@ -85,7 +85,7 @@ $(document).ready(function () {
         this.initDynamicContent(parsedJson);
 
         //resize the content box when the window size changes
-        window.onresize = this.resize;
+        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
 
         //Define behavior when buttons are clicked or checkboxes/selctions change
         this.addEventListeners();
@@ -219,19 +219,14 @@ $(document).ready(function () {
 
         $("input[type='time']").each((i, e)=> {
             var time = $(e).val();
-            console.log("time", time);
             if(time){
                 var validtime = this.isValidTime(time);
-                console.log("valid time", validtime);
                 if(!validtime){
                     fail = true;
                     fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
                 }
             }
         });
-
-        console.log("fail", fail);
-        console.log("fail log", fail_log);
 
         if (fail) { //if fail is true (meaning a required element didn't have a value)
             return bootbox.alert(fail_log); //return the fail log as an alert
@@ -353,7 +348,6 @@ $(document).ready(function () {
     timeSupported: true,
 
     checkTimeFormat: function ($timeInput) {
-        console.log("checking time");
         if(!this.timeSupported){ // if not supported
             $timeInput.next(".timeWarning").remove();
             var time = $timeInput.val();
@@ -394,7 +388,6 @@ $(document).ready(function () {
 
     checkDateFormat: function ($dateInput) {
         if(!this.dateSupported){ // if not supported
-            console.log("date not supported");
             $dateInput.next(".dateWarning").remove();
             var date = $dateInput.val();
             var isValid = this.isValidDate(date);
@@ -427,16 +420,12 @@ $(document).ready(function () {
             this.checkTimeFormat($(e.target));
         });
 
-        $('textarea.autoAdjust').each((i,textArea)=> { // i is the index for each match, textArea is the object
-            textArea.setAttribute('style', 'height:' + (textArea.scrollHeight) + 'px;overflow-y:hidden;');
+        $('textarea.autoAdjust').each((i,e)=> { // i is the index for each match, textArea is the object
+            e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
         }).on('input', (e)=> {
             e.target.style.height = 'auto';
             e.target.style.height = (e.target.scrollHeight) + 'px';
             this.resize();
-        });
-
-        $("#myButton").on("click", (e)=>{
-            this.is_valid();
         });
 
         this.resize();
@@ -454,6 +443,15 @@ $(document).ready(function () {
 
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
+    /**
+     * getDynamicContent, such as the number of rows added to the page
+     * 
+     * If you add something here, you need to read it within to_json to 
+     * provide it to the output of to_json to be read when initiating form
+     * 
+     * If you're just reading data that's stored as a property of 
+     * my_widget_script, you can do that directly in to_json
+     */ 
     getDynamicContent: function () {
         var dynamicContent = {};
         return dynamicContent;
@@ -493,6 +491,26 @@ $(document).ready(function () {
         return valid;
     },
 
+    /**
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * Example:
+     * my_widget_script.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+        );
+    */
     runIfConfirmed: function(text, functionToCall){
         var thisMessage = "Are you sure?";
         if(text){
@@ -508,6 +526,27 @@ $(document).ready(function () {
         });
     },
 
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.dialogConfirm(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
+            }
+        );
+        */
     dialogConfirm: function(text, functionToCall){
         var thisMessage = "Do you want to proceed?";
         if(text){
@@ -521,6 +560,26 @@ $(document).ready(function () {
         })
     },
 
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
+            }
+        );
+        */ 
     runBasedOnInput: function(prompt, functionToCall){
         var thisTitle = "Enter value:"
         if(prompt){
@@ -649,7 +708,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="myLeftCol">Textarea:</div>
         <div class="col"><textarea name="testtext" id="testText" class="autoAdjust"></textarea></div>
     </div>
-    <div class="col"><input type="text" name="fordatepicker" id="forDatePicker"/></div>
 </div>
 
 <!-- Error Message Div -->
