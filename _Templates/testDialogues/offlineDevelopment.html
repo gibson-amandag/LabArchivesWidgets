@@ -73,24 +73,16 @@ $(document).ready(function () {
         //By default it calls the parent_class's init.
 
         //uncomment to inspect and view code while developing
-        // debugger;
+        //debugger;
 
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
-
-        $(".card-header").on("click", function(){
-            my_widget_script.toggleCard($(this));
-        })
 
         //Uncomment to print parsedJson to consol
         //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
-
-        $("select.alexafluor").each(function(){
-            console.log($(this).val());
-        });
 
         //resize the content box when the window size changes
         window.onresize = this.resize;
@@ -101,33 +93,14 @@ $(document).ready(function () {
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
-        $("select.alexafluor").each(function(){
-            // $(this).val(488);
-            console.log("Select after init: " + $(this).val());
-        });
-
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
 
         // Set up the form based on previously entered form input
         this.setUpInitialState();
 
-        $("select.alexafluor").each(function(){
-            console.log("Select after setUpInitialState: " + $(this).val());
-        });
-
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
-
-        $("input, select, textarea").each(function(){
-            var hasName = $(this).attr("name");
-            if(!hasName){
-                console.log("no name");
-                console.log($(this));
-            } else{
-                console.log("name");
-            }
-        })
     },
     
     to_json: function () {
@@ -144,8 +117,7 @@ $(document).ready(function () {
         // Add widgetData and any additional dynamic content to an output object
         // Will be accessed within the init and from_json methods
         var output = { 
-            widgetData: JSON.parse(widgetJsonString),
-            abNums: my_widget_script.abNums
+            widgetData: JSON.parse(widgetJsonString)
         };
 
         //uncomment to check stringified output
@@ -183,10 +155,7 @@ $(document).ready(function () {
         var testData = JSON.parse(this.parent_class.test_data());
 
         //If no additional dynamic content 
-        var output = { 
-            widgetData: testData,
-            abNums: [] 
-        };
+        var output = { widgetData: testData };
 
         //Add additional content to match the objects in to_json
         //var output = { widgetData: testData, addedRows: 2 }; //When in development, initialize with 2 addedRows
@@ -299,12 +268,8 @@ $(document).ready(function () {
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        if(parsedJson.abNums){
-            for(var i = 0; i < parsedJson.abNums.length; i++){
-                var abNum = parsedJson.abNums[i];
-                my_widget_script.addAntibodies(abNum);
-            }
-        }
+        // for (var i = 0; i < parsedJson.addedRows; i++) {
+        // };
     },
 
     /**
@@ -320,7 +285,6 @@ $(document).ready(function () {
             $(".disableOnView").prop("disabled", true);
             $("input[type='date']").removeClass(".hasDatePicker");
             $(".hideView").hide();
-
         } else {
             $("input[type='date']").each(function () {
                 my_widget_script.checkDateFormat($(this));
@@ -337,17 +301,7 @@ $(document).ready(function () {
      * This could include when buttons are clicked or when inputs change.
      */
     addEventListeners: function () {
-        $("#addAntibody").on("click", function () {
-            my_widget_script.addAntibodyClick();
-        });
-        $("#addPrimary").on("click", function(){
-            my_widget_script.addPrimary();
-        });
-
-        $("#addSecondary").on("click", function(){
-            my_widget_script.addSecondary();
-        });
-
+        
     },
 
     /**
@@ -474,17 +428,156 @@ $(document).ready(function () {
             my_widget_script.resize();
         });
 
-        $("select.alexafluor").each(function(){
-            my_widget_script.showOther($(this));
-            console.log("calling update fluor info with setUpInitialState")
-            my_widget_script.updateFluorInfo($(this));
+        $("#choiceButton").on("click", function(){
+            my_widget_script.buttonPress(); // works before
+            my_widget_script.dialogConfirm(
+                "Make a choice:", 
+                (result)=>{ // arrow function, "this" still in context of button
+                    if(result){
+                        my_widget_script.printFunc("You chose OK");
+                    } else {
+                        my_widget_script.printFunc("You canceled or closed the dialog");
+                    }
+                }
+            );
         });
-         
-        my_widget_script.updateWatched();
 
+        $("#deleteButton").on("click", function (){
+            my_widget_script.runIfConfirmed(
+                "Do you want to run the function?", 
+                ()=>{
+                    my_widget_script.printFunc("pretend delete function");
+                }
+            );
+            my_widget_script.buttonPress(); // this runs asynchronously, so runs before user button is pressed
+        });
 
+        $("#enterValButton").on("click", function (){
+            my_widget_script.buttonPress();
+            my_widget_script.runBasedOnInput(
+                "Enter a number from 0-10", (result)=>{
+                    if(result <= 10 && result >= 0){
+                        my_widget_script.printFunc("You entered: " + result);
+                    } else {
+                        my_widget_script.printFunc("You did not enter an appropriate value");
+                    }
+                }
+            );
+        });
 
         my_widget_script.resize();
+    },
+
+    buttonPress: function(){
+        $(".printSpace").text("You clicked a button");
+        my_widget_script.resize();
+    },
+
+    printFunc: function(text){
+        $(".printSpace").text(text);
+        my_widget_script.resize();
+    },
+
+    /**
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * Example:
+     * my_widget_script.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+        );
+    */
+    runIfConfirmed: function(text, functionToCall){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
+            }
+        });
+    },
+
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.dialogConfirm(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
+            }
+        );
+     */
+    dialogConfirm: function(text, functionToCall){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        })
+    },
+
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
+            }
+        );
+     */ 
+    runBasedOnInput: function(prompt, functionToCall){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
     },
 
     /**
@@ -500,9 +593,7 @@ $(document).ready(function () {
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var dynamicContent = {
-            abNums: my_widget_script.abNums
-        };
+        var dynamicContent = {};
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -538,483 +629,7 @@ $(document).ready(function () {
         }
 
         return valid;
-    },
-
-    alexaFluorDyes: {
-        350: {absorption: 346, emission: 442, cssTextColor: "white", color: "blue", cssBackColor: "blue"},
-        405: {absorption: 401, emission: 421, cssTextColor: "white", color: "blue", cssBackColor: "blue"},
-        430: {absorption: 433, emission: 541, cssTextColor: "black", color: "green/yellow", cssBackColor: "greenyellow"},
-        488: {absorption: 496, emission: 519, cssTextColor: "white", color: "green", cssBackColor: "green"},
-        532: {absorption: 532, emission: 553, cssTextColor: "black", color: "yellow", cssBackColor: "yellow"},
-        546: {absorption: 556, emission: 573, cssTextColor: "black", color: "orange", cssBackColor: "orange"},
-        555: {absorption: 555, emission: 565, cssTextColor: "black", color: "orange", cssBackColor: "orange"},
-        568: {absorption: 578, emission: 603, cssTextColor: "white", color: "orange/red", cssBackColor: "orangered"},
-        594: {absorption: 590, emission: 617, cssTextColor: "white", color: "red", cssBackColor: "red"},
-        610: {absorption: 612, emission: 628, cssTextColor: "white", color: "red", cssBackColor: "red"},
-        633: {absorption: 632, emission: 647, cssTextColor: "white", color: "far red", cssBackColor: "darkred"},
-        635: {absorption: 633, emission: 647, cssTextColor: "white", color: "far red", cssBackColor: "darkred"},
-        647: {absorption: 650, emission: 665, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
-        660: {absorption: 663, emission: 690, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
-        680: {absorption: 679, emission: 702, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
-        700: {absorption: 702, emission: 723, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
-        750: {absorption: 749, emission: 775, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
-        790: {absorption: 784, emission: 814, cssTextColor: "white", color: "near-ir", cssBackColor: "grey"},
-    },
-
-    otherObj: {absorption: "", emission: "", cssTextColor: "black", color: "", cssBackColor: "white"},
-
-    primaryAbsNums: [],
-
-    secondaryAbsNums: [],
-
-    abNums: [],
-
-    primaryWatchNames: ["target", "species", "dilution", "lot", "ref", "company"],
-    primaryColNames: ["Target", "Species", "Dilution", "Lot #", "Ref/Cat #", "Company"],
-    secondaryWatchNames: ["target", "species", "dilution", "lot", "ref", "company", "alexafluor", "color", "absorption", "emission"],
-    secondaryCalcNames: ["target", "species", "dilution", "alexafluor", "color", "lot", "ref", "company", "absorption", "emission"],
-    secondaryColNames: ["Target", "Species", "Dilution", "Lot #", "Ref/Cat #", "Company", "Fluorophore", "Color", "Absorption Peak", "Emission Peak"],
-
-    checkInArray: function (searchVal, array){
-        var inArray = $.inArray(searchVal, array) !== -1;
-        return inArray
-    },
-
-    dataSearch: function (dataName, dataValue) {
-        var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
-        return dataSearch
-    },
-
-    abNumSearch: function (abNum) {
-        var abSearch = my_widget_script.dataSearch("abnum", abNum);
-        return abSearch;
-    },
-
-    abTypeSearch: function (abType) {
-        var abSearch = my_widget_script.dataSearch("abtype", abType);
-        return abSearch;
-    },
-
-    abSearch: function(abType, abNum){
-        var abSearch = my_widget_script.abTypeSearch(abType) + my_widget_script.abNumSearch(abNum);
-        return abSearch;
-    },
-
-    calcSearch: function (calc) {
-        var calcSearch = my_widget_script.dataSearch("calc", calc);
-        return calcSearch;
-    },
-
-    watchSearch: function (watch) {
-        var watchSearch = my_widget_script.dataSearch("watch", watch);
-        return watchSearch;
-    },
-
-    watchValue: function ($el) {
-        var watch = $el.data("watch");
-        var calcSearch = my_widget_script.calcSearch(watch);
-        var abType = $el.data("abtype");
-        var abNum = $el.data("abnum");
-        
-        var val = $el.val();
-
-        // console.log("watch: " + watch + "; val: " + val);
-        
-        if(abType){
-            calcSearch += my_widget_script.abTypeSearch(abType);
-        }
-        if(abNum){
-            calcSearch += my_widget_script.abNumSearch(abNum);
-        }
-        if(watch === "alexafluor" && val !== "Other"){
-            val = "AF" + val;
-        }
-
-        $(calcSearch).html(val);
-
-        my_widget_script.resize();
-    },
-
-    updateAbName: function (abType, abNum){
-        // var search = my_widget_script.abTypeSearch(abType) + my_widget_script.abNumSearch(abNum);
-        var search = my_widget_script.abSearch(abType, abNum);
-        var target = $(".target"+search).val();
-        var species = $(".species"+search).val();
-        
-        // console.log("target" + target);
-        // console.log("species "+ species);
-
-        if(target && species){
-            var name = my_widget_script.capitalize(species) + " anti-" + target;
-        } else {
-            var name = my_widget_script.capitalize(abType) + " Antibody " + abNum;
-        }
-
-        $(".abName"+search).text(name);
-        my_widget_script.resize();
-    },
-
-    capitalize: function (string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    },
-
-    showOther: function ($this) {
-        if($this.val() === "Other") {
-            console.log("showing other");
-            var $other = $this.next(".ifOther").show();
-            // Adjust height
-            var thisScrollHeight = $other.prop("scrollHeight");
-            $other.css("height", thisScrollHeight).css("overflow-y", "hidden");
-        } else {
-            $this.next(".ifOther").hide();
-        }
-        my_widget_script.resize();
-    },
-
-    colorFluorOptions: function ($selection) {
-        // var $selection = $("select.alexafluor");
-        console.log($selection);
-        $selection.find("option").each(function() {
-            var val = $(this).val();
-            if(val !== "Other"){
-                var thisAF = my_widget_script.alexaFluorDyes[val];
-            } else{
-                var thisAF = my_widget_script.otherObj;
-            }
-            my_widget_script.colorFluor($(this), thisAF)
-        });
-    },
-
-    colorFluor: function($el, alexaFluorObj) {
-        $el.css("background-color", alexaFluorObj.cssBackColor).css("color", alexaFluorObj.cssTextColor);
-    },
-    
-    updateFluorInfo: function ($el) {
-        var thisVal = $el.val();
-
-        if(thisVal){
-            var abType = $el.data("abtype");
-            var abNum = $el.data("abnum");
-            var abSearch = my_widget_script.abSearch(abType, abNum);
-            var fieldsToUpdate = ["color", "absorption", "emission"];
-            
-            if(thisVal !== "Other"){
-                var thisAF = my_widget_script.alexaFluorDyes[thisVal];
-            }else{
-                var thisAF = my_widget_script.otherObj;
-            }
-        
-            for(i = 0; i<fieldsToUpdate.length; i++){
-                var field = fieldsToUpdate[i];
-                var watchSearch = my_widget_script.watchSearch(field);
-                $(abSearch + watchSearch).val(thisAF[field]).each(function () {
-                    my_widget_script.watchValue($(this));
-                });
-            }
-            my_widget_script.colorFluor($(my_widget_script.calcSearch("color")+abSearch), thisAF);
-            my_widget_script.colorFluor($(".alexafluor"+abSearch), thisAF);
-    
-            my_widget_script.resize();
-        }
-    },
-
-    toggleCard: function ($cardHead) {
-        $cardHead.next().toggleClass("collapse");
-        $cardHead.next().find("textarea.autoAdjust").each(function () {
-            if(! $(this).is(":hidden")) {
-                this.setAttribute(
-                    'style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;display:inline-block;'
-                );
-            } 
-        });
-        my_widget_script.resize();
-    },
-
-    makeCard: function ($div, cardHeadContent, cardBodyContent, abNum) {
-        // Add extras to header, such as classes or data attributes in calling function after making the card
-        $div.append(
-            $("<div/>", {
-                "class": "col col-md-6",
-                "data-abnum": abNum
-            }).append(
-                $("<div/>", {
-                    "class": "card"
-                }).append(
-                    $("<button></button>", {
-                        "type": "button",
-                        "class": "card-header",
-                    }).on("click", function () {
-                        my_widget_script.toggleCard($(this));
-                    }).append(cardHeadContent)
-                ).append(
-                    $("<div/>", {
-                        "class": "card-body collapse"
-                    }).append(
-                        cardBodyContent
-                    )
-                )
-            )
-        );
-        my_widget_script.resize();
-    },
-
-    addAntibodyClick: function (){
-        var abNum = 1;
-        if(my_widget_script.abNums.length > 0){
-            var lastAb = my_widget_script.abNums[my_widget_script.abNums.length - 1];
-            // console.log("lastAb: " + lastAb);
-            abNum = lastAb + 1;
-        }
-
-        var inArray = my_widget_script.checkInArray(abNum, my_widget_script.abNums);
-        if(! inArray){
-            my_widget_script.addAntibodies(abNum);
-        }
-    },
-
-    addAntibodies: function(abNum) {
-        my_widget_script.abNums.push(abNum);
-        // my_widget_script.primaryAbs[abNum] = {} // haven't made yet, not sure if needed
-        $(".cardDiv").append(
-            $("<h3/>", {
-                "data-abnum": abNum,
-                "class": "col-12"
-            }).append("Antibody Series " + abNum)
-        ).append(
-            $("<div/>", {
-                "class": "col-12 mb-2",
-                "data-abnum": abNum
-            }).append(
-                $("<input/>", {
-                    "type": "button",
-                    "data-abnum": abNum,
-                    "value": "Delete antibody",
-                    name: "deleteab"+abNum,
-                    id: "deleteAb"+abNum,
-                    "class": "fullWidth deleteAb hideView"
-                }).on("click", function (){
-                    my_widget_script.deleteAb(abNum)
-                })
-            )
-        );
-
-        my_widget_script.addAbTableRow(
-            "primary", 
-            abNum,
-            my_widget_script.primaryWatchNames
-        );
-
-        my_widget_script.addAbCard(
-            "primary", 
-            abNum, 
-            my_widget_script.primaryWatchNames, 
-            my_widget_script.primaryColNames
-        );
-        my_widget_script.addAbTableRow(
-            "secondary", 
-            abNum,
-            my_widget_script.secondaryCalcNames
-        );
-        my_widget_script.addAbCard(
-            "secondary", 
-            abNum, 
-            my_widget_script.secondaryWatchNames, 
-            my_widget_script.secondaryColNames
-        );
-        
-        var primaryAbSearch = my_widget_script.abSearch("primary", abNum);
-        var secondaryAbSearch = my_widget_script.abSearch("secondary", abNum);
-        $(".species"+primaryAbSearch).on("input", function(){
-            var thisVal = $(this).val();
-            $(".target"+secondaryAbSearch).val(thisVal)
-            my_widget_script.updateAbName("secondary", abNum);
-            my_widget_script.updateWatched();
-            // $(my_widget_script.calcSearch("target")+secondaryAbSearch).text(thisVal);
-        })
-    },
-
-    updateWatched: function() {
-        console.log("Update Watched");
-        $(".watch").each(function(){
-            // console.log($(this));
-            var watch = $(this).data("watch");
-            if(watch !== "alexafluor"){
-                // console.log("in update: watch: " + watch + "; val: " +$(this).val());
-                my_widget_script.watchValue($(this));
-            } else{
-                // console.log("alexafluor");
-                if($(this).val() !== "Other"){
-                    my_widget_script.watchValue($(this));
-                } else {
-                    var $other = $(this).next(".ifOther");
-                    var other = $other.val();
-                    var calcSearch = my_widget_script.calcSearch("alexafluor");
-                    var abType = $other.data("abtype");
-                    var abNum = $other.data("abnum");
-                    var abSearch = my_widget_script.abSearch(abType, abNum);
-                    $(abSearch + calcSearch).text(other);
-                }
-            }
-        })
-    },
-
-    deleteAb: function (abNum){
-        var proceed = confirm("Are you sure that you wish to delete this antibody?");
-        if(proceed){
-            var search = my_widget_script.abNumSearch(abNum);
-            $(search).remove(); 
-            
-            var index = my_widget_script.abNums.indexOf(abNum);
-            if(index > -1){
-                my_widget_script.abNums.splice(index, 1);
-            }
-        }
-    },
-
-    addAbTableRow: function(abType, abNum, colNames) {
-        // console.log("addPrimaryTableRow ", abNum);
-        var $tableBody = $(".abTable"+my_widget_script.abTypeSearch(abType)).find("tbody");
-        
-        $tableBody.append($("<tr/>"));
-        
-        for(i = 0; i < colNames.length; i ++){
-            var col = colNames[i];
-            $tableBody.find("tr").last().append(
-                $("<td/>", {
-                    "data-abtype": abType,
-                    "data-abnum": abNum,
-                    "data-calc": col
-                })
-            );
-        }
-    },
-
-    addAbCard: function(abType, abNum, watchNames, colNames) {
-        // console.log("addPrimaryCard");
-        var $cardDiv = $(".cardDiv");
-        var cardHead = $("<div/>", {
-            "data-abtype": abType,
-            "data-abnum": abNum,
-            "class": "abName"
-        }).append(my_widget_script.capitalize(abType) + " Antibody " + abNum);
-
-        var cardBody = $("<div/>", {
-            "data-abtype": abType,
-            "data-abnum": abNum,
-            "class": "container"
-        });
-
-        var lengthEntries = watchNames.length;
-
-        for(i = 0; i < lengthEntries; i++){
-            var type = watchNames[i];
-            var thisID = abType + type + abNum;
-
-            // Properties for input object
-            var inputObject = {
-                "class": "fullWidth watch " + type,
-                id: thisID,
-                name: thisID,
-                "data-abtype": abType,
-                "data-abnum": abNum,
-                "data-watch": type 
-            }
-
-            // Selection for the fluorophore, others input
-            if(type === "alexafluor"){
-                var $input = $("<select/>", inputObject)
-                for(dye in my_widget_script.alexaFluorDyes){
-                    if(dye === "488"){
-                        $input.append(
-                            $("<option/>", {
-                                value: dye
-                            }).append("AlexaFluor "+dye)
-                        );
-                    }
-                    }
-                $input.append(
-                    $("<option/>", {
-                        value: "Other"
-                    }).append(
-                        "Other"
-                    )
-                ).on("input", function () {
-                    my_widget_script.showOther($(this));
-                    console.log("calling update fluor info with alexafluor changes")
-                    my_widget_script.updateFluorInfo($(this));
-                }
-                )
-            } else {
-                var $input = $("<input/>", inputObject);
-            }
-
-            cardBody.append(
-                $("<div/>", {
-                    "class": "row"
-                }).append(
-                    $("<div/>", {
-                        "class": "col-12 col-md font-weight-bold"
-                    }).append(
-                        colNames[i]
-                    )
-                ).append(
-                    $("<div/>", {
-                        "class": "col",
-                    }).append(
-                        $input
-                    )
-                )
-            );
-
-            if(type === "target" || type === "species"){
-                cardBody.find("input").last().on("change", function(){
-                    my_widget_script.updateAbName(abType, abNum);
-                })
-            }
-
-            if(type === "alexafluor"){
-                cardBody.find("select").parent().append(
-                    $("<texta" +"rea></texta" +"rea>", {
-                        "class": "fullWidth watch autoAdjust ifOther " + type,
-                        id: thisID+"other",
-                        name: thisID+"other",
-                        "data-abtype": abType,
-                        "data-abnum": abNum
-                        // "data-watch": type 
-                    }).on("input", function(){
-                        var calcSearch = my_widget_script.calcSearch("alexafluor");
-                        var abSearch = my_widget_script.abSearch(abType, abNum);
-                        $(abSearch + calcSearch).text($(this).val());
-                    })
-                );
-            }
-        }
-
-        cardBody.find(".watch").not(".ifOther").each(function() { // Don't fill with empty if other
-            my_widget_script.watchValue($(this));
-        });
-        cardBody.find(".watch").on("input", function () {
-            my_widget_script.watchValue($(this));
-        });
-
-        cardBody.find(".watch"+my_widget_script.watchSearch())
-        
-        my_widget_script.makeCard(
-            $cardDiv,
-            cardHead,
-            cardBody,
-            abNum
-        );
-
-        cardBody.find(".alexafluor").not(".ifOther").each(function(){
-            console.log("calling update fluor info within addAbCard");
-            my_widget_script.updateFluorInfo($(this));
-        });
-
-        $("select.alexafluor"+my_widget_script.abNumSearch(1)).val(488);
-
-        my_widget_script.colorFluorOptions(cardBody.find("select.alexafluor"));
-    },
+    }
 };
 
 //**************************************************************************
@@ -1050,7 +665,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
 <!-- Load jQuery for Bootstrap -->
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"
     integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
@@ -1058,6 +673,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
+<!-- Bootbox for dialogs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
 <script>
     var $jq351 = jQuery.noConflict(true);
@@ -1091,126 +708,41 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         width: 100%
     }
 
-    .ifOther {
+    /* .dialogDiv{
         display: none;
-    }
+    } */
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container hideView">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
-        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-            style="color:blue">#</span></p>
-</div>
 
-<div class="card">
-    <button type="button" class="card-header">
-        Test head
-    </button>
-    <div class="card-body">
-        <select name="testsel" id="testsel">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-        </select>
-    </div>
-</div>
-
-<!-- Primary -->
-
-<div class="container mt-2">
+<div class="container">
     <div class="row">
-        <div class="col"><input type="button" value="Add Antibody Series" class="fullWidth hideView" id="addAntibody" name="addantibody"/></div>
-    </div>
-    <div class="row cardDiv mt-2">
-        &nbsp;
-    </div>
-</div>
-
-<!-- <div class="container mt-2">
-    <div class="row">
-        <h3 class="col">Primary Antibodies</h3>
+        <div class="col">
+            Click a button
+        </div>
     </div>
     <div class="row mt-2">
         <div class="col">
-            <input type="button" class="fullWidth hideView" id="addPrimary" name="addprimary" value="Add primary antibody"/>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="col cardDiv" data-abtype="primary">
-            &nbsp;
-        </div>
-    </div>
-</div>
+            <input type="button" value="Make a choice" id="choiceButton" name="choicebutton" data-mouse="3"/>
 
-<div class="container mt-2">
-    <div class="row">
-        <h3 class="col">Secondary Antibodies</h3>
-    </div>
-    <div class="row mt-2">
+        </div>
         <div class="col">
-            <input type="button" class="fullWidth hideView" id="addSecondary" name="addsecondary" value="Add secondary antibody"/>
+            <input type="button" value="Delete" id="deleteButton" name="delete" data-mouse="3"/>
+
+        </div>
+        <div class="col">
+            <input type="button" value="Enter Value" id="enterValButton" name="enterval" data-mouse="3"/>
+
         </div>
     </div>
     <div class="row mt-2">
-        <div class="col cardDiv" data-abtype="secondary">
-            &nbsp;
-        </div>
-    </div>
-</div>
--->
-
-<div class="container mt-2">
-    <div class="row">
-        <h3 class="col">Primary Antibodies</h3>
-    </div>
-    <div class="table-responsive xsTableDiv">
-        <table class="table abTable" data-abtype="primary">
-            <thead>
-                <tr>
-                    <th>Target</th>
-                    <th>Species</th>
-                    <th>Dilution</th>
-                    <th>Lot #</th>
-                    <th>Ref/Cat #</th>
-                    <th>Company</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <p>&nbsp;</p>
+        <div class="col printSpace">&nbsp;</div>
     </div>
 </div>
 
-<div class="container mt-2">
-    <div class="row">
-        <h3 class="col">Secondary Antibodies</h3>
-    </div>
-    <div class="table-responsive xsTableDiv">
-        <table class="table abTable" data-abtype="secondary">
-            <thead>
-                <tr>
-                    <th>Target Species</th>
-                    <th>Species</th>
-                    <th>Dilution</th>
-                    <th>Fluorophore</th>
-                    <th>Color</th>
-                    <th>Lot #</th>
-                    <th>Ref/Cat #</th>
-                    <th>Company</th>
-                    <th>Absorption</th>
-                    <th>Emission</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <p>&nbsp;</p>
-    </div>
-</div>
+<!-- <div id="dialog-confirm" title="test" class="dialogDiv">
+    <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span><span class="dialogMessage">Are you sure that you want to delete this?</span></p>
+</div> -->
 
 <!-- Error Message Div -->
 <div class="container" id="errorMsg">&nbsp;</div>
