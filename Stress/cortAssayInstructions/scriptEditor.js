@@ -1,6 +1,5 @@
 my_widget_script =
 {
-    
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -19,14 +18,14 @@ my_widget_script =
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
 
-        //Uncomment to print parsedJson to consol
+        //Uncomment to print parsedJson to console
         //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
 
         //resize the content box when the window size changes
-        window.onresize = this.resize;
+        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
 
         //Define behavior when buttons are clicked or checkboxes/selctions change
         this.addEventListeners();
@@ -42,6 +41,9 @@ my_widget_script =
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
+
+        // Print to console log if any elements don't have a required name attribute
+        this.checkForNames();
     },
     
     to_json: function () {
@@ -116,7 +118,7 @@ my_widget_script =
      * 
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      */
-    is_valid: function (b_suppress_message) {
+     is_valid: function (b_suppress_message) {
         //called when the user hits the save button, to allow for form validation.
         //returns an array of dom elements that are not valid - default is those elements marked as mandatory
         // that have no data in them.
@@ -134,21 +136,43 @@ my_widget_script =
         var name; //create a name variable
 
         //search the_form for all elements that are of type select, textarea, or input
-        $('#the_form').find('select, textarea, input').each(function () {
-            if (!$(this).prop('required')) { //if this element does not have a required attribute
+        $('#the_form').find('select, textarea, input').each((i, e)=> {
+            if (!$(e).prop('required')) { //if this element does not have a required attribute
                 //don't change anything (fail remains false)
             } else { //if there is a required attribute
-                if (!$(this).val()) { //if there is not a value for this input
+                if (!$(e).val()) { //if there is not a value for this input
                     fail = true; //change fail to true
-                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                    name = $(e).attr('id'); //replace the name variable with the name attribute of this element
                     fail_log += name + " is required \n"; //add to the fail log that this name is required
                 }
 
             }
         });
 
+        $("input[type='date']").each((i, e)=> {
+            var date = $(e).val();
+            if(date){
+                var validDate = this.isValidDate(date);
+                if(!validDate){
+                    fail = true;
+                    fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
+                }
+            }
+        });
+
+        $("input[type='time']").each((i, e)=> {
+            var time = $(e).val();
+            if(time){
+                var validtime = this.isValidTime(time);
+                if(!validtime){
+                    fail = true;
+                    fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
+                }
+            }
+        });
+
         if (fail) { //if fail is true (meaning a required element didn't have a value)
-            return alert(fail_log); //return the fail log as an alert
+            return bootbox.alert(fail_log); //return the fail log as an alert
         } else {
             var noErrors = [];
             return noErrors;
@@ -202,6 +226,16 @@ my_widget_script =
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
+            $("input[type='date']").removeClass(".hasDatePicker");
+            $(".hideView").hide();
+        } else {
+            $("input[type='date']").each((i, e)=> {
+                this.checkDateFormat($(e));
+            });
+            
+            $("input[type='time']").each((i, e)=> {
+                this.checkTimeFormat($(e));
+            });
         }
     },
 
@@ -221,15 +255,91 @@ my_widget_script =
      * red * before fields with the "requiredLab" property
      */
     addRequiredFieldIndicators: function () {
-        $('.needForTableLab').each(function () { //find element with class "needForFormLab"
-            //alert($(this).val());
-            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
+        $('.needForTableLab').each((i, e)=> { //find element with class "needForFormLab"
+            //alert($(e).val());
+            $(e).html("<span class='hideView' style='color:blue'>#</span>" + $(e).html()); //add # before
         });
 
-        $('.requiredLab').each(function () { //find element with class "requiredLab"
-            //alert($(this).val());
-            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
+        $('.requiredLab').each((i, e)=> { //find element with class "requiredLab"
+            //alert($(e).val());
+            $(e).html("<span class='hideView' style='color:red'>*</span>" + $(e).html()); //add # before
         });
+    },
+
+    isValidTime: function (timeString) {
+        var regEx = "^(((([0-1][0-9])|(2[0-3])):[0-5][0-9]))$";
+        if(!timeString.match(regEx)){
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    isTimeSupported: function () {
+        // Check if browser has support for input type=time
+        var input = document.createElement('input');
+        input.setAttribute('type', 'time');
+        var supported = true;
+        if(input.type !== "time"){
+            supported = false;
+        }
+        this.timeSupported = supported;
+        input.remove();
+        return (supported);
+    },
+
+    timeSupported: true,
+
+    checkTimeFormat: function ($timeInput) {
+        if(!this.timeSupported){ // if not supported
+            $timeInput.next(".timeWarning").remove();
+            var time = $timeInput.val();
+            var isValid = this.isValidTime(time);
+            if(!isValid){
+                $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
+            }
+            this.resize();
+        }
+    },
+
+    isValidDate: function (dateString) {
+        // https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery/18759013
+        var regEx = /^\d{4}-\d{2}-\d{2}$/;
+        if(!dateString.match(regEx)) return false;  // Invalid format
+        var d = new Date(dateString);
+        var dNum = d.getTime();
+        if(!dNum && dNum !== 0) return false; // NaN value, Invalid date
+        return d.toISOString().slice(0,10) === dateString;
+    },
+
+    isDateSupported: function () {
+        // https://gomakethings.com/how-to-check-if-a-browser-supports-native-input-date-pickers/
+        // Check if browser has support for input type=date
+        var input = document.createElement('input');
+        // var value = 'a';
+        input.setAttribute('type', 'date');
+        var supported = true;
+        if(input.type !== "date"){
+            supported = false;
+        }
+        this.dateSupported = supported;
+        input.remove();
+        return (supported);
+    },
+
+    dateSupported: true,
+
+    checkDateFormat: function ($dateInput) {
+        if(!this.dateSupported){ // if not supported
+            $dateInput.next(".dateWarning").remove();
+            var date = $dateInput.val();
+            var isValid = this.isValidDate(date);
+            if(!isValid){
+                $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
+            }
+            $dateInput.datepicker({dateFormat: "yy-mm-dd"})
+            this.resize();
+        }
     },
 
     /**
@@ -238,34 +348,45 @@ my_widget_script =
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
+        this.isDateSupported();
+        this.isTimeSupported();
+        
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", (e)=> {
+            this.checkDateFormat($(e.currentTarget));
+        });
+        
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", (e)=> {
+            this.checkTimeFormat($(e.target));
+        });
+        
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-4 col-sm-4 col-md-4 col-lg-3 text-right");
         $('.myLeftCol2').addClass("col-12 col-sm-4 col-md-4 col-lg-3 text-left text-sm-right");
         $('.myLeftCol3').addClass("col-2 col-lg-1 text-right");
 
-        $('textarea.autoAdjust').each(function () {
-            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-        }).on('input', function () {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-            my_widget_script.resize();
+        $('textarea.autoAdjust').each((i,e)=> { // i is the index for each match, textArea is the object
+            e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', (e)=> {
+            e.target.style.height = 'auto';
+            e.target.style.height = (e.target.scrollHeight) + 'px';
+            this.resize();
         });
 
-        $(".watchTime").each(function () {
-            var $elToWatch = $(this);
-            var $elToFill = $(this).parent().next().find($(".fillTime"));
-            console.log($elToFill);
+        $(".watchTime").each((i,e)=> {
+            var $elToWatch = $(e);
+            var $elToFill = $(e).parent().next().find($(".fillTime"));
+            // console.log($elToFill);
 
-            my_widget_script.watchTime($elToWatch, $elToFill);
-        }).on("input", function () {
-            var $elToWatch = $(this);
-            var $elToFill = $(this).parent().next().find($(".fillTime"));
-            console.log($elToFill);
+            this.watchTime($elToWatch, $elToFill);
+        }).on("input", (e)=> {
+            var $elToWatch = $(e.currentTarget);
+            var $elToFill = $(e.currentTarget).parent().next().find($(".fillTime"));
+            // console.log($elToFill);
 
             my_widget_script.watchTime($elToWatch, $elToFill);
         });
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     /**
@@ -274,7 +395,16 @@ my_widget_script =
      */
     resize: function () {
         //resize the container
-        my_widget_script.parent_class.resize_container();
+        this.parent_class.resize_container();
+    },
+
+    checkForNames: function() {
+        $("input, select, textarea").each((i,e)=>{
+            var hasName = $(e).attr("name");
+            if(!hasName){
+                console.log("There is no name attribute for: ", e.id);
+            }
+        })
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -296,16 +426,16 @@ my_widget_script =
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      * -----------------------------------------------------------------------------
      */
-    data_valid_form: function () {
+     data_valid_form: function () {
         var valid = true; //begin with a valid value of true
         //var fail_log = ''; //begin with an empty fail log
         //var name; //create a name variable
 
         //search the_form for all elements that are of class "needForForm"
-        $('.needForTable').each(function () {
-            if (!$(this).val()) { //if there is not a value for this input
+        $('.needForTable').each((i, e)=> {
+            if (!$(e).val()) { //if there is not a value for this input
                 valid = false; //change valid to false
-                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
+                //name = $(e).attr('id'); //replace the name variable with the id attribute of this element
                 //fail_log += name + " is required \n"; //add to the fail log that this name is required
             }
         });
@@ -319,6 +449,111 @@ my_widget_script =
         return valid;
     },
 
+    /**
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * Example:
+     * my_widget_script.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+        );
+    */
+    runIfConfirmed: function(text, functionToCall){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
+            }
+        });
+    },
+
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.dialogConfirm(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
+            }
+        );
+        */
+    dialogConfirm: function(text, functionToCall){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        })
+    },
+
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
+            }
+        );
+        */ 
+    runBasedOnInput: function(prompt, functionToCall){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+    },
+
+    // ******************
+    // Widget-specific 
+    // ******************
     getHoursMin: function (timeString) {
         timeString = timeString.split(":");
         var hours = parseInt(timeString[0], 10), mins = parseInt(timeString[1], 10);
