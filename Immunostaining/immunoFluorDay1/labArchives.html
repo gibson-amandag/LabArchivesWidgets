@@ -1,0 +1,365 @@
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<!-- Load jQuery for Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<!-- Load bootstrap java -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous">
+</script>
+<!-- Bootbox for dialogs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
+<script>
+    var $jq351 = jQuery.noConflict(true);
+</script>
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 90%
+    }
+
+    .green{
+        color: green;
+    }
+
+    .bottomLine{
+        border-bottom: 2px solid black;
+    }
+
+    .blue{
+        color: blue;
+    }
+
+    .orange{
+        color: orange;
+    }
+
+    .lightBlue{
+        color: rgb(77, 167, 246);
+    }
+
+    .red{
+        color: red;
+    }
+
+    .purple{
+        color: purple;
+    }
+
+    ul {
+        margin-left: 0;
+        padding-left: 20px;
+    }
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="container hideView">
+    <p>Elements that are required to save this page are marked with a red asterisk <span
+            style="color:red">*</span></p>
+</div>
+
+<!-- PBS card -->
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <button class="card-header" type="button">
+                    1x PBS
+                </button>
+                <div class="card-body container collapse">
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green">50 mL</div>
+                        <div class="col">10x PBS</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol bottomLine">
+                            <div class="row">
+                                <div class="col-2 text-left">
+                                    +
+                                </div>
+                                <div class="col green">450 mL</div>
+                            </div>
+                        </div>
+                        <div class="col">H<sub>2</sub>O <em>use milliQ water and fill to 500 mL </em></div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">500 mL</div>
+                        <div class="col"><strong>total</strong></div>
+                    </div>
+                    <div class="row mt-2 align-items-end">
+                        <div class="myLeftCol2">
+                            <input type="date" name="pbs1xdate" id="pbs1xDate">
+                        </div>
+                        <div class="col">Date</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Alternate Amount:</strong><br/>
+                        </div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">
+                            <input type="number" name="desiredpbsvol" id="desiredPBSVol" class="fullWidth">
+                        </div>
+                        <div class="col">Desired 1x PBS final volume (mL)</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="vol10xPBS">[Enter desired amount]</span> mL</div>
+                        <div class="col">Amount of 10x PBS to add</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-md-6">
+            <div class="card">
+                <button class="card-header" type="button">
+                    PBS + 4% Normal Goat Serum + 0.4% Triton
+                </button>
+                <div class="card-body container collapse">
+                    <div class="row font-italic">
+                        Prepare a solution of TritonX100 at 20% dilution 1:5 (8mL Triton + 32mL PBS 1X). You can keep it for a very long time at 4&deg;C.
+                        Diluted triton is easier to use as it is a sticky detergent
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green">1200 &micro;L</div>
+                        <div class="col">Normal goat serum <em>aliquots in freezer</em></div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green">600 &micro;L</div>
+                        <div class="col">Triton 20%</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol bottomLine">
+                            <div class="row">
+                                <div class="col-2 text-left">
+                                    +
+                                </div>
+                                <div class="col green">28.2 mL</div>
+                            </div>
+                        </div>
+                        <div class="col">PBS 1x</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">30 mL</div>
+                        <div class="col"><strong>total</strong></div>
+                    </div>
+                    <div class="row mt-2 align-items-end">
+                        <div class="myLeftCol2">
+                            <input type="date" name="pbs1xdate" id="pbs1xDate">
+                        </div>
+                        <div class="col">Date</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Alternate Amount:</strong><br/>
+                        </div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">
+                            <input type="number" name="desiredpbstblockvol" id="desiredPBSTBlockVol" class="fullWidth">
+                        </div>
+                        <div class="col">Desired blocking solution volume (mL)</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="volNGSBlock">[Enter desired amount]</span> &micro;L</div>
+                        <div class="col">Amount of NGS to use</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="volTritonBlock">[Enter desired amount]</span> &micro;L</div>
+                        <div class="col">Amount of 20% triton to use</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="volPBSBlock">[Enter desired amount]</span> mL</div>
+                        <div class="col">Amount of 1x PBS to use</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Primary -->
+        <div class="col-12 col-md-6">
+            <div class="card">
+                <button class="card-header" type="button">
+                    Primary Antibody Solution
+                </button>
+                <div class="card-body container collapse">
+                    <div class="row">
+                        <div class="col">
+                            <strong>Prepare in  blocking solution (PBS + triton + NGS)</strong>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="myLeftCol2">
+                            <input type="date" name="primarydate" id="primaryDate">
+                        </div>
+                        <div class="col">Date</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Amounts:</strong><br/>
+                        </div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">
+                            <input type="number" name="desiredprimaryvol" id="desiredPrimaryVol" class="fullWidth">
+                        </div>
+                        <div class="col">Desired primary antibody solution volume (mL)</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="volBlockingForPrimary">[Enter desired amount]</span> mL</div>
+                        <div class="col">Amount of blocking solution to use</div>
+                    </div>
+                    <div id="abAmountInfo">&nbsp;</div>
+                    <div class="row mt-2 hideView">
+                        <div class="col"><input type="button" value="Add Antibody" id="addAntibody" name="addantibody" class="fullWidth disableOnView"></div>
+                    </div>
+                    <div class="row mt-2 hideView">
+                        <div class="col"><input type="button" value="Add CRH cFos Study ABs" id="addCRHcFosABs" name="addcrhcfosabs" class="fullWidth disableOnView"></div>
+                    </div>
+                    <div id="abInfo">&nbsp;</div>
+                    <div class="row mt-2 font-italic">
+                        <div class="col">
+                            To find where your AB is stored (4&deg;C, -20&deg;C, -80&deg;C), look at the IHC folder in the IHC drawer<br/>
+                        </div>
+                    </div>  
+                    <div class="row mt-2">
+                        <div class="col font-italic">
+                            Tips: To prepare less primary AB, you can transer the slices from basket to the well (3 mL of AB in a well of 6well plate is enough,
+                            vs 7mL minimum when you use the basket)
+                            or, use a 24-well plate with 500&micro;L per well<br/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Day 1:</h3>
+    </div>
+    <div class="row">
+        <div class="col">
+            Free-floating sections are stored in anti-freeze solution (cryoprotectant)<br/>
+            Gently shake for all incubation steps unless otherwise indicated
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">1. <input type="checkbox" name="step1" id="step1"/></div>
+        <div class="col">
+            Remove slices from freezer and transfer them into a basket (cell strainer), inside a 6-well plate, filled with <span class="lightBlue">PBS 1x</span><br/>
+            Label baskets and plate cover
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">2. <input type="checkbox" name="step2" id="step2"/></div>
+        <div class="col">
+            Wash sections <span class="blue">3X for 10 min</span> on shaker with <span class="lightBlue">PBS 1x</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="myLeftCol4"><input type="time" name="rinsetime1" id="rinseTime1" class="watchTime fullWidth"></div>
+        <div class="col">
+            Wash 1 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="myLeftCol4"><input type="time" name="rinsetime2" id="rinseTime2" class="watchTime fullWidth"></div>
+        <div class="col">
+            Wash 2 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="myLeftCol4"><input type="time" name="rinsetime3" id="rinseTime3" class="watchTime fullWidth"></div>
+        <div class="col">
+            Wash 3 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">3. <input type="checkbox" name="step3" id="step3"/></div>
+        <div class="col">
+            Incubate the slices in 24-well plate with <span class="green">500 &micro;L</span> of 
+            <span class="lightBlue">blocking solution</span> <em>(see PBS + 4% NGS + 0.4% triton above)</em>
+            for <span class="blue">1 hr</span> at RT
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4"><input type="time" name="blockingtime" id="blockingtime" class="watchTime fullWidth"></div>
+        <div class="col">
+            Blocking complete at <span class="fillTime purple" data-time="01:00">{Enter Start Time}</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">4. <input type="checkbox" name="step4" id="step4"/></div>
+        <div class="col">
+            Incubate slices in 24-well plate with 500 &micro;L <span class="lightBlue">primary antibody</span>
+            diluted in the blocking solution (see above)<br/>
+            <div class="mt-1 font-italic">
+                You can leave the primary for several nights, but try to be consistent. Ideally, have control and treatment groups done at the same time,
+                as the quality of IHC may vary, you don't want to do only one type of treatment on one day
+                and only another type on another day
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            <input type="date" name="startdate" id="startDate" class="fullWidth">
+        </div>
+        <div class="col">
+            Start Date
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            <input type="time" name="starttime" id="startTime" class="fullWidth">
+        </div>
+        <div class="col">
+            Start Time
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            <input type="date" name="enddate" id="endDate" class="fullWidth">
+        </div>
+        <div class="col">
+            End Date
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            <input type="time" name="endtime" id="endTime" class="fullWidth">
+        </div>
+        <div class="col">
+            End Time
+        </div>
+    </div>
+</div>
