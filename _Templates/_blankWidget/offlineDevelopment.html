@@ -78,7 +78,7 @@ $(document).ready(function () {
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
 
-        //Uncomment to print parsedJson to consol
+        //Uncomment to print parsedJson to console
         //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
@@ -101,6 +101,9 @@ $(document).ready(function () {
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
+
+        // Print to console log if any elements don't have a required name attribute
+        this.checkForNames();
     },
     
     to_json: function () {
@@ -413,7 +416,7 @@ $(document).ready(function () {
 
 
         $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", (e)=> {
-            this.checkDateFormat($(e.target));
+            this.checkDateFormat($(e.currentTarget));
         });
         
         $("input[type='time']").prop("placeholder", "hh:mm").on("change", (e)=> {
@@ -438,6 +441,15 @@ $(document).ready(function () {
     resize: function () {
         //resize the container
         this.parent_class.resize_container();
+    },
+
+    checkForNames: function() {
+        $("input, select, textarea").each((i,e)=>{
+            var hasName = $(e).attr("name");
+            if(!hasName){
+                console.log("There is no name attribute for: ", e.id);
+            }
+        })
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -591,7 +603,7 @@ $(document).ready(function () {
                 functionToCall(result);
             }
         });
-    }
+    },
 };
 
 //**************************************************************************
@@ -634,7 +646,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!-- Load bootstrap java -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
+    crossorigin="anonymous">
+</script>
 <!-- Bootbox for dialogs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
