@@ -84,10 +84,9 @@
             style="color:red">*</span></p>
 </div>
 
-<!-- PBS card -->
-
 <div class="container">
     <div class="row">
+        <!-- PBS Card -->
         <div class="col-12 col-lg-6">
             <div class="card">
                 <button class="card-header" type="button">
@@ -138,38 +137,16 @@
             </div>
         </div>
         
-        <div class="col-12 col-md-6">
+        <!-- Blocking Solution -->
+        <div class="col-12 col-lg-6">
             <div class="card">
                 <button class="card-header" type="button">
-                    PBS + 4% Normal Goat Serum + 0.4% Triton
+                    PBS + <span data-calc="percNGS">4</span>% Normal Goat Serum + <span data-calc="percTriton">0.4</span>% Triton
                 </button>
                 <div class="card-body container collapse">
                     <div class="row font-italic">
                         Prepare a solution of TritonX100 at 20% dilution 1:5 (8mL Triton + 32mL PBS 1X). You can keep it for a very long time at 4&deg;C.
                         Diluted triton is easier to use as it is a sticky detergent
-                    </div>
-                    <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol green">1200 &micro;L</div>
-                        <div class="col">Normal goat serum <em>aliquots in freezer</em></div>
-                    </div>
-                    <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol green">600 &micro;L</div>
-                        <div class="col">Triton 20%</div>
-                    </div>
-                    <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol bottomLine">
-                            <div class="row">
-                                <div class="col-2 text-left">
-                                    +
-                                </div>
-                                <div class="col green">28.2 mL</div>
-                            </div>
-                        </div>
-                        <div class="col">PBS 1x</div>
-                    </div>
-                    <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol">30 mL</div>
-                        <div class="col"><strong>total</strong></div>
                     </div>
                     <div class="row mt-2 align-items-end">
                         <div class="myLeftCol2">
@@ -179,33 +156,67 @@
                     </div>
                     <div class="row mt-2">
                         <div class="col">
-                            <strong>Alternate Amount:</strong><br/>
+                            <strong>Percentages:</strong>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="myLeftCol">
+                            <input type="number" name="percngs" id="percNGS" class="fullWidth updateBlocking watch" data-watch="percNGS" value="4" min="0" max="100"/>
+                        </div>
+                        <div class="col">
+                            % normal goat serum
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="myLeftCol">
+                            <input type="number" name="perctriton" id="percTriton" class="fullWidth updateBlocking watch" data-watch="percTriton" value="0.4" min="0" max="100" step="0.1"/>
+                        </div>
+                        <div class="col">
+                            % triton
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Desired Amount:</strong><br/>
                         </div>
                     </div>
                     <div class="row mt-2 align-items-start">
                         <div class="myLeftCol">
-                            <input type="number" name="desiredpbstblockvol" id="desiredPBSTBlockVol" class="fullWidth">
+                            <input type="number" name="desiredpbstblockvol" id="desiredPBSTBlockVol" class="fullWidth updateBlocking watch" data-watch="blockVol" value="30">
                         </div>
                         <div class="col">Desired blocking solution volume (mL)</div>
                     </div>
                     <div class="row mt-2 align-items-start">
                         <div class="myLeftCol green"><span id="volNGSBlock">[Enter desired amount]</span> &micro;L</div>
-                        <div class="col">Amount of NGS to use</div>
+                        <div class="col">Normal goat serum <em>aliquots in freezer</em></div>
                     </div>
                     <div class="row mt-2 align-items-start">
                         <div class="myLeftCol green"><span id="volTritonBlock">[Enter desired amount]</span> &micro;L</div>
-                        <div class="col">Amount of 20% triton to use</div>
+                        <div class="col">20% triton</div>
                     </div>
                     <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol green"><span id="volPBSBlock">[Enter desired amount]</span> mL</div>
-                        <div class="col">Amount of 1x PBS to use</div>
+                        <div class="myLeftCol bottomLine">
+                            <div class="row">
+                                <div class="col-2 text-left">
+                                    +
+                                </div>
+                                <div class="col green"><span id="volPBSBlock">[Enter desired amount]</span> mL</div>
+                            </div>
+                        </div>
+                        <div class="col">PBS 1x</div>
+                    </div>
+                    
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol"><span data-calc="blockVol">[Enter desired amount]</span> mL</div>
+                        <div class="col"><strong>total</strong></div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Primary -->
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-lg-6">
             <div class="card">
                 <button class="card-header" type="button">
                     Primary Antibody Solution
