@@ -487,24 +487,34 @@ $(document).ready(function () {
      */
     data_valid_form: function () {
         var valid = true; //begin with a valid value of true
-        //var fail_log = ''; //begin with an empty fail log
-        //var name; //create a name variable
+        var fail_log = $("<div></div>").append("Missing values for:");
+        var name; //create a name variable
 
         //search the_form for all elements that are of class "needForForm"
         $('.needForTable').each((i, e)=> {
             if (!$(e).val()) { //if there is not a value for this input
                 valid = false; //change valid to false
-                //name = $(e).attr('id'); //replace the name variable with the id attribute of this element
-                //fail_log += name + " is required \n"; //add to the fail log that this name is required
+                name = $(e).attr('id'); //replace the name variable with the id attribute of this element
+                fail_log.append("<br/>"+name)
+                // fail_log += name + " is required \n"; //add to the fail log that this name is required
             }
         });
 
         if (!valid) {
-            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+            $errorMsg.html(
+                "<span style='color:red; font-size:36px;'>" +
+                    "Please fill out all elements marked by a"+
+                    "</span><span style='color:blue; font-size:36px;'>" +
+                    " blue #"+
+                "</span>"
+            );
+            $errorMsg.append(fail_log);
+            // console.log("fail log\n", fail_log)    
         } else {
-            $("#errorMsg").html("");
+            $errorMsg.html("");
         }
 
+        this.resize();
         return valid;
     },
 
