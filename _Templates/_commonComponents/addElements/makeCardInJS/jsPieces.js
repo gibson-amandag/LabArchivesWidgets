@@ -39,9 +39,9 @@ my_widget_script =
     toggleCard: function ($cardHead) {
         // console.log($cardHead.next());
         $cardHead.next().toggleClass("collapse");
-        $cardHead.next().find("textarea.autoAdjust").each(function () {
-            if(! $(this).is(":hidden")) {
-                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+        $cardHead.next().find("textarea.autoAdjust").each((i,e)=> {
+            if(! $(e).is(":hidden")) {
+                e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
             } 
         });
         my_widget_script.resize();
@@ -56,8 +56,8 @@ my_widget_script =
                 $("<button></button>", {
                     "type": "button",
                     "class": "card-header",
-                }).on("click", function () {
-                    my_widget_script.toggleCard($(this));
+                }).on("click", (e)=> {
+                    this.toggleCard($(e.currentTarget));
                 }).append(cardHeadContent)
             ).append(
                 $("<div/>", {

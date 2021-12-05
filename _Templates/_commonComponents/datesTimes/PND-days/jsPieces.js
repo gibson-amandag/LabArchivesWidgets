@@ -113,6 +113,27 @@ my_widget_script =
         return textOutput;
     },
 
+    // getPND: function (dateInputVal, DOBisDay) {
+    //     //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
+    //     var textOutput;
+    //     var DOB_val = $("#dateOfBirth").val()
+    //     if(DOB_val){
+    //         if(dateInputVal){
+    //             var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
+    //             var DOB = luxon.DateTime.fromISO(DOB_val).startOf("day").minus({ days: DOBisDay });
+    //             var pnd = compDate.diff(DOB, "days").as("day");
+    //             // console.log(pnd);
+    //             textOutput = pnd;
+    //         } else {
+    //             textOutput = "[Enter Recording Date]";
+    //         }
+    //     } else {
+    //         textOutput = "[Enter DOB]";
+    //     }
+        
+    //     return textOutput;
+    // },
+
     updateToDoStatus: function (PND_today) {
         // TO DO - Change these to match your tasks and output divs
         var $toDoStatus = $(".toDo_status");

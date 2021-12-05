@@ -1,7 +1,7 @@
 my_widget_script =
 {
     addEventListeners: function () {
-        $("#numDays").on("input", function () {
+        $("#numDays").on("input", ()=> {
             if ($("#startDate").val()) {
                 var startDateVal = $("#startDate").val();
                 var $newDate = $("#newDate");
@@ -12,7 +12,7 @@ my_widget_script =
             }
         });
 
-        $("#startDate").on("input", function () {
+        $("#startDate").on("input", ()=> {
             if ($("#numDays").val()) {
                 var startDateVal = $("#startDate").val();
                 var $newDate = $("#newDate");
