@@ -1812,6 +1812,22 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
+<!-- The other option is to still have some sort of selection and 
+    change the data attributes of the buttons with the selection
+    Or. since you'd press the button and then have the bootbox
+    pop up with the selection, you'd still only have one copy function
+    and one save function, but then you'd assign the table
+    within the function that is calling bootbox
+
+    The helpful thing with the cards that show them all (in addition to
+    it being written already), is that you can see what the table looks
+    like when you're trying to copy
+
+    Also not reliant on additional user interaction which could be more
+    subject to change in the future with web security changes
+
+    I think what I have is probably best
+ -->
 <div class="container outCardContainer">
     <div class="row mt-2">
         <h2 class="col">Output Tables:</h2>
