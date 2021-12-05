@@ -445,9 +445,14 @@ $(document).ready(function () {
 
     checkForNames: function() {
         $("input, select, textarea").each((i,e)=>{
-            var hasName = $(e).attr("name");
-            if(!hasName){
+            var thisName = $(e).attr("name");
+            if(!thisName){
                 console.log("There is no name attribute for: ", e.id);
+            } else {
+                var hasUpper = /[A-Z]/.test(thisName);
+                if(hasUpper){
+                    console.log("The name contains an uppercase letter for: ", e.id);
+                }
             }
         })
     },
