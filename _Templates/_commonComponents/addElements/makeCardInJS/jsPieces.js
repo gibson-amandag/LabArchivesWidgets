@@ -44,7 +44,7 @@ my_widget_script =
                 e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
             } 
         });
-        my_widget_script.resize();
+        this.resize();
     },
 
     makeCard: function ($div, cardHeadContent, cardBodyContent) {
@@ -67,6 +67,6 @@ my_widget_script =
                 )
             )
         )
-        my_widget_script.resize();
+        this.resize();
     },
 };
