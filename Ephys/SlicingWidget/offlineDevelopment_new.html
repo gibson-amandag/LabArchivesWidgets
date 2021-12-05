@@ -429,111 +429,17 @@ $(document).ready(function () {
      * This could include when buttons are clicked or when inputs change.
      */
     addEventListeners: function () {
-        //Show/hide the table
-        $("#selectTable").on("change", (e)=> { //when the showTable button is clicked. Run this function
-            var tableID = $(e.currentTarget).val();
-            if(tableID) {
-                this.toggleTableFuncs(tableID);
-            } else {
-                $(".outTable").hide();
-                $("#errorMsg").text("");
-            }
-        });
+        // //Show/hide the table
+        // $("#selectTable").on("change", (e)=> { //when the showTable button is clicked. Run this function
+        //     var tableID = $(e.currentTarget).val();
+        //     if(tableID) {
+        //         this.toggleTableFuncs(tableID);
+        //     } else {
+        //         $(".outTable").hide();
+        //         $("#errorMsg").text("");
+        //     }
+        // });
 
-        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
-        $('#toCSV').on("click", ()=> {
-            // TO-DO: Something like this to simplify. Maybe even make a property of my_widget_script
-            // Could have an object with the number, and then sub-objects with tableID, fileName, etc
-            // var tableIDs = {
-            //     1: "AmandaOutTable",
-            //     2: "labOutTable",
-            //     3: "externalAdditionsTable",
-            //     4: "internalAdditionsTable",
-            //     5: "JennPNA",
-            //     6: "sacTimeTable"
-            // }
-
-            this.runBasedOnInput(
-                this.tableSelectionPrompt,
-                (result)=>{
-                    var tableID, fileName;
-                    switch (result) {
-                        case '1':
-                            tableID = "AmandaOutTable";
-                            fileName = "recordingNotes_" + $("#mouseID").val();
-                            break;
-                        case '2':
-                            tableID = "labOutTable";
-                            fileName = "recordingNotes_" + $("#mouseID").val();
-                            break;
-                        case '3':
-                            tableID = "externalAdditionsTable";
-                            fileName = "externalSolutionAdditions_" + $("#mouseID").val();
-                            break;
-                        case '4': 
-                            tableID = "internalAdditionsTable";       
-                            fileName = "internalSolutionAdditions_" + $("#mouseID").val();
-                            break;
-                        case '5':
-                            tableID = "JennPNA";       
-                            fileName = "JennPNA_recordingNotes_" + $("#mouseID").val();
-                            break;  
-                        case '6':
-                            tableID = "sacTimeTable";       
-                            fileName = "sacrificeTiming_" + $("#mouseID").val();
-                            break;     
-                        default:
-                            tableID = "labOutTable";
-                            fileName = "recordingNotes_" + $("#mouseID").val();
-                            break;
-                    }
-
-                    var $errorMsg = $("#errorMsg");
-                    
-                    this.toCSVFuncs(fileName, tableID, $errorMsg);
-                }
-            )
-            
-        });
-
-        //When the copy button is clicked, run the copyTable function
-        $("#copyDataButton").on("click", ()=> {
-            this.runBasedOnInput(
-                this.tableSelectionPrompt,
-                (result)=>{
-                    var $tableToCopy;
-                    switch (result) {
-                        case '1':
-                            $tableToCopy = $("#AmandaOutTable");
-                            break;
-                        case '2':
-                            $tableToCopy = $("#labOutTable");
-                            break;
-                        case '3':
-                            $tableToCopy = $("#externalAdditionsTable");
-                            break;
-                        case '4': 
-                            $tableToCopy = $("#internalAdditionsTable");       
-                            break;
-                        case '5':
-                            $tableToCopy = $("#JennPNA");
-                            break;  
-                        case '6':
-                            $tableToCopy = $("#sacTimeTable");
-                            break;     
-                        default:
-                            $tableToCopy = $("#labOutTable");
-                            break;
-                    }
-                    var $copyHead = $("#copyHead");
-                    var $tableDiv = $("#tableDiv");
-                    var $errorMsg = $("#errorMsg");
-                    var $divForCopy = $("#forCopy");
-                    
-                    this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
-                }
-            );                    
-        });
 
         //Show/hide elements based on sex
         $("#sex").on("change", ()=> { //when sex is changed
@@ -755,6 +661,32 @@ $(document).ready(function () {
 
         // Make the output tables
         this.makeOutputTableCards();
+
+        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
+        $(".toCSV").on("click", (e)=>{
+            var tableID = $(e.currentTarget).data("table");
+            var tableName = $(e.currentTarget).data("tablename");
+            var dateToday = luxon.DateTime.now().toISODate(); // Luxon has to be added
+            var fileName = "table_" + tableName + "_" + dateToday;
+            var $errorMsg = $(".errorMsg"+this.tableSearch(tableID));
+            console.log("fileName", fileName, "table", tableID, "errorMsg", $errorMsg);
+            this.toCSVFuncs(fileName, tableID, $errorMsg);
+        });
+
+        $(".copyData").on("click", (e)=>{
+            var tableID = $(e.currentTarget).data("table");
+            // Get the data-table text string to add to the query to find the table
+            var tableSearch = this.tableSearch(tableID);
+            // Find the element that tells whether or not to copy the table
+            var $copyHead = $(".copyHead"+tableSearch);
+            var $transpose = $(".transpose"+tableSearch);
+            var $tableToCopy = $("#"+tableID);
+            var $tableDiv = $tableToCopy.parent();
+            var $errorMsg = $(".errorMsg"+tableSearch);
+            var $divForCopy = $(".forCopy" +tableSearch);
+
+            this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose);
+        });
 
         this.checkSexAndGonadStatus();
 
@@ -1146,7 +1078,7 @@ $(document).ready(function () {
         // Click download link
         downloadLink.click();
     },
-    
+
     /**
      * This function takes a filename and table name (both strings) as input
      * It then creates a csv element from the table
@@ -1176,7 +1108,7 @@ $(document).ready(function () {
         this.downloadCSV(csv.join("\n"), filename);
     },
 
-    /**
+/**
      * This function creates a temporary textarea and then appends the contents of the
      * specified table body to this textarea, separating each cell with a tab (\t).
      * Because the script editor in LA is within a <textarea> the script cannot contain
@@ -1195,47 +1127,68 @@ $(document).ready(function () {
      * then removed from the page.
      * @param {*} $table - jQuery object for the table that will be copied
      * @param {*} copyHead - true/false for whether or not the table head should be copied
+     * @param {*} $divForCopy - where the temp textarea should be added
+     * @param {*} transpose - true if table should be transposed
      */
-    copyTable: function ($table, copyHead, $divForCopy) {
-        //create a temporary text area
+     
+     copyTable: function ($table, copyHead, $divForCopy, transpose) {
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-        var addLine = "";
+        var rows = [];
+        var rowNum = 0;
+        // If you copying the head of the table
         if (copyHead) {
-            $table.find("thead").children("tr").each(function () { //add each child of the row
-                var addTab = "";
-                $(this).children().each(function () {
-                    // console.log($(this).text());
-                    $temp.text($temp.text() + addTab + $(this).text());
-                    addTab = "\t";
+            // Find thead and then all children rows
+            $table.find("thead").children("tr").each((i,e)=> {
+                // If the table is being transposed, start the row number at 0 for each new row
+                if(transpose){rowNum = 0;}
+                // For each row, find each td or th element (table cell)
+                $(e).find("td, th").each((i,e)=> {
+                    // If there's not yet an array for this row, make an empty one
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    // Add the text of each cell to the row's array
+                    rows[rowNum].push($(e).text());
+                    // If table is being transposed, add one to the row number for each cell
+                    if(transpose){rowNum++;}
                 });
+                // If table is not being transposed, add one to the row number for each row
+                if(!transpose){rowNum++;}
             });
-            addLine = "\n";
         }
 
-        // console.log("temp after head: " + $temp.text());
-
-        $table.find("tbody").children("tr").each(function () { //add each child of the row
-            $temp.text($temp.text() + addLine);
-            var addTab = "";
-            $(this).find("td").each(function () {
-                // console.log($(this).text());
-                if ($(this).text()) {
-                    var addText = $(this).text();
-                } else {
-                    var addText = "NA"
-                }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                addLine = "\n";
+        // Find each row in the table body
+        $table.find("tbody").children("tr").each((i,e)=> {
+            // If transposing, start the row number at 0 for each new row
+            if(transpose){rowNum = 0;}
+            // Find each cell within the row
+            $(e).find("td, th").each((i,e)=> {
+                // If there's not yet an array for this row, make an empty one
+                if(rows[rowNum]===undefined){rows[rowNum] = []}
+                // Add the text of each cell to the row's array
+                rows[rowNum].push($(e).text());
+                // If the table is being transposed, add one to the row number for each cell
+                if(transpose){rowNum++;}
             });
+            // If table is not being transposed, add one to the row number for each row
+            if(!transpose){rowNum++;}
         });
-        // console.log($temp.text());
-        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
+
+        // For each row, join together all of the elements of the array with a \t to separate them (tab)
+        for(var i = 0; i < rows.length; i++){
+            rows[i] = rows[i].join("\t");
+        }
+
+        // Add each row to the temporary text area using \n (new line) to separate them
+        $temp.append(rows.join("\n"));
+        // Append the textarea to the div for copy, then select it
+        $temp.appendTo($divForCopy).select();
+        // Copy the "selected" text
+        document.execCommand("copy");
         $temp.remove(); //remove temp
+        // Doesn't work within LA b/c of permissions, but would be easier way to copy w/o appending to page
+        // navigator.clipboard.writeText(rows.join("\n")); 
     },
 
-    /**
+    /** TO-DO: Delete
      * Set of functions when toggleTableButton clicked
      * resize, run data_valid_form, run calcValues, 
      * toggle the table (show/hide), resize the container
@@ -1243,13 +1196,13 @@ $(document).ready(function () {
      * @param {*} $table - jQuery object that is the table that will be shown/hidden
      */
     toggleTableFuncs: function (tableName) {
-        this.resize();
-        my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
-        my_widget_script.calcValues();
-        var $table = $("#"+tableName);
-        $table.show();
-        $(".outTable:not(#"+tableName).hide();
-        my_widget_script.parent_class.resize_container();
+        // this.resize();
+        // my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
+        // my_widget_script.calcValues();
+        // var $table = $("#"+tableName);
+        // $table.show();
+        // $(".outTable:not(#"+tableName).hide();
+        // my_widget_script.parent_class.resize_container();
     },
 
     /**
@@ -1273,20 +1226,20 @@ $(document).ready(function () {
      * @param $errorMsg - error message div as jQuery object
      */
     toCSVFuncs: function (fileName, tableID, $errorMsg) {
-        var data_valid = my_widget_script.data_valid_form();
+        var data_valid = this.data_valid_form($errorMsg);
 
         if (data_valid) {
-            my_widget_script.calcValues();
-            my_widget_script.exportTableToCSV(fileName, tableID);
+            this.calcValues();
+            this.exportTableToCSV(fileName, tableID);
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
         }
     },
 
-    /**
+        /**
      * The steps that should be taken when the copy data button is pressed
-     * Checks if the $copyHead is checked, runs the calcValues function and then
+     * Checks if the $copyHead is checked, and then
      * checks if the data is valid. If it is, it shows the table, resizes, and then
      * copies the table (via a temporary textarea that is then removed). 
      * 
@@ -1295,24 +1248,27 @@ $(document).ready(function () {
      * @param $tableDiv - div containing table to copy
      * @param $errorMsg - error message div as jQuery object
      * @param $divForCopy - div where the output should copy to
+     * @param $transpose - checkbox for whether or not to transpose the table head as jQuery object
      */
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy){
-        var data_valid = my_widget_script.data_valid_form();
-        var copyHead
+     copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
+        var data_valid = this.data_valid_form($errorMsg);
+        var copyHead = false, transpose = false;
 
         //only copy the heading when the input box is checked
         if ($copyHead.is(":checked")) {
             copyHead = true;
-        } else {
-            copyHead = false;
         }
 
-        my_widget_script.calcValues();
+        if ($transpose.is(":checked")) {
+            transpose = true;
+        }
+
+        this.calcValues();
 
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             this.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
+            this.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
@@ -1346,6 +1302,16 @@ $(document).ready(function () {
     dataSearch: function (dataName, dataValue) {
         var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
         return dataSearch
+    },
+
+    /**
+     * Builds a string "[data-table=table]". See dataSearch explanation
+     * @param {*} table string for data-table value that you want to match
+     * @returns 
+     */
+     tableSearch: function (table){
+        var tableSearch = this.dataSearch("table", table);
+        return tableSearch;
     },
 
     calcSearch: function (calc) {
@@ -1615,10 +1581,28 @@ $(document).ready(function () {
     },
 
     makeOuputButtons: function(tableObj){
+        var numForTags = tableObj.num;
+        var tableID = tableObj.id;
+        var tableName = tableObj.saveName;
+
         // Make save and copy buttons for each table
         var $div = $("<div></div>", {
             "class": "container mt-2"
         }).append(
+            $("<div></div>", {
+                "class": "row forCopy",
+                "data-table": tableID
+            })
+        ).append(
+            $("<div></div>", {
+                "class": "row"
+            }).append(
+                $("<div></div>", {
+                    "class": "col errorMsg",
+                    "data-table": tableID
+                })
+            )
+        ).append(
             $("<div></div>", {
                 "class": "row"
             })
@@ -1628,13 +1612,9 @@ $(document).ready(function () {
         var names = ["tocsv", "copydata"];
         var labels = ["Save to CSV", "Copy Data"];
 
-        var numForTags = tableObj.num;
-        var tableID = tableObj.id;
-        var tableName = tableObj.saveName;
-
         // Add the buttons
         for(var i = 0; i < ids.length; i++){
-            $div.find(".row").append(
+            $div.find(".row").last().append(
                 $("<div></div>", {
                     "class": "col-12 col-sm-6"
                 }).append(
@@ -1653,7 +1633,7 @@ $(document).ready(function () {
 
         var copyOptionsIDs = ["copyHead", "transpose"];
         var copyOptionsNames = ["copyhead", "transpose"];
-        var copyOptionsLabels = ["Copy Table Head? ", "Transpose Table? "];
+        var copyOptionsLabels = ["Copy Table Head?", "Transpose Table?"];
 
         var $copyOptions = $("<div></div>");
 
@@ -1666,7 +1646,7 @@ $(document).ready(function () {
                     }).append(
                         copyOptionsLabels[i]
                     )
-                ).append(
+                ).append(" ").append(
                     $("<input></input>", {
                         "type": "checkbox",
                         "name": copyOptionsNames[i] + numForTags,
@@ -1822,22 +1802,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<!-- The other option is to still have some sort of selection and 
-    change the data attributes of the buttons with the selection
-    Or. since you'd press the button and then have the bootbox
-    pop up with the selection, you'd still only have one copy function
-    and one save function, but then you'd assign the table
-    within the function that is calling bootbox
-
-    The helpful thing with the cards that show them all (in addition to
-    it being written already), is that you can see what the table looks
-    like when you're trying to copy
-
-    Also not reliant on additional user interaction which could be more
-    subject to change in the future with web security changes
-
-    I think what I have is probably best
- -->
 <div class="container outCardContainer">
     <div class="row mt-2">
         <h2 class="col">Output Tables:</h2>
