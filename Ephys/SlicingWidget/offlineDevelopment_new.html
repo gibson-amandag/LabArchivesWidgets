@@ -87,9 +87,6 @@ $(document).ready(function () {
         //resize the content box when the window size changes
         window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
 
-        //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners();
-
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
@@ -423,120 +420,6 @@ $(document).ready(function () {
         "Enter '5' for Jenn's PNA project\n" +
         "Enter '6' for sacrifice timing table",
 
-
-    /**
-     * TO DO: edit this function to define behavior when the user interacts with the form.
-     * This could include when buttons are clicked or when inputs change.
-     */
-    addEventListeners: function () {
-        // //Show/hide the table
-        // $("#selectTable").on("change", (e)=> { //when the showTable button is clicked. Run this function
-        //     var tableID = $(e.currentTarget).val();
-        //     if(tableID) {
-        //         this.toggleTableFuncs(tableID);
-        //     } else {
-        //         $(".outTable").hide();
-        //         $("#errorMsg").text("");
-        //     }
-        // });
-
-
-        //Show/hide elements based on sex
-        $("#sex").on("change", ()=> { //when sex is changed
-            this.checkSexAndGonadStatus();
-        });
-
-        //Show/hide elements based on gonad status
-        $("#gonadStatus").on("change", ()=> { //when gonad status is changed
-            this.checkSexAndGonadStatus();
-            this.calcSurgeryDate();
-        });
-
-        $("#surgeryDate").on("input", ()=> {
-            this.calcSurgeryDate();
-        })
-
-        $("#implantBox").on("change", ()=> {
-            if ($("#implantBox").is(":checked")) {
-                $("[data-implant]").show();
-            } else {
-                $("[data-implant]").hide()
-            }
-        });
-
-        $("#addToExternal").on("click", ()=> {
-            this.addSoln("external");
-        });
-
-        $("#addToInternal").on("click", ()=> {
-            this.addSoln("internal");
-        });
-
-        $("#removeLastExternal").on("click", ()=> {
-            this.removeSoln("external");
-        });
-
-        $("#removeLastInternal").on("click", ()=> {
-            this.removeSoln("internal");
-        });
-
-        // $(".watch").each((i,e)=>{
-        //     this.updateCalcFromEl(e);
-        // }).on("input", (e)=>{
-        //     this.updateCalcFromEl(e.currentTarget);
-        // });
-
-        $("input, select, textarea").each((i,e)=>{
-            if($(e).attr("type")!= "button"){
-                this.updateCalcFromEl(e);   
-            }
-        });
-
-        $("#the_form").on("input", (e)=>{
-            this.updateCalcFromEl(e.target);
-        })
-        
-        // // Output table calculations
-        // $(".simpleCalc").on("input", function () {
-        //     var elementID = this.id;
-        //     var calcID = "." + elementID + "_calc";
-        //     my_widget_script.watchValue($(this), $(calcID));
-        // });
-        
-        $(".implantCalc").on("change", ()=> {
-            my_widget_script.calcImplant();
-        });
-
-        $(".treatmentCalc").on("change", ()=> {
-            my_widget_script.calcTreatment();
-        });
-
-        $(".cycleCalc").on("change", ()=> {
-            my_widget_script.calcCycleStage();
-        });
-
-        $(".massCalc").on("input", ()=> {
-            my_widget_script.calcUterineMass();
-            my_widget_script.calcUterineMass_perBodyMass();
-            my_widget_script.calcReproTractMass_perBodyMass();
-        });
-
-        $(".ageCalc").on("input", ()=> {
-            my_widget_script.calcAgeInDays();
-        });
-
-        $("#savedPit").on("change", ()=> {
-            my_widget_script.calcSavedPit();
-        });
-        $("#savedBlood").on("change", ()=> {
-            my_widget_script.calcSavedBlood();
-        });
-
-        $(".timeCalc").on("input", ()=> {
-            my_widget_script.calcHoursPostLightsOn();
-        });
-    },
-
     /**
      * TO DO: edit this function to define the symbols that should be added to the HTML
      * page based on whether or not a field is required to save the widget to the page
@@ -639,7 +522,10 @@ $(document).ready(function () {
         this.isDateSupported();
         this.isTimeSupported();
 
+        // Make the output tables
+        this.makeOutputTableCards();
 
+        // Add date and time placeholders, and check format with change
         $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", (e)=> {
             this.checkDateFormat($(e.currentTarget));
         });
@@ -648,6 +534,7 @@ $(document).ready(function () {
             this.checkTimeFormat($(e.target));
         });
 
+        // Autoadjust the size of textareas based on content in them
         $('textarea.autoAdjust').each((i,e)=> { // i is the index for each match, textArea is the object
             e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
         }).on('input', (e)=> {
@@ -659,9 +546,25 @@ $(document).ready(function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
-        // Make the output tables
-        this.makeOutputTableCards();
+        // #region solution additions 
+        $("#addToExternal").on("click", ()=> {
+            this.addSoln("external");
+        });
 
+        $("#addToInternal").on("click", ()=> {
+            this.addSoln("internal");
+        });
+
+        $("#removeLastExternal").on("click", ()=> {
+            this.removeSoln("external");
+        });
+
+        $("#removeLastInternal").on("click", ()=> {
+            this.removeSoln("internal");
+        });
+        // #endregion
+
+        // #region output buttons
         //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
         $(".toCSV").on("click", (e)=>{
             var tableID = $(e.currentTarget).data("table");
@@ -687,21 +590,97 @@ $(document).ready(function () {
 
             this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose);
         });
+        // #endregion output buttons
 
-        this.checkSexAndGonadStatus();
+        // #region calculate for output based on user entry
+
+        // Generic update when any part of the form has user input
+        $("#the_form").on("input", (e)=>{
+            this.updateCalcFromEl(e.target);
+        });
+
+        //Show/hide elements based on sex
+        $("#sex").on("change", ()=> { //when sex is changed
+            this.checkSexAndGonadStatus();
+        });
+
+        //Show/hide elements based on gonad status
+        $("#gonadStatus").on("change", ()=> { //when gonad status is changed
+            this.checkSexAndGonadStatus();
+            this.calcSurgeryDate();
+        });
+
+        // When surgery data changes, recalculate for output
+        $("#surgeryDate").on("change", ()=> {
+            this.calcSurgeryDate();
+        })
+
+        // When the steriod implant box is checked, show or hide related elements
+        $("#implantBox").on("change", ()=> {
+            if ($("#implantBox").is(":checked")) {
+                $("[data-implant]").show();
+            } else {
+                $("[data-implant]").hide()
+            }
+        });
+
+        // Recalculate for changes in implant-related elements
+        $(".implantCalc").on("change", ()=> {
+            my_widget_script.calcImplant();
+        });      
+        
+        // Change treatment based on selections
+        $(".treatmentCalc").on("change", ()=> {
+            my_widget_script.calcTreatment();
+        });
+
+        // This changes the calculated cycle stage
+        // Triggered by sex, gonad status, and cycle-related changes
+        $(".cycleCalc").on("change", ()=> {
+            my_widget_script.calcCycleStage();
+        });
+
+        // Changes with sex, body mass, and repro tract mass
+        $(".massCalc").on("input", ()=> {
+            my_widget_script.calcUterineMass();
+            my_widget_script.calcUterineMass_perBodyMass();
+            my_widget_script.calcReproTractMass_perBodyMass();
+        });
+
+        // Date of birth, age as day, and recording date
+        $(".ageCalc").on("input", ()=> {
+            my_widget_script.calcAgeInDays();
+        });
+
+        // Update because it's a checkbox
+        $("#savedPit").on("change", ()=> {
+            my_widget_script.calcSavedPit();
+        });
+        $("#savedBlood").on("change", ()=> {
+            my_widget_script.calcSavedBlood();
+        });
+
+        // Calc hours after lights on - change with time and daylight savings
+        $(".timeCalc").on("input", ()=> {
+            my_widget_script.calcHoursPostLightsOn();
+        });
+        // #endregion
+
+
+        // #region initial calculations
+        // Run this first incase calcValues needs to overrule
+        $("input, select, textarea").each((i,e)=>{
+            if($(e).attr("type")!= "button"){
+                this.updateCalcFromEl(e);   
+            }
+        });
+        this.calcValues();
 
         if ($("#implantBox").is(":checked")) {
             $(".implant").show() //show implant class elements
         } else {
             $(".implant").hide()
         };
-        
-        //Run the calculate values function to fill with the loaded data
-        this.calcValues();
-
-        $("#selectTable").val("labOutTable");
-
-        $("#labOutTable").show();
 
         this.resize();
     },
@@ -716,7 +695,9 @@ $(document).ready(function () {
     },
 
     checkForNames: function() {
+        // var ids = [];
         $("input, select, textarea").each((i,e)=>{
+            // ids.push(e.id);
             var thisName = $(e).attr("name");
             if(!thisName){
                 console.log("There is no name attribute for: ", e.id);
@@ -726,7 +707,9 @@ $(document).ready(function () {
                     console.log("The name contains an uppercase letter for: ", e.id);
                 }
             }
-        })
+        });
+        // var idsText = ids.join("\n");
+        // console.log(idsText);
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -786,6 +769,66 @@ $(document).ready(function () {
         return valid;
     },
 
+
+    // #region check user input and calculate output and form changes
+
+    updateCalcFromEl: function (el) {
+        // Get the element id
+        var calc = el.id;
+        // Get the element value
+        var val = el.value;
+        // Get the data-calc search string to match id
+        var calcSearch = this.calcSearch(calc);
+
+        // console.log("calc: " + calc + "; val: " + val);
+
+        // Update any element that matches the calc search with the value
+        $(calcSearch).html(val);
+        this.resize();
+    },
+
+    updateCalcFromVal: function(calc, val){
+        var calcSearch = this.calcSearch(calc);
+        $(calcSearch).text(val);
+        this.resize();
+    },
+    
+    sexGonads: "",
+
+    // Change which form elements are visible based on sex and gonad status
+    checkSexAndGonadStatus: function () {
+        var sex = $("#sex").val();
+        var gonads = $("#gonadStatus").val();
+        
+        var sexSearch = this.sexSearch(sex);
+        var gonadsSearch = this.gonadsSearch(gonads);
+
+        this.sexGonads = sex+"-"+gonads;
+
+        $("[data-sex]").hide(); // hide everything with a data-sex attribute
+        $("[data-gonads]").hide(); // hide everything with a data-gonads attribute
+
+        // If there's a sex value, show all elements whose data-sex matches the sex value
+        // As long as there's not a data-gonads attribute
+        if(sex){
+            $(sexSearch).not("[data-gonads]").show();
+        }
+
+        // If there's a gonads value, show all elements whose data-gonads
+        // matches the gonads value, as long as there's not a data-sex attribute
+        if(gonads){
+            $(gonadsSearch).not("[data-sex]").show();
+        }
+
+        // If there's a sex and gonads value, show elements that match both
+        if(sex && gonads){
+            $(sexSearch+gonadsSearch).show();
+        }
+
+        //resize the container
+        this.resize();
+    },
+
     calcTreatment: function(){
         var genTreatment="";
         var treatment = "";
@@ -818,9 +861,8 @@ $(document).ready(function () {
         this.updateCalcFromVal("genTreatment", genTreatment);
         this.updateCalcFromVal("treatment", treatment);
 
-        // This will need to go away eventually
-        $(".GenTreatment_calc").text(genTreatment);
-        $(".Treatment_calc").text(treatment);
+        //resize the container
+        this.resize();
     },
 
     calcCycleStage: function () {
@@ -833,6 +875,9 @@ $(document).ready(function () {
         if(!comment){comment = "NA"}
         this.updateCalcFromVal("cycleStage_final", stage);
         this.updateCalcFromVal("stageComment_final", comment);
+
+        //resize the container
+        this.resize();
     },
 
     calcUterineMass: function () {
@@ -844,12 +889,15 @@ $(document).ready(function () {
             uterineMass = "NA";
         }
         this.updateCalcFromVal("uterineMass", uterineMass);
+
+        //resize the container
+        this.resize();
     },
 
     calcUterineMass_perBodyMass: function () {
         var uterine_mg_per_g;
         if ($("#sex").val() === "female") {
-            var uterine_mg_per_g = $("#reproTractMass").val() / $("#BodyMass_g").val();
+            var uterine_mg_per_g = $("#reproTractMass").val() / $("#bodyMass").val();
         }
 
         if (isFinite(uterine_mg_per_g) && uterine_mg_per_g) {
@@ -859,15 +907,19 @@ $(document).ready(function () {
         }
 
         this.updateCalcFromVal("uterine_mg_per_g", uterine_mg_per_g);
+
+        //resize the container
+        this.resize();
     },
 
     calcReproTractMass_perBodyMass: function () {
-        var reprotract_mg_per_g = $("#reproTractMass").val() / $("#BodyMass_g").val();
+        var reprotract_mg_per_g = $("#reproTractMass").val() / $("#bodyMass").val();
         if(isFinite(reprotract_mg_per_g) && reprotract_mg_per_g){
             reprotract_mg_per_g = reprotract_mg_per_g.toFixed(4);
         } else {
             reprotract_mg_per_g = "NA";
         }
+        console.log("reproTract_mg_per_g", reprotract_mg_per_g)
         this.updateCalcFromVal("reproTract_mg_per_g", reprotract_mg_per_g);
 
         // repro tract as grams
@@ -877,6 +929,9 @@ $(document).ready(function () {
             reproTractMass_g = "NA";
         }
         this.updateCalcFromVal("reproTractMass_g", reproTractMass_g);
+
+        //resize the container
+        this.resize();
     },
 
     getPND: function (dateInputVal, DOBisDay) {
@@ -902,9 +957,9 @@ $(document).ready(function () {
 
     calcAgeInDays: function () {
         var DOBisDay = parseInt($("#DOB_equals").val());
-        var sliceDate = $("#sliceDate").val()
+        var recordingDate = $("#recordingDate").val()
 
-        var ageInDays = my_widget_script.getPND(sliceDate, DOBisDay);
+        var ageInDays = my_widget_script.getPND(recordingDate, DOBisDay);
 
         this.updateCalcFromVal("ageInDays", ageInDays);
         // console.log(ageInDays);
@@ -916,6 +971,9 @@ $(document).ready(function () {
             ageGroup = "3wk";
         }
         this.updateCalcFromVal("ageGroup", ageGroup);
+
+        //resize the container
+        this.resize();
     },
 
     calcSavedPit: function () {
@@ -925,6 +983,9 @@ $(document).ready(function () {
             var savedPit = "N";
         }
         this.updateCalcFromVal("savedPit", savedPit);
+
+        //resize the container
+        this.resize();
     },
     
     calcSavedBlood: function () {
@@ -934,6 +995,9 @@ $(document).ready(function () {
             var savedBlood = "N";
         }
         this.updateCalcFromVal("savedBlood", savedBlood);
+
+        //resize the container
+        this.resize();
     },
 
     calcHoursPostLightsOn: function () {
@@ -958,6 +1022,9 @@ $(document).ready(function () {
             sacHrs = sacHrs.toFixed(2); //two decimal points
         }
         this.updateCalcFromVal("sacHrs", sacHrs);
+
+        //resize the container
+        this.resize();
     },
 
     calcSurgeryDate: function () {
@@ -969,12 +1036,15 @@ $(document).ready(function () {
             }
         }
         this.updateCalcFromVal("surgeryDate_final", surgeryDate);
+
+        //resize the container
+        this.resize();
     },
 
     calcImplant: function () {
         var implant = "FALSE", type = "NA", date = "NA", comment = "NA";
         if ($("#implantBox").is(":checked")) {
-            implant = TRUE;
+            implant = "TRUE";
             typeVal = $("#implantType").val();
             dateVal = $("#implantDate").val();
             commentVal = $("#implantComment").val();
@@ -986,58 +1056,92 @@ $(document).ready(function () {
         this.updateCalcFromVal("implantType", type);
         this.updateCalcFromVal("implantDate", date);
         this.updateCalcFromVal("implantComment", comment);
+
+        //resize the container
+        this.resize();        
     },
 
-    calcValues: function () {
-
-        // //Elements that just update based on input value
-        // $(".simpleCalc").each(function () {
-        //     var elementID = this.id;
-        //     var calcID = "." + elementID + "_calc";
-        //     my_widget_script.watchValue($(this), $(calcID));
-        // });
-
-        //treatment
-        // this.calcTreatment();
-
-        //Cycle stage
-        // this.calcCycleStage();
-
-        //uterine mass
-        // this.calcUterineMass();
-
-        //uterine mass per body mass
-        // this.calcUterineMass_perBodyMass();
-
-        //repro tract mass per body mass
-        // this.calcReproTractMass_perBodyMass();
-
-        //Age in days
-        // this.calcAgeInDays();
-
-        //saved pituitary
-        // this.calcSavedPit();
-
-        //Hours since lights on
-        // this.calcHoursPostLightsOn();
-
-        //Surgery date
-        // this.calcSurgeryDate();
-
-        //Implant calculations
-        // my_widget_script.calcImplant();
-
+    checkTableForBlanks: function () {
         $(".outTable tr").each((i,e)=> { //for each row
             $("td", e).each((i,e)=> { //for each cell
                 var value = $(e).text(); //get the value of the text
                 if (value === "" || value === "NaN" || value === "___" || value === "Select daylight saving") { //if blank or NaN
                     $(e).text("NA"); //make NA
+                    console.log("is blank", $(e).data("calc"))
                 }
             })
         });
 
         //resize the container
         this.resize();
+    },
+
+    calcValues: function(){
+        // Check sex and gonad status
+        this.checkSexAndGonadStatus();
+        
+        // treatment
+        this.calcTreatment();
+    
+        // Cycle stage
+        this.calcCycleStage();
+    
+        // uterine mass
+        this.calcUterineMass();
+    
+        // uterine mass per body mass
+        this.calcUterineMass_perBodyMass();
+    
+        // repro tract mass per body mass
+        this.calcReproTractMass_perBodyMass();
+    
+        // Age in days
+        this.calcAgeInDays();
+    
+        // saved pituitary
+        this.calcSavedPit();
+
+        // blood
+        this.calcSavedBlood();
+    
+        // Hours since lights on
+        this.calcHoursPostLightsOn();
+    
+        // Surgery date
+        this.calcSurgeryDate();
+    
+        // Implant calculations
+        this.calcImplant();
+        
+        // Check for blanks
+        this.checkTableForBlanks();
+
+        this.resize();
+    },
+    // #endregion check user input
+
+    // #region data output
+
+    /**
+     * Set of functions when toCSVButton clicked
+     * 
+     * Checked if data is valid, then re-calculates values, exports the table to a CSV
+     * Updates the error message accordingly
+     * 
+     * @param {string} fileName - fileName for the CSV that will be produced
+     * @param {string} tableID - tableID as a string for the table that will be copied
+     * @param $errorMsg - error message div as jQuery object
+     */
+     toCSVFuncs: function (fileName, tableID, $errorMsg) {
+        var data_valid = this.data_valid_form($errorMsg);
+
+        if (data_valid) {
+            this.checkTableForBlanks();
+            this.exportTableToCSV(fileName, tableID);
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
+        }
     },
 
     /**
@@ -1108,7 +1212,45 @@ $(document).ready(function () {
         this.downloadCSV(csv.join("\n"), filename);
     },
 
-/**
+    /**
+     * The steps that should be taken when the copy data button is pressed
+     * Checks if the $copyHead is checked, and then
+     * checks if the data is valid. If it is, it shows the table, resizes, and then
+     * copies the table (via a temporary textarea that is then removed). 
+     * 
+     * @param $copyHead - checkbox for whether or not to copy the table head as jQuery object
+     * @param $tableToCopy - table to copy as jQuery object
+     * @param $tableDiv - div containing table to copy
+     * @param $errorMsg - error message div as jQuery object
+     * @param $divForCopy - div where the output should copy to
+     * @param $transpose - checkbox for whether or not to transpose the table head as jQuery object
+    **/
+    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
+        var data_valid = this.data_valid_form($errorMsg);
+        var copyHead = false, transpose = false;
+
+        //only copy the heading when the input box is checked
+        if ($copyHead.is(":checked")) {
+            copyHead = true;
+        }
+
+        if ($transpose.is(":checked")) {
+            transpose = true;
+        }
+
+        this.checkTableForBlanks();
+
+        if (data_valid) { //if data is valid
+            $tableDiv.show(); //show the table
+            this.resize(); //resize
+            this.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+    },
+
+    /**
      * This function creates a temporary textarea and then appends the contents of the
      * specified table body to this textarea, separating each cell with a tab (\t).
      * Because the script editor in LA is within a <textarea> the script cannot contain
@@ -1188,92 +1330,7 @@ $(document).ready(function () {
         // navigator.clipboard.writeText(rows.join("\n")); 
     },
 
-    /** TO-DO: Delete
-     * Set of functions when toggleTableButton clicked
-     * resize, run data_valid_form, run calcValues, 
-     * toggle the table (show/hide), resize the container
-     * 
-     * @param {*} $table - jQuery object that is the table that will be shown/hidden
-     */
-    toggleTableFuncs: function (tableName) {
-        // this.resize();
-        // my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
-        // my_widget_script.calcValues();
-        // var $table = $("#"+tableName);
-        // $table.show();
-        // $(".outTable:not(#"+tableName).hide();
-        // my_widget_script.parent_class.resize_container();
-    },
-
-    /**
-     * Set of functions when calcValuesButton clicked
-     * Run data_valid_form
-     * Calculate values
-     */
-    calcTableFuncs: function() {
-        my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
-        my_widget_script.calcValues();
-    },
-
-    /**
-     * Set of functions when toCSVButton clicked
-     * 
-     * Checked if data is valid, then re-calculates values, exports the table to a CSV
-     * Updates the error message accordingly
-     * 
-     * @param {string} fileName - fileName for the CSV that will be produced
-     * @param {string} tableID - tableID as a string for the table that will be copied
-     * @param $errorMsg - error message div as jQuery object
-     */
-    toCSVFuncs: function (fileName, tableID, $errorMsg) {
-        var data_valid = this.data_valid_form($errorMsg);
-
-        if (data_valid) {
-            this.calcValues();
-            this.exportTableToCSV(fileName, tableID);
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
-        } else {
-            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
-        }
-    },
-
-        /**
-     * The steps that should be taken when the copy data button is pressed
-     * Checks if the $copyHead is checked, and then
-     * checks if the data is valid. If it is, it shows the table, resizes, and then
-     * copies the table (via a temporary textarea that is then removed). 
-     * 
-     * @param $copyHead - checkbox for whether or not to copy the table head as jQuery object
-     * @param $tableToCopy - table to copy as jQuery object
-     * @param $tableDiv - div containing table to copy
-     * @param $errorMsg - error message div as jQuery object
-     * @param $divForCopy - div where the output should copy to
-     * @param $transpose - checkbox for whether or not to transpose the table head as jQuery object
-     */
-     copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
-        var data_valid = this.data_valid_form($errorMsg);
-        var copyHead = false, transpose = false;
-
-        //only copy the heading when the input box is checked
-        if ($copyHead.is(":checked")) {
-            copyHead = true;
-        }
-
-        if ($transpose.is(":checked")) {
-            transpose = true;
-        }
-
-        this.calcValues();
-
-        if (data_valid) { //if data is valid
-            $tableDiv.show(); //show the table
-            this.resize(); //resize
-            this.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
-        } else {
-            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
-        }
-    },
+    // #endregion output data
 
     /**
      * This takes the value of the input for the $elToWatch and then updates the text of 
@@ -1287,18 +1344,7 @@ $(document).ready(function () {
         // this.resize();
     },
 
-    /**
-     * This takes the value of the input for the $elToWatch and then updates the text of 
-     * $elToUpdate to match whenever watchValue is called
-     * @param {*} $elToWatch - jQuery object with the input element whose value will be used to update
-     * @param {*} $elToUpdate - jQuery object of the element whose text will be updated based on the element to watch
-     */
-    watchValue2: function ($elToWatch, $elToUpdate) {
-        var value = $elToWatch.val();
-        $elToUpdate.text(value);
-        this.resize();
-    },
-
+    // #region data searches
     dataSearch: function (dataName, dataValue) {
         var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
         return dataSearch
@@ -1308,8 +1354,8 @@ $(document).ready(function () {
      * Builds a string "[data-table=table]". See dataSearch explanation
      * @param {*} table string for data-table value that you want to match
      * @returns 
-     */
-     tableSearch: function (table){
+    **/
+    tableSearch: function (table){
         var tableSearch = this.dataSearch("table", table);
         return tableSearch;
     },
@@ -1339,74 +1385,13 @@ $(document).ready(function () {
         var projSearch = this.dataSearch("proj", proj);
         return projSearch;
     },
+    // #endregion data searches
 
-    updateCalcFromEl: function (el) {
-        // Get the element id
-        var calc = el.id;
-        // Get the element value
-        var val = el.value;
-        // Get the data-calc search string to match id
-        var calcSearch = this.calcSearch(calc);
-
-        // console.log("calc: " + calc + "; val: " + val);
-
-        // Update any element that matches the calc search with the value
-        $(calcSearch).html(val);
-        this.resize();
-    },
-
-    updateCalcFromVal: function(calc, val){
-        var calcSearch = this.calcSearch(calc);
-        $(calcSearch).text(val);
-        this.resize();
-    },
-
-    dataContains: function($el, data, match){
-        var dataStr = $el.data(data);
-        var dataList = dataStr.split("-");
-        console.log("list", dataList);
-        var inList = this.checkInArray(match, dataList);
-        return inList;
-    },
-
+    
     checkInArray: function (searchVal, array){
         var inArray = $.inArray(searchVal, array) !== -1;
         return inArray;
     },
-
-    sexGonads: "",
-
-    // Change which form elements are visible based on sex and gonad status
-    checkSexAndGonadStatus: function () {
-        var sex = $("#sex").val();
-        var gonads = $("#gonadStatus").val();
-        
-        var sexSearch = this.sexSearch(sex);
-        var gonadsSearch = this.gonadsSearch(gonads);
-
-        this.sexGonads = sex+"-"+gonads;
-
-        $("[data-sex]").hide(); // hide everything with a data-sex attribute
-        $("[data-gonads]").hide(); // hide everything with a data-gonads attribute
-
-        // If there's a sex value, show all elements whose data-sex matches the sex value
-        // As long as there's not a data-gonads attribute
-        if(sex){
-            $(sexSearch).not("[data-gonads]").show();
-        }
-
-        // If there's a gonads value, show all elements whose data-gonads
-        // matches the gonads value, as long as there's not a data-sex attribute
-        if(gonads){
-            $(gonadsSearch).not("[data-sex]").show();
-        }
-
-        // If there's a sex and gonads value, show elements that match both
-        if(sex && gonads){
-            $(sexSearch+gonadsSearch).show();
-        }
-    },
-
 
     addSoln: function (basename) { // internal or external
         var $solnDiv, $solnTable;
@@ -1488,32 +1473,127 @@ $(document).ready(function () {
         $solnTable.find("tbody tr").last().remove();
     },
 
+    // #region output tables  
     //****************
     // OUTPUT TABLES
     // ***************
 
     // object here with the infromation about each of the different tables
     outputTables: {
-        tableID1: {
-            id: "tableID1",
-            label: "nice label for display",
-            saveName: "niceNameForSaving",
-            columns: [
-                "mouseID",
-                "cageNum"
-            ],
-            num: 1
-        },
-        tableID2: {
-            id: "tableID2",
-            label: "nice label for display2",
-            saveName: "niceNameForSaving2",
+        labGoogleSheet: {
+            id: "labGoogleSheet",
+            label: "Lab Google Sheet",
+            saveName: "fullLabSlicing",
             columns: [
                 "mouseID",
                 "cageNum",
-                "sex"
+                "who",
+                "recordingDate",
+                "dateOfBirth",
+                "ageInDays",
+                "sacTime",
+                "daylightSavings",
+                "sacHrs",
+                "strain",
+                "zygosity",
+                "sex",
+                "bodyMass",
+                "reproTractMass",
+                "reproTract_mg_per_g",
+                "gonadStatus",
+                "cycleStage_final",
+                "stageComment_final",
+                "surgeryDate_final",
+                "implant",
+                "implantType",
+                "implantDate",
+                "implantComment",
+                "tubeLabel",
+                "savedPit",
+                "genTreatment",
+                "treatment",
+                "glucose",
+                "nucleus",
+                "orientation",
+                "sliceQual",
+                "sliceComment",
+                "fluorQual",
+                "fluorComment",
+                "externalSoln",
+                "externalDate",
+                "internalSoln",
+                "internalDate",
+                "pipette",
+                "pipetteLot"
+            ],
+            num: 1
+        },
+        mouseInfo: {
+            id: "mouseInfo",
+            label: "Mouse Information",
+            saveName: "mouseInfo",
+            columns: [
+                "mouseID",
+                "cageNum",
+                "generation", // to-do add
+                "damID", // to-do add
+                "sireID", // to-do add
+                "genTreatment",
+                "dateOfBirth",
+                "DOB_equals",
+                "sex",
+                "zygosity",
+                "strain",
+                "gonadStatus",
+                "surgeryDate_final",
+                "implantType",
+                "implantDate"
             ],
             num: 2
+        },
+        slicingInfo: {
+            id: "slicingInfo",
+            label: "Slicing Information",
+            saveName: "slicingInfo",
+            columns: [
+                "mouseID",
+                "recordingDate",
+                "ageInDays",
+                "savedPit",
+                "daylightSavings",
+                "sacTime",
+                "sacHrs",
+                "who",
+                "cycleStage_final",
+                "bodyMass",
+                "reproTractMass"
+            ],
+            num: 3
+        },
+        KNDyPNA_extracellular: {
+            id: "KNDyPNA_extracellular",
+            label: "KNDy PNA Extracellular Project",
+            saveName: "KNDyPNA_extracellular",
+            columns: [
+                "mouseID",
+                "cageNum",
+                "genTreatment",
+                "treatment",
+                "cycleStage_final",
+                "bodyMass",
+                "uterineMass",
+                "uterine_mg_per_g",
+                "dateOfBirth",
+                "recordingDate",
+                "ageInDays",
+                "savedPit",
+                "daylightSavings",
+                "sacTime",
+                "sacHrs",
+                "who",
+                "zygosity"
+            ],
+            num: 4
         }
     },
 
@@ -1677,7 +1757,7 @@ $(document).ready(function () {
                 $("<div></div>", {"class": "col-12 table-responsive xsTableDiv"}).append(
                     $("<table></table>", {
                         "id": tableID,
-                        "class": "table"
+                        "class": "table outTable"
                     }).append(
                         $("<thead></thead>")
                     ).append(
@@ -1713,6 +1793,8 @@ $(document).ready(function () {
     }
 
     // Maybe a "create your own" table, rearrange from a possible list. But I don't know how to do that in jQuery at this point
+
+    // #endregion output tables
 };
 
 //**************************************************************************
@@ -1789,7 +1871,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         width: 90%
     }
 
-    .female, .male, .anySex, .cycle, .gdx, .iFrameDiv, .outTable {
+    .female, .male, .anySex, .cycle, .gdx, .iFrameDiv{
         display: none;
     }
 </style>
@@ -1805,6 +1887,22 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <div class="container outCardContainer">
     <div class="row mt-2">
         <h2 class="col">Output Tables:</h2>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+            <!-- took out the iFrame Google Doc since it was slow and was causing errors -->
+            <big>Open the <a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Slicing Database</a></big> 
+            Google Sheet in a new window
+        </div>
+        <div class="col-12">
+            <label class="requiredLab" for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> 
+            <select id="enteredDatatoDoc" name="entereddatatodoc" required="">
+                <option value="">[Select]</option>
+                <option value="no">Not yet</option>
+                <option value="yes">Yes!</option> 
+            </select>
+        </div>
+        
     </div>
 </div>
 
@@ -1917,7 +2015,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <div><input class="needForTable fullWidth" id="who" name="who"/></div>
 
             <div class="needForTableLab mt-2">Date</div>
-            <div><input class="needForTable fullWidth ageCalc" id="sliceDate" name="slicedate" type="date" /></div>
+            <div><input class="needForTable fullWidth ageCalc" id="recordingDate" name="slicedate" type="date" /></div>
 
             <div class="needForTableLab mt-2">Time of Sacrifice</div>
             <div><input class="needForTable fullWidth timeCalc" id="sacTime" name="sactime" type="time" /></div>
@@ -1999,7 +2097,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     
                 <div class="mt-2">Implant Comment</div>
                 <div>
-                    <textarea name="implantcomment" id="implantcomment" class="fullWidth implantCalc autoAdjust"></textarea>
+                    <textarea name="implantcomment" id="implantComment" class="fullWidth implantCalc autoAdjust"></textarea>
                 </div>
             </div>
 
@@ -2128,52 +2226,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <div class="container outTableContainer">
     <div class="row mt-2">
         <h2 class="col">Output Table</h2>
-    </div>
-    
-    <div class="row">
-        <div class="col-12">
-            <!-- took out the iFrame Google Doc since it was slow and was causing errors -->
-            <big>Open the <a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Slicing Database</a></big> 
-            Google Sheet in a new window
-        </div>
-        <div class="col-12">
-            <label class="requiredLab" for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> 
-            <select id="enteredDatatoDoc" name="entereddatatodoc" required="">
-                <option value="">[Select]</option>
-                <option value="no">Not yet</option>
-                <option value="yes">Yes!</option> 
-            </select>
-        </div>
-        
-    </div>
-
-    <!-- buttons -->
-    <div class="row mt-2 align-items-top">
-        <div class="col-12 col-sm-6 col-md">
-            <select id="selectTable" name="selecttable" class="fullWidth">
-                <option value="">None</option>
-                <option value="AmandaOutTable">KNDy PNA project</option>
-                <option value="labOutTable">Standard Lab Output</option>
-                <option value="externalAdditionsTable">External Additions</option>
-                <option value="internalAdditionsTable">Internal Additions</option>
-                <option value="JennPNA">Jenn PNA project</option>
-                <option value="sacTimeTable">Sacrifice Time</option>
-            </select> <br/>
-            Select output table
-        </div>
-
-        <!-- <div class="col-12 col-sm-6 col-md"><input id="calculate" name="calcvalues" type="button"
-                value="Calculate Values" class="fullWidth disableOnView" />
-        </div> -->
-
-        <div class="col-12 col-sm-6 col-md">
-            <input id="toCSV" name="tocsv" type="button" value="Save CSV" class="fullWidth" />
-        </div>
-
-        <div class="col-12 col-sm-6 col-md">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
-            <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" />
-        </div>
     </div>
 
     <!-- Error Message -->
