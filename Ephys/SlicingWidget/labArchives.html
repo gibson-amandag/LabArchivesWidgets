@@ -1,4 +1,3 @@
-<!-- #region HTML -->
 <!-- Luxon Date Handling -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
@@ -44,7 +43,7 @@
         width: 90%
     }
 
-    .female, .male, .anySex, .cycle, .gdx, .iFrameDiv, .outTable {
+    .female, .male, .anySex, .cycle, .gdx, .iFrameDiv{
         display: none;
     }
 </style>
@@ -70,29 +69,34 @@
     </div>
     <div class="row">
         <div class="col-12 col-md-4">
-            <div class="requiredLab needForTableLab mt-2" >Mouse ID # or Ear Tag</div>
-            <div><input class="needForTable fullWidth simpleCalc" id="MouseID" name="mouseid" required="" /></div>
+            <div class="needForTableLab mt-2" >Mouse ID # or Ear Tag</div>
+            <div><input class="needForTable fullWidth" id="mouseID" name="mouseid"/></div>
 
-            <div class="requiredLab needForTableLab mt-2">Transgenic Line</div>
-            <div><input class="needForTable fullWidth simpleCalc" id="strain" name="strain" required="" /></div>
+            <div class="needForTableLab mt-2">Transgenic Line</div>
+            <div><input class="needForTable fullWidth" id="strain" name="strain"/></div>
 
-            <div class="requiredLab needForTableLab mt-2">Zygosity</div>
+            <div class="needForTableLab mt-2">Zygosity</div>
             <div>
-                <select class="needForTable fullWidth simpleCalc" id="zygosity" name="zygosity" required="">
+                <select class="needForTable fullWidth" id="zygosity" name="zygosity">
                     <option value="">[Select]</option>
                     <option value="homoPlus">+/+</option>
                     <option value="hetero">+/-</option>
                     <option value="homoNeg">-/-</option> 
                 </select>
             </div>
+            <div class="mt-2">Dam ID</div>
+            <div><input id="damID" name="damid" class="fullWidth"/></div>
+            <div class="mt-2">Sire ID</div>
+            <div><input id="sireID" name="sireid" class="fullWidth"/></div>
         </div>
 
         <div class="col-12 col-md-4">
             <div class="mt-2">Cage #</div>
-            <div><input id="Cage" name="cagenum" class="fullWidth simpleCalc"/></div>
-
-            <div class="needForTableLab requiredLab mt-2" >Date of Birth</div>
-            <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Date_of_birth" name="dob" required="" type="date" /></div>
+            <div><input id="cageNum" name="cagenum" class="fullWidth"/></div>
+            <div class="mt-2">Generation</div>
+            <div><input id="generation" name="generation" class="fullWidth"/></div>
+            <div class="needForTableLab mt-2" >Date of Birth</div>
+            <div><input class="needForTable fullWidth ageCalc" id="dateOfBirth" name="dob" type="date" /></div>
 
             <div class="mt-2">DOB Counts as...</div>
             <div>
@@ -100,6 +104,33 @@
                     <option value="0">PND 0</option>
                     <option value="1" selected>PND 1</option>
                 </select>
+            </div>
+            <div class="mt-2">Blood Glucose (mg/100mL)</div>
+            <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth"/></div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="needForTableLab mt-2">Sex</div>
+            <div>
+                <select class="needForTable fullWidth massCalc cycleCalc" id="sex" name="sex">
+                    <option value="">[Select]</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option> 
+                </select>
+            </div>
+
+            <div class="needForTableLab mt-2">Body mass (g)</div>
+            <div>
+                <input class="needForTable fullWidth massCalc" id="bodyMass" name="bodymass" step="0.1" type="number" />
+            </div>
+
+            <!-- If only want this to appear when animals are intact, add "isIntact" label -->
+            <div id="reproTractMassDiv">
+                <div class="mt-2 needForTableLab" data-sex="female">Uterine Mass (mg)</div>
+                <div class="mt-2 needForTableLab" data-sex="male">Seminal Vesicle Mass (mg)</div>
+                <div>
+                    <input class="fullWidth massCalc needForTable" data-sex="female male" id="reproTractMass" name="reprotractmass" step="0.01" type="number"/>
+                </div>
             </div>
 
             <div class="mt-2">Treatment</div>
@@ -111,48 +142,20 @@
                     <option value="ALPS">Adult Stress</option>
                     <option value="other">Other</option>
                 </select>
-                <select id="pnaTreatment" name="pnatreatment" class="fullWidth treatmentCalc mt-1">
+                <select id="pnaTreatment" name="pnatreatment" class="fullWidth treatmentCalc mt-1" data-proj="PNA">
                     <option value="">[Select]</option>
                     <option value="CON">Control</option>
                     <option value="CON_main">Main colony control</option>
                     <option value="VEH">Vehicle</option>
                     <option value="DHT">DHT</option> 
                 </select>
-                <select id="ALPSTreatment" name="alpstreatment" class="fullWidth treatmentCalc mt-1">
+                <select id="ALPSTreatment" name="alpstreatment" class="fullWidth treatmentCalc mt-1" data-proj="ALPS">
                     <option value="">[Select]</option>
                     <option value="CON">Control</option>
                     <option value="ALPS">ALPS</option> 
                 </select>
-                <input type="text" id="otherTreatment" name="othertreatment" class="fullWidth treatmentCalc mt-1"/>
+                <input type="text" id="otherTreatment" name="othertreatment" class="fullWidth treatmentCalc mt-1" data-proj="other"/>
             </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-            <div class="needForTableLab requiredLab mt-2">Sex</div>
-            <div>
-                <select class="needForTable fullWidth simpleCalc massCalc cycleCalc" id="sex" name="sex" required="">
-                    <option value="">[Select]</option>
-                    <option value="female">Female</option>
-                    <option value="male">Male</option> 
-                </select>
-            </div>
-
-            <div class="needForTableLab mt-2">Body mass (g)</div>
-            <div>
-                <input class="needForTable fullWidth simpleCalc massCalc" id="BodyMass_g" name="bodymass" step="0.1" type="number" />
-            </div>
-
-            <!-- If only want this to appear when animals are intact, add "isIntact" label -->
-            <div id="reproTractMassDiv">
-                <div class="female mt-2 needForTableLab">Uterine Mass (mg)</div>
-                <div class="male mt-2 needForTableLab">Seminal Vesicle Mass (mg)</div>
-                <div>
-                    <input class="fullWidth anySex simpleCalc massCalc needForTable" id="reproTractMass" name="reprotractmass" step="0.01" type="number" />
-                </div>
-            </div>
-
-            <div class="mt-2">Blood Glucose (mg/100mL)</div>
-            <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth simpleCalc"/></div>
         </div>
     </div>
 </div>
@@ -162,18 +165,18 @@
         <div class="col-12 col-md-6">
             <h2>General Info</h2>
 
-            <div class="requiredLab needForTableLab">Experimenter</div>
-            <div><input class="needForTable fullWidth simpleCalc" id="Who" name="who" required="" /></div>
+            <div class="needForTableLab">Experimenter</div>
+            <div><input class="needForTable fullWidth" id="who" name="who"/></div>
 
-            <div class="requiredLab needForTableLab mt-2">Date</div>
-            <div><input class="needForTable fullWidth simpleCalc ageCalc" id="Recording_date" name="slicedate" required="" type="date" /></div>
+            <div class="needForTableLab mt-2">Date</div>
+            <div><input class="needForTable fullWidth ageCalc" id="recordingDate" name="slicedate" type="date" /></div>
 
             <div class="needForTableLab mt-2">Time of Sacrifice</div>
-            <div><input class="needForTable fullWidth simpleCalc timeCalc" id="Time_sac" name="sactime" type="time" /></div>
+            <div><input class="needForTable fullWidth timeCalc" id="sacTime" name="sactime" type="time" /></div>
 
-            <div class="requiredLab needForTableLab mt-2">Daylight Savings Time</div>
+            <div class="needForTableLab mt-2">Daylight Savings Time</div>
             <div>
-                <select class="needForTable fullWidth simpleCalc timeCalc" id="Daylight_Savings" name="daylightsaving" required="">
+                <select class="needForTable fullWidth timeCalc" id="daylightSavings" name="daylightsaving">
                     <option value="">[Select]</option>
                     <option value="Y">Daylight Savings Time (summer)</option>
                     <option value="N">Standard Time (winter)</option> 
@@ -183,9 +186,9 @@
         <div class="col-12 col-md-6 mt-2 mt-md-0">
             <h2>Gonadal Status</h2>
 
-            <div class="needForTableLab requiredLab">Gonad Status</div>
+            <div class="needForTableLab">Gonad Status</div>
             <div>
-                <select class="needForTable fullWidth simpleCalc cycleCalc" id="gonadstatus" name="gonadstatus" required="">
+                <select class="needForTable fullWidth cycleCalc" id="gonadStatus" name="gonadstatus">
                     <option value="">[Select]</option>
                     <option value="intact">Intact</option>
                     <option value="gdx">Gonadectomized</option> 
@@ -193,25 +196,29 @@
             </div>
 
             <!-- Intact -->
-            <div class="cycle mt-2">Cycle Stage</div>
-            <div class="cycle">
-                <select class="fullWidth cycleCalc" id="CycleStage" name="cyclestage">
-                    <option value="">[Select]</option>
-                    <option value="NA">NA</option>
-                    <option value="D">Diestrus</option>
-                    <option value="P">Proestrus</option>
-                    <option value="E">Estrus</option> 
-                </select>
-            </div>
-            <div class="cycle">Comment:</div>
-            <div class="cycle">
-                <textarea name="stagecomment" id="stageComment" rows="1" class="fullWidth cycleCalc"></textarea>
+            <div data-sex="female" data-gonads="intact">
+                <div class="mt-2">Cycle Stage</div>
+                <div>
+                    <select class="fullWidth cycleCalc" id="cycleStage" name="cyclestage">
+                        <option value="">[Select]</option>
+                        <option value="NA">NA</option>
+                        <option value="D">Diestrus</option>
+                        <option value="P">Proestrus</option>
+                        <option value="E">Estrus</option> 
+                    </select>
+                </div>
+                <div>Comment:</div>
+                <div>
+                    <textarea name="stagecomment" id="stageComment" class="fullWidth cycleCalc autoAdjust"></textarea>
+                </div>
             </div>
 
             <!-- GDX -->
-            <div class="gdx mt-2" >Date of surgery</div>
-            <div class="gdx" >
-                <input class="fullWidth" id="surgerydate" name="surgerydate" type="date" />
+            <div data-gonads="gdx">
+                <div class="mt-2">Date of surgery</div>
+                <div>
+                    <input class="fullWidth" id="surgeryDate" name="surgerydate" type="date" />
+                </div>
             </div>
         </div>
     </div>
@@ -227,36 +234,40 @@
                 <input id="implantBox" name="implant" type="checkbox" class="implantCalc" />
             </div>
 
-            <div class="implant mt-2">Type of implant</div>
-            <div class="implant">
-                <select id="implantType" name="implanttype" class="fullWidth implantCalc">
-                    <option value="">[Select]</option>
-                    <option value="e2">E2</option>
-                    <option value="dht">DHT</option>
-                    <option value="pira">P IRA</option>
-                    <option value="other">Other</option> 
-                </select>
+            <!-- Only show if implant is selected -->
+            <div data-implant>
+                <div class="mt-2">Type of implant</div>
+                <div>
+                    <select id="implantType" name="implanttype" class="fullWidth implantCalc">
+                        <option value="">[Select]</option>
+                        <option value="e2">E2</option>
+                        <option value="dht">DHT</option>
+                        <option value="pira">P IRA</option>
+                        <option value="other">Other</option> 
+                    </select>
+                </div>
+                <div class="mt-2">Implant Date</div>
+                <div><input type="date" name="implantdate" id="implantDate" class="fullWidth implantCalc"></div>
+    
+                <div class="mt-2">Implant Comment</div>
+                <div>
+                    <textarea name="implantcomment" id="implantComment" class="fullWidth implantCalc autoAdjust"></textarea>
+                </div>
             </div>
 
-            <div class="implant mt-2">Implant Date</div>
-            <div class="implant"><input type="date" name="implantdate" id="implantDate" class="fullWidth implantCalc"></div>
 
-            <div class="implant mt-2">Implant Comment</div>
-            <div class="implant">
-                <textarea name="implantcomment" id="implantcomment" rows="1" class="fullWidth implantCalc"></textarea>
-            </div>
         </div>
         <div class="col-12 col-md-6 mt-2 mt-md-0">
             <h2>Samples</h2>
         
             <div class="mt-2 needForTableLab">Serum Tube Label</div>
             <div>
-                <input class="needForTable fullWidth simpleCalc" id="tubeLabel" name="tubelabel" />
+                <input class="needForTable fullWidth" id="tubeLabel" name="tubelabel" />
             </div>
-            <div><label for="bloodserum">Saved blood</label> <input id="Saved_blood" name="bloodserum" type="checkbox" /></div>
+            <div><label for="bloodserum">Saved blood</label> <input id="savedBlood" name="bloodserum" type="checkbox" /></div>
             
             <div class="mt-2">Pituitary</div>
-            <div><label for="pituitary">Saved pituitary</label> <input id="Saved_pit" name="pituitary" type="checkbox" /></div>
+            <div><label for="pituitary">Saved pituitary</label> <input id="savedPit" name="pituitary" type="checkbox" /></div>
         </div>
     </div>
 </div>
@@ -267,20 +278,20 @@
     </div>
     <div class="row mt-2">
         <div class="col-12 col-md-4">
-            <div class="mt-2 needForTableLab" >Nucleus/Area of Interest</div>
+            <div class="mt-2 needForTableLab">Nucleus/Area of Interest</div>
             <div>
-                <input class="needForTable fullWidth simpleCalc" id="nucleus" name="nucleus" />
+                <input class="needForTable fullWidth" id="nucleus" name="nucleus"/>
             </div>
             
             <div class="mt-2 needForTableLab">Slicing Orientation</div>
             <div>
-                <input class="needForTable fullWidth simpleCalc" id="orientation" name="orientation" />
+                <input class="needForTable fullWidth" id="orientation" name="orientation"/>
             </div>                    
         </div>
         <div class="col-12 col-md-4">
             <div class="mt-2">Quality</div>
             <div>
-                <select id="slicequal" name="slicequal" class="fullWidth simpleCalc">
+                <select id="sliceQual" name="slicequal" class="fullWidth">
                     <option value="">[Select]</option>
                     <option value="good">Good</option>
                     <option value="fair">Fair</option>
@@ -289,13 +300,13 @@
             </div>
             <div>Comment:</div>
             <div>
-                <textarea name="slicecomment" id="slicecomment" rows="1" class="fullWidth simpleCalc"></textarea>
+                <textarea name="slicecomment" id="sliceComment" class="fullWidth autoAdjust"></textarea>
             </div>
         </div>
         <div class="col-12 col-md-4">
             <div class="mt-2">Fluorescent Quality</div>
             <div>
-                <select id="fluorqual" name="fluorqual" class="fullWidth simpleCalc">
+                <select id="fluorQual" name="fluorqual" class="fullWidth">
                     <option value="">[Select]</option>
                     <option value="good">Good</option>
                     <option value="fair">Fair</option>
@@ -304,7 +315,7 @@
             </div>
             <div>Comment:</div>
             <div>
-                <textarea name="fluorcomment" id="fluorcomment" rows="1" class="fullWidth simpleCalc"></textarea>
+                <textarea name="fluorcomment" id="fluorComment" class="fullWidth autoAdjust"></textarea>
             </div>
         </div>
     </div>
@@ -318,9 +329,9 @@
         <div class="col-12 col-md-4">
             <h5 class="mt-2">External</h5>
             <div>External Solution</div>
-            <div><input id="externalsoln" name="externalsoln" class="fullWidth simpleCalc"/></div>
+            <div><input id="externalSoln" name="externalsoln" class="fullWidth"/></div>
             <div class="mt-2">External Date</div>
-            <div><input type="date" name="externaldate" id="externaldate" class="fullWidth simpleCalc"></div>
+            <div><input type="date" name="externaldate" id="externalDate" class="fullWidth"></div>
             
             <div class="mt-2">
                 <em>Additions to external solution:</em> <br/>
@@ -333,9 +344,9 @@
         <div class="col-12 col-md-4 mt-2 mt-md-0">
             <h5 class="mt-2">Internal</h5>
             <div>Internal/Pipette Solution</div>
-            <div><input id="internalsoln" name="internalsoln" class="fullWidth simpleCalc" /></div>
+            <div><input id="internalSoln" name="internalsoln" class="fullWidth" /></div>
             <div class="mt-2">Internal Date</div>
-            <div><input id="internaldate" name="internaldate" type="date" class="fullWidth simpleCalc" /></div>
+            <div><input id="internalDate" name="internaldate" type="date" class="fullWidth" /></div>
             <div class="mt-2">
                 <em>Additions to internal solution:</em><br/>
                 <input type="button" value="Add sol'n" id="addToInternal" name="addtointernal" class="disableOnView">
@@ -347,10 +358,10 @@
         <div class="col-12 col-md-4 mt-2 mt-md-0">
             <h5 class="mt-2">Pipette</h5>
             <div>Pipette Program</div>
-            <div><input id="pipette" name="pipette" class="fullWidth simpleCalc" /></div>
+            <div><input id="pipette" name="pipette" class="fullWidth" /></div>
             
             <div class="mt-2">Pipette Lot</div>
-            <div><input id="pipettelot" name="pipettelot" class="fullWidth simpleCalc" /></div>
+            <div><input id="pipetteLot" name="pipettelot" class="fullWidth" /></div>
         </div>
     </div>
 </div>
@@ -361,17 +372,16 @@
             <h3>Comments:</h3>
         </div>
         <div class="col-12">
-            <textarea name="comments" id="otherComments" rows="5" class="fullWidth"></textarea>
+            <textarea name="comments" id="otherComments" class="fullWidth autoAdjust"></textarea>
         </div>
     </div>
 </div>
 
-<div class="container outTableContainer">
+<div class="container outCardContainer">
     <div class="row mt-2">
-        <h2 class="col">Output Table</h2>
+        <h2 class="col">Output Tables:</h2>
     </div>
-    
-    <div class="row">
+    <div class="row mt-2">
         <div class="col-12">
             <!-- took out the iFrame Google Doc since it was slow and was causing errors -->
             <big>Open the <a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Slicing Database</a></big> 
@@ -385,277 +395,25 @@
                 <option value="yes">Yes!</option> 
             </select>
         </div>
-        
     </div>
-
-    <!-- buttons -->
-    <div class="row mt-2 align-items-top">
-        <div class="col-12 col-sm-6 col-md">
-            <select id="selectTable" name="selecttable" class="fullWidth">
-                <option value="">None</option>
-                <option value="AmandaOutTable">KNDy PNA project</option>
-                <option value="labOutTable">Standard Lab Output</option>
-                <option value="externalAdditionsTable">External Additions</option>
-                <option value="internalAdditionsTable">Internal Additions</option>
-                <option value="JennPNA">Jenn PNA project</option>
-                <option value="sacTimeTable">Sacrifice Time</option>
-            </select> <br/>
-            Select output table
-        </div>
-
-        <!-- <div class="col-12 col-sm-6 col-md"><input id="calculate" name="calcvalues" type="button"
-                value="Calculate Values" class="fullWidth disableOnView" />
-        </div> -->
-
-        <div class="col-12 col-sm-6 col-md">
-            <input id="toCSV" name="tocsv" type="button" value="Save CSV" class="fullWidth" />
-        </div>
-
-        <div class="col-12 col-sm-6 col-md">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth" />
-            <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" />
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
+            class="fullWidth toCSV"/></div>
+    
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth copyData"/>
+            <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" class="copyHead"/>
+            <br />Transpose Table? <input id="transpose" name="transpose" type="checkbox" class="transpose" />
         </div>
     </div>
-
-    <!-- Error Message -->
     <div class="row">
         <div class="col" id="errorMsg">&nbsp;</div>
+    </div> 
+    <div class="row" id="forCopy">&nbsp;</div>
+    <div class="mt-2 row">
+        <h4 class="col">Select a table format:</h4>
     </div>
-
-    <div class="row mt-2">
-        <div class="col-12 table-responsive xsTableDiv" id="tableDiv">
-            <!-- Amanda Output Table -->
-            <table id="AmandaOutTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>MouseID</th>
-                        <th>Cage</th>
-                        <th>Treatment</th>
-                        <th>GenTreatment</th>
-                        <th>CycleStage</th>
-                        <th>BodyMass_g</th>
-                        <th>UterineMass</th>
-                        <th>Uterine_mg_per_g</th>
-                        <th>Date_of_birth</th>
-                        <th>Recording_date</th>
-                        <th>Age_in_days</th>
-                        <th>Saved_pit</th>
-                        <th>Daylight_Savings</th>
-                        <th>Time_sac</th>
-                        <th>Sac_hr</th>
-                        <th>Who</th>
-                        <th>Zygosity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="MouseID_calc">&nbsp;</td>
-                        <td class="Cage_calc">&nbsp;</td>
-                        <td class="Treatment_calc">&nbsp;</td>
-                        <td class="GenTreatment_calc">&nbsp;</td>
-                        <td class="CycleStage_calc">&nbsp;</td>
-                        <td class="BodyMass_g_calc">&nbsp;</td>
-                        <td class="uterineMass_calc">&nbsp;</td>
-                        <td class="uterine_mg_per_g_calc">&nbsp;</td>
-                        <td class="Date_of_birth_calc">&nbsp;</td>
-                        <td class="Recording_date_calc">&nbsp;</td>
-                        <td class="Age_in_days_calc">&nbsp;</td>
-                        <td class="Saved_pit_calc">&nbsp;</td>
-                        <td class="Daylight_Savings_calc">&nbsp;</td>
-                        <td class="Time_sac_calc">&nbsp;</td>
-                        <td class="Sac_hr_calc">&nbsp;</td>
-                        <td class="Who_calc">&nbsp;</td>
-                        <td class="zygosity_calc">&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <!-- Lab output table -->
-            <table id="labOutTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>MouseID</th>
-                        <th>Cage</th>
-                        <th>Who</th>
-                        <th>Recording_date</th>
-                        <th>Date_of_birth</th>
-                        <th>Age_in_days</th>
-                        <th>Time_sac</th>
-                        <th>Daylight_Savings</th>
-                        <th>Sac_hr</th>
-                        <th>Strain</th>
-                        <th>Zygosity</th>
-                        <th>Sex</th>
-                        <th>BodyMass_g</th>
-                        <th>ReproTractMass_mg</th>
-                        <th>ReproTractMass_mg_per_BodyMass_g</th>
-                        <th>Gonad_Status</th>
-                        <th>CycleStage</th>
-                        <th>Stage_Comment</th>
-                        <th>Surgery_date</th>
-                        <th>Implant</th>
-                        <th>Implant_Type</th>
-                        <th>Implant_date</th>
-                        <th>Implant_Comment</th>
-                        <th>SerumTube_Label</th>
-                        <th>Saved_Pituitary</th>
-                        <th>GenTreatment</th>
-                        <th>Treatment</th>
-                        <th>Glucose</th>
-                        <th>Nucleus</th>
-                        <th>Slice_Orientation</th>
-                        <th>Slice_Quality</th>
-                        <th>Slice_Comment</th>
-                        <th>Fluorescent_Quality</th>
-                        <th>Fluor_Comment</th>
-                        <th>External_Solution</th>
-                        <th>External_date</th>
-                        <th>Internal_Solution</th>
-                        <th>Internal_date</th>
-                        <th>Pipette_program</th>
-                        <th>Pipette_lot</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="MouseID_calc">&nbsp;</td>
-                        <td class="Cage_calc">&nbsp;</td>
-                        <td class="Who_calc">&nbsp;</td>
-                        <td class="Recording_date_calc">&nbsp;</td>
-                        <td class="Date_of_birth_calc">&nbsp;</td>
-                        <td class="Age_in_days_calc">&nbsp;</td>
-                        <td class="Time_sac_calc">&nbsp;</td>
-                        <td class="Daylight_Savings_calc">&nbsp;</td>
-                        <td class="Sac_hr_calc">&nbsp;</td>
-                        <td class="strain_calc">&nbsp;</td>
-                        <td class="zygosity_calc">&nbsp;</td>
-                        <td class="sex_calc">&nbsp;</td>
-                        <td class="BodyMass_g_calc">&nbsp;</td>
-                        <td class="reproTractMass_calc">&nbsp;</td>
-                        <td class="reprotract_mg_per_g_calc">&nbsp;</td>
-                        <td class="gonadstatus_calc">&nbsp;</td>
-                        <td class="CycleStage_calc">&nbsp;</td>
-                        <td class="stageComment_calc">&nbsp;</td>
-                        <td class="surgerydate_calc">&nbsp;</td>
-                        <td class="implant_calc">&nbsp;</td>
-                        <td class="implantType_calc">&nbsp;</td>
-                        <td class="implantDate_calc">&nbsp;</td>
-                        <td class="implantcomment_calc">&nbsp;</td>
-                        <td class="tubeLabel_calc">&nbsp;</td>
-                        <td class="Saved_pit_calc">&nbsp;</td>
-                        <td class="GenTreatment_calc">&nbsp;</td>
-                        <td class="Treatment_calc">&nbsp;</td>
-                        <td class="glucose_calc">&nbsp;</td>
-                        <td class="nucleus_calc">&nbsp;</td>
-                        <td class="orientation_calc">&nbsp;</td>
-                        <td class="slicequal_calc">&nbsp;</td>
-                        <td class="slicecomment_calc">&nbsp;</td>
-                        <td class="fluorqual_calc">&nbsp;</td>
-                        <td class="fluorcomment_calc">&nbsp;</td>
-                        <td class="externalsoln_calc">&nbsp;</td>
-                        <td class="externaldate_calc">&nbsp;</td>
-                        <td class="internalsoln_calc">&nbsp;</td>
-                        <td class="internaldate_calc">&nbsp;</td>
-                        <td class="pipette_calc">&nbsp;</td>
-                        <td class="pipettelot_calc">&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <table id="externalAdditionsTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>Addition Name</th>
-                        <th>Addition Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-
-            <table id="internalAdditionsTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>Addition Name</th>
-                        <th>Addition Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-
-            <table id="JennPNA" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>CellID</th>
-                        <th>MouseID</th>
-                        <th>Exclude reason</th>
-                        <th>Cage</th>
-                        <th>TX</th>
-                        <th>Group</th>
-                        <th>DOB</th>
-                        <th>Age</th>
-                        <th>RecordingAge</th>
-                        <th>RecordingDay</th>
-                        <th>Mass (g)</th>
-                        <th>Ut. mass (g)</th>
-                        <th>Ut. mass (mg)</th>
-                        <th>Cycle Stage</th>
-                        <th>Sac time</th>
-                        <th>Sac hour</th>
-                        <th>Pit (Y/N)</th>
-                        <th>Blood (Y/N)</th>
-                        <th>Notes:</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>&nbsp;</td>
-                        <td class="MouseID_calc">&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td class="Cage_calc">&nbsp;</td>
-                        <td class="Treatment_calc">&nbsp;</td>
-                        <td class="GenTreatment_calc">&nbsp;</td>
-                        <td class="Date_of_birth_calc">&nbsp;</td>
-                        <td class="AgeGroup_calc">&nbsp;</td>
-                        <td class="Age_in_days_calc">&nbsp;</td>
-                        <td class="Recording_date_calc">&nbsp;</td>
-                        <td class="BodyMass_g_calc">&nbsp;</td>
-                        <td class="reproTractMass_g_calc">&nbsp;</td>
-                        <td class="reproTractMass_calc">&nbsp;</td>
-                        <td class="CycleStage_calc">&nbsp;</td>
-                        <td class="Time_sac_calc">&nbsp;</td>
-                        <td class="Sac_hr_calc">&nbsp;</td>
-                        <td class="Saved_pit_calc">&nbsp;</td>
-                        <td class="Saved_blood_calc">&nbsp;</td>
-                        <td>&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <table id="sacTimeTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>MouseID</th>
-                        <th>Daylight_Savings</th>
-                        <th>Time_sac</th>
-                        <th>Sac_hr</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="MouseID_calc">&nbsp;</td>
-                        <td class="Daylight_Savings_calc">&nbsp;</td>
-                        <td class="Time_sac_calc">&nbsp;</td>
-                        <td class="Sac_hr_calc">&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="row mt-2 mb-2 viewTableButtons">
+        &nbsp;
     </div>
-</div>
-
-<!-- Copy Div -->
-<div class="row">
-    <div class="col" id="forCopy">&nbsp;</div>
 </div>

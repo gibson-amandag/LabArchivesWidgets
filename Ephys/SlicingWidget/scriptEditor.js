@@ -18,17 +18,19 @@ my_widget_script =
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
 
-        //Uncomment to print parsedJson to consol
-        //console.log("init", parsedJson);
+        // Make the output tables
+        this.makeOutputTableCards();
+        this.addOptionsToCustom();
 
+        //Uncomment to print parsedJson to console
+        //console.log("init", parsedJson);
+        
         //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
 
-        //resize the content box when the window size changes
-        window.onresize = this.resize;
 
-        //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners();
+        //resize the content box when the window size changes
+        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
 
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
@@ -40,15 +42,10 @@ my_widget_script =
         this.setUpInitialState();
 
         //adjust form design and buttons based on mode
-        this.adjustForMode(mode, parsedJson);
+        this.adjustForMode(mode);
 
-        // uncomment to print name log to check for uppercase letters
-        // var name_log = ''
-        // $("body").find("[name]").each(function () {
-        //     var thisName = this.getAttribute("name");
-        //     name_log += thisName + "\n";
-        // });
-        // console.log(name_log);
+        // Print to console log if any elements don't have a required name attribute
+        this.checkForNames();
     },
     
     to_json: function () {
@@ -66,8 +63,11 @@ my_widget_script =
         // Will be accessed within the init and from_json methods
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
+            solns: this.solns,
             numExtAdds: dynamicContent.numExtAdds,
-            numIntAdds: dynamicContent.numIntAdds
+            numIntAdds: dynamicContent.numIntAdds,
+            selected: this.outputTables.custom.columns,
+            unselected: this.outputTables.custom.unSelColumns
         };
 
         //uncomment to check stringified output
@@ -107,8 +107,9 @@ my_widget_script =
         //If no additional dynamic content 
         var output = { 
             widgetData: testData,
-            numExtAdds: 1,
-            numIntAdds: 1
+            solns: {internal: [1], external: [1,2]},
+            selected: this.allOptions.slice(0, 3),
+            unselected: this.allOptions.slice(3, this.allOptions.length)
         };
 
         //Add additional content to match the objects in to_json
@@ -183,7 +184,7 @@ my_widget_script =
         });
 
         if (fail) { //if fail is true (meaning a required element didn't have a value)
-            return alert(fail_log); //return the fail log as an alert
+        return bootbox.alert(fail_log); //return the fail log as an alert
         } else {
             var noErrors = [];
             return noErrors;
@@ -222,12 +223,28 @@ my_widget_script =
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
+        if(parsedJson.solns){
+            for(type in parsedJson.solns){
+                for(var i=0; i<parsedJson.solns[type].length; i++){
+                    var solnNum = parsedJson.solns[type][i];
+                    // console.log("adding " + type + " #" + solnNum);
+                    this.addSoln(type, solnNum);
+                }
+            }
+        }
+
+        if(parsedJson.selected && parsedJson.unselected){
+            this.resetOptionsList(parsedJson.unselected, parsedJson.selected)
+        }
+
+
+        // Keep this here to maintain compatibility with old version
         for (var i = 0; i < parsedJson.numExtAdds; i++) {
-            my_widget_script.addSoln("external");
+            this.addSoln("external", i+1);
         };
 
         for (var i=0; i < parsedJson.numIntAdds; i++) {
-            my_widget_script.addSoln("internal");
+            this.addSoln("internal", i+1);
         }
     },
 
@@ -242,255 +259,121 @@ my_widget_script =
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
-
+            $("input[type='date']").removeClass(".hasDatePicker");
+            $(".hideView").hide();
             $("#tableDiv").show();
-
-            $(".outTableContainer").insertAfter($(".firstDiv"));
-
+            $(".outCardContainer").insertAfter($(".firstDiv"));
             $(".reqTextInfo").hide();
-        }
-    },
-
-    checkSexAndGonadStatus: function () {
-        if ($("#sex").val() === "female") { //if female
-            $(".female:not(.isIntact)").show(); //show female class elements that don't have isIntact class
-            $(".anySex:not(.isIntact)").show(); // show anySex class elements that don't have isIntact class
-            if ($("#gonadstatus").val() === "intact") {
-                $(".cycle").show(); //only show cycle if female and intact
-                $(".isIntact").show();  // show isIntact class elements
-                $(".gdx").hide();
-            } else if($("#gonadstatus").val() === "gdx") {
-                $(".isIntact").hide();
-                $(".gdx").show();
-                $(".cycle").hide();
-            } else {
-                $(".isIntact").hide();
-                $(".gdx").hide();
-                $(".cycle").hide();
-            }
-            $(".male").hide(); //hide all male class elements. At end to resolve any isIntact male class elements
-        } else if ($("#sex").val() === "male") { //if male
-            $(".male:not(.isIntact)").show(); //show male class elements
-            $(".anySex:not(.isIntact)").show();
-            if ($("#gonadstatus").val() === "intact") {
-                $(".isIntact").show();  // show isIntact class elements
-                $(".gdx").hide();
-            } else if($("#gonadstatus").val() === "gdx") {
-                $(".isIntact").hide();
-                $(".gdx").show();
-            } else {
-                $(".isIntact").hide();
-                $(".gdx").hide();
-            }
-            $(".female").hide(); //hide female class elements
-            $(".cycle").hide(); //hide cycles for male
-        } else { //if no sex
-            if ($("#gonadstatus").val() === "intact") {
-                $(".isIntact").show();  // show isIntact class elements
-            } else if($("#gonadstatus").val() === "gdx") {
-                $(".isIntact").hide();
-                $(".gdx").show();
-            } else {
-                $(".isIntact").hide();
-                $(".gdx").hide();
-            }
-            $(".female").hide(); //hide female class elements
-            $(".male").hide(); //hide male class elements
-            $(".cycle").hide(); //hide cycles
-            $(".anySex").hide(); //hide anySex
+        } else {
+            $("input[type='date']").each((i, e)=> {
+                this.checkDateFormat($(e));
+            });
+            
+            $("input[type='time']").each((i, e)=> {
+                this.checkTimeFormat($(e));
+            });
         }
     },
 
     /**
-     * TO DO: edit this function to define behavior when the user interacts with the form.
-     * This could include when buttons are clicked or when inputs change.
-     */
-    addEventListeners: function () {
-        //Show/hide the table
-        $("#selectTable").on("change", function () { //when the showTable button is clicked. Run this function
-            var tableID = $(this).val();
-            if(tableID) {
-                my_widget_script.toggleTableFuncs(tableID);
-            } else {
-                $(".outTable").hide();
-                $("#errorMsg").text("");
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * Example:
+     * my_widget_script.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+        );
+    */
+    runIfConfirmed: function(text, functionToCall){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
             }
         });
+    },
 
-        //when the calculate button is clicked, run the calcValues function
-        $('#calculate').on("click", function () {
-            my_widget_script.calcTableFuncs();
-        });
-
-        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
-        $('#toCSV').on("click", function () {
-            var selectedTable = prompt(
-                "Which table would you like to copy?\n" +
-                "Enter '1' for KNDy PNA Extracellular Analysis Project\n" +
-                "Enter '2' for the standard lab output table\n" + 
-                "Enter '3' for the external additions table\n" + 
-                "Enter '4' for the internal additions table\n" +
-                "Enter '5' for Jenn's PNA project\n" +
-                "Enter '6' for sacrifice timing table"
-            );
-            var tableID, fileName;
-            switch (selectedTable) {
-                case '1':
-                    tableID = "AmandaOutTable";
-                    fileName = "recordingNotes_" + $("#MouseID").val();
-                    break;
-                case '2':
-                    tableID = "labOutTable";
-                    fileName = "recordingNotes_" + $("#MouseID").val();
-                    break;
-                case '3':
-                    tableID = "externalAdditionsTable";
-                    fileName = "externalSolutionAdditions_" + $("#MouseID").val();
-                    break;
-                case '4': 
-                    tableID = "internalAdditionsTable";       
-                    fileName = "internalSolutionAdditions_" + $("#MouseID").val();
-                    break;
-                case '5':
-                    tableID = "JennPNA";       
-                    fileName = "JennPNA_recordingNotes_" + $("#MouseID").val();
-                    break;  
-                case '6':
-                    tableID = "sacTimeTable";       
-                    fileName = "sacrificeTiming_" + $("#MouseID").val();
-                    break;     
-                default:
-                    tableID = "labOutTable";
-                    fileName = "recordingNotes_" + $("#MouseID").val();
-                    break;
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.dialogConfirm(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
             }
-
-            var $errorMsg = $("#errorMsg");
-            
-            my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
-        });
-
-        //When the copy button is clicked, run the copyTable function
-        $("#copyDataButton").on("click", function () {
-            var selectedTable = prompt(
-                "Which table would you like to copy?\n" +
-                "Enter '1' for KNDy PNA Extracellular Analysis Project\n" +
-                "Enter '2' for the standard lab output table\n" + 
-                "Enter '3' for the external additions table\n" + 
-                "Enter '4' for the internal additions table\n" +
-                "Enter '5' for Jenn's PNA project\n" +
-                "Enter '6' for sacrifice timing table"
-            );
-            
-            var $tableToCopy;
-            switch (selectedTable) {
-                case '1':
-                    $tableToCopy = $("#AmandaOutTable");
-                    break;
-                case '2':
-                    $tableToCopy = $("#labOutTable");
-                    break;
-                case '3':
-                    $tableToCopy = $("#externalAdditionsTable");
-                    break;
-                case '4': 
-                    $tableToCopy = $("#internalAdditionsTable");       
-                    break;
-                case '5':
-                    $tableToCopy = $("#JennPNA");
-                    break;  
-                case '6':
-                    $tableToCopy = $("#sacTimeTable");
-                    break;     
-                default:
-                    $tableToCopy = $("#labOutTable");
-                    break;
+        );
+        */
+    dialogConfirm: function(text, functionToCall){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
             }
-            var $copyHead = $("#copyHead");
-            var $tableDiv = $("#tableDiv");
-            var $errorMsg = $("#errorMsg");
-            var $divForCopy = $("#forCopy");
-            
-            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
-        });
-
-        //Show/hide elements based on sex
-        $("#sex").on("change", function () { //when sex is changed
-            my_widget_script.checkSexAndGonadStatus();
-        });
-
-        //Show/hide elements based on gonad status
-        $("#gonadstatus").on("change", function () { //when gonad status is changed
-            my_widget_script.checkSexAndGonadStatus();
-            my_widget_script.calcSurgeryDate();
-        });
-
-        $("#surgerydate").on("input", function () {
-            my_widget_script.calcSurgeryDate();
         })
+    },
 
-        $("#implantBox").on("change", function () {
-            if ($("#implantBox").is(":checked")) {
-                $(".implant").show() //show implant class elements
-            } else {
-                $(".implant").hide()
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
             }
-        });
-
-        $("#addToExternal").on("click", function () {
-            my_widget_script.addSoln("external");
-        });
-
-        $("#addToInternal").on("click", function () {
-            my_widget_script.addSoln("internal");
-        });
-
-        $("#removeLastExternal").on("click", function () {
-            my_widget_script.removeSoln("external");
-        });
-
-        $("#removeLastInternal").on("click", function () {
-            my_widget_script.removeSoln("internal");
-        });
-        
-        // Output table calculations
-        $(".simpleCalc").on("input", function () {
-            var elementID = this.id;
-            var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
-        });
-        
-        $(".implantCalc").on("change", function () {
-            my_widget_script.calcImplant();
-        });
-
-        $(".treatmentCalc").on("change", function () {
-            my_widget_script.calcTreatment();
-        });
-
-        $(".cycleCalc").on("change", function () {
-            my_widget_script.calcCycleStage();
-        });
-
-        $(".massCalc").on("input", function () {
-            my_widget_script.calcUterineMass();
-            my_widget_script.calcUterineMass_perBodyMass();
-            my_widget_script.calcReproTractMass_perBodyMass();
-        });
-
-        $(".ageCalc").on("input", function () {
-            my_widget_script.calcAgeInDays();
-        });
-
-        $("#Saved_pit").on("change", function () {
-            my_widget_script.calcSavedPit();
-        });
-        $("#Saved_blood").on("change", function () {
-            my_widget_script.calcSavedBlood();
-        });
-
-        $(".timeCalc").on("input", function () {
-            my_widget_script.calcHoursPostLightsOn();
+        );
+        */ 
+    runBasedOnInput: function(prompt, functionToCall){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            }
         });
     },
 
@@ -544,7 +427,7 @@ my_widget_script =
             if(!isValid){
                 $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
             }
-            my_widget_script.resize();
+            this.resize();
         }
     },
 
@@ -583,9 +466,11 @@ my_widget_script =
                 $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
             }
             $dateInput.datepicker({dateFormat: "yy-mm-dd"})
-            my_widget_script.resize();
+            this.resize();
         }
     },
+
+    selectedTable: {id: "", name: ""},
 
     /**
      * TO DO: edit this function to define how the form should be initilized based 
@@ -593,40 +478,191 @@ my_widget_script =
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
-        my_widget_script.isDateSupported();
-        my_widget_script.isTimeSupported();
-        
-        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
-            my_widget_script.checkDateFormat($(this));
-        }).each(function () {
-            my_widget_script.checkDateFormat($(this));
+        this.isDateSupported();
+        this.isTimeSupported();
+
+        // Add date and time placeholders, and check format with change
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", (e)=> {
+            this.checkDateFormat($(e.currentTarget));
         });
         
-        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
-            my_widget_script.checkTimeFormat($(this));
-        }).each(function () {
-            my_widget_script.checkTimeFormat($(this));
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", (e)=> {
+            this.checkTimeFormat($(e.target));
+        });
+
+        // Autoadjust the size of textareas based on content in them
+        $('textarea.autoAdjust').each((i,e)=> { // i is the index for each match, textArea is the object
+            e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', (e)=> {
+            e.target.style.height = 'auto';
+            e.target.style.height = (e.target.scrollHeight) + 'px';
+            this.resize();
         });
 
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
-        my_widget_script.checkSexAndGonadStatus();
+        // #region solution additions 
+        $("#addToExternal").on("click", ()=> {
+            this.addSolnClick("external");
+        });
 
-        if ($("#implantBox").is(":checked")) {
-            $(".implant").show() //show implant class elements
-        } else {
-            $(".implant").hide()
-        };
+        $("#addToInternal").on("click", ()=> {
+            this.addSolnClick("internal");
+        });
+
+        $("#removeLastExternal").on("click", ()=> {
+            this.removeSoln("external");
+        });
+
+        $("#removeLastInternal").on("click", ()=> {
+            this.removeSoln("internal");
+        });
+        // #endregion
+
+        // #region output buttons
+        $("[data-table]").not(".dontHide").hide();
+        // $(".viewTableButtons").on("click", (e)=>{ // can't rely on this bubbling up if make it before the parent init, because it sets everything as readonly
+        $(".showTable").on("click", (e)=>{
+            if($(e.target).hasClass("showTable")){
+                $("[data-table]").not(".dontHide").hide();
+                var table = $(e.target).data("table");
+                var tableName = $(e.target).data("tablename");
+                var tableSearch = this.tableSearch(table);
+                $(tableSearch).show();
+                $(".card"+tableSearch).find(".card-body").removeClass("collapse");
+                this.selectedTable = {id: table, name: tableName};
+                $("#errorMsg").html("");
+                this.resize();
+            }
+        });
         
-        //Run the calculate values function to fill with the loaded data
+        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
+        $(".toCSV").on("click", (e)=>{
+            var tableID = this.selectedTable.id;
+            if(tableID){
+                var tableName = this.selectedTable.name;
+                var dateToday = luxon.DateTime.now().toISODate(); // Luxon has to be added
+                var fileName = "table_" + tableName + "_" + dateToday;
+                var $errorMsg = $("#errorMsg");
+                // console.log("fileName", fileName, "table", tableID, "errorMsg", $errorMsg);
+                this.toCSVFuncs(fileName, tableID, $errorMsg);
+            } else {
+                $("#errorMsg").html("Please select a table first");
+                this.resize();
+            }
+        });
+
+        $(".copyData").on("click", (e)=>{
+            var tableID = this.selectedTable.id;
+            if(tableID){
+                // Get the data-table text string to add to the query to find the table
+                var tableSearch = this.tableSearch(tableID);
+                // Find the element that tells whether or not to copy the table
+                var $copyHead = $("#copyHead");
+                var $transpose = $("#transpose");
+                var $tableToCopy = $("#"+tableID);
+                var $tableDiv = $tableToCopy.parent();
+                var $errorMsg = $("#errorMsg");
+                var $divForCopy = $("#forCopy");
+    
+                this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose);
+            } else {
+                $("#errorMsg").html("Please select a table first");
+                this.resize();
+            }
+        });
+        // #endregion output buttons
+
+        // #region calculate for output based on user entry
+
+        // Generic update when any part of the form has user input
+        $("#the_form").on("input", (e)=>{
+            this.updateCalcFromEl(e.target);
+        });
+
+        //Show/hide elements based on sex
+        $("#sex").on("change", ()=> { //when sex is changed
+            this.checkSexAndGonadStatus();
+        });
+
+        //Show/hide elements based on gonad status
+        $("#gonadStatus").on("change", ()=> { //when gonad status is changed
+            this.checkSexAndGonadStatus();
+            this.calcSurgeryDate();
+        });
+
+        // When surgery data changes, recalculate for output
+        $("#surgeryDate").on("change", ()=> {
+            this.calcSurgeryDate();
+        })
+
+        // When the steriod implant box is checked, show or hide related elements
+        $("#implantBox").on("change", (e)=> {
+            this.showWithCheck($(e.target), $("[data-implant]"));
+        });
+
+        // Recalculate for changes in implant-related elements
+        $(".implantCalc").on("change", ()=> {
+            my_widget_script.calcImplant();
+        });      
+        
+        // Change treatment based on selections
+        $(".treatmentCalc").on("change", ()=> {
+            my_widget_script.calcTreatment();
+        });
+
+        // This changes the calculated cycle stage
+        // Triggered by sex, gonad status, and cycle-related changes
+        $(".cycleCalc").on("change", ()=> {
+            my_widget_script.calcCycleStage();
+        });
+
+        // Changes with sex, body mass, and repro tract mass
+        $(".massCalc").on("input", ()=> {
+            my_widget_script.calcUterineMass();
+            my_widget_script.calcUterineMass_perBodyMass();
+            my_widget_script.calcReproTractMass_perBodyMass();
+        });
+
+        // Date of birth, age as day, and recording date
+        $(".ageCalc").on("input", ()=> {
+            my_widget_script.calcAgeInDays();
+        });
+
+        // Update because it's a checkbox
+        $("#savedPit").on("change", ()=> {
+            my_widget_script.calcSavedPit();
+        });
+        $("#savedBlood").on("change", ()=> {
+            my_widget_script.calcSavedBlood();
+        });
+
+        // Calc hours after lights on - change with time and daylight savings
+        $(".timeCalc").on("input", ()=> {
+            my_widget_script.calcHoursPostLightsOn();
+        });
+        // #endregion
+
+
+        // #region initial calculations
+        // Run this first incase calcValues needs to overrule
+        $("input, select, textarea").each((i,e)=>{
+            if($(e).attr("type")!= "button"){
+                this.updateCalcFromEl(e);   
+            }
+        });
         this.calcValues();
 
-        $("#selectTable").val("labOutTable");
+        // if ($("#implantBox").is(":checked")) {
+        //     console.log("implant shown");
+        //     $(".implant").show() //show implant class elements
+        // } else {
+        //     console.log("implant hidden");
+        //     $(".implant").hide()
+        // };
 
-        $("#labOutTable").show();
-
-        my_widget_script.resize();
+        this.resize();
     },
 
     /**
@@ -635,7 +671,25 @@ my_widget_script =
      */
     resize: function () {
         //resize the container
-        my_widget_script.parent_class.resize_container();
+        this.parent_class.resize_container();
+    },
+
+    checkForNames: function() {
+        // var ids = [];
+        $("input, select, textarea").each((i,e)=>{
+            // ids.push(e.id);
+            var thisName = $(e).attr("name");
+            if(!thisName){
+                console.log("There is no name attribute for: ", e.id);
+            } else {
+                var hasUpper = /[A-Z]/.test(thisName);
+                if(hasUpper){
+                    console.log("The name contains an uppercase letter for: ", e.id);
+                }
+            }
+        });
+        // var idsText = ids.join("\n");
+        // console.log(idsText);
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -662,142 +716,231 @@ my_widget_script =
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      * -----------------------------------------------------------------------------
      */
-    data_valid_form: function () {
+     data_valid_form: function ($errorMsg = $("#errorMsg")) {
         var valid = true; //begin with a valid value of true
-        //var fail_log = ''; //begin with an empty fail log
-        //var name; //create a name variable
+        var fail_log = $("<div></div>").append("Missing values for:");
+        var name; //create a name variable
 
-        //search the_form for all elements that are of class "needForTable"
-        $('.needForTable').each(function () {
-            if (!$(this).val()) { //if there is not a value for this input
-                valid = false; //change valid to false
-                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
-                //fail_log += name + " is required \n"; //add to the fail log that this name is required
+        //search the_form for all elements that are of class "needForForm"
+        $('.needForTable').each((i, e)=> {
+            if (!$(e).val()) { //if there is not a value for this input
+                // valid = false; //change valid to false
+                name = $(e).attr('id'); //replace the name variable with the id attribute of this element
+                fail_log.append("<br/>"+name)
+                // fail_log += name + " is required \n"; //add to the fail log that this name is required
             }
         });
 
         if (!valid) {
-            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+            $errorMsg.html(
+                "<span style='color:red; font-size:36px;'>" +
+                    "Please fill out all elements marked by a"+
+                    "</span><span style='color:blue; font-size:36px;'>" +
+                    " blue #"+
+                "</span>"
+            );
+            $errorMsg.append(fail_log);
+            // console.log("fail log\n", fail_log)    
         } else {
-            $("#errorMsg").html("");
+            $errorMsg.html("");
         }
 
+        this.resize();
         return valid;
     },
 
-    calcTreatment: function(){
-        var genTreatment, treatment;
 
-        if ($("#projectType").val() === "PNA"){
-            $("#pnaTreatment").show();
-            $("#ALPSTreatment").hide();
-            $("#otherTreatment").hide();
-            var pnaTreatment = $("#pnaTreatment").val();
-            
-            if (
-                pnaTreatment === "CON" || //if pnaTreatment equals CON, CON_main, or VEH,
-                pnaTreatment === "CON_main" ||
-                pnaTreatment === "VEH"
-            ) {
-                genTreatment = "control";
-                treatment = pnaTreatment;
-            } else if(pnaTreatment === "DHT") {
-                genTreatment = "PNA";
-                treatment = pnaTreatment;
-            } else {
-                genTreatment = "NA";
-                treatment = "NA";
-            }
-        } else if ($("#projectType").val() === "ALPS"){
-            $("#pnaTreatment").hide();
-            $("#ALPSTreatment").show();
-            $("#otherTreatment").hide();
-            var ALPSTreatment = $("#ALPSTreatment").val();
-            
-            if (
-                ALPSTreatment === "CON"
-            ) {
-                genTreatment = "control";
-                treatment = ALPSTreatment;
-            } else if(ALPSTreatment === "ALPS") {
-                genTreatment = "stress";
-                treatment = ALPSTreatment;
-            } else {
-                genTreatment = "NA";
-                treatment = "NA";
-            }
-        } else if ($("#projectType").val() === "other"){
-            $("#otherTreatment").show();
-            $("#ALPSTreatment").hide();
-            $("#pnaTreatment").hide();
-            var otherTreatment = $("#otherTreatment").val();
-            if(!otherTreatment){
-                treatment = "NA"
-            } else {
-                treatment = otherTreatment
-            }
-            genTreatment = "NA"
+    // #region check user input and calculate output and form changes
+
+    updateCalcFromEl: function (el) {
+        // Get the element id
+        var calc = el.id;
+        // Get the element value
+        var val = el.value;
+        // Get the data-calc search string to match id
+        var calcSearch = this.calcSearch(calc);
+
+        // console.log("calc: " + calc + "; val: " + val);
+
+        // Update any element that matches the calc search with the value
+        $(calcSearch).html(val);
+        this.resize();
+    },
+
+    updateCalcFromVal: function(calc, val){
+        var calcSearch = this.calcSearch(calc);
+        $(calcSearch).text(val);
+        this.resize();
+    },
+
+    resizeTextareaInEl: function($el){
+        $el.find("textarea.autoAdjust").each((i,e)=> {
+            if(! $(e).is(":hidden")) {
+                e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+            } 
+        });
+    },
+
+    showWithCheck: function ($chbx, $toToggle) {
+        if($chbx.is(":checked")){
+            $toToggle.show();
+            this.resizeTextareaInEl($toToggle);
         } else {
-            $("#pnaTreatment").hide();
-            $("#ALPSTreatment").hide();
-            $("#otherTreatment").hide()
-            genTreatment = "NA";
-            treatment = "NA";
+            $toToggle.hide();
         }
-        $(".GenTreatment_calc").text(genTreatment);
-        $(".Treatment_calc").text(treatment);
+        my_widget_script.resize();
+    },
+    
+    sexGonads: "",
+
+    // Change which form elements are visible based on sex and gonad status
+    checkSexAndGonadStatus: function () {
+        var sex = $("#sex").val();
+        var gonads = $("#gonadStatus").val();
+        
+        var sexSearch = this.sexSearch(sex);
+        var gonadsSearch = this.gonadsSearch(gonads);
+
+        this.sexGonads = sex+"-"+gonads;
+
+        $("[data-sex]").hide(); // hide everything with a data-sex attribute
+        $("[data-gonads]").hide(); // hide everything with a data-gonads attribute
+
+        // If there's a sex value, show all elements whose data-sex matches the sex value
+        // As long as there's not a data-gonads attribute
+        if(sex){
+            $(sexSearch).not("[data-gonads]").show().each((i,e)=>{
+                this.resizeTextareaInEl($(e));
+            });
+        }
+
+        // If there's a gonads value, show all elements whose data-gonads
+        // matches the gonads value, as long as there's not a data-sex attribute
+        if(gonads){
+            $(gonadsSearch).not("[data-sex]").show().each((i,e)=>{
+                this.resizeTextareaInEl($(e));
+            });;
+        }
+
+        // If there's a sex and gonads value, show elements that match both
+        if(sex && gonads){
+            $(sexSearch+gonadsSearch).show().each((i,e)=>{
+                this.resizeTextareaInEl($(e));
+            });;
+        }
+
+        //resize the container
+        this.resize();
+    },
+
+    calcTreatment: function(){
+        var genTreatment="";
+        var treatment = "";
+
+        var projType = $("#projectType").val();
+
+        // hide all elements with a data-proj attribute
+        $("[data-proj]").hide();
+
+        if(projType){ // if there's a projType
+            var projSearch = this.projSearch(projType);
+            $(projSearch).show(); // Show the corresponding field
+            var treatment = $(projSearch).val(); // get the value
+            if(treatment === "DHT"){ // if treatment is DHT
+                genTreatment = "PNA"; // gen treatment is PNA
+            } else if(treatment === "ALPS"){ // ALPS is general treatment of stress
+                genTreatment = "stress"
+            } else if( // Multiple possibilities for control general treatment
+                treatment === "CON" ||
+                treatment === "CON_main" ||
+                treatment === "VEH"
+            ){
+                genTreatment = "control"
+            }
+        }
+
+        if(!genTreatment){genTreatment = "NA"} // TO-DO: may be able to do this later when copying
+        if(!treatment){treatment = "NA"}
+
+        this.updateCalcFromVal("genTreatment", genTreatment);
+        this.updateCalcFromVal("treatment", treatment);
+
+        //resize the container
+        this.resize();
     },
 
     calcCycleStage: function () {
-        if ($("#sex").val() === "female" && $("#gonadstatus").val() === "intact") { //only for intact females
-            $(".CycleStage_calc").text($("#CycleStage").val());
-            my_widget_script.watchValue($("#stageComment"), $(".stageComment_calc"));
-        } else {
-            $(".CycleStage_calc").text("NA");
-            $(".stageComment_calc").text("NA");
+        var stage, comment;
+        if (this.sexGonads === "female-intact") { //only for intact females
+            stage = $("#cycleStage").val();
+            comment = $("#stageComment").val();
         }
+        if(!stage){stage = "NA"}
+        if(!comment){comment = "NA"}
+        this.updateCalcFromVal("cycleStage", stage);
+        this.updateCalcFromVal("stageComment", comment);
+
+        //resize the container
+        this.resize();
     },
 
     calcUterineMass: function () {
-        var reproTractMass;
+        var uterineMass;
         if ($("#sex").val() === "female") {
-            var reproTractMass = $("#reproTractMass").val();
+            var uterineMass = $("#reproTractMass").val();
         }
+        if (!(isFinite(uterineMass) && uterineMass)) {
+            uterineMass = "NA";
+        }
+        this.updateCalcFromVal("uterineMass", uterineMass);
 
-        if (isFinite(reproTractMass) && reproTractMass) {
-            $(".uterineMass_calc").text(reproTractMass);
-        } else {
-            $(".uterineMass_calc").text("NA");
-        }
+        //resize the container
+        this.resize();
     },
 
     calcUterineMass_perBodyMass: function () {
         var uterine_mg_per_g;
         if ($("#sex").val() === "female") {
-            var uterine_mg_per_g = $("#reproTractMass").val() / $("#BodyMass_g").val();
+            var uterine_mg_per_g = $("#reproTractMass").val() / $("#bodyMass").val();
         }
 
         if (isFinite(uterine_mg_per_g) && uterine_mg_per_g) {
-            $(".uterine_mg_per_g_calc").text(uterine_mg_per_g.toFixed(4));
+            uterine_mg_per_g = uterine_mg_per_g.toFixed(4);
         } else {
-            $(".uterine_mg_per_g_calc").text("NA");
+            uterine_mg_per_g = "NA";
         }
+
+        this.updateCalcFromVal("uterine_mg_per_g", uterine_mg_per_g);
+
+        //resize the container
+        this.resize();
     },
 
     calcReproTractMass_perBodyMass: function () {
-        var reprotract_mg_per_g = $("#reproTractMass").val() / $("#BodyMass_g").val();
+        var reprotract_mg_per_g = $("#reproTractMass").val() / $("#bodyMass").val();
         if(isFinite(reprotract_mg_per_g) && reprotract_mg_per_g){
-            $(".reprotract_mg_per_g_calc").text(reprotract_mg_per_g.toFixed(4));
+            reprotract_mg_per_g = reprotract_mg_per_g.toFixed(4);
         } else {
-            $(".reprotract_mg_per_g_calc").text("NA");
+            reprotract_mg_per_g = "NA";
         }
-        $(".reproTractMass_g_calc").text($("#reproTractMass").val()/1000);
+        this.updateCalcFromVal("reproTract_mg_per_g", reprotract_mg_per_g);
+
+        // repro tract as grams
+        var reproTractMass = $("#reproTractMass").val();
+        var reproTractMass_g = reproTractMass / 1000;
+        if(!(isFinite(reproTractMass_g) && reproTractMass)){
+            reproTractMass_g = "NA";
+        }
+        this.updateCalcFromVal("reproTractMass_g", reproTractMass_g);
+
+        //resize the container
+        this.resize();
     },
 
     getPND: function (dateInputVal, DOBisDay) {
         //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
         var textOutput;
-        var DOB_val = $("#Date_of_birth").val()
+        var DOB_val = $("#dateOfBirth").val()
         if(DOB_val){
             if(dateInputVal){
                 var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
@@ -817,132 +960,198 @@ my_widget_script =
 
     calcAgeInDays: function () {
         var DOBisDay = parseInt($("#DOB_equals").val());
-        var recDate = $("#Recording_date").val()
+        var recordingDate = $("#recordingDate").val()
 
-        var AgeInDays = my_widget_script.getPND(recDate, DOBisDay);
-        // console.log(AgeInDays);
+        var ageInDays = my_widget_script.getPND(recordingDate, DOBisDay);
 
-        $(".Age_in_days_calc").text(AgeInDays);
-        if(AgeInDays>=50){
-            $(".AgeGroup_calc").text("adult");
-        }else if(AgeInDays>=18 && AgeInDays <=21){
-            $(".AgeGroup_calc").text("3wk");
-        }else{
-            $(".AgeGroup_calc").text("");
+        this.updateCalcFromVal("ageInDays", ageInDays);
+        // console.log(ageInDays);
+
+        var ageGroup="";
+        if(ageInDays>=50){
+            ageGroup = "adult";
+        }else if(ageInDays>=18 && ageInDays <=21){
+            ageGroup = "3wk";
         }
+        this.updateCalcFromVal("ageGroup", ageGroup);
+
+        //resize the container
+        this.resize();
     },
 
     calcSavedPit: function () {
-        if ($("#Saved_pit").is(":checked")) {
-            var Saved_pit = "Y";
-        } else {
-            var Saved_pit = "N";
+        var savedPit = "FALSE";
+        var savedPit_yn = "N"
+        if ($("#savedPit").is(":checked")) {
+            savedPit = "TRUE";
+            savedPit_yn = "Y"
         }
-        $(".Saved_pit_calc").text(Saved_pit);
+        this.updateCalcFromVal("savedPit", savedPit);
+        this.updateCalcFromVal("savedPit_yn", savedPit_yn);
+
+        //resize the container
+        this.resize();
     },
+    
     calcSavedBlood: function () {
-        if ($("#Saved_blood").is(":checked")) {
-            var Saved_blood = "Y";
-        } else {
-            var Saved_blood = "N";
+        var savedBlood = "FALSE";
+        var savedBlood_yn = "N"
+        if ($("#savedBlood").is(":checked")) {
+            savedBlood = "TRUE";
+            savedBlood_yn = "Y"
         }
-        $(".Saved_blood_calc").text(Saved_blood);
+        this.updateCalcFromVal("savedBlood", savedBlood);
+        this.updateCalcFromVal("savedBlood_yn", savedBlood_yn);
+
+        //resize the container
+        this.resize();
     },
 
     calcHoursPostLightsOn: function () {
-        var time_sac_dur = luxon.Duration.fromISOTime($("#Time_sac").val());
+        var sacTime_dur = luxon.Duration.fromISOTime($("#sacTime").val());
+        var sacHrs;
         
-        if ($("#Daylight_Savings").val() === "Y") { //if daylight savings time
+        if ($("#daylightSavings").val() === "Y") { //if daylight savings time
             var lights_on = "04:00";
-        } else if ($("#Daylight_Savings").val() === "N") {
+        } else if ($("#daylightSavings").val() === "N") {
             var lights_on = "03:00";
         } else {
-            $(".Sac_hr_calc").text("Select daylight saving");
+            sacHrs = "Select daylight savings";
+            this.updateCalcFromVal("sacHrs", sacHrs);
             return
         }
         var lights_on_dur = luxon.Duration.fromISOTime(lights_on);
-        var hours = time_sac_dur.minus(lights_on_dur).as("hour");
+        sacHrs = sacTime_dur.minus(lights_on_dur).as("hour");
 
-        hours = hours.toFixed(2); //two decimal points
-        if (isFinite(hours)) {
-            $(".Sac_hr_calc").text(hours);
+        if (!isFinite(sacHrs)) {
+            sacHrs = "NA";
         } else {
-            $(".Sac_hr_calc").text("NA");
+            sacHrs = sacHrs.toFixed(2); //two decimal points
         }
+        this.updateCalcFromVal("sacHrs", sacHrs);
+
+        //resize the container
+        this.resize();
     },
 
     calcSurgeryDate: function () {
-        if($("#gonadstatus").val()==="gdx") {
-            my_widget_script.watchValue($("#surgerydate"), $(".surgerydate_calc"));
-        } else {
-            $(".surgerydate_calc").text("NA");
+        var surgeryDate = "NA"; // default is NA
+        if($("#gonadStatus").val()==="gdx") { // only change if had gonadectomy
+            surgeryDateVal = $("#surgeryDate").val(); // get the value from the date field
+            if(surgeryDateVal){ // if it's a value, update surgery date
+                surgeryDate = surgeryDateVal
+            }
         }
+        this.updateCalcFromVal("surgeryDate", surgeryDate);
+
+        //resize the container
+        this.resize();
     },
 
     calcImplant: function () {
+        var implant = "FALSE", type = "NA", date = "NA", comment = "NA";
         if ($("#implantBox").is(":checked")) {
-            $(".implant_calc").text("TRUE");
-            my_widget_script.watchValue($("#implantType"), $(".implantType_calc"));
-            my_widget_script.watchValue($("#implantDate"), $(".implantDate_calc"));
-            my_widget_script.watchValue($("#implantcomment"), $(".implantcomment_calc"));
-        } else {
-            $(".implant_calc").text("FALSE");
-            $(".implantType_calc").text("NA");
-            $(".implantDate_calc").text("NA");
-            $(".implantcomment_calc").text("NA");
+            implant = "TRUE";
+            typeVal = $("#implantType").val();
+            dateVal = $("#implantDate").val();
+            commentVal = $("#implantComment").val();
+            if(typeVal){type = typeVal}
+            if(dateVal){date = dateVal}
+            if(commentVal){comment = commentVal}
         }
+        this.updateCalcFromVal("implant", implant);
+        this.updateCalcFromVal("implantType", type);
+        this.updateCalcFromVal("implantDate", date);
+        this.updateCalcFromVal("implantComment", comment);
+
+        //resize the container
+        this.resize();        
     },
 
-    calcValues: function () {
-
-        //Elements that just update based on input value
-        $(".simpleCalc").each(function () {
-            var elementID = this.id;
-            var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
-        });
-
-        //treatment
-        my_widget_script.calcTreatment();
-
-        //Cycle stage
-        my_widget_script.calcCycleStage();
-
-        //uterine mass
-        my_widget_script.calcUterineMass();
-
-        //uterine mass per body mass
-        my_widget_script.calcUterineMass_perBodyMass();
-
-        //repro tract mass per body mass
-        my_widget_script.calcReproTractMass_perBodyMass();
-
-        //Age in days
-        my_widget_script.calcAgeInDays();
-
-        //saved pituitary
-        my_widget_script.calcSavedPit();
-
-        //Hours since lights on
-        my_widget_script.calcHoursPostLightsOn();
-
-        //Surgery date
-        my_widget_script.calcSurgeryDate();
-
-        //Implant calculations
-        my_widget_script.calcImplant();
-
-        $(".outTable tr").each(function () { //for each row
-            $("td", this).each(function () { //for each cell
-                var value = $(this).text(); //get the value of the text
-                if (value === "" || value === "NaN" || value === "___" || value === "Select daylight saving") { //if blank or NaN
-                    $(this).text("NA"); //make NA
+    checkTableForBlanks: function () {
+        $(".outTable tr").each((i,e)=> { //for each row
+            $("td", e).each((i,e)=> { //for each cell
+                if(!($(e).data("calc") === "NA")){
+                    var value = $(e).text(); //get the value of the text
+                    if (value === "" || value === "NaN" || value === "___" || value === "Select daylight saving") { //if blank or NaN
+                        $(e).text("NA"); //make NA
+                    }
                 }
             })
         });
 
         //resize the container
-        my_widget_script.resize();
+        this.resize();
+    },
+
+    calcValues: function(){
+        // Check sex and gonad status
+        this.checkSexAndGonadStatus();
+        
+        // treatment
+        this.calcTreatment();
+    
+        // Cycle stage
+        this.calcCycleStage();
+    
+        // uterine mass
+        this.calcUterineMass();
+    
+        // uterine mass per body mass
+        this.calcUterineMass_perBodyMass();
+    
+        // repro tract mass per body mass
+        this.calcReproTractMass_perBodyMass();
+    
+        // Age in days
+        this.calcAgeInDays();
+    
+        // saved pituitary
+        this.calcSavedPit();
+
+        // blood
+        this.calcSavedBlood();
+    
+        // Hours since lights on
+        this.calcHoursPostLightsOn();
+    
+        // Surgery date
+        this.calcSurgeryDate();
+    
+        // Implant calculations
+        this.calcImplant();
+
+        this.showWithCheck($("#implantBox"), $("[data-implant]"));
+        
+        // Check for blanks
+        this.checkTableForBlanks();
+
+        this.resize();
+    },
+    // #endregion check user input
+
+    // #region data output
+
+    /**
+     * Set of functions when toCSVButton clicked
+     * 
+     * Checked if data is valid, then re-calculates values, exports the table to a CSV
+     * Updates the error message accordingly
+     * 
+     * @param {string} fileName - fileName for the CSV that will be produced
+     * @param {string} tableID - tableID as a string for the table that will be copied
+     * @param $errorMsg - error message div as jQuery object
+     */
+     toCSVFuncs: function (fileName, tableID, $errorMsg) {
+        var data_valid = this.data_valid_form($errorMsg);
+
+        if (data_valid) {
+            this.checkTableForBlanks();
+            this.exportTableToCSV(fileName, tableID);
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
+        }
     },
 
     /**
@@ -983,7 +1192,7 @@ my_widget_script =
         // Click download link
         downloadLink.click();
     },
-    
+
     /**
      * This function takes a filename and table name (both strings) as input
      * It then creates a csv element from the table
@@ -1014,6 +1223,44 @@ my_widget_script =
     },
 
     /**
+     * The steps that should be taken when the copy data button is pressed
+     * Checks if the $copyHead is checked, and then
+     * checks if the data is valid. If it is, it shows the table, resizes, and then
+     * copies the table (via a temporary textarea that is then removed). 
+     * 
+     * @param $copyHead - checkbox for whether or not to copy the table head as jQuery object
+     * @param $tableToCopy - table to copy as jQuery object
+     * @param $tableDiv - div containing table to copy
+     * @param $errorMsg - error message div as jQuery object
+     * @param $divForCopy - div where the output should copy to
+     * @param $transpose - checkbox for whether or not to transpose the table head as jQuery object
+    **/
+    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
+        var data_valid = this.data_valid_form($errorMsg);
+        var copyHead = false, transpose = false;
+
+        //only copy the heading when the input box is checked
+        if ($copyHead.is(":checked")) {
+            copyHead = true;
+        }
+
+        if ($transpose.is(":checked")) {
+            transpose = true;
+        }
+
+        this.checkTableForBlanks();
+
+        if (data_valid) { //if data is valid
+            $tableDiv.show(); //show the table
+            this.resize(); //resize
+            this.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copy attempted</span><br/><span style='color:grey;'>If it didn't work, please press copy again</span>") //update error message
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+    },
+
+    /**
      * This function creates a temporary textarea and then appends the contents of the
      * specified table body to this textarea, separating each cell with a tab (\t).
      * Because the script editor in LA is within a <textarea> the script cannot contain
@@ -1032,129 +1279,68 @@ my_widget_script =
      * then removed from the page.
      * @param {*} $table - jQuery object for the table that will be copied
      * @param {*} copyHead - true/false for whether or not the table head should be copied
+     * @param {*} $divForCopy - where the temp textarea should be added
+     * @param {*} transpose - true if table should be transposed
      */
-    copyTable: function ($table, copyHead, $divForCopy) {
-        //create a temporary text area
+     
+     copyTable: function ($table, copyHead, $divForCopy, transpose) {
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-        var addLine = "";
+        var rows = [];
+        var rowNum = 0;
+        // If you copying the head of the table
         if (copyHead) {
-            $table.find("thead").children("tr").each(function () { //add each child of the row
-                var addTab = "";
-                $(this).children().each(function () {
-                    // console.log($(this).text());
-                    $temp.text($temp.text() + addTab + $(this).text());
-                    addTab = "\t";
+            // Find thead and then all children rows
+            $table.find("thead").children("tr").each((i,e)=> {
+                // If the table is being transposed, start the row number at 0 for each new row
+                if(transpose){rowNum = 0;}
+                // For each row, find each td or th element (table cell)
+                $(e).find("td, th").each((i,e)=> {
+                    // If there's not yet an array for this row, make an empty one
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    // Add the text of each cell to the row's array
+                    rows[rowNum].push($(e).text());
+                    // If table is being transposed, add one to the row number for each cell
+                    if(transpose){rowNum++;}
                 });
+                // If table is not being transposed, add one to the row number for each row
+                if(!transpose){rowNum++;}
             });
-            addLine = "\n";
         }
 
-        // console.log("temp after head: " + $temp.text());
-
-        $table.find("tbody").children("tr").each(function () { //add each child of the row
-            $temp.text($temp.text() + addLine);
-            var addTab = "";
-            $(this).find("td").each(function () {
-                // console.log($(this).text());
-                if ($(this).text()) {
-                    var addText = $(this).text();
-                } else {
-                    var addText = "NA"
-                }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                addLine = "\n";
+        // Find each row in the table body
+        $table.find("tbody").children("tr").each((i,e)=> {
+            // If transposing, start the row number at 0 for each new row
+            if(transpose){rowNum = 0;}
+            // Find each cell within the row
+            $(e).find("td, th").each((i,e)=> {
+                // If there's not yet an array for this row, make an empty one
+                if(rows[rowNum]===undefined){rows[rowNum] = []}
+                // Add the text of each cell to the row's array
+                rows[rowNum].push($(e).text());
+                // If the table is being transposed, add one to the row number for each cell
+                if(transpose){rowNum++;}
             });
+            // If table is not being transposed, add one to the row number for each row
+            if(!transpose){rowNum++;}
         });
-        // console.log($temp.text());
-        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
+
+        // For each row, join together all of the elements of the array with a \t to separate them (tab)
+        for(var i = 0; i < rows.length; i++){
+            rows[i] = rows[i].join("\t");
+        }
+
+        // Add each row to the temporary text area using \n (new line) to separate them
+        $temp.append(rows.join("\n"));
+        // Append the textarea to the div for copy, then select it
+        $temp.appendTo($divForCopy).select();
+        // Copy the "selected" text
+        document.execCommand("copy");
         $temp.remove(); //remove temp
+        // Doesn't work within LA b/c of permissions, but would be easier way to copy w/o appending to page
+        // navigator.clipboard.writeText(rows.join("\n")); 
     },
 
-    /**
-     * Set of functions when toggleTableButton clicked
-     * resize, run data_valid_form, run calcValues, 
-     * toggle the table (show/hide), resize the container
-     * 
-     * @param {*} $table - jQuery object that is the table that will be shown/hidden
-     */
-    toggleTableFuncs: function (tableName) {
-        my_widget_script.resize();
-        my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
-        my_widget_script.calcValues();
-        var $table = $("#"+tableName);
-        $table.show();
-        $(".outTable:not(#"+tableName).hide();
-        my_widget_script.parent_class.resize_container();
-    },
-
-    /**
-     * Set of functions when calcValuesButton clicked
-     * Run data_valid_form
-     * Calculate values
-     */
-    calcTableFuncs: function() {
-        my_widget_script.data_valid_form(); //run to give error, but allow to calc regardless
-        my_widget_script.calcValues();
-    },
-
-    /**
-     * Set of functions when toCSVButton clicked
-     * 
-     * Checked if data is valid, then re-calculates values, exports the table to a CSV
-     * Updates the error message accordingly
-     * 
-     * @param {string} fileName - fileName for the CSV that will be produced
-     * @param {string} tableID - tableID as a string for the table that will be copied
-     * @param $errorMsg - error message div as jQuery object
-     */
-    toCSVFuncs: function (fileName, tableID, $errorMsg) {
-        var data_valid = my_widget_script.data_valid_form();
-
-        if (data_valid) {
-            my_widget_script.calcValues();
-            my_widget_script.exportTableToCSV(fileName, tableID);
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
-        } else {
-            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
-        }
-    },
-
-    /**
-     * The steps that should be taken when the copy data button is pressed
-     * Checks if the $copyHead is checked, runs the calcValues function and then
-     * checks if the data is valid. If it is, it shows the table, resizes, and then
-     * copies the table (via a temporary textarea that is then removed). 
-     * 
-     * @param $copyHead - checkbox for whether or not to copy the table head as jQuery object
-     * @param $tableToCopy - table to copy as jQuery object
-     * @param $tableDiv - div containing table to copy
-     * @param $errorMsg - error message div as jQuery object
-     * @param $divForCopy - div where the output should copy to
-     */
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy){
-        var data_valid = my_widget_script.data_valid_form();
-        var copyHead
-
-        //only copy the heading when the input box is checked
-        if ($copyHead.is(":checked")) {
-            copyHead = true;
-        } else {
-            copyHead = false;
-        }
-
-        my_widget_script.calcValues();
-
-        if (data_valid) { //if data is valid
-            $tableDiv.show(); //show the table
-            my_widget_script.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
-        } else {
-            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
-        }
-    },
+    // #endregion output data
 
     /**
      * This takes the value of the input for the $elToWatch and then updates the text of 
@@ -1163,101 +1349,706 @@ my_widget_script =
      * @param {*} $elToUpdate - jQuery object of the element whose text will be updated based on the element to watch
      */
     watchValue: function ($elToWatch, $elToUpdate) {
-        var value = $elToWatch.val();
-        $elToUpdate.text(value);
-        my_widget_script.resize();
+        // var value = $elToWatch.val();
+        // $elToUpdate.text(value);
+        // this.resize();
     },
 
-    addSoln: function (internalOrExternal) {
-        var $solnDiv, basename
-        if(internalOrExternal === "internal") {
-            $solnDiv = $("#internalAdditionsDiv");
-            basename = "internal";
-            $solnTable = $("#internalAdditionsTable");
-        } else {
-            $solnDiv = $("#externalAdditionsDiv");
-            basename = "external";
-            $solnTable = $("#externalAdditionsTable");
+    // #region data searches
+    dataSearch: function (dataName, dataValue) {
+        var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
+        return dataSearch
+    },
+
+    /**
+     * Builds a string "[data-table=table]". See dataSearch explanation
+     * @param {*} table string for data-table value that you want to match
+     * @returns 
+    **/
+    tableSearch: function (table){
+        var tableSearch = this.dataSearch("table", table);
+        return tableSearch;
+    },
+
+    calcSearch: function (calc) {
+        var calcSearch = this.dataSearch("calc", calc);
+        return calcSearch;
+    },
+
+    watchSearch: function (watch) {
+        var watchSearch = this.dataSearch("watch", watch);
+        return watchSearch;
+    },
+
+    // Anywhere in list
+    sexSearch: function(sex){
+        var sexSearch = "[data-sex~='" + sex + "']";
+        return sexSearch;
+    },
+
+    gonadsSearch: function(gonadsStatus){
+        var gonadsSearch = this.dataSearch("gonads", gonadsStatus);
+        return gonadsSearch;
+    },
+
+    projSearch: function(proj){
+        var projSearch = this.dataSearch("proj", proj);
+        return projSearch;
+    },
+    // #endregion data searches
+
+    
+    checkInArray: function (searchVal, array){
+        var inArray = $.inArray(searchVal, array) !== -1;
+        return inArray;
+    },
+
+    solns: {
+        internal: [],
+        external: []
+    },
+
+    addSolnClick: function (basename) { // internal or external
+        var solnNum = 1;
+        var theseSolnNums = this.solns[basename];
+        var numSolns = theseSolnNums.length;
+        if(numSolns > 0){
+            var lastSoln = theseSolnNums[numSolns - 1];
+            solnNum = lastSoln + 1;
         }
+        var inArray = this.checkInArray(solnNum, theseSolnNums);
+        if(! inArray){
+            this.addSoln(basename, solnNum);
+        }
+    },
 
-        var additionCount = $solnDiv.find(".addition").length + 1;
-        var additionID = basename + "_addition_" + additionCount;
-        var calcClass = additionID + "_calc"; 
-        var additionDateID = basename + "_additiondate_" + additionCount;
-        var dateCalcClass = additionDateID + "_calc";
+    addSoln: function(basename, solnNum){
+        this.solns[basename].push(solnNum);
 
-        var additionLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Name</div>';
-        var additionalDateLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Date</div>';
+        var $solnDiv, $solnTable;
+        $solnDiv = $("#" + basename + "AdditionsDiv");
+        $solnTable = $("#" + basename + "Additions");
+
+        var additionID = basename + "_addition_" + solnNum;
+        var additionDateID = basename + "_additiondate_" + solnNum;
+
+        var additionLabelHTML = '<div class="mt-2">Addition ' + solnNum + ' Name</div>';
+        var additionalDateLabelHTML = '<div class="mt-2">Addition ' + solnNum + ' Date</div>';
 
         $solnDiv.append(
             $('<div></div>', {
                 class: "addition",
-                id: additionID + "_div"
+                "data-soln": basename,
+                "data-solnnum": solnNum
             }).append(
                 additionLabelHTML
             ).append(
                 $('<div></div>').append(
-                    $('<input/>', {
+                    $('<input></input>', {
                         id: additionID,
                         name: additionID,
-                        class: "fullWidth simpleCalc"
-                    }).on("input", function () {
-                        var elementID = this.id;
-                        var calcID = "." + elementID + "_calc";
-                        my_widget_script.watchValue($(this), $(calcID));
+                        class: "fullWidth"
                     })
                 )
             ).append(
                 additionalDateLabelHTML
             ).append(
                 $('<div></div>').append(
-                    $('<input/>', {
+                    $('<input></input>', {
                         id: additionDateID,
                         name: additionDateID,
-                        class: "fullWidth simpleCalc",
+                        class: "fullWidth",
                         type: "date",
                         "placeholder": "YYYY-MM-DD"
-                    }).each(function () {
-                        my_widget_script.checkDateFormat($(this));
-                    }).on("input", function () {
-                        var elementID = this.id;
-                        var calcID = "." + elementID + "_calc";
-                        my_widget_script.watchValue($(this), $(calcID));
-                        my_widget_script.checkDateFormat($(this));
+                    }).each((i,e)=> {
+                        this.checkDateFormat($(e));
+                    }).on("input", (e)=> {
+                        this.checkDateFormat($(e.currentTarget));
                     })
                 )
             )
         );
 
         $solnTable.find("tbody").append(
-            $('<tr></tr>').append(
+            $('<tr></tr>', {
+                "data-soln": basename,
+                "data-solnnum": solnNum
+            }).append(
                 $('<td></td>', {
-                    class: calcClass
+                    "data-calc": additionID
                 })
             ).append(
                 $('<td></td>', {
-                    class: dateCalcClass
+                    "data-calc": additionDateID
+                })
+            )
+        );
+
+        this.resize();
+    },
+
+    removeSoln: function (basename) { // internal or external
+        var $solnDiv, $solnTable;
+        $solnDiv = $("#" + basename + "AdditionsDiv");
+        $solnTable = $("#" + basename + "AdditionsTable");
+
+        // This could ultimately be updated to delete specific solutions
+        // rather than only the last one
+        // Add is written to allow this, just have to add different delete buttons
+        // And supply the solution number here (and use this.solns[basename].indexOf(solnNum) to find index, 
+        // if > -1 -> splice)
+        if(this.solns[basename].length > 0){
+            var lastSolnIndex = this.solns[basename].length - 1;
+            var lastSolnNum = this.solns[basename][lastSolnIndex];
+            
+            this.solns[basename].splice(lastSolnIndex, 1);
+            var search = this.dataSearch("soln", basename) + this.dataSearch("solnnum", lastSolnNum);
+            $(search).remove();
+        }
+
+
+    },
+
+    // #region output tables  
+    //****************
+    // OUTPUT TABLES
+    // ***************
+
+    // object here with the infromation about each of the different tables
+    outputTables: {
+        labGoogleSheet: {
+            id: "labGoogleSheet",
+            label: "Lab Google Sheet",
+            saveName: "fullLabSlicing",
+            columns: [
+                "mouseID",
+                "cageNum",
+                "who",
+                "recordingDate",
+                "dateOfBirth",
+                "ageInDays",
+                "sacTime",
+                "daylightSavings",
+                "sacHrs",
+                "strain",
+                "zygosity",
+                "sex",
+                "bodyMass",
+                "reproTractMass",
+                "reproTract_mg_per_g",
+                "gonadStatus",
+                "cycleStage",
+                "stageComment",
+                "surgeryDate",
+                "implant",
+                "implantType",
+                "implantDate",
+                "implantComment",
+                "tubeLabel",
+                "savedPit",
+                "genTreatment",
+                "treatment",
+                "glucose",
+                "nucleus",
+                "orientation",
+                "sliceQual",
+                "sliceComment",
+                "fluorQual",
+                "fluorComment",
+                "externalSoln",
+                "externalDate",
+                "internalSoln",
+                "internalDate",
+                "pipette",
+                "pipetteLot"
+            ],
+            num: 1
+        },
+        mouseInfo: {
+            id: "mouseInfo",
+            label: "Mouse Information",
+            saveName: "mouseInfo",
+            columns: [
+                "mouseID",
+                "cageNum",
+                "generation",
+                "damID",
+                "sireID",
+                "genTreatment",
+                "dateOfBirth",
+                "DOB_equals",
+                "sex",
+                "zygosity",
+                "strain",
+                "gonadStatus",
+                "surgeryDate",
+                "implantType",
+                "implantDate"
+            ],
+            num: 2
+        },
+        slicingInfo: {
+            id: "slicingInfo",
+            label: "Slicing Information",
+            saveName: "slicingInfo",
+            columns: [
+                "mouseID",
+                "recordingDate",
+                "ageInDays",
+                "savedPit",
+                "daylightSavings",
+                "sacTime",
+                "sacHrs",
+                "who",
+                "cycleStage",
+                "bodyMass",
+                "reproTractMass"
+            ],
+            num: 3
+        },
+        slicingTiming: {
+            id: "slicingTiming",
+            label: "Slicing Timing",
+            saveName: "slicingTiming",
+            columns: [
+                "mouseID",
+                "daylightSavings",
+                "sacTime",
+                "sacHrs"
+            ],
+            num: 4
+        },
+        KNDyPNA_extracellular: {
+            id: "KNDyPNA_extracellular",
+            label: "KNDy PNA Extracell",
+            saveName: "KNDyPNA_extracellular",
+            columns: [
+                "mouseID",
+                "cageNum",
+                "genTreatment",
+                "treatment",
+                "cycleStage",
+                "bodyMass",
+                "uterineMass",
+                "uterine_mg_per_g",
+                "dateOfBirth",
+                "recordingDate",
+                "ageInDays",
+                "savedPit",
+                "daylightSavings",
+                "sacTime",
+                "sacHrs",
+                "who",
+                "zygosity"
+            ],
+            num: 5
+        },
+        jennPNA: {
+            id: "jennPNA",
+            label: "Jenn PNA Project",
+            saveName: "JennPNA",
+            columnNames: [
+                "CellID",
+                "mouseID",
+                "Exclude reason",
+                "Cage",
+                "TX",
+                "Group",
+                "DOB",
+                "Age",
+                "RecordingAge",
+                "RecordingDay",
+                "Mass (g)",
+                "Ut. mass (g)",
+                "Ut. mass (mg)",
+                "Cycle Stage",
+                "Sac time",
+                "Sac hour",
+                "Pit",
+                "Blood",
+                "Notes"
+            ],
+            columns: [
+                "NA",
+                "mouseID",
+                "NA",
+                "cageNum",
+                "treatment",
+                "genTreatment",
+                "dateOfBirth",
+                "ageGroup",
+                "ageInDays",
+                "recordingDate",
+                "bodyMass",
+                "reproTractMass_g",
+                "reproTractMass",
+                "cycleStage",
+                "sacTime",
+                "sacHrs",
+                "savedPit_yn",
+                "savedBlood_yn",
+                "NA"
+            ],
+            num: 6
+        },
+        externalAdditions: {
+            id: "externalAdditions",
+            label: "External Additions",
+            saveName: "externalAdditions",
+            columnNames: [
+                "Addition Name",
+                "Addition Date"
+            ],
+            columns: [],
+            num: 7
+        },
+        internalAdditions: {
+            id: "internalAdditions",
+            label: "Internal Additions",
+            saveName: "internalAdditions",
+            columnNames: [
+                "Addition Name",
+                "Addition Date"
+            ],
+            columns: [],
+            num: 8
+        },
+        custom: {
+            id: "custom",
+            label: "Custom",
+            saveName: "custom",
+            columns: [],
+            num: 9
+        }
+
+    },
+
+    // Make everything for each table
+    makeOutputTableCards: function(){
+        for(table in this.outputTables){
+            var tableObj = this.outputTables[table];
+            this.makeViewButtons(tableObj);
+            this.makeOutputTableCard(tableObj);
+        }
+    },
+
+    toggleCard: function ($cardHead) {
+        // console.log($cardHead.next());
+        $cardHead.next().toggleClass("collapse");
+        this.resizeTextareaInEl($cardHead.next());
+        // $cardHead.next().find("textarea.autoAdjust").each((i,e)=> {
+        //     if(! $(e).is(":hidden")) {
+        //         e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+        //     } 
+        // });
+        this.resize();
+    },
+
+    makeCard: function ($div, cardHeadContent, cardBodyContent) {
+        // Add extras to header, such as classes or data attributes in calling function after making the card
+        $div.append(
+            $("<div/>", {
+                "class": "card"
+            }).append(
+                $("<button></button>", {
+                    "type": "button",
+                    "class": "card-header",
+                }).on("click", (e)=> {
+                    this.toggleCard($(e.currentTarget));
+                }).append(cardHeadContent)
+            ).append(
+                $("<div/>", {
+                    "class": "card-body collapse"
+                }).append(
+                    cardBodyContent
+                )
+            )
+        )
+        this.resize();
+    },
+
+    makeOutputTableCard: function(tableObj){
+        // console.log("in makeOutputTable card, name is", tableObj.id, "object is", tableObj);
+
+        var $div = $(".outCardContainer");
+        
+        // Card head
+        var cardHead = tableObj.label;
+
+        // Card body
+        var $body = $("<div></div>");
+        // var outputButtons = this.makeOuputButtons(tableObj); 
+        var table = this.makeOutputTable(tableObj);
+
+        // $body.append(outputButtons).append(table);
+        $body.append(table);
+
+        this.makeCard($div, cardHead, $body);
+
+        // Add data tag to the card that was just made
+        $div.find(".card").last().attr("data-table", tableObj.id)
+    },
+
+    makeViewButtons: function(tableObj){
+        var numForTags = tableObj.num;
+        var tableID = tableObj.id;
+        var tableName = tableObj.saveName;
+        var tableLabel = tableObj.label;
+
+        var $buttonsDiv = $(".viewTableButtons");
+        if(numForTags === 1){
+            $buttonsDiv.html("");
+        }
+        $buttonsDiv.append(
+            $("<div></div>", {
+                "class": "col-12 col-sm-6 col-md-4, col-lg-3",
+            }).append(
+                $("<input></input>", {
+                    "type": "button",
+                    "id": "showTable" + numForTags,
+                    "name": "showtable" + numForTags,
+                    "class": "showTable fullWidth dontHide",
+                    "data-table": tableID,
+                    "data-tablename": tableName,
+                    "value": tableLabel
                 })
             )
         )
-
-        //resize the container
-        my_widget_script.resize();
     },
 
-    removeSoln: function (internalOrExternal) {
-        var $solnDiv, basename
-        if(internalOrExternal === "internal") {
-            $solnDiv = $("#internalAdditionsDiv");
-            basename = "internal";
-            $solnTable = $("#internalAdditionsTable");
-        } else {
-            $solnDiv = $("#externalAdditionsDiv");
-            basename = "external";
-            $solnTable = $("#externalAdditionsTable");
+    makeOutputTable: function(tableObj){
+        var columnNames = tableObj.columns;
+        if(tableObj.hasOwnProperty("columnNames")){
+            columnNames = tableObj.columnNames;
+        }
+        var $div = this.makeCalcTable(tableObj.id, columnNames, tableObj.columns);
+        return $div;
+    },
+
+    makeCalcTable: function(tableID, colNames, colCalcs){
+        var $table = $("<div></div>", {"class": "container calcTableContainer"}).append(
+            $("<div></div>", {"class": "row"}).append(
+                $("<div></div>", {"class": "col-12 table-responsive xsTableDiv"}).append(
+                    $("<table></table>", {
+                        "id": tableID,
+                        "class": "table outTable"
+                    }).append(
+                        $("<thead></thead>")
+                    ).append(
+                        $("<tbody></tbody>")
+                    )
+                )
+            )
+        );
+
+        var headRow = document.createElement("tr");
+        var bodyRow = document.createElement("tr");
+        for(var i=0; i<colNames.length; i++){
+            var colName = colNames[i];
+            // Make a new cell
+            var headCell = document.createElement("th");
+            // // Add the label to the headCell
+            headCell.append(colName); // append rather than appendChild to avoid creating as textNode
+            // Add the headCell to the headRow
+            headRow.appendChild(headCell);
+            
+            if(colCalcs.length>0){
+                var colCalc = colCalcs[i];
+                // Make a new cell
+                var bodyCell = document.createElement("td");
+                // Add the data attribute
+                bodyCell.dataset.calc = colCalc;
+                // Add the bodyCell to the bodyRow
+                bodyRow.appendChild(bodyCell);
+            }
         }
 
-        $solnDiv.find(".addition").last().remove();
-        $solnTable.find("tbody tr").last().remove();
-    }
+        $table.find("thead").append(headRow);
+        if(colCalcs.length>0){
+            $table.find("tbody").append(bodyRow);
+        }
+
+        return $table;
+    },
+
+    // #region custom  
+    allOptions: [
+        "mouseID",
+        "cageNum",
+        "generation",
+        "damID",
+        "sireID",
+        "who",
+        "recordingDate",
+        "dateOfBirth",
+        "ageInDays",
+        "sacTime",
+        "daylightSavings",
+        "sacHrs",
+        "strain",
+        "zygosity",
+        "sex",
+        "bodyMass",
+        "reproTractMass",
+        "reproTract_mg_per_g",
+        "gonadStatus",
+        "cycleStage",
+        "stageComment",
+        "surgeryDate",
+        "implant",
+        "implantType",
+        "implantDate",
+        "implantComment",
+        "tubeLabel",
+        "savedPit",
+        "genTreatment",
+        "treatment",
+        "glucose",
+        "nucleus",
+        "orientation",
+        "sliceQual",
+        "sliceComment",
+        "fluorQual",
+        "fluorComment",
+        "externalSoln",
+        "externalDate",
+        "internalSoln",
+        "internalDate",
+        "pipette",
+        "pipetteLot"
+    ],
+
+    sortableOptions: function () {
+        $('.sortable[sortable="true"]').sortable({
+            connectWith:".sortable",
+            placeholder: "ui-state-highlight",
+            update: ()=> {
+                this.getSelectedOrder();
+            }
+        });
+    },
+    
+    getSelectedOrder: function(){
+        // Options within the selected list sent to custom columns as an array
+        this.outputTables.custom.columns = $("#selectedOptions").sortable("toArray");
+        this.outputTables.custom.unSelColumns = $("#unselected").sortable("toArray");
+        // Update the table with this new list
+        this.updateCustomTable();
+    },
+
+    addOptionsToCustom: function(){
+        $cardBody = $(".card"+this.tableSearch("custom")).find(".card-body");
+        $cardBody.append(
+            $("<div></div>", {
+                "class": "row"
+            }).append(
+                $("<div></div>", {
+                    "class": "col-12"
+                }).append(
+                    $("<input></input>", {
+                        "name": "resetoptions",
+                        "id": "resetOptions",
+                        "value": "Reset",
+                        "type": "button",
+                        "class": "fullWidth"
+                    }).on("click", (e)=>{
+                        this.resetOptionsList()
+                    })
+                )
+            )
+        ).append(
+            $("<div></div>", {
+                "class": "row"
+            }).append(
+                $("<div></div>", {
+                    "class": "col"
+                }).append(
+                    "Drag and drop variables to add to table"
+                )
+            )
+        ).append(
+            $("<div></div>", {
+                "class": "row"
+            }).append(
+                $("<div></div>", {
+                    "class": "col-6"
+                }).append(
+                    "<h3>Selected:</h3>"
+                ).append(
+                    $("<ul></ul>", {
+                        "id": "selectedOptions",
+                        "sortable": "true",
+                        "class": "sortable"
+                    }).append(
+                        "&nbsp;" // lets you drag into empty space
+                    )
+                )
+            ).append(
+                $("<div></div>", {
+                    "class": "col-6"
+                }).append(
+                    "<h3>Unselected:</h3>"
+                ).append(
+                    $("<ul></ul>", {
+                        "id": "unselected",
+                        "sortable": "true",
+                        "class": "sortable"
+                    }).append(
+                        "&nbsp;" // lets you drag into empty space
+                    )
+                )
+            )
+        )
+
+        this.sortableOptions(); // This has to come first to initialize
+        this.resetOptionsList();
+    },
+
+    updateCustomTable: function(){
+        // Get the column names 
+        var columns = this.outputTables.custom.columns;
+        var $customCard = $(".card"+this.tableSearch("custom"))
+        $customCard.find(".calcTableContainer").remove();
+        var $table = this.makeCalcTable("custom", columns, columns);
+        $table.prependTo($customCard.find(".card-body"));
+
+        $("input, select, textarea").each((i,e)=>{
+            if($(e).attr("type")!= "button"){
+                this.updateCalcFromEl(e);   
+            }
+        });
+        this.calcValues();
+    },
+
+    resetOptionsList: function(unselected = this.allOptions, selected){
+        // console.log("selected",selected, "unselected", unselected);
+        // Reset with options all sent to unselected
+        $("#selectedOptions").html("&nbsp;");
+        $("#unselected").html("&nbsp;")
+        for(var i=0; i<unselected.length; i++){
+            var option = unselected[i]
+            $("#unselected").append(
+                $("<li></li>", {
+                    "id": option
+                }).append(
+                    option
+                )
+            );
+        }
+        if(selected){
+            for(var i=0; i<selected.length; i++){
+            var option = selected[i]
+            $("#selectedOptions").append(
+                $("<li></li>", {
+                    "id": option
+                }).append(
+                    option
+                )
+            );
+        }
+        }
+        this.getSelectedOrder();
+    },
+    // #endregion custom  
+    // #endregion output tables
 };
