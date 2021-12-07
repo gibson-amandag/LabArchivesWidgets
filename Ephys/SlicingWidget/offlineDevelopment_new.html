@@ -118,8 +118,9 @@ $(document).ready(function () {
         // Will be accessed within the init and from_json methods
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
-            numExtAdds: dynamicContent.numExtAdds,
-            numIntAdds: dynamicContent.numIntAdds
+            soln: this.solns
+            // numExtAdds: dynamicContent.numExtAdds,
+            // numIntAdds: dynamicContent.numIntAdds
         };
 
         //uncomment to check stringified output
@@ -274,13 +275,21 @@ $(document).ready(function () {
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        for (var i = 0; i < parsedJson.numExtAdds; i++) {
-            my_widget_script.addSoln("external");
-        };
-
-        for (var i=0; i < parsedJson.numIntAdds; i++) {
-            my_widget_script.addSoln("internal");
+        if(parsedJson.solns){
+            for(type in parsedJson.solns){
+                for(var i=0; i<parsedJson.solns[type].length; i++){
+                    var solnNum = parsedJson.solns[type][i];
+                    this.addSoln(type, solnNum);
+                }
+            }
         }
+        // for (var i = 0; i < parsedJson.numExtAdds; i++) {
+        //     my_widget_script.addSoln("external");
+        // };
+
+        // for (var i=0; i < parsedJson.numIntAdds; i++) {
+        //     my_widget_script.addSoln("internal");
+        // }
     },
 
     /**
@@ -297,7 +306,7 @@ $(document).ready(function () {
             $("input[type='date']").removeClass(".hasDatePicker");
             $(".hideView").hide();
             $("#tableDiv").show();
-            $(".outTableContainer").insertAfter($(".firstDiv"));
+            $(".outCardContainer").insertAfter($(".firstDiv"));
             $(".reqTextInfo").hide();
         } else {
             $("input[type='date']").each((i, e)=> {
@@ -513,6 +522,8 @@ $(document).ready(function () {
         }
     },
 
+    selectedTable: {id: "", name: ""},
+
     /**
      * TO DO: edit this function to define how the form should be initilized based 
      * on the existing form values. This is particularly important for when the 
@@ -524,6 +535,8 @@ $(document).ready(function () {
 
         // Make the output tables
         this.makeOutputTableCards();
+
+        this.addOptionsToCustom();
 
         // Add date and time placeholders, and check format with change
         $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", (e)=> {
@@ -548,11 +561,11 @@ $(document).ready(function () {
 
         // #region solution additions 
         $("#addToExternal").on("click", ()=> {
-            this.addSoln("external");
+            this.addSolnClick("external");
         });
 
         $("#addToInternal").on("click", ()=> {
-            this.addSoln("internal");
+            this.addSolnClick("internal");
         });
 
         $("#removeLastExternal").on("click", ()=> {
@@ -565,30 +578,55 @@ $(document).ready(function () {
         // #endregion
 
         // #region output buttons
+        $("[data-table]").not(".dontHide").hide();
         //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
+        $(".viewTableButtons").on("click", (e)=>{
+            if($(e.target).hasClass("showTable")){
+                $("[data-table]").not(".dontHide").hide();
+                var table = $(e.target).data("table");
+                var tableName = $(e.target).data("tablename");
+                var tableSearch = this.tableSearch(table);
+                $(tableSearch).show();
+                $(".card"+tableSearch).find(".card-body").removeClass("collapse");
+                this.selectedTable = {id: table, name: tableName};
+                $("#errorMsg").html("");
+                this.resize();
+            }
+        });
+
         $(".toCSV").on("click", (e)=>{
-            var tableID = $(e.currentTarget).data("table");
-            var tableName = $(e.currentTarget).data("tablename");
-            var dateToday = luxon.DateTime.now().toISODate(); // Luxon has to be added
-            var fileName = "table_" + tableName + "_" + dateToday;
-            var $errorMsg = $(".errorMsg"+this.tableSearch(tableID));
-            console.log("fileName", fileName, "table", tableID, "errorMsg", $errorMsg);
-            this.toCSVFuncs(fileName, tableID, $errorMsg);
+            var tableID = this.selectedTable.id;
+            if(tableID){
+                var tableName = this.selectedTable.name;
+                var dateToday = luxon.DateTime.now().toISODate(); // Luxon has to be added
+                var fileName = "table_" + tableName + "_" + dateToday;
+                var $errorMsg = $("#errorMsg");
+                console.log("fileName", fileName, "table", tableID, "errorMsg", $errorMsg);
+                this.toCSVFuncs(fileName, tableID, $errorMsg);
+            } else {
+                $("#errorMsg").html("Please select a table first");
+                this.resize();
+            }
         });
 
         $(".copyData").on("click", (e)=>{
-            var tableID = $(e.currentTarget).data("table");
-            // Get the data-table text string to add to the query to find the table
-            var tableSearch = this.tableSearch(tableID);
-            // Find the element that tells whether or not to copy the table
-            var $copyHead = $(".copyHead"+tableSearch);
-            var $transpose = $(".transpose"+tableSearch);
-            var $tableToCopy = $("#"+tableID);
-            var $tableDiv = $tableToCopy.parent();
-            var $errorMsg = $(".errorMsg"+tableSearch);
-            var $divForCopy = $(".forCopy" +tableSearch);
-
-            this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose);
+            var tableID = this.selectedTable.id;
+            if(tableID){
+                // Get the data-table text string to add to the query to find the table
+                var tableSearch = this.tableSearch(tableID);
+                // Find the element that tells whether or not to copy the table
+                var $copyHead = $("#copyHead");
+                var $transpose = $("#transpose");
+                var $tableToCopy = $("#"+tableID);
+                var $tableDiv = $tableToCopy.parent();
+                var $errorMsg = $("#errorMsg");
+                var $divForCopy = $("#forCopy");
+    
+                this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose);
+            } else {
+                $("#errorMsg").html("Please select a table first");
+                this.resize();
+            }
         });
         // #endregion output buttons
 
@@ -744,7 +782,7 @@ $(document).ready(function () {
         //search the_form for all elements that are of class "needForForm"
         $('.needForTable').each((i, e)=> {
             if (!$(e).val()) { //if there is not a value for this input
-                valid = false; //change valid to false
+                // valid = false; //change valid to false
                 name = $(e).attr('id'); //replace the name variable with the id attribute of this element
                 fail_log.append("<br/>"+name)
                 // fail_log += name + " is required \n"; //add to the fail log that this name is required
@@ -873,8 +911,8 @@ $(document).ready(function () {
         }
         if(!stage){stage = "NA"}
         if(!comment){comment = "NA"}
-        this.updateCalcFromVal("cycleStage_final", stage);
-        this.updateCalcFromVal("stageComment_final", comment);
+        this.updateCalcFromVal("cycleStage", stage);
+        this.updateCalcFromVal("stageComment", comment);
 
         //resize the container
         this.resize();
@@ -919,7 +957,6 @@ $(document).ready(function () {
         } else {
             reprotract_mg_per_g = "NA";
         }
-        console.log("reproTract_mg_per_g", reprotract_mg_per_g)
         this.updateCalcFromVal("reproTract_mg_per_g", reprotract_mg_per_g);
 
         // repro tract as grams
@@ -977,24 +1014,28 @@ $(document).ready(function () {
     },
 
     calcSavedPit: function () {
+        var savedPit = "FALSE";
+        var savedPit_yn = "N"
         if ($("#savedPit").is(":checked")) {
-            var savedPit = "Y";
-        } else {
-            var savedPit = "N";
+            savedPit = "TRUE";
+            savedPit_yn = "Y"
         }
         this.updateCalcFromVal("savedPit", savedPit);
+        this.updateCalcFromVal("savedPit_yn", savedPit_yn);
 
         //resize the container
         this.resize();
     },
     
     calcSavedBlood: function () {
+        var savedBlood = "FALSE";
+        var savedBlood_yn = "N"
         if ($("#savedBlood").is(":checked")) {
-            var savedBlood = "Y";
-        } else {
-            var savedBlood = "N";
+            savedBlood = "TRUE";
+            savedBlood_yn = "Y"
         }
         this.updateCalcFromVal("savedBlood", savedBlood);
+        this.updateCalcFromVal("savedBlood_yn", savedBlood_yn);
 
         //resize the container
         this.resize();
@@ -1035,7 +1076,7 @@ $(document).ready(function () {
                 surgeryDate = surgeryDateVal
             }
         }
-        this.updateCalcFromVal("surgeryDate_final", surgeryDate);
+        this.updateCalcFromVal("surgeryDate", surgeryDate);
 
         //resize the container
         this.resize();
@@ -1064,10 +1105,11 @@ $(document).ready(function () {
     checkTableForBlanks: function () {
         $(".outTable tr").each((i,e)=> { //for each row
             $("td", e).each((i,e)=> { //for each cell
-                var value = $(e).text(); //get the value of the text
-                if (value === "" || value === "NaN" || value === "___" || value === "Select daylight saving") { //if blank or NaN
-                    $(e).text("NA"); //make NA
-                    console.log("is blank", $(e).data("calc"))
+                if(!($(e).data("calc") === "NA")){
+                    var value = $(e).text(); //get the value of the text
+                    if (value === "" || value === "NaN" || value === "___" || value === "Select daylight saving") { //if blank or NaN
+                        $(e).text("NA"); //make NA
+                    }
                 }
             })
         });
@@ -1244,7 +1286,7 @@ $(document).ready(function () {
             $tableDiv.show(); //show the table
             this.resize(); //resize
             this.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copy attempted</span><br/><span style='color:grey;'>If it didn't work, please press copy again</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
@@ -1393,55 +1435,66 @@ $(document).ready(function () {
         return inArray;
     },
 
-    addSoln: function (basename) { // internal or external
+    solns: {
+        internal: [],
+        external: []
+    },
+
+    addSolnClick: function (basename) { // internal or external
+        var solnNum = 1;
+        var theseSolnNums = this.solns[basename];
+        var numSolns = theseSolnNums.length;
+        if(numSolns > 0){
+            var lastSoln = theseSolnNums[numSolns - 1];
+            solnNum = lastSoln + 1;
+        }
+        var inArray = this.checkInArray(solnNum, theseSolnNums);
+        if(! inArray){
+            this.addSoln(basename, solnNum);
+        }
+    },
+
+    addSoln: function(basename, solnNum){
+        this.solns[basename].push(solnNum);
+
         var $solnDiv, $solnTable;
         $solnDiv = $("#" + basename + "AdditionsDiv");
-        $solnTable = $("#" + basename + "AdditionsTable");
+        $solnTable = $("#" + basename + "Additions");
 
-        // Change so that this is counted within my_widget_script
-        var additionCount = $solnDiv.find(".addition").length + 1;
-        var additionID = basename + "_addition_" + additionCount;
-        var calcClass = additionID + "_calc"; 
-        var additionDateID = basename + "_additiondate_" + additionCount;
-        var dateCalcClass = additionDateID + "_calc";
+        var additionID = basename + "_addition_" + solnNum;
+        var additionDateID = basename + "_additiondate_" + solnNum;
 
-        var additionLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Name</div>';
-        var additionalDateLabelHTML = '<div class="mt-2">Addition ' + additionCount + ' Date</div>';
+        var additionLabelHTML = '<div class="mt-2">Addition ' + solnNum + ' Name</div>';
+        var additionalDateLabelHTML = '<div class="mt-2">Addition ' + solnNum + ' Date</div>';
 
         $solnDiv.append(
             $('<div></div>', {
                 class: "addition",
-                id: additionID + "_div"
+                "data-soln": basename,
+                "data-solnnum": solnNum
             }).append(
                 additionLabelHTML
             ).append(
                 $('<div></div>').append(
-                    $('<input/>', {
+                    $('<input></input>', {
                         id: additionID,
                         name: additionID,
-                        class: "fullWidth simpleCalc"
-                    }).on("input", (e)=> {
-                        var elementID = e.currentTarget.id;
-                        var calcID = "." + elementID + "_calc";
-                        this.watchValue($(e.currentTarget), $(calcID));
+                        class: "fullWidth"
                     })
                 )
             ).append(
                 additionalDateLabelHTML
             ).append(
                 $('<div></div>').append(
-                    $('<input/>', {
+                    $('<input></input>', {
                         id: additionDateID,
                         name: additionDateID,
-                        class: "fullWidth simpleCalc",
+                        class: "fullWidth",
                         type: "date",
                         "placeholder": "YYYY-MM-DD"
                     }).each((i,e)=> {
                         this.checkDateFormat($(e));
                     }).on("input", (e)=> {
-                        var elementID = e.currentTarget.id;
-                        var calcID = "." + elementID + "_calc";
-                        this.watchValue($(e.currentTarget), $(calcID));
                         this.checkDateFormat($(e.currentTarget));
                     })
                 )
@@ -1449,18 +1502,20 @@ $(document).ready(function () {
         );
 
         $solnTable.find("tbody").append(
-            $('<tr></tr>').append(
+            $('<tr></tr>', {
+                "data-soln": basename,
+                "data-solnnum": solnNum
+            }).append(
                 $('<td></td>', {
-                    class: calcClass
+                    "data-calc": additionID
                 })
             ).append(
                 $('<td></td>', {
-                    class: dateCalcClass
+                    "data-calc": additionDateID
                 })
             )
-        )
+        );
 
-        //resize the container
         this.resize();
     },
 
@@ -1469,8 +1524,21 @@ $(document).ready(function () {
         $solnDiv = $("#" + basename + "AdditionsDiv");
         $solnTable = $("#" + basename + "AdditionsTable");
 
-        $solnDiv.find(".addition").last().remove();
-        $solnTable.find("tbody tr").last().remove();
+        // This could ultimately be updated to delete specific solutions
+        // rather than only the last one
+        // Add is written to allow this, just have to add different delete buttons
+        // And supply the solution number here (and use this.solns[basename].indexOf(solnNum) to find index, 
+        // if > -1 -> splice)
+        if(this.solns[basename].length > 0){
+            var lastSolnIndex = this.solns[basename].length - 1;
+            var lastSolnNum = this.solns[basename][lastSolnIndex];
+            
+            this.solns[basename].splice(lastSolnIndex, 1);
+            var search = this.dataSearch("soln", basename) + this.dataSearch("solnnum", lastSolnNum);
+            $(search).remove();
+        }
+
+
     },
 
     // #region output tables  
@@ -1501,9 +1569,9 @@ $(document).ready(function () {
                 "reproTractMass",
                 "reproTract_mg_per_g",
                 "gonadStatus",
-                "cycleStage_final",
-                "stageComment_final",
-                "surgeryDate_final",
+                "cycleStage",
+                "stageComment",
+                "surgeryDate",
                 "implant",
                 "implantType",
                 "implantDate",
@@ -1535,9 +1603,9 @@ $(document).ready(function () {
             columns: [
                 "mouseID",
                 "cageNum",
-                "generation", // to-do add
-                "damID", // to-do add
-                "sireID", // to-do add
+                "generation",
+                "damID",
+                "sireID",
                 "genTreatment",
                 "dateOfBirth",
                 "DOB_equals",
@@ -1545,7 +1613,7 @@ $(document).ready(function () {
                 "zygosity",
                 "strain",
                 "gonadStatus",
-                "surgeryDate_final",
+                "surgeryDate",
                 "implantType",
                 "implantDate"
             ],
@@ -1564,22 +1632,34 @@ $(document).ready(function () {
                 "sacTime",
                 "sacHrs",
                 "who",
-                "cycleStage_final",
+                "cycleStage",
                 "bodyMass",
                 "reproTractMass"
             ],
             num: 3
         },
+        slicingTiming: {
+            id: "slicingTiming",
+            label: "Slicing Timing",
+            saveName: "slicingTiming",
+            columns: [
+                "mouseID",
+                "daylightSavings",
+                "sacTime",
+                "sacHrs"
+            ],
+            num: 4
+        },
         KNDyPNA_extracellular: {
             id: "KNDyPNA_extracellular",
-            label: "KNDy PNA Extracellular Project",
+            label: "KNDy PNA Extracell",
             saveName: "KNDyPNA_extracellular",
             columns: [
                 "mouseID",
                 "cageNum",
                 "genTreatment",
                 "treatment",
-                "cycleStage_final",
+                "cycleStage",
                 "bodyMass",
                 "uterineMass",
                 "uterine_mg_per_g",
@@ -1593,14 +1673,367 @@ $(document).ready(function () {
                 "who",
                 "zygosity"
             ],
-            num: 4
+            num: 5
+        },
+        jennPNA: {
+            id: "jennPNA",
+            label: "Jenn PNA Project",
+            saveName: "JennPNA",
+            columnNames: [
+                "CellID",
+                "mouseID",
+                "Exclude reason",
+                "Cage",
+                "TX",
+                "Group",
+                "DOB",
+                "Age",
+                "RecordingAge",
+                "RecordingDay",
+                "Mass (g)",
+                "Ut. mass (g)",
+                "Ut. mass (mg)",
+                "Cycle Stage",
+                "Sac time",
+                "Sac hour",
+                "Pit",
+                "Blood",
+                "Notes"
+            ],
+            columns: [
+                "NA",
+                "mouseID",
+                "NA",
+                "cageNum",
+                "treatment",
+                "genTreatment",
+                "dateOfBirth",
+                "ageGroup",
+                "ageInDays",
+                "recordingDate",
+                "bodyMass",
+                "reproTractMass_g",
+                "reproTractMass",
+                "cycleStage",
+                "sacTime",
+                "sacHrs",
+                "savedPit_yn",
+                "savedBlood_yn",
+                "NA"
+            ],
+            num: 6
+        },
+        externalAdditions: {
+            id: "externalAdditions",
+            label: "External Additions",
+            saveName: "externalAdditions",
+            columnNames: [
+                "Addition Name",
+                "Addition Date"
+            ],
+            columns: [],
+            num: 7
+        },
+        internalAdditions: {
+            id: "internalAdditions",
+            label: "Internal Additions",
+            saveName: "internalAdditions",
+            columnNames: [
+                "Addition Name",
+                "Addition Date"
+            ],
+            columns: [],
+            num: 8
+        },
+        custom: {
+            id: "custom",
+            label: "Custom",
+            saveName: "custom",
+            columns: [],
+            num: 9
         }
+
+    },
+
+    allOptions: [
+        "mouseID",
+        "cageNum",
+        "generation",
+        "damID",
+        "sireID",
+        "who",
+        "recordingDate",
+        "dateOfBirth",
+        "ageInDays",
+        "sacTime",
+        "daylightSavings",
+        "sacHrs",
+        "strain",
+        "zygosity",
+        "sex",
+        "bodyMass",
+        "reproTractMass",
+        "reproTract_mg_per_g",
+        "gonadStatus",
+        "cycleStage",
+        "stageComment",
+        "surgeryDate",
+        "implant",
+        "implantType",
+        "implantDate",
+        "implantComment",
+        "tubeLabel",
+        "savedPit",
+        "genTreatment",
+        "treatment",
+        "glucose",
+        "nucleus",
+        "orientation",
+        "sliceQual",
+        "sliceComment",
+        "fluorQual",
+        "fluorComment",
+        "externalSoln",
+        "externalDate",
+        "internalSoln",
+        "internalDate",
+        "pipette",
+        "pipetteLot"
+    ],
+
+    sortableOptions: function () {
+        // // http://jsfiddle.net/5wy04t7y/3/
+        // var oldList, newList, item;
+
+        // $(".categories-sortable").sortable({
+        //     connectWith: $('.categories-sortable'),
+        //     items: "li:not(.unsortable)",
+        //     start: function (event, ui) {
+        //         console.log("firing start");
+        //         item = ui.item;
+        //         newList = oldList = ui.item.parent();
+        //     },
+        //     change: function (event, ui) {
+        //         console.log("firing change");
+        //         if (ui.sender) {
+        //             newList = ui.placeholder.parent();
+        //         }
+        //     },
+        //     over: function (event, ui) {
+        //         $('.news-list li').css('overflow.visible');
+        //         if ($(ui.item).closest("ul").hasClass("interested")) {
+        //             console.log("switch to source");
+        //             $(ui.item).detach().appendTo("#categories-source");
+        //             $(ui.item).css("width", "initial");
+        //         } else {
+        //             $(ui.item).detach().appendTo("#categories-chosen");
+        //             $(ui.item).css("width", "210px");
+        //             $(ui.item).css("height", "initial");
+        //         }
+        //     },
+        //     stop: function(event, ui){
+        //         console.log("firing stop");
+        //         $(".news-list li").css("overflow", "hidden");
+        //         // if ($(ui.item).closest("ul").hasClass("interested")) {
+        //         //     $(ui.item).detach().appendTo("#categories-source");
+        //         //     $(ui.item).css("width", "initial");
+        //         // } else {
+        //         //     $(ui.item).detach().appendTo("#categories-chosen");
+        //         //     $(ui.item).css("width", "210px");
+        //         //     $(ui.item).css("height", "initial");
+        //         // }
+        //     },
+        //     options: {
+        //         placeholder: "li",
+        //         cursorAt: {left: 5, top: 5},
+        //         tolerance: "pointer"
+        //     }
+        // })
+        // .disableSelection();
+
+        $('.sortable[sortable="true"]').sortable({
+            connectWith:".sortable",
+            placeholder: "ui-state-highlight",
+            // update: function(ev, ui) { // don't know yet how to get the propert target with arrow func
+            //     my_widget_script.getSortableOrder($(this),ui);
+            // }
+            update: ()=> {
+                this.getSelectedOrder();
+            }
+        });
+    },
+
+    // getSortableOrder: function (sortableList,ui){
+    //     var listItems = {}
+    //     listItems['sortable'] = sortableList.sortable('toArray');
+    //     if(ui.sender!=null)
+    //         listItems['sender'] = ui.sender.sortable('toArray');
+    //     console.log(listItems["sortable"].length);
+    //     this.outputTables.custom.columns = listItems['sortable'];
+    // }, 
+    
+    getSelectedOrder: function(){
+        this.outputTables.custom.columns = $("#selectedOptions").sortable("toArray");
+        this.updateCustomTable();
+    },
+
+    addOptionsToCustom: function(){
+        $cardBody = $(".card"+this.tableSearch("custom")).find(".card-body");
+        $cardBody.append(
+            $("<div></div>", {
+                "class": "row"
+            }).append(
+                $("<div></div>", {
+                    "class": "col-12"
+                }).append(
+                    $("<input></input>", {
+                        "name": "resetoptions",
+                        "id": "resetOptions",
+                        "value": "Reset",
+                        "type": "button",
+                        "class": "fullWidth"
+                    }).on("click", (e)=>{
+                        this.resetOptionsList()
+                    })
+                )
+            ).append(
+                $("<div></div>", {
+                    "class": "col-12"
+                }).append(
+                    $("<input></input>", {
+                        "name": "updatetable",
+                        "id": "updateTable",
+                        "value": "Update Table",
+                        "type": "button",
+                        "class": "fullWidth"
+                    }).on("click", (e)=>{
+                        this.updateCustomTable();
+                    })
+                )
+            )
+        ).append(
+            $("<div></div>", {
+                "class": "row"
+            }).append(
+                $("<div></div>", {
+                    "class": "col-6"
+                }).append(
+                    "<h3>Selected:</h3>"
+                ).append(
+                    $("<ul></ul>", {
+                        "id": "selectedOptions",
+                        "sortable": "true",
+                        "class": "sortable"
+                    }).append(
+                        "&nbsp;" // lets you drag into empty space
+                    )
+                )
+            ).append(
+                $("<div></div>", {
+                    "class": "col-6"
+                }).append(
+                    "<h3>Unselected:</h3>"
+                ).append(
+                    $("<ul></ul>", {
+                        "id": "unselected",
+                        "sortable": "true",
+                        "class": "sortable"
+                    }).append(
+                        "&nbsp;" // lets you drag into empty space
+                    )
+                )
+            )
+        )
+
+        this.sortableOptions();
+        this.resetOptionsList();
+        // this.getSelectedOrder();
+    },
+
+    updateCustomTable: function(){
+        // this.outputTables.custom.columns = [];
+        // $(".tableOptions").find(".thisOption").each((i,e)=>{
+        //     console.log(e);
+        //     var thisCol = $(e).text();
+        //     this.outputTables.custom.columns.push(thisCol);
+        // });
+        var columns = this.outputTables.custom.columns;
+        console.log(columns.length);
+        var $customCard = $(".card"+this.tableSearch("custom"))
+        $customCard.find(".calcTableContainer").remove();
+        var $table = this.makeCalcTable("custom", columns, columns);
+        $table.prependTo($customCard.find(".card-body"));
+
+        $("input, select, textarea").each((i,e)=>{
+            if($(e).attr("type")!= "button"){
+                this.updateCalcFromEl(e);   
+            }
+        });
+        this.calcValues();
+    },
+
+    resetOptionsList: function(){
+        // var $options = $(".tableOptions");
+        // $options.html("");
+        // for(var i=0; i<this.allOptions.length; i++){
+        //     var option = this.allOptions[i]
+        //     $cardBody.find(".tableOptions").append(
+        //         $("<div></div>", {
+        //             "class": "row"
+        //         }).append(
+        //             $("<div></div>", {
+        //                 "class": "col-9 thisOption"
+        //             }).append(
+        //                 option
+        //             )
+        //         ).append(
+        //             $("<button></button>", {
+        //                 "type": "button",
+        //                 "class": "col-1 fullWidth moveUp"
+        //             }).append("&uarr;").on("click", (e)=>{
+        //                 $thisRow = $(e.currentTarget).parents(".row");
+        //                 $thisRow.insertBefore($thisRow.prev());
+        //                 $(e.currentTarget).focus().select();
+        //             })
+        //         ).append(
+        //             $("<button></button>", {
+        //                 "type": "button",
+        //                 "class": "col-1 fullWidth moveDown"
+        //             }).append("&darr;").on("click", (e)=>{
+        //                 $thisRow = $(e.currentTarget).parents(".row");
+        //                 $thisRow.insertAfter($thisRow.next());
+        //             })
+        //         ).append(
+        //             $("<button></button>", {
+        //                 "type": "button",
+        //                 "class": "col-1 fullWidth moveUp"
+        //             }).append("X").on("click", (e)=>{
+        //                 $thisRow = $(e.currentTarget).parents(".row");
+        //                 $thisRow.remove();
+        //             })
+        //         )
+        //     )
+        // }
+        $("#selectedOptions").html("&nbsp;");
+        $("#unselected").html("&nbsp;")
+        for(var i=0; i<this.allOptions.length; i++){
+            var option = this.allOptions[i]
+            $("#unselected").append(
+                $("<li></li>", {
+                    "id": option
+                }).append(
+                    option
+                )
+            );
+        }
+        this.getSelectedOrder();
     },
 
     // Make everything for each table
     makeOutputTableCards: function(){
         for(table in this.outputTables){
             var tableObj = this.outputTables[table];
+            this.makeViewButtons(tableObj);
             this.makeOutputTableCard(tableObj);
         }
     },
@@ -1649,110 +2082,142 @@ $(document).ready(function () {
 
         // Card body
         var $body = $("<div></div>");
-        var outputButtons = this.makeOuputButtons(tableObj); 
+        // var outputButtons = this.makeOuputButtons(tableObj); 
         var table = this.makeOutputTable(tableObj);
 
-        $body.append(outputButtons).append(table);
+        // $body.append(outputButtons).append(table);
+        $body.append(table);
 
         this.makeCard($div, cardHead, $body);
 
         // Add data tag to the card that was just made
-        $div.find(".card").last().attr("data-table", tableObj.id)// get name somehow
+        $div.find(".card").last().attr("data-table", tableObj.id)
     },
 
-    makeOuputButtons: function(tableObj){
+    makeViewButtons: function(tableObj){
         var numForTags = tableObj.num;
         var tableID = tableObj.id;
         var tableName = tableObj.saveName;
+        var tableLabel = tableObj.label;
 
-        // Make save and copy buttons for each table
-        var $div = $("<div></div>", {
-            "class": "container mt-2"
-        }).append(
+        var $buttonsDiv = $(".viewTableButtons");
+        if(numForTags === 1){
+            $buttonsDiv.html("");
+        }
+        $buttonsDiv.append(
             $("<div></div>", {
-                "class": "row forCopy",
-                "data-table": tableID
-            })
-        ).append(
-            $("<div></div>", {
-                "class": "row"
+                "class": "col-12 col-sm-6 col-md-4, col-lg-3",
             }).append(
-                $("<div></div>", {
-                    "class": "col errorMsg",
-                    "data-table": tableID
+                $("<input></input>", {
+                    "type": "button",
+                    "id": "showTable" + numForTags,
+                    "name": "showtable" + numForTags,
+                    "class": "showTable fullWidth dontHide",
+                    "data-table": tableID,
+                    "data-tablename": tableName,
+                    "value": tableLabel
                 })
             )
-        ).append(
-            $("<div></div>", {
-                "class": "row"
-            })
-        );
-
-        var ids = ["toCSV", "copyData"];
-        var names = ["tocsv", "copydata"];
-        var labels = ["Save to CSV", "Copy Data"];
-
-        // Add the buttons
-        for(var i = 0; i < ids.length; i++){
-            $div.find(".row").last().append(
-                $("<div></div>", {
-                    "class": "col-12 col-sm-6"
-                }).append(
-                    $("<input></input>", {
-                        "type": "button",
-                        "value": labels[i],
-                        "name": names[i] + numForTags,
-                        "id": ids[i] + numForTags,
-                        "class": ids[i] + " fullWidth",
-                        "data-table": tableID,
-                        "data-tablename": tableName
-                    })
-                )
-            )
-        }
-
-        var copyOptionsIDs = ["copyHead", "transpose"];
-        var copyOptionsNames = ["copyhead", "transpose"];
-        var copyOptionsLabels = ["Copy Table Head?", "Transpose Table?"];
-
-        var $copyOptions = $("<div></div>");
-
-        // Create checkboxes for copy options
-        for(var i = 0; i < copyOptionsIDs.length; i++){
-            $copyOptions.append(
-                $("<div></div>").append(
-                    $("<label></label>", {
-                        "for": copyOptionsNames[i] + numForTags
-                    }).append(
-                        copyOptionsLabels[i]
-                    )
-                ).append(" ").append(
-                    $("<input></input>", {
-                        "type": "checkbox",
-                        "name": copyOptionsNames[i] + numForTags,
-                        "id": copyOptionsIDs[i] + numForTags,
-                        "class": copyOptionsIDs[i],
-                        "data-table": tableID,
-                    })
-                )
-            )
-        }
-
-        // Add after copyData button
-        $div.find(".copyData").after(
-            $copyOptions
-        );
-
-        return $div
+        )
     },
 
+    // makeOuputButtons: function(tableObj){
+    //     var numForTags = tableObj.num;
+    //     var tableID = tableObj.id;
+    //     var tableName = tableObj.saveName;
+
+    //     // Make save and copy buttons for each table
+    //     var $div = $("<div></div>", {
+    //         "class": "container mt-2"
+    //     }).append(
+    //         $("<div></div>", {
+    //             "class": "row forCopy",
+    //             "data-table": tableID
+    //         })
+    //     ).append(
+    //         $("<div></div>", {
+    //             "class": "row"
+    //         }).append(
+    //             $("<div></div>", {
+    //                 "class": "col errorMsg",
+    //                 "data-table": tableID
+    //             })
+    //         )
+    //     ).append(
+    //         $("<div></div>", {
+    //             "class": "row"
+    //         })
+    //     );
+
+    //     var ids = ["toCSV", "copyData"];
+    //     var names = ["tocsv", "copydata"];
+    //     var labels = ["Save to CSV", "Copy Data"];
+
+    //     // Add the buttons
+    //     for(var i = 0; i < ids.length; i++){
+    //         $div.find(".row").last().append(
+    //             $("<div></div>", {
+    //                 "class": "col-12 col-sm-6"
+    //             }).append(
+    //                 $("<input></input>", {
+    //                     "type": "button",
+    //                     "value": labels[i],
+    //                     "name": names[i] + numForTags,
+    //                     "id": ids[i] + numForTags,
+    //                     "class": ids[i] + " fullWidth",
+    //                     "data-table": tableID,
+    //                     "data-tablename": tableName
+    //                 })
+    //             )
+    //         )
+    //     }
+
+    //     var copyOptionsIDs = ["copyHead", "transpose"];
+    //     var copyOptionsNames = ["copyhead", "transpose"];
+    //     var copyOptionsLabels = ["Copy Table Head?", "Transpose Table?"];
+
+    //     var $copyOptions = $("<div></div>");
+
+    //     // Create checkboxes for copy options
+    //     for(var i = 0; i < copyOptionsIDs.length; i++){
+    //         $copyOptions.append(
+    //             $("<div></div>").append(
+    //                 $("<label></label>", {
+    //                     "for": copyOptionsNames[i] + numForTags
+    //                 }).append(
+    //                     copyOptionsLabels[i]
+    //                 )
+    //             ).append(" ").append(
+    //                 $("<input></input>", {
+    //                     "type": "checkbox",
+    //                     "name": copyOptionsNames[i] + numForTags,
+    //                     "id": copyOptionsIDs[i] + numForTags,
+    //                     "class": copyOptionsIDs[i],
+    //                     "data-table": tableID,
+    //                 })
+    //             )
+    //         )
+    //     }
+
+    //     // Add after copyData button
+    //     $div.find(".copyData").after(
+    //         $copyOptions
+    //     );
+
+    //     return $div
+    // },
+
     makeOutputTable: function(tableObj){
-        var $div = this.makeCalcTable(tableObj.id, tableObj.columns);
+        var columnNames = tableObj.columns;
+        if(tableObj.hasOwnProperty("columnNames")){
+            columnNames = tableObj.columnNames;
+        }
+        var $div = this.makeCalcTable(tableObj.id, columnNames, tableObj.columns);
         return $div;
     },
 
-    makeCalcTable: function(tableID, colNames){
-        var $table = $("<div></div>", {"class": "container"}).append(
+    makeCalcTable: function(tableID, colNames, colCalcs){
+        var $table = $("<div></div>", {"class": "container calcTableContainer"}).append(
             $("<div></div>", {"class": "row"}).append(
                 $("<div></div>", {"class": "col-12 table-responsive xsTableDiv"}).append(
                     $("<table></table>", {
@@ -1777,11 +2242,12 @@ $(document).ready(function () {
             headCell.append(colName); // append rather than appendChild to avoid creating as textNode
             // Add the headCell to the headRow
             headRow.appendChild(headCell);
-
+            
+            var colCalc = colCalcs[i];
             // Make a new cell
             var bodyCell = document.createElement("td");
             // Add the data attribute
-            bodyCell.dataset.calc = colName;
+            bodyCell.dataset.calc = colCalc;
             // Add the bodyCell to the bodyRow
             bodyRow.appendChild(bodyCell);
         }
@@ -1807,7 +2273,7 @@ $(document).ready(function () {
       //**************************************************************************
       //call to the init function in your script.  Note that you can change the mode in the call here.
       //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
-      form_script.init("edit", function() {return form_script.test_data()});
+      form_script.init("view", function() {return form_script.test_data()});
 
 
     }
@@ -1884,28 +2350,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<div class="container outCardContainer">
-    <div class="row mt-2">
-        <h2 class="col">Output Tables:</h2>
-    </div>
-    <div class="row mt-2">
-        <div class="col-12">
-            <!-- took out the iFrame Google Doc since it was slow and was causing errors -->
-            <big>Open the <a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Slicing Database</a></big> 
-            Google Sheet in a new window
-        </div>
-        <div class="col-12">
-            <label class="requiredLab" for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> 
-            <select id="enteredDatatoDoc" name="entereddatatodoc" required="">
-                <option value="">[Select]</option>
-                <option value="no">Not yet</option>
-                <option value="yes">Yes!</option> 
-            </select>
-        </div>
-        
-    </div>
-</div>
-
 <div class="container mt-2 reqTextInfo">
     <p>Elements that are required to save this page are marked with a red asterisk. <span
         style="color:red">*</span> <em>Don't forget about the Google sheet at the bottom of the form</em><br />
@@ -1934,12 +2378,17 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <option value="homoNeg">-/-</option> 
                 </select>
             </div>
+            <div class="mt-2">Dam ID</div>
+            <div><input id="damID" name="damid" class="fullWidth"/></div>
+            <div class="mt-2">Sire ID</div>
+            <div><input id="sireID" name="sireid" class="fullWidth"/></div>
         </div>
 
         <div class="col-12 col-md-4">
             <div class="mt-2">Cage #</div>
             <div><input id="cageNum" name="cagenum" class="fullWidth"/></div>
-
+            <div class="mt-2">Generation</div>
+            <div><input id="generation" name="generation" class="fullWidth"/></div>
             <div class="needForTableLab mt-2" >Date of Birth</div>
             <div><input class="needForTable fullWidth ageCalc" id="dateOfBirth" name="dob" type="date" /></div>
 
@@ -1949,6 +2398,33 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                     <option value="0">PND 0</option>
                     <option value="1" selected>PND 1</option>
                 </select>
+            </div>
+            <div class="mt-2">Blood Glucose (mg/100mL)</div>
+            <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth"/></div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="needForTableLab mt-2">Sex</div>
+            <div>
+                <select class="needForTable fullWidth massCalc cycleCalc" id="sex" name="sex">
+                    <option value="">[Select]</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option> 
+                </select>
+            </div>
+
+            <div class="needForTableLab mt-2">Body mass (g)</div>
+            <div>
+                <input class="needForTable fullWidth massCalc" id="bodyMass" name="bodymass" step="0.1" type="number" />
+            </div>
+
+            <!-- If only want this to appear when animals are intact, add "isIntact" label -->
+            <div id="reproTractMassDiv">
+                <div class="mt-2 needForTableLab" data-sex="female">Uterine Mass (mg)</div>
+                <div class="mt-2 needForTableLab" data-sex="male">Seminal Vesicle Mass (mg)</div>
+                <div>
+                    <input class="fullWidth massCalc needForTable" data-sex="female male" id="reproTractMass" name="reprotractmass" step="0.01" type="number"/>
+                </div>
             </div>
 
             <div class="mt-2">Treatment</div>
@@ -1974,34 +2450,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 </select>
                 <input type="text" id="otherTreatment" name="othertreatment" class="fullWidth treatmentCalc mt-1" data-proj="other"/>
             </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-            <div class="needForTableLab mt-2">Sex</div>
-            <div>
-                <select class="needForTable fullWidth massCalc cycleCalc" id="sex" name="sex">
-                    <option value="">[Select]</option>
-                    <option value="female">Female</option>
-                    <option value="male">Male</option> 
-                </select>
-            </div>
-
-            <div class="needForTableLab mt-2">Body mass (g)</div>
-            <div>
-                <input class="needForTable fullWidth massCalc" id="bodyMass" name="bodymass" step="0.1" type="number" />
-            </div>
-
-            <!-- If only want this to appear when animals are intact, add "isIntact" label -->
-            <div id="reproTractMassDiv">
-                <div class="mt-2 needForTableLab" data-sex="female">Uterine Mass (mg)</div>
-                <div class="mt-2 needForTableLab" data-sex="male">Seminal Vesicle Mass (mg)</div>
-                <div>
-                    <input class="fullWidth massCalc needForTable" data-sex="female male" id="reproTractMass" name="reprotractmass" step="0.01" type="number" value="1000"/>
-                </div>
-            </div>
-
-            <div class="mt-2">Blood Glucose (mg/100mL)</div>
-            <div><input id="glucose" name="glucose" step="0.001" type="number" class="fullWidth"/></div>
         </div>
     </div>
 </div>
@@ -2223,254 +2671,46 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<div class="container outTableContainer">
+<div class="container outCardContainer">
     <div class="row mt-2">
-        <h2 class="col">Output Table</h2>
+        <h2 class="col">Output Tables:</h2>
     </div>
-
-    <!-- Error Message -->
-    <div class="row">
-        <div class="col" id="errorMsg">&nbsp;</div>
-    </div>
-
     <div class="row mt-2">
-        <div class="col-12 table-responsive xsTableDiv" id="tableDiv">
-            <!-- Amanda Output Table -->
-            <table id="AmandaOutTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>mouseID</th>
-                        <th>Cage</th>
-                        <th>Treatment</th>
-                        <th>GenTreatment</th>
-                        <th>CycleStage</th>
-                        <th>BodyMass_g</th>
-                        <th>UterineMass</th>
-                        <th>Uterine_mg_per_g</th>
-                        <th>Date_of_birth</th>
-                        <th>Recording_date</th>
-                        <th>Age_in_days</th>
-                        <th>Saved_pit</th>
-                        <th>Daylight_Savings</th>
-                        <th>Time_sac</th>
-                        <th>Sac_hr</th>
-                        <th>Who</th>
-                        <th>Zygosity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="mouseID_calc" data-calc="mouseID">testID</td>
-                        <td class="Cage_calc" data-calc="cageNum">&nbsp;</td>
-                        <td class="Treatment_calc">&nbsp;</td>
-                        <td class="GenTreatment_calc">&nbsp;</td>
-                        <td class="cycleStage_calc">&nbsp;</td>
-                        <td class="BodyMass_g_calc">&nbsp;</td>
-                        <td class="uterineMass_calc">&nbsp;</td>
-                        <td class="uterine_mg_per_g_calc">&nbsp;</td>
-                        <td class="Date_of_birth_calc">&nbsp;</td>
-                        <td class="Recording_date_calc">&nbsp;</td>
-                        <td class="Age_in_days_calc">&nbsp;</td>
-                        <td class="Saved_pit_calc">&nbsp;</td>
-                        <td class="Daylight_Savings_calc">&nbsp;</td>
-                        <td class="Time_sac_calc">&nbsp;</td>
-                        <td class="Sac_hr_calc">&nbsp;</td>
-                        <td class="Who_calc">&nbsp;</td>
-                        <td class="zygosity_calc">&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <!-- Lab output table -->
-            <table id="labOutTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>mouseID</th>
-                        <th>Cage</th>
-                        <th>Who</th>
-                        <th>Recording_date</th>
-                        <th>Date_of_birth</th>
-                        <th>Age_in_days</th>
-                        <th>Time_sac</th>
-                        <th>Daylight_Savings</th>
-                        <th>Sac_hr</th>
-                        <th>Strain</th>
-                        <th>Zygosity</th>
-                        <th>Sex</th>
-                        <th>BodyMass_g</th>
-                        <th>ReproTractMass_mg</th>
-                        <th>ReproTractMass_mg_per_BodyMass_g</th>
-                        <th>Gonad_Status</th>
-                        <th>CycleStage</th>
-                        <th>Stage_Comment</th>
-                        <th>Surgery_date</th>
-                        <th>Implant</th>
-                        <th>Implant_Type</th>
-                        <th>Implant_date</th>
-                        <th>Implant_Comment</th>
-                        <th>SerumTube_Label</th>
-                        <th>Saved_Pituitary</th>
-                        <th>GenTreatment</th>
-                        <th>Treatment</th>
-                        <th>Glucose</th>
-                        <th>Nucleus</th>
-                        <th>Slice_Orientation</th>
-                        <th>Slice_Quality</th>
-                        <th>Slice_Comment</th>
-                        <th>Fluorescent_Quality</th>
-                        <th>Fluor_Comment</th>
-                        <th>External_Solution</th>
-                        <th>External_date</th>
-                        <th>Internal_Solution</th>
-                        <th>Internal_date</th>
-                        <th>Pipette_program</th>
-                        <th>Pipette_lot</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="mouseID_calc">&nbsp;</td>
-                        <td class="Cage_calc">&nbsp;</td>
-                        <td class="Who_calc">&nbsp;</td>
-                        <td class="Recording_date_calc">&nbsp;</td>
-                        <td class="Date_of_birth_calc">&nbsp;</td>
-                        <td class="Age_in_days_calc">&nbsp;</td>
-                        <td class="Time_sac_calc">&nbsp;</td>
-                        <td class="Daylight_Savings_calc">&nbsp;</td>
-                        <td class="Sac_hr_calc">&nbsp;</td>
-                        <td class="strain_calc">&nbsp;</td>
-                        <td class="zygosity_calc">&nbsp;</td>
-                        <td class="sex_calc">&nbsp;</td>
-                        <td class="BodyMass_g_calc">&nbsp;</td>
-                        <td class="reproTractMass_calc">&nbsp;</td>
-                        <td class="reprotract_mg_per_g_calc">&nbsp;</td>
-                        <td class="gonadstatus_calc">&nbsp;</td>
-                        <td class="cycleStage_calc" data-calc="cycleStage_final">&nbsp;</td>
-                        <td class="stageComment_calc" data-calc="stageComment_final">&nbsp;</td>
-                        <td class="surgerydate_calc">&nbsp;</td>
-                        <td class="implant_calc">&nbsp;</td>
-                        <td class="implantType_calc">&nbsp;</td>
-                        <td class="implantDate_calc">&nbsp;</td>
-                        <td class="implantcomment_calc">&nbsp;</td>
-                        <td class="tubeLabel_calc">&nbsp;</td>
-                        <td class="Saved_pit_calc">&nbsp;</td>
-                        <td class="GenTreatment_calc">&nbsp;</td>
-                        <td class="Treatment_calc">&nbsp;</td>
-                        <td class="glucose_calc">&nbsp;</td>
-                        <td class="nucleus_calc">&nbsp;</td>
-                        <td class="orientation_calc">&nbsp;</td>
-                        <td class="slicequal_calc">&nbsp;</td>
-                        <td class="slicecomment_calc">&nbsp;</td>
-                        <td class="fluorqual_calc">&nbsp;</td>
-                        <td class="fluorcomment_calc">&nbsp;</td>
-                        <td class="externalsoln_calc">&nbsp;</td>
-                        <td class="externaldate_calc">&nbsp;</td>
-                        <td class="internalsoln_calc">&nbsp;</td>
-                        <td class="internaldate_calc">&nbsp;</td>
-                        <td class="pipette_calc">&nbsp;</td>
-                        <td class="pipettelot_calc">&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <table id="externalAdditionsTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>Addition Name</th>
-                        <th>Addition Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-
-            <table id="internalAdditionsTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>Addition Name</th>
-                        <th>Addition Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-
-            <table id="JennPNA" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>CellID</th>
-                        <th>mouseID</th>
-                        <th>Exclude reason</th>
-                        <th>Cage</th>
-                        <th>TX</th>
-                        <th>Group</th>
-                        <th>DOB</th>
-                        <th>Age</th>
-                        <th>RecordingAge</th>
-                        <th>RecordingDay</th>
-                        <th>Mass (g)</th>
-                        <th>Ut. mass (g)</th>
-                        <th>Ut. mass (mg)</th>
-                        <th>Cycle Stage</th>
-                        <th>Sac time</th>
-                        <th>Sac hour</th>
-                        <th>Pit (Y/N)</th>
-                        <th>Blood (Y/N)</th>
-                        <th>Notes:</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>&nbsp;</td>
-                        <td class="mouseID_calc">&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td class="Cage_calc">&nbsp;</td>
-                        <td class="Treatment_calc">&nbsp;</td>
-                        <td class="GenTreatment_calc">&nbsp;</td>
-                        <td class="Date_of_birth_calc">&nbsp;</td>
-                        <td class="AgeGroup_calc">&nbsp;</td>
-                        <td class="Age_in_days_calc">&nbsp;</td>
-                        <td class="Recording_date_calc">&nbsp;</td>
-                        <td class="BodyMass_g_calc">&nbsp;</td>
-                        <td class="reproTractMass_g_calc">&nbsp;</td>
-                        <td class="reproTractMass_calc">&nbsp;</td>
-                        <td class="cycleStage_calc">&nbsp;</td>
-                        <td class="Time_sac_calc">&nbsp;</td>
-                        <td class="Sac_hr_calc">&nbsp;</td>
-                        <td class="Saved_pit_calc">&nbsp;</td>
-                        <td class="Saved_blood_calc">&nbsp;</td>
-                        <td>&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <table id="sacTimeTable" class="outTable table">
-                <thead>
-                    <tr>
-                        <th>mouseID</th>
-                        <th>Daylight_Savings</th>
-                        <th>Time_sac</th>
-                        <th>Sac_hr</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="mouseID_calc">&nbsp;</td>
-                        <td class="Daylight_Savings_calc">&nbsp;</td>
-                        <td class="Time_sac_calc">&nbsp;</td>
-                        <td class="Sac_hr_calc">&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="col-12">
+            <!-- took out the iFrame Google Doc since it was slow and was causing errors -->
+            <big>Open the <a href="https://docs.google.com/spreadsheets/d/18s84qpAjEYcbvC4cn_6BaMAZXi8em_mEMkldO7pK_0Y/edit?usp=sharing" target="_blank">Slicing Database</a></big> 
+            Google Sheet in a new window
+        </div>
+        <div class="col-12">
+            <label class="requiredLab" for="enteredDatatoDoc">Have you copied the data into the Google Doc?</label> 
+            <select id="enteredDatatoDoc" name="entereddatatodoc" required="">
+                <option value="">[Select]</option>
+                <option value="no">Not yet</option>
+                <option value="yes">Yes!</option> 
+            </select>
         </div>
     </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
+            class="fullWidth toCSV"/></div>
+    
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth copyData"/>
+            <br />Copy Table Head? <input id="copyHead" name="copyhead" type="checkbox" class="copyHead"/>
+            <br />Transpose Table? <input id="transpose" name="transpose" type="checkbox" class="transpose" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col" id="errorMsg">&nbsp;</div>
+    </div> 
+    <div class="row" id="forCopy">&nbsp;</div>
+    <div class="mt-2 row">
+        <h4 class="col">Select a table format:</h4>
+    </div>
+    <div class="row mt-2 mb-2 viewTableButtons">
+        &nbsp;
+    </div>
 </div>
-
-<!-- Copy Div -->
-<div class="row">
-    <div class="col" id="forCopy">&nbsp;</div>
-</div>
-
 
 
 <!-- #endregion -->
