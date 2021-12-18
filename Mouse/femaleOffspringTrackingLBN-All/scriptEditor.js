@@ -17,7 +17,7 @@ my_widget_script =
         this.initDynamicContent(parsedJson);
 
         //resize the content box when the window size changes
-        window.onresize = this.resize;
+        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
 
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
@@ -27,6 +27,9 @@ my_widget_script =
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
+
+        // Print to console log if any elements don't have a required name attribute
+        this.checkForNames();
 
         // uncomment to print name log to check for uppercase letters
         // var name_log = ''
@@ -110,9 +113,25 @@ my_widget_script =
     },
 
     /**
+     * This function determines whether or not the user is allowed to save the widget to the page
+     * 
+     * The original LabArchives function checks for fields that have _mandatory appended to the name attribute
+     * 
+     * The custom function checks for fields with the required attribute. If any of these fields are blank, 
+     * an alert is returns that provides a fail log with the ids of the elements that are missing. If there are
+     * no blank required fields, an empty array is returned.
+     * 
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      */
-    is_valid: function (b_suppress_message) {
+     is_valid: function (b_suppress_message) {
+        //called when the user hits the save button, to allow for form validation.
+        //returns an array of dom elements that are not valid - default is those elements marked as mandatory
+        // that have no data in them.
+        //You can modify this method, to highlight bad form elements etc...
+        //LA calls this method with b_suppress_message and relies on your code to communicate issues to the user
+        //Returning an empty array [] or NULL equals no error
+        //TO DO write code specific to your form
+
         //ORIGINAL LABARCHIVES IS_VALID FUNCTION
         //return this.parent_class.is_valid(b_suppress_message);
 
@@ -122,23 +141,23 @@ my_widget_script =
         var name; //create a name variable
 
         //search the_form for all elements that are of type select, textarea, or input
-        $('#the_form').find('select, textarea, input').each(function () {
-            if (!$(this).prop('required')) { //if this element does not have a required attribute
+        $('#the_form').find('select, textarea, input').each((i, e)=> {
+            if (!$(e).prop('required')) { //if this element does not have a required attribute
                 //don't change anything (fail remains false)
             } else { //if there is a required attribute
-                if (!$(this).val()) { //if there is not a value for this input
+                if (!$(e).val()) { //if there is not a value for this input
                     fail = true; //change fail to true
-                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                    name = $(e).attr('id'); //replace the name variable with the name attribute of this element
                     fail_log += name + " is required \n"; //add to the fail log that this name is required
                 }
 
             }
         });
 
-        $("input[type='date']").each(function () {
-            var date = $(this).val();
+        $("input[type='date']").each((i, e)=> {
+            var date = $(e).val();
             if(date){
-                var validDate = my_widget_script.isValidDate(date);
+                var validDate = this.isValidDate(date);
                 if(!validDate){
                     fail = true;
                     fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
@@ -146,10 +165,10 @@ my_widget_script =
             }
         });
 
-        $("input[type='time']").each(function () {
-            var time = $(this).val();
+        $("input[type='time']").each((i, e)=> {
+            var time = $(e).val();
             if(time){
-                var validtime = my_widget_script.isValidTime(time);
+                var validtime = this.isValidTime(time);
                 if(!validtime){
                     fail = true;
                     fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
@@ -158,7 +177,7 @@ my_widget_script =
         });
 
         if (fail) { //if fail is true (meaning a required element didn't have a value)
-            return alert(fail_log); //return the fail log as an alert
+            return bootbox.alert(fail_log); //return the fail log as an alert
         } else {
             var noErrors = [];
             return noErrors;
@@ -198,7 +217,7 @@ my_widget_script =
             // console.log("Found tail marks and proceeding to add data for each mouse");
             for (var j = 0; j < maxOffspring; j++) {
                 var mouseNum = j + 1;
-                var dataSearch = my_widget_script.dataSearch("num", mouseNum);
+                var dataSearch = this.numSearch(mouseNum);
     
                 var $tailMark = $("#tailMark" + mouseNum);
                 $tailMark.html(parsedJson.tailMarks[j]);
@@ -207,12 +226,12 @@ my_widget_script =
     
                 var dates_VO = parsedJson.allVO_dates[j];
                 for (var i = 0; i < parsedJson.addedRows_VOs[j]; i++) {
-                    my_widget_script.createMaturationRow_VO(dates_VO[i], mouseNum);
+                    this.createMaturationRow_VO(dates_VO[i], mouseNum);
                 }
     
                 var dates_1E = parsedJson.all1E_dates[j];
                 for(var i=0; i < parsedJson.addedRows_1Es[j]; i++ ) {
-                    my_widget_script.createMaturationRow_1E(dates_1E[i], mouseNum);
+                    this.createMaturationRow_1E(dates_1E[i], mouseNum);
                 }
     
             }
@@ -229,13 +248,13 @@ my_widget_script =
             $("#showDates").prop("checked", true).closest(".container").hide();
             $("#datesList").show();
             $("#outputDiv").insertAfter($(".fullDemoDiv"));
-            $(".entry.mat").each(function () {
-                var mouseNum = parseInt($(this).data("num"));
+            $(".entry.mat").each((i,e)=> {
+                var mouseNum = parseInt($(e).data("num"));
                 if(mouseNum <= parseInt($("#numOffspring").val())){
-                    $(this).show();
+                    $(e).show();
                 }
             });
-            my_widget_script.adjustifOther();
+            this.adjustifOther();
             $(".tableDiv").show();
             $("input[type='date']").removeClass(".hasDatePicker");
         } else {
@@ -247,63 +266,55 @@ my_widget_script =
                 $("#editDemo").prop("checked", true);
                 $(".editDemoChecked").show();
             }
-            $("input[type='date']").each(function () {
-                my_widget_script.checkDateFormat($(this));
+
+            // Put first estrus div first
+            $(".firstE_div_outer").each((i,e)=>{
+                var mouseNum = $(e).data("num");
+                var numSearch = this.numSearch(mouseNum);
+                $(e).insertBefore($(".VO_div_outer" + numSearch));
+            })
+
+            $("input[type='date']").each((i, e)=> {
+                this.checkDateFormat($(e));
             });
             
-            $("input[type='time']").each(function () {
-                my_widget_script.checkTimeFormat($(this));
+            $("input[type='time']").each((i, e)=> {
+                this.checkTimeFormat($(e));
             });
             // Add * and # to mark required field indicators
-            my_widget_script.addRequiredFieldIndicators();
+            this.addRequiredFieldIndicators();
             // $(".hideEdit").hide();
         }
     },
 
     updateTailMarkButton: function ($tailMark) {
-        if($tailMark.hasClass("mouse1")) {
-            $(".tailMark1_calc").html(
-                $tailMark.parent().find(".tailMark").html()
-            );
-        } else if($tailMark.hasClass("mouse2")) {
-            $(".tailMark2_calc").html(
-                $tailMark.parent().find(".tailMark").html()
-            );
-        } else if($tailMark.hasClass("mouse3")) {
-            $(".tailMark3_calc").html(
-                $tailMark.parent().find(".tailMark").html()
-            );
-        } else if($tailMark.hasClass("mouse4")) {
-            $(".tailMark4_calc").html(
-                $tailMark.parent().find(".tailMark").html()
-            );
-        } else if($tailMark.hasClass("mouse5")) {
-            $(".tailMark5_calc").html(
-                $tailMark.parent().find(".tailMark").html()
-            );
-        }
-        my_widget_script.resize();
+        var tailMarking = $tailMark.parent().find(".tailMark").html();
+        var mouseNum = $tailMark.data("num");
+        var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
+        $tailMarkCalc.html(tailMarking);
+        this.resize();
     },
 
     addRequiredFieldIndicators: function () {
-        $('.needForTableLab').each(function () { //find element with class "needForTableLab"
-            //alert($(this).val());
-            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
+        $('.needForTableLab').each((i, e)=> { //find element with class "needForFormLab"
+            //alert($(e).val());
+            $(e).html("<span class='hideView' style='color:blue'>#</span>" + $(e).html()); //add # before
         });
 
-        $('.requiredLab').each(function () { //find element with class "requiredLab"
-            //alert($(this).val());
-            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
+        $('.requiredLab').each((i, e)=> { //find element with class "requiredLab"
+            //alert($(e).val());
+            $(e).html("<span class='hideView' style='color:red'>*</span>" + $(e).html()); //add # before
         });
     },
 
-    updateTailMarkCalc: function ($tailMark) {
-        var mouseNum = $tailMark.data("num");
-        var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
-        $tailMarkCalc.html($tailMark.html());
+    // This isn't currently being used anywhere
+    // updateTailMarkCalc: function ($tailMark) {
+    //     var mouseNum = $tailMark.data("num");
+    //     var $tailMarkCalc = $(".tailMark" + mouseNum + "_calc");
+    //     $tailMarkCalc.html($tailMark.html());
         
-        my_widget_script.resize();
-    },
+    //     this.resize();
+    // },
 
     switchMouseForEntry: function () {
         // Comes out as number, not string
@@ -314,7 +325,7 @@ my_widget_script =
         } else {
             $(".entry").hide();
         }
-        my_widget_script.resize();
+        this.resize();
     },
 
     showWithCheck: function ($chbx, $toToggle) {
@@ -323,7 +334,7 @@ my_widget_script =
         } else {
             $toToggle.hide();
         }
-        my_widget_script.resize();
+        this.resize();
     },
 
     hideWithCheck: function ($chbx, $toToggle) {
@@ -332,7 +343,7 @@ my_widget_script =
         } else {
             $toToggle.show();
         }
-        my_widget_script.resize();
+        this.resize();
     },
 
     showOther: function ($this) {
@@ -344,7 +355,7 @@ my_widget_script =
         } else {
             $this.next(".ifOther").hide();
         }
-        my_widget_script.resize();
+        this.resize();
     },
 
     getLocalDateString: function () {
@@ -354,12 +365,12 @@ my_widget_script =
     },
 
     adjustifOther: function () {
-        $(".firstE_state").each(function () {
-            my_widget_script.showOther($(this));
+        $(".firstE_state").each((i,e)=> {
+            this.showOther($(e));
         });
 
-        $(".VO_state").each(function () {
-           my_widget_script.showOther($(this));
+        $(".VO_state").each((i,e)=> {
+           this.showOther($(e));
         });
     },
 
@@ -380,21 +391,22 @@ my_widget_script =
         if(input.type !== "time"){
             supported = false;
         }
-        my_widget_script.timeSupported = supported;
+        this.timeSupported = supported;
+        input.remove();
         return (supported);
     },
 
     timeSupported: true,
 
     checkTimeFormat: function ($timeInput) {
-        if(!my_widget_script.timeSupported){ // if not supported
+        if(!this.timeSupported){ // if not supported
             $timeInput.next(".timeWarning").remove();
             var time = $timeInput.val();
-            var isValid = my_widget_script.isValidTime(time);
+            var isValid = this.isValidTime(time);
             if(!isValid){
                 $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
             }
-            my_widget_script.resize();
+            this.resize();
         }
     },
 
@@ -418,39 +430,45 @@ my_widget_script =
         if(input.type !== "date"){
             supported = false;
         }
-        my_widget_script.dateSupported = supported;
+        this.dateSupported = supported;
+        input.remove();
         return (supported);
     },
 
     dateSupported: true,
 
     checkDateFormat: function ($dateInput) {
-        if(!my_widget_script.dateSupported){ // if not supported
+        if(!this.dateSupported){ // if not supported
             $dateInput.next(".dateWarning").remove();
             var date = $dateInput.val();
-            var isValid = my_widget_script.isValidDate(date);
+            var isValid = this.isValidDate(date);
             if(!isValid){
                 $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
             }
             $dateInput.datepicker({dateFormat: "yy-mm-dd"})
-            my_widget_script.resize();
+            this.resize();
         }
     },
 
     setUpInitialState: function () {
-        my_widget_script.isDateSupported();
-        my_widget_script.isTimeSupported();
-        
-        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
-            my_widget_script.checkDateFormat($(this));
-        }).each(function () {
-            my_widget_script.checkDateFormat($(this));
+        this.isDateSupported();
+        this.isTimeSupported();
+
+
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", (e)=> {
+            this.checkDateFormat($(e.currentTarget));
         });
         
-        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
-            my_widget_script.checkTimeFormat($(this));
-        }).each(function () {
-            my_widget_script.checkTimeFormat($(this));
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", (e)=> {
+            this.checkTimeFormat($(e.target));
+        });
+
+        $('textarea.autoAdjust').each((i,e)=> { // i is the index for each match, textArea is the object
+            e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', (e)=> {
+            e.target.style.height = 'auto';
+            e.target.style.height = (e.target.scrollHeight) + 'px';
+            this.resize();
         });
 
         //Add classes to add bootstrap styles for left column in form
@@ -460,229 +478,232 @@ my_widget_script =
         $(".med2").addClass("col-12 col-md-6 col-lg");
         $(".med3").addClass("col-12 col-sm-6 col-md-4");
         // $(".calcFull").addClass("simpleCalc fullWidth");
-
-        $('textarea.autoAdjust').each(function () {
-            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-        }).on('input', function () {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-            my_widget_script.resize();
+        
+        $("#editDemo").each((i,e)=> {
+            this.showWithCheck($(e), $(".editDemoChecked"));
+        }).on("change", (e)=> {
+            this.showWithCheck($(e.currentTarget), $(".editDemoChecked"));
         });
         
-        $("#editDemo").each(function () {
-            my_widget_script.showWithCheck($(this), $(".editDemoChecked"));
-        }).on("change", function () {
-            my_widget_script.showWithCheck($(this), $(".editDemoChecked"));
-        });
-        
-        $("#DOB").on("change", function () {
-            my_widget_script.adjustForNumOffspring();
-            my_widget_script.printPND_days();
-            my_widget_script.getPND_today();
-            my_widget_script.updateMatPND();
-            my_widget_script.switchMouseForEntry();
-            my_widget_script.watchForVO();
-            my_widget_script.watchFor1E();
+        $("#DOB").on("change", (e)=> {
+            this.adjustForNumOffspring();
+            this.printPND_days();
+            this.getPND_today();
+            this.updateMatPND();
+            this.switchMouseForEntry();
+            this.watchForVO();
+            this.watchFor1E();
         });
 
-        $("#numOffspring").on("change", function () {
-            my_widget_script.adjustForNumOffspring();
-            my_widget_script.switchMouseForEntry();
+        $("#numOffspring").on("change", (e)=> {
+            this.adjustForNumOffspring();
+            this.switchMouseForEntry();
             // var numMice = parseInt($(this).val());
         });
 
         // Change mouseID in select list
-        $(".mouseID").each(function () {
-            var mouseNum = $(this).data("num");
-            $("#mouseSelect option.mouse" + mouseNum).text($(this).val());
-        }).on("input", function () {
-            var mouseNum = $(this).data("num");
-            $("#mouseSelect option.mouse" + mouseNum).text($(this).val());
-            my_widget_script.resize();
+        $(".mouseID").each((i,e)=> {
+            var mouseNum = $(e).data("num");
+            $("#mouseSelect option.mouse" + mouseNum).text($(e).val());
+        }).on("input", (e)=> {
+            var mouseNum = $(e.currentTarget).data("num");
+            $("#mouseSelect option.mouse" + mouseNum).text($(e.currentTarget).val());
+            this.resize();
         });
 
         // Add tail mark
-        $(".redButton").on("click", function () {
-            $(this).parent().find(".tailMark").append(
+        $(".redButton").on("click", (e)=> {
+            $(e.currentTarget).parent().find(".tailMark").append(
                 "<span style='color:red'>|</span>"
             );
-            my_widget_script.updateTailMarkButton($(this));
+            this.updateTailMarkButton($(e.currentTarget));
         });
 
-        $(".blackButton").on("click", function () {
-            $(this).parent().find(".tailMark").append(
+        $(".blackButton").on("click", (e)=> {
+            $(e.currentTarget).parent().find(".tailMark").append(
                 "<span style='color:black'>|</span>"
             );
-            my_widget_script.updateTailMarkButton($(this));
+            this.updateTailMarkButton($(e.currentTarget));
         });
 
-        $(".clearButton").on("click", function () {
-            $(this).parent().find(".tailMark").text(
+        $(".clearButton").on("click", (e)=> {
+            $(e.currentTarget).parent().find(".tailMark").text(
                 ""
             );
-            my_widget_script.updateTailMarkButton($(this));
+            this.updateTailMarkButton($(e.currentTarget));
         });
 
-        $("#showDates").each(function () {
-            my_widget_script.showWithCheck($(this), $("#datesList"));
-        }).on("change", function () {
-            my_widget_script.showWithCheck($(this), $("#datesList"));
+        $("#showDates").each((i,e)=> {
+            this.showWithCheck($(e), $("#datesList"));
+        }).on("change", (e)=> {
+            this.showWithCheck($(e.currentTarget), $("#datesList"));
         });
 
         // Output table calculations
-        $(".simpleCalc").each(function () {
-            var elementID = this.id;
+        $(".simpleCalc").each((i,e)=> {
+            var elementID = e.id;
             var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
-        }).on("input", function () {
-            var elementID = this.id;
+            this.watchValue($(e), $(calcID));
+        }).on("input", (e)=> {
+            var elementID = e.currentTarget.id;
             var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
+            this.watchValue($(e.currentTarget), $(calcID));
         });
 
-        $(".addMatCheck").on("click", function () {
-            var $dateVal = $(this).parent().next().children(".addMatDate").val();
-            var mouseNum = $(this).data("num");
+        $(".addMatCheck").on("click", (e)=> {
+            var el = e.currentTarget;
+            var $dateVal = $(el).parent().next().children(".addMatDate").val();
+            var mouseNum = $(el).data("num");
             if ($dateVal) {
-                if($(this).hasClass("VO")) {
-                    my_widget_script.createMaturationRow_VO($dateVal, mouseNum);
-                } else if($(this).hasClass("firstE")){
-                    my_widget_script.createMaturationRow_1E($dateVal, mouseNum);
+                if($(el).hasClass("VO")) {
+                    this.createMaturationRow_VO($dateVal, mouseNum);
+                } else if($(el).hasClass("firstE")){
+                    this.createMaturationRow_1E($dateVal, mouseNum);
                 }
             } else {
                 alert("Enter a Date");
             }
         });
 
-        $(".addMatDate").val(my_widget_script.getLocalDateString());
+        $(".addMatDate").val(this.getLocalDateString());
 
-        $(".removeMatCheck").on("click", function () {
-            var proceed = confirm("Are you sure that you want to remove the last date?");
-            if(proceed){
-                var mouseNum = $(this).data("num");
-                if($(this).hasClass("VO")){
-                    my_widget_script.removeMaturationRow("VO", mouseNum);
-                    my_widget_script.watchForVO();
-                } else if($(this).hasClass("firstE")){
-                    my_widget_script.removeMaturationRow("firstE", mouseNum);
-                    my_widget_script.watchFor1E();
+        $(".removeMatCheck").on("click", (e)=> {
+            var el = e.currentTarget;
+            this.runIfConfirmed(
+                "Are you sure that you want to remove the last date?",
+                ()=>{
+                    var mouseNum = $(el).data("num");
+                    if($(el).hasClass("VO")){
+                        this.removeMaturationRow("VO", mouseNum);
+                        this.watchForVO();
+                    } else if($(el).hasClass("firstE")){
+                        this.removeMaturationRow("firstE", mouseNum);
+                        this.watchFor1E();
+                    }
                 }
-            }
+            );
         });
 
-        $("#massSelect").on("change", function () {
-            var pnd = $(this).val();
+        $("#massSelect").on("change", (e)=> {
+            var pnd = $(e.currentTarget).val();
             if (pnd) {
-                my_widget_script.switchMassTable(pnd);
+                this.switchMassTable(pnd);
             } else {
                 $(".massDiv").hide();
             }
-            my_widget_script.resize();
+            this.resize();
         });
 
-        $("#mouseSelect").on("change", function () {
-            my_widget_script.switchMouseForEntry();
-            my_widget_script.adjustifOther();
-            my_widget_script.resize();
+        $("#mouseSelect").on("change", (e)=> {
+            this.switchMouseForEntry();
+            this.adjustifOther();
+            this.resize();
         });
 
-        $(".VO_mass").on("input", function () {
-            var mouseNum = $(this).data("num");
-            my_widget_script.watchVO_mass(mouseNum);
+        $(".VO_mass").on("input", (e)=> {
+            var mouseNum = $(e.currentTarget).data("num");
+            this.watchVO_mass(mouseNum);
         });
 
         // Output Table Buttons
 
         //Show/hide the table
-        $(".toggleTable").on("click", function () { //when the showTable button is clicked. Run this function
+        $(".toggleTable").on("click", (e)=> { //when the showTable button is clicked. Run this function
             var $tableDiv, $errorMsgDiv;
-            if($(this).hasClass("maturation")) {
-                $tableDiv = $(".tableDiv.maturation");
-                $errorMsgDiv = $(".errorMsg.maturation");
-            } else if($(this).hasClass("mass")){
-                $tableDiv = $(".tableDiv.mass");
-                $errorMsgDiv = $(".errorMsg.mass");
-            } else if($(this).hasClass("demo")){
-                $tableDiv = $(".tableDiv.demo");
-                $errorMsgDiv = $(".errorMsg.demo");
+            var el = e.currentTarget;
+
+            if($(el).hasClass("maturation")) {
+                baseName = "maturation";
+            } else if($(el).hasClass("mass")){
+                baseName = "mass";
+            } else if($(el).hasClass("demo")){
+                baseName = "demo";
             }
 
-            if($tableDiv && $errorMsgDiv){
-                my_widget_script.toggleTableFuncs($tableDiv, $errorMsgDiv);
+            if(baseName){
+                $tableDiv = $(".tableDiv." +baseName);
+                $errorMsgDiv = $(".errorMsg." +baseName);
+                this.toggleTableFuncs($tableDiv, $errorMsgDiv);
             }
         });
 
         //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
-        $('.toCSV').on("click", function () {
-            var fileName; 
-            var tableID 
-            var $errorMsg 
-            if($(this).hasClass("maturation")) {
-                fileName = "maturation_" + $("#damID").val() + "_females";
-                tableID = "maturationTable";
-                $errorMsg = $(".errorMsg.maturation");
-            } else if($(this).hasClass("mass")){
-                fileName = "mass_" + $("#damID").val() + "_females";
-                tableID = "massTable";
-                $errorMsg = $(".errorMsg.mass");
-            } else if($(this).hasClass("demo")){
-                fileName = "demo_" + $("#damID").val() + "_females";
-                tableID = "demoTable";
-                $errorMsg = $(".errorMsg.demo");
+        $('.toCSV').on("click", (e)=> {
+            var fileName, tableID, $errorMsg, baseName;
+            var el = e.currentTarget;
+            if($(el).hasClass("maturation")) {
+                baseName = "maturation";
+            } else if($(el).hasClass("mass")){
+                baseName = "mass";
+            } else if($(el).hasClass("demo")){
+                baseName = "demo";
+            }
+
+            if(baseName){
+                fileName = baseName + "_" + $("#damID").val() + "_females";
+                tableID = baseName + "Table";
+                $errorMsg = $(".errorMsg." + baseName);
             }
 
             if(fileName && tableID && $errorMsg){
-                my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
+                this.toCSVFuncs(fileName, tableID, $errorMsg);
             }
         });
 
         //When the copy button is clicked, run the copyTable function
-        $(".copyDataButton").on("click", function () {
-            var $copyHead
-            var $tableToCopy
-            var $tableDiv
-            var $errorMsg
-            var $divForCopy
+        $(".copyDataButton").on("click", (e)=> {
+            var $copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy;
 
-            if($(this).hasClass("maturation")) {
-                $copyHead = $(".copyHead.maturation");
-                $tableToCopy = $("#maturationTable");
-                $tableDiv = $(".tableDiv.maturation");
-                $errorMsg = $(".errorMsg.maturation");
-                $divForCopy = $(".forCopy.maturation");
-            } else if($(this).hasClass("mass")) {
-                $copyHead = $(".copyHead.mass");
-                $tableToCopy = $("#massTable");
-                $tableDiv = $(".tableDiv.mass");
-                $errorMsg = $(".errorMsg.mass");
-                $divForCopy = $(".forCopy.mass");
-            } else if($(this).hasClass("demo")) {
-                $copyHead = $(".copyHead.demo");
-                $tableToCopy = $("#demoTable");
-                $tableDiv = $(".tableDiv.demo");
-                $errorMsg = $(".errorMsg.demo");
-                $divForCopy = $(".forCopy.demo");
+            var el = e.currentTarget;
+
+            if($(el).hasClass("maturation")) {
+                baseName = "maturation";
+            } else if($(el).hasClass("mass")){
+                baseName = "mass";
+            } else if($(el).hasClass("demo")){
+                baseName = "demo";
             }
-            
-            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy);
+
+            if(baseName){
+                $copyHead = $(".copyHead." + baseName);
+                $tableToCopy = $("#" + baseName + "Table");
+                $tableDiv = $(".tableDiv." + baseName);
+                $errorMsg = $(".errorMsg." + baseName);
+                $divForCopy = $(".forCopy." + baseName);
+                this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy);
+            }            
         });
         
-        my_widget_script.adjustForNumOffspring();
-        my_widget_script.switchMouseForEntry();
-        my_widget_script.printPND_days();
-        my_widget_script.getPND_today();
+        this.adjustForNumOffspring();
+        this.switchMouseForEntry();
+        this.printPND_days();
+        this.getPND_today();
         // update mat pnd before watching for values, otherwise, there's not DOB because the rows are initialized before the widget data is reloaded
-        my_widget_script.updateMatPND();
-        my_widget_script.watchForVO();
-        my_widget_script.watchFor1E();
-        my_widget_script.calcValues();
-        my_widget_script.adjustifOther();
-        my_widget_script.resize();
+        this.updateMatPND();
+        this.watchForVO();
+        this.watchFor1E();
+        this.calcValues();
+        this.adjustifOther();
+        this.resize();
     },
 
     resize: function () {
         //resize the container
-        my_widget_script.parent_class.resize_container();
+        this.parent_class.resize_container();
+    },
+
+    checkForNames: function() {
+        $("input, select, textarea").each((i,e)=>{
+            var thisName = $(e).attr("name");
+            if(!thisName){
+                console.log("There is no name attribute for: ", e.id);
+            } else {
+                var hasUpper = /[A-Z]/.test(thisName);
+                if(hasUpper){
+                    console.log("The name contains an uppercase letter for: ", e.id);
+                }
+            }
+        })
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -700,7 +721,7 @@ my_widget_script =
 
         for (var j = 0; j < maxOffspring; j++) {
             var mouseNum = j + 1;
-            var dataSearch = my_widget_script.dataSearch("num", mouseNum);
+            var dataSearch = this.numSearch(mouseNum);
             var tailMark = $("#tailMark" + mouseNum).html();
             var addedRows_VO = $(".VO_div" + dataSearch).find(".addedRow").length;
             var addedRows_1E = $(".firstE_div" + dataSearch).find(".addedRow").length;
@@ -749,42 +770,170 @@ my_widget_script =
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
+    /**
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * Example:
+     * my_widget_script.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+        );
+    */
+    runIfConfirmed: function(text, functionToCall){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
+            }
+        });
+    },
+
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.dialogConfirm(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
+            }
+        );
+        */
+    dialogConfirm: function(text, functionToCall){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        })
+    },
+
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * Example:
+     * my_widget_script.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
+            }
+        );
+        */ 
+    runBasedOnInput: function(prompt, functionToCall){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+    },
+
     dataSearch: function (dataName, dataValue) {
         var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
         return dataSearch
     },
 
+    numSearch: function(num){
+        var numSearch = this.dataSearch("num", num);
+        return numSearch
+    },
+
+    checkInArray: function (searchVal, array){
+        var proceed = $.inArray(searchVal, array) !== -1;
+        return proceed
+    },
+
     /** -----------------------------------------------------------------------------
+     * VALIDATE FORM ENTRY BEFORE COPYING OR SAVING TABLE TO CSV
+     *
+     * This function will check that elements with a class "needForTable"
+     * are not blank. If there are blank elements, it will return false
+     * and will post an error message "Please fill out all elements marked by a blue #"
+     *
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      * -----------------------------------------------------------------------------
      */
-    data_valid_form: function ($errorMsgDiv) {
+     data_valid_form: function ($errorMsg) {
         var valid = true; //begin with a valid value of true
-        //var fail_log = ''; //begin with an empty fail log
-        //var name; //create a name variable
+        var fail_log = $("<div></div>").append("Missing values for:");
+        var name; //create a name variable
 
-        //search the_form for all elements that are of class "needForTable"
-        $('.needForTable').each(function () {
-            if (!$(this).val()) { //if there is not a value for this input
+        //search the_form for all elements that are of class "needForForm"
+        $('.needForTable').each((i, e)=> {
+            if (!$(e).val()) { //if there is not a value for this input
                 valid = false; //change valid to false
-                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
-                //fail_log += name + " is required \n"; //add to the fail log that this name is required
+                name = $(e).attr('id'); //replace the name variable with the id attribute of this element
+                fail_log.append("<br></br>"+name)
+                // fail_log += name + " is required \n"; //add to the fail log that this name is required
             }
         });
 
         if (!valid) {
-            $errorMsgDiv.html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+            $errorMsg.html(
+                "<span style='color:red; font-size:36px;'>" +
+                    "Please fill out all elements marked by a"+
+                    "</span><span style='color:blue; font-size:36px;'>" +
+                    " blue #"+
+                "</span>"
+            );
+            $errorMsg.append(fail_log);
+            // console.log("fail log\n", fail_log)    
         } else {
-            $errorMsgDiv.html("");
+            $errorMsg.html("");
         }
 
+        this.resize();
         return valid;
     },
 
     watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
         $elToUpdate.text(value);
-        my_widget_script.resize();
+        this.resize();
     },
 
     getPND_today: function () {
@@ -805,12 +954,12 @@ my_widget_script =
             $(".pndToday").text(dateDiff_days);
 
             // This prints at the top what needs to be done today and switches the Mass and AGD selector 
-            my_widget_script.updateToDoStatus(dateDiff_days);
-            my_widget_script.updateCycleStatus(dateDiff_days);
+            this.updateToDoStatus(dateDiff_days);
+            this.updateCycleStatus(dateDiff_days);
     
             return(dateDiff_days);
         } else {
-            my_widget_script.switchMassTable($("#massSelect").val());
+            this.switchMassTable($("#massSelect").val());
         }
     },
 
@@ -836,10 +985,10 @@ my_widget_script =
     },
 
     updateMatPND: function () {
-        $(".mat_pnd").each(function () {
-            var dateVal = $(this).prev(".mat_date").text();
-            var pnd = my_widget_script.getPND(dateVal);
-            $(this).text(pnd);
+        $(".mat_pnd").each((i,e)=> {
+            var dateVal = $(e).prev(".mat_date").text();
+            var pnd = this.getPND(dateVal);
+            $(e).text(pnd);
         });
     },
 
@@ -849,20 +998,20 @@ my_widget_script =
             $toDoStatus.html("<span style='color:blue'>Take mass today</span>");
             // Set massSelect to today's date
             $("#massSelect").val("pnd"+PND_today);
-            my_widget_script.switchMassTable("pnd"+PND_today);
+            this.switchMassTable("pnd"+PND_today);
         } else if ($.inArray(PND_today, [22, 23, 24, 70, 71, 72]) !== -1) {
             $toDoStatus.html("<span style='color:blue'>Take mass and AGD today</span>");
             // Set massSelect to today's date
             $("#massSelect").val("pnd"+PND_today);
-            my_widget_script.switchMassTable("pnd"+PND_today);
+            this.switchMassTable("pnd"+PND_today);
         } else if (PND_today === 21) {
             $toDoStatus.html("<span style='color:blue'>Wean and take mass today - enter in litter widget</span>");
             $("#massSelect").val("");
-            my_widget_script.switchMassTable("");
+            this.switchMassTable("");
         } else {
             $toDoStatus.html("<em>No mass or AGD today</em>");
             $("#massSelect").val("");
-            my_widget_script.switchMassTable($("#massSelect").val());
+            this.switchMassTable($("#massSelect").val());
         }
     },
 
@@ -880,17 +1029,22 @@ my_widget_script =
         $newDateClass.text(newDate);
     },
 
+    pndDays: [21, 22, 23, 24, 28, 35, 42, 49, 56, 63, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91],
+    massDays: [22, 23, 24, 28, 35, 42, 49, 56, 63, 70, 71, 72],
+    agdDays: [22, 23, 24, 70, 71, 72],
+    datesList: [21, 22, 23, 24, 28, 35, 42, 49, 56, 63, 70, 71, 72, 91],
+
     printPND_days: function () {
         if($("#DOB").val()){
-            var pndDays = [21, 22, 23, 24, 28, 35, 42, 49, 56, 63, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91]
+            var pndDays = this.pndDays;
             
             for(i = 0; i < pndDays.length; i ++ ) {
                 var pnd = pndDays[i];
-                my_widget_script.addDays($("#DOB").val(), $(".pnd"+pnd), pnd);
+                this.addDays($("#DOB").val(), $(".pnd"+pnd), pnd);
             }
         }
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     adjustForNumOffspring: function () {
@@ -915,7 +1069,7 @@ my_widget_script =
             $(".numOffspring_calc").html("<span style='color:red'>Enter a number from 1-5</span>");
         }
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     watchForVO: function () {
@@ -935,7 +1089,7 @@ my_widget_script =
 
             var mouseNum = i + 1;
             // console.log("Mouse Number is " + mouseNum);
-            var dataSearch = my_widget_script.dataSearch("num", mouseNum);
+            var dataSearch = this.numSearch(mouseNum);
 
             if($(".VO_state" + dataSearch).length === 0){
                 $(".ifVO" + dataSearch).hide();
@@ -944,9 +1098,9 @@ my_widget_script =
                 $(".VO_mass" + mouseNum + "_calc").text("NA");
                 $(".VO_date" + mouseNum + "_calc").text("NA");
             } else {
-                $(".VO_state" + dataSearch).each(function () {
+                $(".VO_state" + dataSearch).each((i,e)=> {
                     // console.log("within .VO_state function");
-                    var $this = $(this);
+                    var $this = $(e);
                     
                     // if the state is VO
                     if($this.val()==="VO") {
@@ -976,7 +1130,7 @@ my_widget_script =
                         $(".VO_status" + dataSearch).removeClass("notReached").addClass("reached").text("has");
                         $(".VO_PND" + mouseNum + "_calc").text(pndAtVO);
                         $(".VO_date" + mouseNum + "_calc").text(dateAtVO);
-                        my_widget_script.watchVO_mass(mouseNum, true);
+                        this.watchVO_mass(mouseNum, true);
                     } else {
                         // console.log(mouseNum + "has not reached VO");
                         $(".ifVO" + dataSearch).hide();
@@ -991,24 +1145,24 @@ my_widget_script =
 
         if (anyHasReachedVO) {
             $(".ifVO.msg").show();
-            my_widget_script.watchFor1E();
-            my_widget_script.adjustifOther();
+            this.watchFor1E();
+            this.adjustifOther();
         } else {
             $(".ifVO.msg").hide();
         }
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     watchVO_mass: function (mouseNum, knownStatus) {
         var hasReachedVO = false;
-        var dataSearch = my_widget_script.dataSearch("num", mouseNum);
+        var dataSearch = this.numSearch(mouseNum);
         
         if(knownStatus === true) {
             hasReachedVO = true;
         } else {
-            $(".VO_state" + dataSearch).each(function () {
-                $this = $(this);
+            $(".VO_state" + dataSearch).each((i,e)=> {
+                $this = $(e);
                 // if the state is VO
                 if($this.val()==="VO") {
                     hasReachedVO = true;
@@ -1044,11 +1198,11 @@ my_widget_script =
             massAt1E = null;
 
             var mouseNum = i + 1;
-            var dataSearch = my_widget_script.dataSearch("num", mouseNum);
+            var dataSearch = this.numSearch(mouseNum);
             // console.log("Watching " + mouseNum + " for 1E");
 
-            $(".firstE_state" + dataSearch).each(function () {
-                var $this = $(this);
+            $(".firstE_state" + dataSearch).each((i,e)=> {
+                var $this = $(e);
                 // if the state is E
                 if($this.val()==="E") {
                     $(".if1E" + dataSearch).show();
@@ -1093,7 +1247,7 @@ my_widget_script =
             }
 
         }
-        my_widget_script.resize();
+        this.resize();
     },
 
     switchMassTable: function (pnd) {
@@ -1101,16 +1255,16 @@ my_widget_script =
             var $massDiv = $("._"+pnd);
             $massDiv.show();
             $(".massDiv:not(._"+pnd).hide();
-            my_widget_script.resize();
+            this.resize();
         } else {
             $(".massDiv").hide();
         }
-        my_widget_script.resize();
+        this.resize();
     },
 
     createMaturationRow_VO: function (dateInputVal, mouseNum) {
         var $div, selectBaseName, textareaBaseName, rowCount, selectName, textareaName, pndValue;
-        var dataSearch = my_widget_script.dataSearch("num", mouseNum);
+        var dataSearch = this.numSearch(mouseNum);
         $div = $(".VO_div" + dataSearch);
         selectBaseName = "vocheck" + mouseNum + "_";
         textareaBaseName = "vocheck_other" + mouseNum + "_";
@@ -1120,17 +1274,17 @@ my_widget_script =
         selectName = selectBaseName + rowCount;
         textareaName = textareaBaseName + rowCount;
         
-        pndValue = my_widget_script.getPND(dateInputVal);
+        pndValue = this.getPND(dateInputVal);
 
 
-        $div.append(
-            $("<div/>", {
+        $div.prepend(
+            $("<div></div>", {
                 "class": "row mt-2 addedRow " + rowClassName
             }).append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "col"
                 }).append(
-                    $("<select/>", {
+                    $("<select></select>", {
                         name: selectName,
                         id: selectName,
                         "class": "VO_state fullWidth VO",
@@ -1142,9 +1296,9 @@ my_widget_script =
                         '<option value="Almost">Almost</option>',
                         '<option value="VO">Open</option>',
                         '<option value="Other">Other</option>'
-                    ).on("change", function () {
-                        my_widget_script.watchForVO();
-                        my_widget_script.showOther($(this));
+                    ).on("change", (e)=> {
+                        this.watchForVO();
+                        this.showOther($(e.currentTarget));
                     })
                 ).append(
                     $("<text" + "area></text" + "area>", {
@@ -1153,31 +1307,32 @@ my_widget_script =
                         rows: 1,
                         "class": "VO fullWidth ifOther autoAdjust",
                         "data-num": mouseNum,
-                    }).on('input', function () {
-                        this.style.height = 'auto';
-                        this.style.height = (this.scrollHeight) + 'px';
-                        my_widget_script.resize();
+                    }).on('input', (e)=> {
+                        var el = e.currentTarget;
+                        el.style.height = 'auto';
+                        el.style.height = (el.scrollHeight) + 'px';
+                        this.resize();
                     })
                 )
             ).append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "col mat_date",
                     "data-num": mouseNum
                 }).append(dateInputVal)
             ).append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "col mat_pnd",
                     "data-num": mouseNum
                 }).append(pndValue)
             )
         );
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     createMaturationRow_1E: function (dateInputVal, mouseNum) {
         var $div, selectBaseName, textareaBaseName, massBaseName, rowCount, selectName, textareaName, massName, pndValue;
-        var dataSearch = my_widget_script.dataSearch("num", mouseNum);
+        var dataSearch = this.numSearch(mouseNum);
         $div = $(".firstE_div" + dataSearch);
         selectBaseName = "firstecheck" + mouseNum + "_";
         textareaBaseName = "firstecheck" + mouseNum + "_other_";
@@ -1191,17 +1346,17 @@ my_widget_script =
         massName = massBaseName + rowCount;
         slideLocName = slideLocBaseName + rowCount;
         
-        pndValue = my_widget_script.getPND(dateInputVal);
+        pndValue = this.getPND(dateInputVal);
 
 
-        $div.append(
-            $("<div/>", {
+        $div.prepend(
+            $("<div></div>", {
                 "class": "row mt-2 addedRow " + rowClassName
             }).append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "col"
                 }).append(
-                    $("<select/>", {
+                    $("<select></select>", {
                         name: selectName,
                         id: selectName,
                         "class": "firstE_state fullWidth firstE",
@@ -1212,9 +1367,9 @@ my_widget_script =
                         '<option value="P">Proestrus</option>',
                         '<option value="E">Estrus</option>',
                         '<option value="Other">Other</option>'
-                    ).on("change", function () {
-                        my_widget_script.watchFor1E();
-                        my_widget_script.showOther($(this));
+                    ).on("change", (e)=> {
+                        this.watchFor1E();
+                        this.showOther($(e.currentTarget));
                     })
                 ).append(
                     $("<text" + "area></text" + "area>", {
@@ -1223,31 +1378,32 @@ my_widget_script =
                         rows: 1,
                         "class": "firstE fullWidth ifOther autoAdjust",
                         "data-num": mouseNum
-                    }).on('input', function () {
-                        this.style.height = 'auto';
-                        this.style.height = (this.scrollHeight) + 'px';
-                        my_widget_script.resize();
+                    }).on('input', (e)=> {
+                        var el = e.currentTarget;
+                        el.style.height = 'auto';
+                        el.style.height = (el.scrollHeight) + 'px';
+                        this.resize();
                     })
                 )
             ).append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "col"
                 }).append(
-                    $("<input/>", {
+                    $("<input></input>", {
                         name: massName,
                         id: massName,
                         type: "number",
                         "class": "firstE fullWidth firstE_mass",
                         "data-num": mouseNum
-                    }).on("input", function (){
-                        my_widget_script.watchFor1E();
+                    }).on("input", ()=>{
+                        this.watchFor1E();
                     })
                 )
             ).append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "col"
                 }).append(
-                    $("<input/>", {
+                    $("<input></input>", {
                         name: slideLocName,
                         id: slideLocName,
                         "class": "firstE fullWidth sliceLoc",
@@ -1255,23 +1411,23 @@ my_widget_script =
                     })
                 )
             ).append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "col mat_date",
                     "data-num": mouseNum
                 }).append(dateInputVal)
             ).append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "col mat_pnd",
                     "data-num": mouseNum
                 }).append(pndValue)
             )
         );
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     removeMaturationRow: function (whichPheno, mouseNum) {
-        var dataSearch = my_widget_script.dataSearch("num", mouseNum);
+        var dataSearch = this.numSearch(mouseNum);
         if(whichPheno === "VO"){
             var $div = $(".VO_div" + dataSearch);
         } else if(whichPheno === "firstE"){
@@ -1279,21 +1435,21 @@ my_widget_script =
         }
         $div.find(".addedRow").last().remove();
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     calcValues: function () {
-        $(".tableDiv").find("tr").each(function () { //for each row
-            $("td", this).each(function () { //for each cell
-                var value = $(this).text(); //get the value of the text
+        $(".tableDiv").find("tr").each((i,e)=> { //for each row
+            $("td", e).each((i,e)=> { //for each cell
+                var value = $(e).text(); //get the value of the text
                 if (value === "" || value === "NaN") { //if blank or NaN
-                    $(this).text("NA"); //make NA
+                    $(e).text("NA"); //make NA
                 }
             })
         });
 
         //resize the tableDiv
-        my_widget_script.resize();
+        this.resize();
     },
 
     // source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
@@ -1343,68 +1499,156 @@ my_widget_script =
         this.downloadCSV(csv.join("\n"), filename);
     },
 
-    copyTable: function ($table, copyHead, $divForCopy) {
-        //create a temporary text area
+        /**
+     * This function creates a temporary textarea and then appends the contents of the
+     * specified table body to this textarea, separating each cell with a tab (\t).
+     * Because the script editor in LA is within a <textarea> the script cannot contain
+     * the verbatim string "textarea" so this must be separated as "text" + "area"
+     * to avoid errors.
+     * 
+     * If copying a table that has form inputs, then need to refer to the children of 
+     * <td> tags, and get the values by using .val() instead of .text()
+     * 
+     * If copying a table that could have multiple table rows (<tr>), the use the 
+     * \n new line separator
+     * 
+     * The temporary <textarea> is appended to the HTML form, focused on, and selected.
+     * Note that this moves the literal page focus, so having this append near the 
+     * button that calls this function is best. After the <textarea> is copied, it is
+     * then removed from the page.
+     * @param {*} $table - jQuery object for the table that will be copied
+     * @param {*} copyHead - true/false for whether or not the table head should be copied
+     * @param {*} $divForCopy - where the temp textarea should be added
+     * @param {*} transpose - true if table should be transposed
+     */ 
+    copyTable: function ($table, copyHead, $divForCopy, transpose = false) {
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-        var addLine = "";
+        var rows = [];
+        var rowNum = 0;
+        // If you copying the head of the table
         if (copyHead) {
-            $table.find("thead").children("tr").each(function () { //add each child of the row
-                var addTab = "";
-                $(this).children().each(function () {
-                    $temp.text($temp.text() + addTab + $(this).text());
-                    addTab = "\t";
+            // Find thead and then all children rows
+            $table.find("thead").children("tr").each((i,e)=> {
+                // If the table is being transposed, start the row number at 0 for each new row
+                if(transpose){rowNum = 0;}
+                // For each row, find each td or th element (table cell)
+                $(e).find("td, th").each((i,e)=> {
+                    // If there's not yet an array for this row, make an empty one
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    // Add the text of each cell to the row's array
+                    rows[rowNum].push($(e).text());
+                    // If table is being transposed, add one to the row number for each cell
+                    if(transpose){rowNum++;}
                 });
+                // If table is not being transposed, add one to the row number for each row
+                if(!transpose){rowNum++;}
             });
-            addLine = "\n";
         }
 
-        $table.find("tbody").children("tr").slice(0, parseInt($("#numOffspring").val())).each(function () { //add each child of the row
-            $temp.text($temp.text() + addLine);
-            var addTab = "";
-            $(this).find("td").each(function () {
-                if ($(this).text()) {
-                    var addText = $(this).text();
+        // Find each row in the table body
+        $table.find("tbody").children("tr").slice(0, parseInt($("#numOffspring").val())).each((i,e)=> {
+            // If transposing, start the row number at 0 for each new row
+            if(transpose){rowNum = 0;}
+            // Find each cell within the row
+            $(e).find("td, th").each((i,e)=> {
+                // If there's not yet an array for this row, make an empty one
+                if(rows[rowNum]===undefined){rows[rowNum] = []}
+                // Add the text of each cell to the row's array
+                if ($(e).text()) {
+                    var addText = $(e).text();
                 } else {
                     var addText = "NA"
                 }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                addLine = "\n";
+                console.log(addText);
+                rows[rowNum].push(addText);
+                // If the table is being transposed, add one to the row number for each cell
+                if(transpose){rowNum++;}
             });
+            // If table is not being transposed, add one to the row number for each row
+            if(!transpose){rowNum++;}
         });
+
+        // For each row, join together all of the elements of the array with a \t to separate them (tab)
+        for(var i = 0; i < rows.length; i++){
+            rows[i] = rows[i].join("\t");
+        }
 
         // the div has to be showing in order to be copied
         $divForCopy.show();
-        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
+        // Add each row to the temporary text area using \n (new line) to separate them
+        $temp.append(rows.join("\n"));
+        // Append the textarea to the div for copy, then select it
+        $temp.appendTo($divForCopy).select();
+        // Copy the "selected" text
+        document.execCommand("copy");
         $divForCopy.hide();
         $temp.remove(); //remove temp
+        // Doesn't work within LA b/c of permissions, but would be easier way to copy w/o appending to page
+        // navigator.clipboard.writeText(rows.join("\n")); 
     },
 
+    // copyTable: function ($table, copyHead, $divForCopy) {
+    //     //create a temporary text area
+    //     var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+    //     var addLine = "";
+    //     if (copyHead) {
+    //         $table.find("thead").children("tr").each(function () { //add each child of the row
+    //             var addTab = "";
+    //             $(this).children().each(function () {
+    //                 $temp.text($temp.text() + addTab + $(this).text());
+    //                 addTab = "\t";
+    //             });
+    //         });
+    //         addLine = "\n";
+    //     }
+
+    //     $table.find("tbody").children("tr").slice(0, parseInt($("#numOffspring").val())).each(function () { //add each child of the row
+    //         $temp.text($temp.text() + addLine);
+    //         var addTab = "";
+    //         $(this).find("td").each(function () {
+    //             if ($(this).text()) {
+    //                 var addText = $(this).text();
+    //             } else {
+    //                 var addText = "NA"
+    //             }
+    //             $temp.text($temp.text() + addTab + addText);
+    //             addTab = "\t";
+    //             addLine = "\n";
+    //         });
+    //     });
+
+    //     // the div has to be showing in order to be copied
+    //     $divForCopy.show();
+    //     $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
+    //     document.execCommand("copy"); //copy the "selected" text
+    //     $divForCopy.hide();
+    //     $temp.remove(); //remove temp
+    // },
+
     toggleTableFuncs: function ($tableDiv, $errorMsgDiv) {
-        my_widget_script.resize();
-        my_widget_script.data_valid_form($errorMsgDiv); //run to give error, but allow to calc regardless
-        my_widget_script.calcValues();
+        this.resize();
+        this.data_valid_form($errorMsgDiv); //run to give error, but allow to calc regardless
+        this.calcValues();
         $tableDiv.toggle();
-        my_widget_script.parent_class.resize_container();
+        this.parent_class.resize_container();
     },
 
     toCSVFuncs: function (fileName, tableID, $errorMsg) {
-        var data_valid = my_widget_script.data_valid_form($errorMsg);
+        var data_valid = this.data_valid_form($errorMsg);
 
         if (data_valid) {
-            my_widget_script.calcValues();
-            my_widget_script.exportTableToCSV(fileName, tableID);
+            this.calcValues();
+            this.exportTableToCSV(fileName, tableID);
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
         }
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy){
-        var data_valid = my_widget_script.data_valid_form($errorMsg);
+        var data_valid = this.data_valid_form($errorMsg);
         var copyHead
 
         //only copy the heading when the input box is checked
@@ -1414,26 +1658,31 @@ my_widget_script =
             copyHead = false;
         }
 
-        my_widget_script.calcValues();
+        this.calcValues();
 
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
-            my_widget_script.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            this.resize(); //resize
+            this.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied attempted</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     makeHTMLforMice: function (numMice) {
-        my_widget_script.makeVOStatusMsg(numMice);
-        my_widget_script.make1EStatusMsg(numMice);
-        my_widget_script.makeDemoEntries(numMice);
-        my_widget_script.makeMassRows(numMice);
-        my_widget_script.makeDemoRows(numMice);
+        $(".VO_div").html("");
+        $(".fistE_div").html("");
+        this.makeMassSelect();
+        this.makeMassEntry(numMice);
+        this.makeDatesList();
+        this.makeVOStatusMsg(numMice);
+        this.make1EStatusMsg(numMice);
+        this.makeDemoEntries(numMice);
+        this.makeMassRows(numMice);
+        this.makeDemoRows(numMice);
     },
 
     makeVOStatusMsg: function (numMice) {
@@ -1442,7 +1691,7 @@ my_widget_script =
         for(i = 0; i < numMice; i ++ ) {
             var mouseNum = i + 1;
             $VOmsgDiv.append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "mouse" + mouseNum
                 }).append(
                     'Mouse <span class="mouseID' + mouseNum + '_calc">__</span> ' +  
@@ -1459,7 +1708,7 @@ my_widget_script =
         for(i = 0; i < numMice; i ++ ) {
             var mouseNum = i + 1;
             $firstEmsgDiv.append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "mouse" + mouseNum + " ifVO",
                     "data-num": mouseNum
                 }).append(
@@ -1480,49 +1729,73 @@ my_widget_script =
         for(i = 0; i < numMice; i ++ ) {
             var mouseNum = i + 1;
             $demoEntryDiv.append(
-                $("<div/>", {
+                $("<div></div>", {
                     "class": "mouse" + mouseNum + " row mt-2"
                 }).append(
-                    $("<div/>", {
-                        "class": "col-4 container"
+                    $("<div></div>", {
+                        "class": "col-6 col-md-3 container"
                     }).append(
-                        $("<div/>", {
+                        $("<div></div>", {
                             "class": "row"
                         }).append(
-                            $("<div/>", {
+                            $("<div></div>", {
                                 "class": "col-12"
                             }).append(
                                 "<h4 class='needForTableLab'>Mouse " + mouseNum + " ID</h4"
                             )
                         ).append(
-                            $("<div/>", {
+                            $("<div></div>", {
                                 "class": showChecked + " mouse" + mouseNum
                             }).append(
                                 '<input type="text" class="simpleCalc mouseID" id="mouseID'+mouseNum+'" name="mouseid'+mouseNum+'" data-num="'+mouseNum+'"/>'
                             )
                         ).append(
-                            $("<div/>", {
+                            $("<div></div>", {
                                 "class": "col-12 mouseID"+mouseNum+"_calc mouse"+mouseNum
                             })
                         )
                     )
                 ).append(
-                    $("<div/>", {
-                        "class": "col-4 container"
+                    $("<div></div>", {
+                        "class": "col-6 col-md-3 container"
                     }).append(
-                        $("<div/>", {
+                        $("<div></div>", {
                             "class": "row"
                         }).append(
-                            $("<div/>", {
+                            $("<div></div>", {
+                                "class": "col-12"
+                            }).append(
+                                "<h4 class='needForTableLab'>Full ID " + mouseNum + "</h4"
+                            )
+                        ).append(
+                            $("<div></div>", {
+                                "class": showChecked + " mouse" + mouseNum
+                            }).append(
+                                '<input type="text" class="simpleCalc mouseID_spec" id="mouseID_spec'+mouseNum+'" name="mouseidspec'+mouseNum+'" data-num="'+mouseNum+'"/>'
+                            )
+                        ).append(
+                            $("<div></div>", {
+                                "class": "col-12 mouseID_spec"+mouseNum+"_calc mouse"+mouseNum
+                            })
+                        )
+                    )
+                ).append(
+                    $("<div></div>", {
+                        "class": "col-6 col-md-3 container"
+                    }).append(
+                        $("<div></div>", {
+                            "class": "row"
+                        }).append(
+                            $("<div></div>", {
                                 "class": "col-12"
                             }).append(
                                 "<h4>Ear Tag " + mouseNum + "</h4"
                             )
                         ).append(
-                            $("<div/>", {
+                            $("<div></div>", {
                                 "class": showChecked + " mouse" + mouseNum
                             }).append(
-                                $("<input/>", {
+                                $("<input></input>", {
                                     name: "eartag" + mouseNum,
                                     id: "earTag" + mouseNum,
                                     type: "number",
@@ -1530,34 +1803,34 @@ my_widget_script =
                                 })
                             )
                         ).append(
-                            $("<div/>", {
+                            $("<div></div>", {
                                 "class": "col-12 earTag"+mouseNum+"_calc mouse"+mouseNum
                             })
                         )
                     )
                 ).append(
-                    $("<div/>", {
-                        "class": "col-4 container"
+                    $("<div></div>", {
+                        "class": "col-6 col-md-3 container"
                     }).append(
-                        $("<div/>", {
+                        $("<div></div>", {
                             "class": "row"
                         }).append(
-                            $("<div/>", {
+                            $("<div></div>", {
                                 "class": "col-12"
                             }).append(
                                 "<h4>Tail Mark " + mouseNum + "</h4"
                             )
                         ).append(
-                            $("<div/>", {
+                            $("<div></div>", {
                                 "class": showChecked
                             }).append(
-                                '<input type="button" value="Red |" id="redButton'+mouseNum+'" name="redbutton'+mouseNum+'" class="redButton mouse'+mouseNum+'"/> '+
-                                '<input type="button" value="Black |" id="blackButton'+mouseNum+'" name="blackbutton'+mouseNum+'" class="blackButton mouse'+mouseNum+'"/> '+
-                                '<input type="button" value="Clear" id="clearButton'+mouseNum+'" name="clearbutton'+mouseNum+'" class="clearButton mouse'+mouseNum+'"/> '+
+                                '<input type="button" value="Red |" id="redButton'+mouseNum+'" name="redbutton'+mouseNum+'" class="redButton mouse'+mouseNum+'" data-num="'+mouseNum+'"/> '+
+                                '<input type="button" value="Black |" id="blackButton'+mouseNum+'" name="blackbutton'+mouseNum+'" class="blackButton mouse'+mouseNum+'" data-num="'+mouseNum+'"/> '+
+                                '<input type="button" value="Clear" id="clearButton'+mouseNum+'" name="clearbutton'+mouseNum+'" class="clearButton mouse'+mouseNum+'" data-num="'+mouseNum+'"/> '+
                                 '<span class="tailMark" id="tailMark'+mouseNum+'" data-num="'+mouseNum+'">&nbsp;</span>'
                             )
                         ).append(
-                            $("<div/>", {
+                            $("<div></div>", {
                                 "class": "col-12 tailMark"+mouseNum+"_calc mouse"+mouseNum
                             })
                         )
@@ -1569,7 +1842,7 @@ my_widget_script =
 
     makeMassRows: function (numMice) {
         var $massTable = $("#massTable");
-        var pnds = [22, 23, 24, 28, 35, 42, 49, 56, 63, 70, 71, 72]
+        var pnds = this.massDays;
 
         for(i=0; i < numMice; i++) {
             var mouseNum = i + 1;
@@ -1578,12 +1851,136 @@ my_widget_script =
             for (j = 0; j < pnds.length; j ++ ){
                 var pnd = pnds[j];
                 $tr.append(
-                    $("<td/>", {
+                    $("<td></td>", {
                         "class": "mass_pnd" + pnd + "_" + mouseNum + "_calc"
                     })
                 )
             }
         }
+    },
+
+    makeMassSelect: function(){
+        var $select = $("#massSelect");
+        var pnds = this.massDays;
+        
+        for(i = 0; i < pnds.length; i++){
+            var pnd = pnds[i];
+            $select.append(
+                '<option value="pnd' +pnd + '">PND ' + pnd + '</option>'
+            );
+        }
+    },
+
+    makeDatesList: function(){
+        var $list = $("#datesList");
+        var pnds = this.datesList;
+        $list.html("");
+        $list.append(
+            '<div class="row"></div>'
+        );
+
+        var $row = $list.find(".row");
+
+        for(i = 0; i < pnds.length; i++){
+            var pnd = pnds[i];
+            $row.append(
+                $("<div></div>", {
+                    "class": "med3"
+                }).append(
+                    $("<strong></strong>").append(
+                        "PND " + pnd + ": "
+                    )
+                ).append(
+                    $("<span></span>", {
+                        "class": "pnd pnd" + pnd
+                    })
+                )
+            );
+        }
+    },
+
+    makeMassEntry: function (numMice = 5) {
+        var $entryDiv = $("#forMassEntry");
+        var pnds = this.massDays;
+
+        for(i = 0; i < pnds.length; i++){
+            var pnd = pnds[i];
+            $entryDiv.append(
+                $("<div></div>", {
+                    "class": "container mt-2 _pnd" + pnd + " massDiv"
+                }).append(
+                    $("<div></div>", {
+                        "class": "row align-items-end mt-2 blackBackground"
+                    }).append(
+                        $("<div></div>", {
+                            "class": "myLeftCol2"
+                        }).append(
+                            "PND " + pnd + ":"
+                        )
+                    ).append(
+                        $("<div></div>", {
+                            "class": "col pnd"+pnd
+                        })
+                    )
+                )
+            );
+
+            for(j = 0; j < numMice; j ++){
+                mouseNum = j + 1;
+                $entryDiv.find(".massDiv").last().append(
+                    $("<div></div>", {
+                        "class": "entry",
+                        "data-num": mouseNum
+                    })
+                );
+                this.addMassAGDRow(
+                    $entryDiv.find(".entry").last(),
+                    "mass",
+                    pnd,
+                    mouseNum
+                );
+                if(this.checkInArray(pnd, this.agdDays)){
+                    this.addMassAGDRow(
+                        $entryDiv.find(".entry").last(),
+                        "agd",
+                        pnd,
+                        mouseNum
+                    );
+                }
+            }
+        }
+    },
+
+    addMassAGDRow: function($div, type, pnd, mouseNum){
+        var text;
+        if(type === "mass"){
+            text = "Mass (g):";
+            idText = "mass";
+        } else if(type == "agd"){
+            text = "AGD:"
+            idText = "AGD"
+        }
+        $div.append(
+            $("<div></div>", {
+                "class": "row mt-2"
+            }).append(
+                $("<div></div>", {
+                    "class": "myLeftCol3"
+                }).append(text)
+            ).append(
+                $("<div></div>", {
+                    "class": "col"
+                }).append(
+                    $("<input></input>", {
+                        "type": "number",
+                        "class": "simpleCalc",
+                        "name": type + "_pnd" + pnd + "_" + mouseNum,
+                        "id": idText + "_pnd" + pnd + "_" + mouseNum,
+                        "data-num": mouseNum
+                    })
+                )
+            )
+        );        
     },
 
     makeDemoRows: function (numMice) {
@@ -1593,6 +1990,7 @@ my_widget_script =
             var mouseNum = i + 1;
             var $tr = $demoTable.find("tr.mouse"+mouseNum).html("");
             $tr.append(
+                '<td class="mouseID_spec'+mouseNum+'_calc"></td>'+
                 '<td class="mouseID'+mouseNum+'_calc"></td>'+
                 '<td class="earTag'+mouseNum+'_calc"></td>'+
                 '<td>F</td>'+
