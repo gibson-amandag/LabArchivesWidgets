@@ -1212,6 +1212,7 @@ $(document).ready(function () {
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
         }
+        this.resize();
     },
 
     /**
@@ -1318,6 +1319,7 @@ $(document).ready(function () {
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
+        this.resize();
     },
 
     /**
@@ -1635,6 +1637,7 @@ $(document).ready(function () {
                 "damID",
                 "sireID",
                 "genTreatment",
+                "treatment",
                 "dateOfBirth",
                 "DOB_equals",
                 "sex",
@@ -2154,6 +2157,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
+<!-- Bootbox for dialogs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
 <script>
     var $jq351 = jQuery.noConflict(true);

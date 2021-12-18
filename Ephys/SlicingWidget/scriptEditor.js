@@ -1152,6 +1152,7 @@ my_widget_script =
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
         }
+        this.resize();
     },
 
     /**
@@ -1258,6 +1259,7 @@ my_widget_script =
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
+        this.resize();
     },
 
     /**
@@ -1575,6 +1577,7 @@ my_widget_script =
                 "damID",
                 "sireID",
                 "genTreatment",
+                "treatment",
                 "dateOfBirth",
                 "DOB_equals",
                 "sex",
