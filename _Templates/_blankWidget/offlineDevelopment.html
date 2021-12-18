@@ -485,7 +485,7 @@ $(document).ready(function () {
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      * -----------------------------------------------------------------------------
      */
-    data_valid_form: function () {
+    data_valid_form: function ($errorMsg) {
         var valid = true; //begin with a valid value of true
         var fail_log = $("<div></div>").append("Missing values for:");
         var name; //create a name variable
