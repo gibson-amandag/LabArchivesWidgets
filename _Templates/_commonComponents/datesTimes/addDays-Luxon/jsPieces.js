@@ -1,23 +1,23 @@
 my_widget_script =
 {
     addEventListeners: function () {
-        $("#numDays").on("input", function () {
+        $("#numDays").on("input", (e)=> {
             if ($("#startDate").val()) {
                 var startDateVal = $("#startDate").val();
                 var $newDate = $("#newDate");
                 var numDays = $("#numDays").val();
-                my_widget_script.addDays(startDateVal, $newDate, numDays);
+                this.addDays(startDateVal, $newDate, numDays);
             } else {
                 $("#newDate").text("Enter start date");
             }
         });
 
-        $("#startDate").on("input", function () {
+        $("#startDate").on("input", (e)=> {
             if ($("#numDays").val()) {
                 var startDateVal = $("#startDate").val();
                 var $newDate = $("#newDate");
                 var numDays = $("#numDays").val();
-                my_widget_script.addDays(startDateVal, $newDate, numDays);
+                this.addDays(startDateVal, $newDate, numDays);
             } else {
                 $("#newDate").text("Enter number of days");
             }

@@ -11,7 +11,7 @@ my_widget_script =
         $(".toggleTable").on("click", (e)=> {
             var tableID = $(e.currentTarget).data("table");
             var $table = $("#"+tableID);
-            my_widget_script.toggleTableFuncs($table);
+            this.toggleTableFuncs($table);
         });
 
         $('.toCSV').on("click", (e)=> {
@@ -20,13 +20,13 @@ my_widget_script =
             var fileName = "table_"+tableID+"_"+dateToday;
             var $errorMsg = $("#errorMsg");
             
-            my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
+            this.toCSVFuncs(fileName, tableID, $errorMsg);
         });
 
        $(".copyData").on("click", (e)=> {
             var tableID = $(e.currentTarget).data("table");
             // Get the data-table text string to add to the query to find the table
-            var tableSearch = my_widget_script.tableSearch(tableID);
+            var tableSearch = this.tableSearch(tableID);
             // Find the element that tells whether or not to copy the table
             var $copyHead = $(".copyHead"+tableSearch);
             var $transpose = $(".transpose"+tableSearch);
@@ -90,20 +90,6 @@ my_widget_script =
     tableSearch: function (table){
         var tableSearch = this.dataSearch("table", table);
         return tableSearch;
-    },
-
-    /**
-     * This either shows or hides (toggles) the table provided as a parameter. 
-     * It checks if the data is valid, but this doesn't stop it from running.
-     * It resizes the widget in the process.
-     * 
-     * @param {*} $table - jQuery object for table
-     */
-    toggleTableFuncs: function ($table) {
-        this.resize();
-        this.data_valid_form();
-        $table.toggle();
-        this.parent_class.resize_container();
     },
 
     /**
@@ -255,17 +241,16 @@ my_widget_script =
     },
 
     /**
-     * Set of functions when toggleTableButton clicked
-     * resize, run data_valid_form,
-     * toggle the table (show/hide), resize the container
+     * This either shows or hides (toggles) the table provided as a parameter. 
+     * It checks if the data is valid, but this doesn't stop it from running.
+     * It resizes the widget in the process.
      * 
-     * @param {*} $table - jQuery object that is the table that will be shown/hidden
-     */
-    toggleTableFuncs: function ($table) {
-        this.resize();
-        this.data_valid_form(); //run to give error, but allow to show regardless
+     * @param {*} $table - jQuery object for table
+    **/
+     toggleTableFuncs: function ($table) {
+        this.data_valid_form();
         $table.toggle();
-        this.parent_class.resize_container();
+        this.resize();
     },
 
     /**
