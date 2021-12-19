@@ -3,7 +3,8 @@
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<!-- START:stylesheet-->
+<!-- START:stylesheet
+-->
 
   <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/stylesheets/labarchive.css">
   <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery-ui.css">
@@ -72,25 +73,24 @@ $(document).ready(function () {
         //By default it calls the parent_class's init.
 
         //uncomment to inspect and view code while developing
-        //debugger;
-
-        my_widget_script.makePlateTable("plateID");
-        my_widget_script.makePlateTable("mouseID");
-        my_widget_script.makePlateTable("time");
-        my_widget_script.makeStdEntry();
-        my_widget_script.makeSampleEntry();
-
+        // debugger;
+        
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
+        
+        // Put this before parseInitJson, and it fills everything in w/ test data
+        this.makePlates();
+        this.makeWellEntries();
+        
 
-        //Uncomment to print parsedJson to consol
+        //Uncomment to print parsedJson to console
         //console.log("init", parsedJson);
 
         //check parsedJson for info not contained in form inputs and reinitialize
         this.initDynamicContent(parsedJson);
 
         //resize the content box when the window size changes
-        window.onresize = this.resize;
+        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
 
         //Define behavior when buttons are clicked or checkboxes/selctions change
         this.addEventListeners();
@@ -106,6 +106,9 @@ $(document).ready(function () {
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
+
+        // Print to console log if any elements don't have a required name attribute
+        this.checkForNames();
     },
     
     to_json: function () {
@@ -198,23 +201,23 @@ $(document).ready(function () {
         var name; //create a name variable
 
         //search the_form for all elements that are of type select, textarea, or input
-        $('#the_form').find('select, textarea, input').each(function () {
-            if (!$(this).prop('required')) { //if this element does not have a required attribute
+        $('#the_form').find('select, textarea, input').each((i, e)=> {
+            if (!$(e).prop('required')) { //if this element does not have a required attribute
                 //don't change anything (fail remains false)
             } else { //if there is a required attribute
-                if (!$(this).val()) { //if there is not a value for this input
+                if (!$(e).val()) { //if there is not a value for this input
                     fail = true; //change fail to true
-                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                    name = $(e).attr('id'); //replace the name variable with the name attribute of this element
                     fail_log += name + " is required \n"; //add to the fail log that this name is required
                 }
 
             }
         });
 
-        $("input[type='date']").each(function () {
-            var date = $(this).val();
+        $("input[type='date']").each((i, e)=> {
+            var date = $(e).val();
             if(date){
-                var validDate = my_widget_script.isValidDate(date);
+                var validDate = this.isValidDate(date);
                 if(!validDate){
                     fail = true;
                     fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
@@ -222,10 +225,10 @@ $(document).ready(function () {
             }
         });
 
-        $("input[type='time']").each(function () {
-            var time = $(this).val();
+        $("input[type='time']").each((i, e)=> {
+            var time = $(e).val();
             if(time){
-                var validtime = my_widget_script.isValidTime(time);
+                var validtime = this.isValidTime(time);
                 if(!validtime){
                     fail = true;
                     fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
@@ -234,7 +237,7 @@ $(document).ready(function () {
         });
 
         if (fail) { //if fail is true (meaning a required element didn't have a value)
-            return alert(fail_log); //return the fail log as an alert
+            return bootbox.alert(fail_log); //return the fail log as an alert
         } else {
             var noErrors = [];
             return noErrors;
@@ -288,7 +291,19 @@ $(document).ready(function () {
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
+            $("input[type='date']").removeClass(".hasDatePicker");
             $(".hideView").hide();
+            $("#entryContainer").insertAfter($("#platesWrapper"));
+            this.toggleCard($(".plateCard[data-plate='plateID']").find(".card-header"));
+
+        } else {
+            $("input[type='date']").each((i, e)=> {
+                this.checkDateFormat($(e));
+            });
+            
+            $("input[type='time']").each((i, e)=> {
+                this.checkTimeFormat($(e));
+            });
         }
     },
 
@@ -297,58 +312,7 @@ $(document).ready(function () {
      * This could include when buttons are clicked or when inputs change.
      */
     addEventListeners: function () {
-        $("#sampleNum").on("change", function () {
-            my_widget_script.adjustForNumSamples();
-        });
-
-        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
-        $('#toCSV').on("click", function () {
-            var fileName = "cortEIA_Plate";
-            var tableID = "plateIDImg";
-            var $errorMsg = $("#errorMsg");
-            
-            my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
-        });
-
-        //When the copy button is clicked, run the copyTable function
-        // $("#copyDataButton").on("click", function () {
-        $(".copyPlate").on("click", function () {
-            var $copyHead = true;
-            var plateType = $(this).data("plate");
-            var plateSearch = my_widget_script.dataSearch("plate", plateType);
-            console.log(plateSearch);
-            var $tableToCopy = $(".plateImg" + plateSearch);
-            var $tableDiv = $(".plateDiv" + plateSearch);
-            var $errorMsg = $(".errorMsg"+plateSearch);
-            console.log($errorMsg);
-            var $divForCopy = $(".forCopy"+plateSearch);
-            
-            my_widget_script.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
-        });
-
-        $("#copySamplesButton").on("click", function (){
-            var $errorMsg = $("#errorMsg");
-            var $divForCopy = $("#forCopy");
-            var duplicate = false;
-
-            my_widget_script.copySampleIDsFuncs($errorMsg, $divForCopy, duplicate);
-        });
-
-        $("#copySamplesButton_dup").on("click", function (){
-            var $errorMsg = $("#errorMsg");
-            var $divForCopy = $("#forCopy");
-            var duplicate = true;
-
-            my_widget_script.copySampleIDsFuncs($errorMsg, $divForCopy, duplicate);
-        });
-
-        $("#copyMouseIDsButton").on("click", function (){
-            var $errorMsg = $("#errorMsg");
-            var $divForCopy = $("#forCopy");
-            
-            my_widget_script.copyMouseIDs($divForCopy);
-        });
-
+        
     },
 
     /**
@@ -359,14 +323,14 @@ $(document).ready(function () {
      * red * before fields with the "requiredLab" property
      */
     addRequiredFieldIndicators: function () {
-        $('.needForTableLab').each(function () { //find element with class "needForFormLab"
-            //alert($(this).val());
-            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
+        $('.needForTableLab').each((i, e)=> { //find element with class "needForFormLab"
+            //alert($(e).val());
+            $(e).html("<span class='hideView' style='color:blue'>#</span>" + $(e).html()); //add # before
         });
 
-        $('.requiredLab').each(function () { //find element with class "requiredLab"
-            //alert($(this).val());
-            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
+        $('.requiredLab').each((i, e)=> { //find element with class "requiredLab"
+            //alert($(e).val());
+            $(e).html("<span class='hideView' style='color:red'>*</span>" + $(e).html()); //add # before
         });
     },
 
@@ -387,20 +351,22 @@ $(document).ready(function () {
         if(input.type !== "time"){
             supported = false;
         }
-        my_widget_script.timeSupported = supported;
+        this.timeSupported = supported;
+        input.remove();
         return (supported);
     },
 
     timeSupported: true,
 
     checkTimeFormat: function ($timeInput) {
-        if(!my_widget_script.timeSupported){ // if not supported
+        if(!this.timeSupported){ // if not supported
             $timeInput.next(".timeWarning").remove();
             var time = $timeInput.val();
-            var isValid = my_widget_script.isValidTime(time);
+            var isValid = this.isValidTime(time);
             if(!isValid){
                 $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
             }
+            this.resize();
         }
     },
 
@@ -424,22 +390,23 @@ $(document).ready(function () {
         if(input.type !== "date"){
             supported = false;
         }
-        my_widget_script.dateSupported = supported;
+        this.dateSupported = supported;
+        input.remove();
         return (supported);
     },
 
     dateSupported: true,
 
     checkDateFormat: function ($dateInput) {
-        if(!my_widget_script.dateSupported){ // if not supported
+        if(!this.dateSupported){ // if not supported
             $dateInput.next(".dateWarning").remove();
             var date = $dateInput.val();
-            var isValid = my_widget_script.isValidDate(date);
+            var isValid = this.isValidDate(date);
             if(!isValid){
                 $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
             }
             $dateInput.datepicker({dateFormat: "yy-mm-dd"})
-            console.log($dateInput.val());
+            this.resize();
         }
     },
 
@@ -449,141 +416,149 @@ $(document).ready(function () {
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
-        my_widget_script.isDateSupported();
-        my_widget_script.isTimeSupported();
-        
-        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
-            my_widget_script.checkDateFormat($(this));
-        }).each(function () {
-            my_widget_script.checkDateFormat($(this));
-        });
-        
-        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
-            my_widget_script.checkTimeFormat($(this));
-        }).each(function () {
-            my_widget_script.checkTimeFormat($(this));
-        });
-        
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
+        
+        this.isDateSupported();
+        this.isTimeSupported();
 
-        $('textarea.autoAdjust').each(function () {
-            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-        }).on('input', function () {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-            my_widget_script.resize();
+
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", (e)=> {
+            this.checkDateFormat($(e.currentTarget));
+        });
+        
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", (e)=> {
+            this.checkTimeFormat($(e.target));
         });
 
-        // Output table calculations
-        $(".simpleCalc").each(function () {
-            var elementID = this.id;
-            var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
-        }).on("input", function () {
-            var elementID = this.id;
-            var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
+        $('textarea.autoAdjust').each((i,e)=> { // i is the index for each match, textArea is the object
+            e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', (e)=> {
+            e.target.style.height = 'auto';
+            e.target.style.height = (e.target.scrollHeight) + 'px';
+            this.resize();
         });
 
-        $(".std").each(function () {
-            var dataStd = $(this).data("std");
-            my_widget_script.updatePlateValsStd(dataStd);
-        }).on("input", function () {
-            var dataStd = $(this).data("std");
-            my_widget_script.updatePlateValsStd(dataStd);
+        $(".toggleTable").on("click", (e)=> {
+            var tableID = $(e.currentTarget).data("table");
+            var $table = $("#"+tableID);
+            this.toggleTableFuncs($table);
         });
 
-        $(".sample").each(function () {
-            var dataSample = $(this).data("sample");
-            my_widget_script.updatePlateValsSamples(dataSample, "plateID", "sample");
-        }).on("input", function () {
-            var dataSample = $(this).data("sample");
-            my_widget_script.updatePlateValsSamples(dataSample, "plateID", "sample");
-        });
-        $(".mouseID").each(function () {
-            var dataSample = $(this).data("sample");
-            my_widget_script.updatePlateValsSamples(dataSample, "mouseID", "mouseID");
-        }).on("input", function () {
-            var dataSample = $(this).data("sample");
-            my_widget_script.updatePlateValsSamples(dataSample, "mouseID", "mouseID");
-        });
-        $(".time").each(function () {
-            var dataSample = $(this).data("sample");
-            my_widget_script.updatePlateValsSamples(dataSample, "time", "time");
-        }).on("input", function () {
-            var dataSample = $(this).data("sample");
-            my_widget_script.updatePlateValsSamples(dataSample, "time", "time");
+        $('.toCSV').on("click", (e)=> {
+            var tableID = $(e.currentTarget).data("table");
+            var dateToday = luxon.DateTime.now().toISODate(); // Luxon has to be added in HTML
+            var fileName = "table_"+tableID+"_"+dateToday;
+            var $errorMsg = $("#errorMsg");
+            
+            this.toCSVFuncs(fileName, tableID, $errorMsg);
         });
 
-        if($("#useTextEntry").is(":checked")){
-            $("#idEntry").each(function () {
-                my_widget_script.fillSampleIDsFromList($(this));
-            }).on("change", function () {
-                my_widget_script.fillSampleIDsFromList($(this));
-            });
-        }
+    //    $(".copyData").on("click", (e)=> {
+    //         var tableID = $(e.currentTarget).data("plate");
+    //         // Get the data-table text string to add to the query to find the table
+    //         var tableSearch = this.tableSearch(tableID);
+    //         // Find the element that tells whether or not to copy the table
+    //         var $copyHead = $(".copyHead"+tableSearch);
+    //         var $transpose = $(".transpose"+tableSearch);
+    //         var $tableToCopy = $("#"+tableID);
+    //         var $tableDiv = $tableToCopy.parent();
+    //         var $errorMsg = $("#errorMsg");
+    //         var $divForCopy = $("#forCopy");
+            
+    //         this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose)
+    //     });
 
-        $("#useTextEntry").on("change", function () {
-            if($("#useTextEntry").is(":checked")){
-                $("#idEntry").each(function () {
-                    my_widget_script.fillSampleIDsFromList($(this));
-                }).on("change", function () {
-                    my_widget_script.fillSampleIDsFromList($(this));
-                });
-            } else {
-                $("#idEntry").off("change");
-            }
+        $(".copyPlate").on("click", (e)=> {
+            var copyHead = true;
+            var plateType = $(e.target).data("plate");
+            var plateSearch = this.plateSearch(plateType);
+            // console.log(plateSearch);
+            var $tableToCopy = $(".plateImg" + plateSearch);
+            var $tableDiv = $(".plateDiv" + plateSearch);
+            var $errorMsg = $(".errorMsg"+plateSearch);
+            // console.log($errorMsg);
+            var $divForCopy = $(".forCopy"+plateSearch);
+            
+            this.copyDataFuncs(copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
+        });
+
+        $("#downloadCSV").on("click", (e)=>{
+            var date = $("#date").val();
+            // var exp = $("#experiment").val(); // this can get messy
+            var fileName = "cortPlate_"
+            // +exp+"_"
+            +date;
+            this.exportAllTablesToCSV(fileName);
         })
 
-        my_widget_script.adjustForNumSamples();
-        my_widget_script.resize();
-    },
+        $(".copyMouseIDs").on("click", (e)=>{
+            var $divForCopy = $("#forCopy");
+            var listName = $(e.currentTarget).data("list");
 
-    fillSampleIDsFromList: function ($list){
-        var fullList = $list.val();
-        var splitList = fullList.split(/[\r\n]+/);
-        if(splitList.length <= 19){
-            $("#sampleNum").val(splitList.length * 2);
-            my_widget_script.adjustForNumSamples()
-        } else if(splitList.length > 19){
-            $("#sampleNum").val(38);
-            my_widget_script.adjustForNumSamples()
-        }
-        sampleNum = 0;
-        for (var i = 0; i < splitList.length && i < 19; i++ ){
-            mouseID = splitList[i];
-            sampleNum++;
+            this.copyMouseIDs(listName, $divForCopy);
+        });
 
-            // Sample ID
-            $preSample = $("#sample"+sampleNum);
-            $preSample.val(
-                mouseID + " pre"
-            );
-            var dataPreSample = $preSample.data("sample");
-            my_widget_script.updatePlateValsSamples(dataPreSample, "plateID", "sample");
-            
-            // Mouse ID
-            $preMouseID = $("#mouse"+sampleNum);
-            $preMouseID.val(mouseID);
-            my_widget_script.updatePlateValsSamples(dataPreSample, "mouseID", "mouseID");
+        $("#idEntry2").each((i,e)=> {
+            this.fillSampleIDsFromList($(e));
+        }).on("change", (e)=> {
+            this.fillSampleIDsFromList($(e.currentTarget));
+        });
 
+        $(".calcTotal").on("change", (e)=>{
+            this.calcNumAssignedWells();
+        });
 
-            // Sample ID
-            sampleNum++;
-            $postSample = $("#sample"+sampleNum);
-            $postSample.val(
-                mouseID + " post"
-            );
-            var dataPostSample = $postSample.data("sample");
-            my_widget_script.updatePlateValsSamples(dataPostSample, "plateID", "sample");
+        $("#updateEntries").on("click", ()=>{
+            this.checkAndUpdateWells();
+        });
 
-            // Mouse ID
-            $postMouseID = $("#mouse"+sampleNum);
-            $postMouseID.val(mouseID);
-            my_widget_script.updatePlateValsSamples(dataPostSample, "mouseID", "mouseID");
-        }
-        my_widget_script.resize();
+        this.calcNumAssignedWells();
+        this.checkAndUpdateWells();
+
+        $(".type").each((i,e)=>{
+            this.fillByType($(e));
+        }).on("change", (e)=>{
+            this.fillByType($(e.currentTarget));
+        })
+
+        // Generic update when any part of the form has user input
+        $("#the_form").on("input", (e)=>{
+            // Add a watch attribute to elements if need to be more specific, such as
+            // to specify a day or a mouse to update
+            if($(e.target).data("watch")){
+                this.watchValue($(e.target));
+            } else{
+                // the target will be whatever is currently receiving input
+                // This will update any field with a "data-calc" attribute that
+                // matches the id of the target element
+                this.updateCalcFromEl(e.target);
+            }
+        });
+        
+        // Run this first incase calcValues needs to overrule
+        $("input, select, textarea").each((i,e)=>{
+            if($(e).attr("type")!= "button"){
+                if($(e).data("watch")){
+                    this.watchValue($(e));
+                } else {
+                    // This will update any field with a "data-calc" attribute that
+                    // matches the id of the target element
+                    this.updateCalcFromEl(e);   
+                }
+            }
+        });
+
+        
+
+        // for(i = 0; i < this.wellGroups; i++){
+        //     var wellGroup = i + 1;
+        //     var wellIDs = this.getWellIDsFromGroupNum(wellGroup);
+        //     this.fillWells("plateID", wellIDs, wellGroup);
+        //     // console.log("wellGroup", wellGroup, "well1", wellIDs.well1, "well2", wellIDs.well2)
+        // }
+
+        this.resize();
     },
 
     /**
@@ -592,12 +567,35 @@ $(document).ready(function () {
      */
     resize: function () {
         //resize the container
-        my_widget_script.parent_class.resize_container();
+        this.parent_class.resize_container();
+    },
+
+    checkForNames: function() {
+        $("input, select, textarea").each((i,e)=>{
+            var thisName = $(e).attr("name");
+            if(!thisName){
+                console.log("There is no name attribute for: ", e.id);
+            } else {
+                var hasUpper = /[A-Z]/.test(thisName);
+                if(hasUpper){
+                    console.log("The name contains an uppercase letter for: ", e.id);
+                }
+            }
+        })
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
+    /**
+     * getDynamicContent, such as the number of rows added to the page
+     * 
+     * If you add something here, you need to read it within to_json to 
+     * provide it to the output of to_json to be read when initiating form
+     * 
+     * If you're just reading data that's stored as a property of 
+     * my_widget_script, you can do that directly in to_json
+     */ 
     getDynamicContent: function () {
         var dynamicContent = {};
         return dynamicContent;
@@ -614,459 +612,314 @@ $(document).ready(function () {
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      * -----------------------------------------------------------------------------
      */
-    data_valid_form: function () {
+    data_valid_form: function ($errorMsg) {
         var valid = true; //begin with a valid value of true
-        //var fail_log = ''; //begin with an empty fail log
-        //var name; //create a name variable
+        var fail_log = $("<div></div>").append("Missing values for:");
+        var name; //create a name variable
 
         //search the_form for all elements that are of class "needForForm"
-        $('.needForTable').each(function () {
-            if (!$(this).val()) { //if there is not a value for this input
+        $('.needForTable').each((i, e)=> {
+            if (!$(e).val()) { //if there is not a value for this input
                 valid = false; //change valid to false
-                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
-                //fail_log += name + " is required \n"; //add to the fail log that this name is required
+                name = $(e).attr('id'); //replace the name variable with the id attribute of this element
+                fail_log.append("<br/>"+name)
+                // fail_log += name + " is required \n"; //add to the fail log that this name is required
             }
         });
 
         if (!valid) {
-            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+            $errorMsg.html(
+                "<span style='color:red; font-size:36px;'>" +
+                    "Please fill out all elements marked by a"+
+                    "</span><span style='color:blue; font-size:36px;'>" +
+                    " blue #"+
+                "</span>"
+            );
+            $errorMsg.append(fail_log);
+            // console.log("fail log\n", fail_log)    
         } else {
-            $("#errorMsg").html("");
+            $errorMsg.html("");
         }
 
+        this.resize();
         return valid;
     },
 
+    //#region dialog boxes
+    /**
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+        );
+    */
+    runIfConfirmed: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = elForHeight.offsetTop + "px";
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.dialogConfirm(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
+            }
+        );
+        */
+    dialogConfirm: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = elForHeight.offsetTop + "px";
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     *  
+     * Example:
+     * this.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
+            }
+        );
+        */ 
+    runBasedOnInput: function(prompt, functionToCall, elForHeight = null){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = elForHeight.offsetTop + "px";
+        }
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+    //#endregion dialog boxes
+
+    checkInArray: function (searchVal, array){
+        var proceed = $.inArray(searchVal, array) !== -1;
+        return proceed
+    },
+
+    /**
+     * Build a string for search for a HTML element that has a particular data value
+     * ex: mouseSearch = dataSearch("mouse", 1) -> mouseSearch = "[data-mouse=1]"
+     * $(".mouseID" + mouseSearch) would find an element with class mouseID and data-mouse = 1
+     * 
+     * @param {*} dataName String for the name of the data attribute within the HTML form 
+     * @param {*} dataValue Value you want to match
+     * @returns A text string that can be added to a jQuery search for an element that matches the data value
+    **/
     dataSearch: function (dataName, dataValue) {
         var dataSearch = "[data-" + dataName + "='" + dataValue + "']";
         return dataSearch
     },
-    // example - dataSearch("well", "1A") -> "[data-well = '1A']"
 
-    watchValue: function ($elToWatch, $elToUpdate) {
-        var value = $elToWatch.val();
-        $elToUpdate.text(value);
+    /**
+     * Builds a string "[data-table=table]". See dataSearch explanation
+     * @param {*} table string for data-table value that you want to match
+     * @returns 
+    **/
+    tableSearch: function (table){
+        var tableSearch = this.dataSearch("table", table);
+        return tableSearch;
     },
 
-    makePlateTable: function (plateType) {
-        var plateSearch = my_widget_script.dataSearch("plate", plateType);
-        var $table = $(".plateImg" + plateSearch);
+    calcSearch: function (calc) {
+        var calcSearch = this.dataSearch("calc", calc);
+        return calcSearch;
+    },
 
-        // Add the first row
-        $table.append(
-            $("<tr/>", {
-                "class": "row0"
-            })
-        );
+    watchSearch: function (watch) {
+        var watchSearch = this.dataSearch("watch", watch);
+        return watchSearch;
+    },
 
-        var $tableRow = $table.find(".row0");
+    daySearch: function (day) {
+        var daySearch = this.dataSearch("day", day);
+        return daySearch;
+    },
 
-        // Add the columns for the first row
-        for( var col = 0; col < 13; col ++) {
-            // If it's column 0, leave it blank
-            if(col == 0){
-                $tableRow.append(
-                    $("<th/>").append(plateType)
-                )
-            } else { // otherwise, make it class by column number and append the column number in a cell
-                $tableRow.append(
-                    $("<th/>", {
-                        "class": "col"+col
-                    }).append(col)
-                )
-            }   
+    mouseSearch: function (mouse) {
+        var mouseSearch = this.dataSearch("mouse", mouse);
+        return mouseSearch;
+    },
+
+    plateSearch: function (plate) {
+        var plateSearch = this.dataSearch("plate", plate);
+        return plateSearch;
+    },
+
+    wellSearch: function (well) {
+        var wellSearch = this.dataSearch("well", well);
+        return wellSearch;
+    },
+
+    groupSearch: function (group) {
+        var groupSearch = this.dataSearch("group", group);
+        return groupSearch;
+    },
+
+    updateCalcFromEl: function (el) {
+        // Get the element id
+        var calc = el.id;
+        // Get the element value
+        var val = el.value;
+        // Get the data-calc search string to match id
+        var calcSearch = this.calcSearch(calc);
+
+        // Update any element that matches the calc search with the value
+        $(calcSearch).html(val);
+        this.resize();
+    },
+
+    updateCalcFromVal: function(calc, val){
+        var calcSearch = this.calcSearch(calc);
+        $(calcSearch).text(val);
+        this.resize();
+    },
+
+    watchValue: function ($el) {
+        var watch = $el.data("watch");
+        var calcSearch = my_widget_script.calcSearch(watch);
+        var groupNum = $el.data("group");
+        var mouseNum = $el.data("mouse");
+        var val = $el.val();
+        if(groupNum){
+            calcSearch += my_widget_script.groupSearch(groupNum);
+        }
+        if(mouseNum){
+            calcSearch += my_widget_script.mouseSearch(mouseNum);
+        }
+        if(watch == "plateID"){
+            if(!val){
+                // val = "Sample " + groupNum;
+            }
+        }
+        $(calcSearch).html(val);
+
+        // Update wells
+        if(groupNum && this.checkInArray(watch, this.entryTypes)){
+            var wellIDs = this.getWellIDsFromGroupNum(groupNum);
+            this.fillWells(watch, wellIDs, val);
         }
 
-        var rowLetters = ["", "A", "B", "C", "D", "E", "F", "G", "H"];
-        var rowPairs1 = [1, 2, 5, 6];
-        var shading;
-
-        // For subsequent rows
-        for (var row = 1; row < 9; row++) {
-            // Make the row and give it the class based on row letter
-            $table.append(
-                $("<tr/>", {
-                    "class": "row"+rowLetters[row]
-                })
-            )
-            
-            $tableRow = $table.find(".row"+rowLetters[row]);
-
-            for( var col = 0; col < 13; col++) {
-                if (my_widget_script.isEven(col)){
-                    if(rowPairs1.includes(row)){
-                        shading = "light";
-                    } else {shading = "dark";}
-                } else {
-                    if(rowPairs1.includes(row)){
-                        shading = "dark";
-                    } else {shading = "light";}
-                }
-                if(col == 0){
-                    $tableRow.append(
-                        $("<th/>", {
-                            "class": "row"+rowLetters[row]
-                        }).append(rowLetters[row])
-                    )
-                } else {
-                    $tableRow.append(
-                        $("<td/>", {
-                            "class": "col" + col + " row" + rowLetters[row] + " well " + shading,
-                            "data-well": col + rowLetters[row]
-                        })
-                    )
-                }
-            }
-        }
+        my_widget_script.resize();
     },
 
-    isEven: function(value) {
-	if (value%2 == 0)
-		return true;
-	else
-		return false;
+    //#region copy tables
+    /**
+     * This either shows or hides (toggles) the table provided as a parameter. 
+     * It checks if the data is valid, but this doesn't stop it from running.
+     * It resizes the widget in the process.
+     * 
+     * @param {*} $table - jQuery object for table
+    **/
+    toggleTableFuncs: function ($table) {
+        this.data_valid_form();
+        $table.toggle();
+        this.resize();
     },
 
-    adjustForNumSamples: function () {
-        var numSamples = parseInt($("#sampleNum").val());
+    /**
+     * Set of functions when toCSVButton clicked
+     * 
+     * Checked if data is valid, exports the table to a CSV
+     * Updates the error message accordingly
+     * 
+     * @param {string} fileName - fileName for the CSV that will be produced
+     * @param {string} tableID - tableID as a string for the table that will be copied
+     * @param $errorMsg - error message div as jQuery object
+    **/
+    toCSVFuncs: function (fileName, tableID, $errorMsg) {
+        var data_valid = this.data_valid_form($errorMsg); // update data_valid_form to print to specific error field
 
-        // Hide everything, then show only the relevant ones
-        $(".sampleDiv").hide();
-
-        if(numSamples >= 1 && numSamples <= 38){
-            for(i = 0; i < numSamples; i++){
-                var dataSearch = my_widget_script.dataSearch("sample", i+1);
-                $(".sampleDiv" + dataSearch).show();
-                var defaultTime;
-                if(!my_widget_script.isEven(i + 1)){
-                    defaultTime = 0
-                } else {
-                    defaultTime = 5
-                }
-                $(".time"+dataSearch).val(defaultTime);
-                my_widget_script.updatePlateValsSamples(i+1, "time", "time");
-            }
-
-            for(i; i < 38; i ++ ){
-                var dataSearch = my_widget_script.dataSearch("sample", i+1);
-                $(".sample" + dataSearch).val("");
-                $(".mouseID" + dataSearch).val("");
-                $(".time" + dataSearch).val("");
-                my_widget_script.updatePlateValsSamples(i+1, "plateID", "sample");
-                my_widget_script.updatePlateValsSamples(i+1, "mouseID", "mouseID");
-                my_widget_script.updatePlateValsSamples(i+1, "time", "time");
-            }
-            $(".sampleNum_calc").html("");
+        if (data_valid) {
+            this.exportTableToCSV(fileName, tableID);
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
         } else {
-            $(".sampleNum_calc").html("<span style='color:red'>Enter a number from 1-38</span>");
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
         }
-
-        my_widget_script.resize();
-    },
-
-    makeStdEntry: function () {
-        var $entryDiv = $(".stdsEntry");
-        var colClasses = "col-12 col-sm-6 col-md-4 col-lg-3 mt-2 ";
-
-        $entryDiv.empty();
-
-        $entryDiv.append(
-            $("<div/>", {
-                "class": colClasses + "stdDiv",
-                "data-std": "NSB"
-            }).append(
-                "NSB: <br/>"
-            ).append(
-                $("<input/>", {
-                    type: "text",
-                    name: "nsb",
-                    id: "NSB",
-                    "class": "std",
-                    "data-std": "NSB",
-                    value: "NSB"
-                })
-            )
-        );
-
-        for(i = 0; i < 7; i ++ ){
-            stdNum = i + 1;
-
-            $entryDiv.append(
-                $("<div/>", {
-                    "class": colClasses + "stdDiv",
-                    "data-std": stdNum
-                }).append(
-                    "Std " + stdNum + ": <br/>"
-                ).append(
-                    $("<input/>", {
-                        type: "text",
-                        name: "std"+stdNum,
-                        id: "std"+stdNum,
-                        "class": "std",
-                        "data-std": stdNum,
-                        value: "STD " + stdNum
-                    })
-                )
-            );
-        }
-
-        $entryDiv.append(
-            $("<div/>", {
-                "class": colClasses + "stdDiv",
-                "data-std": "buffCon"
-            }).append(
-                "Buffer Ctrl: <br/>"
-            ).append(
-                $("<input/>", {
-                    type: "text",
-                    name: "buffcon",
-                    id: "buffCon",
-                    "class": "std",
-                    "data-std": "buffCon",
-                    value: "bufferCtrl"
-                })
-            )
-        ).append(
-            $("<div/>", {
-                "class": colClasses + "stdDiv",
-                "data-std": "cort"
-            }).append(
-                "Cort Standard: <br/>"
-            ).append(
-                $("<input/>", {
-                    type: "text",
-                    name: "cort",
-                    id: "cort",
-                    "class": "std",
-                    "data-std": "cort",
-                    value: "C_2"
-                })
-            )
-        );
-
-    },
-
-    makeSampleEntry: function () {
-        var $entryDiv = $(".sampleEntry");
-        var colClasses = "col-12 col-sm-6 col-md-4 col-lg-3 mt-2 ";
-
-        $entryDiv.empty();
-
-        for(i = 0; i < 38; i ++ ) {
-            sampleNum = i + 1;
-            var defaultTime;
-            if (my_widget_script.isEven(sampleNum)){
-                defaultTime = 5
-            } else {
-                defaultTime = 0
-            }
-
-            $entryDiv.append(
-                $("<div/>", {
-                    "class": colClasses + "sampleDiv",
-                    "data-sample": sampleNum
-                }).append(
-                    "<strong>Sample " + sampleNum + ":</strong> <br/>"
-                ).append(
-                    $("<input/>", {
-                        type: "text",
-                        name: "sample"+sampleNum,
-                        id: "sample"+sampleNum,
-                        "class": "sample",
-                        "data-sample": sampleNum
-                    })
-                ).append(
-                    "<br/>Mouse: <br/>"
-                ).append(
-                    $("<input/>", {
-                        type: "text",
-                        name: "mouse"+sampleNum,
-                        id: "mouse"+sampleNum,
-                        "class": "mouseID",
-                        "data-sample": sampleNum
-                    })
-                ).append(
-                    "<br/>Time: <br/>"
-                ).append(
-                    $("<input/>", {
-                        type: "number",
-                        name: "time"+sampleNum,
-                        id: "time"+sampleNum,
-                        "class": "time",
-                        "data-sample": sampleNum,
-                        value: defaultTime
-                    })
-                )
-            )
-        }
-    },
-
-    updatePlateValsStd: function (stdVal) {
-        var dataSearchVal = my_widget_script.dataSearch("std", stdVal);
-        var col, row1, row2
-        var dataSearchWell1, dataSearchWell2
-
-        switch (stdVal) {
-            case "NSB":
-                col = 1;
-                row1 = "A";
-                row2 = "B";
-                break;
-
-            case 1:
-                col = 1;
-                row1 = "C";
-                row2 = "D";
-                break;
-
-            case 2:
-                col = 1;
-                row1 = "E";
-                row2 = "F";
-                break;
-            
-            case 3:
-                col = 1;
-                row1 = "G";
-                row2 = "H";
-                break;
-
-            case 4:
-                col = 2;
-                row1 = "A";
-                row2 = "B";
-                break;
-            
-            case 5:
-                col = 2;
-                row1 = "C";
-                row2 = "D";
-                break;
-
-            case 6:
-                col = 2;
-                row1 = "E";
-                row2 = "F";
-                break;
-
-            case 7:
-                col = 2;
-                row1 = "G";
-                row2 = "H";
-                break;
-
-            case "buffCon":
-                col = 3;
-                row1 = "A";
-                row2 = "B";
-                break;
-
-            case "cort":
-                col = 3;
-                row1 = "C";
-                row2 = "D";
-                break;
-            default:
-                break;
-        }
-        
-        dataSearchWell1 = my_widget_script.dataSearch("well", "" + col+row1);
-        dataSearchWell2 = my_widget_script.dataSearch("well", "" + col+row2);
-
-        my_widget_script.watchValue($(".std" + dataSearchVal), $("#plateIDImg").find(".well" + dataSearchWell1));
-        my_widget_script.watchValue($(".std" + dataSearchVal), $("#plateIDImg").find(".well" + dataSearchWell2));
-    },
-
-    updatePlateValsSamples: function (sampleNum, plateType, valType) {
-        var dataSearchVal = my_widget_script.dataSearch("sample", sampleNum);
-        var col, row1, row2
-        var dataSearchWell1, dataSearchWell2
-        var plateSearch = my_widget_script.dataSearch("plate", plateType);
-
-        cols = [
-            "", 3, 3,
-            4, 4, 4, 4, 
-            5, 5, 5, 5,
-            6, 6, 6, 6,
-            7, 7, 7, 7,
-            8, 8, 8, 8,
-            9, 9, 9, 9,
-            10, 10, 10, 10,
-            11, 11, 11, 11,
-            12, 12, 12, 12
-        ];
-
-        row1s = [
-            "", "E", "G", // 3
-            "A", "C", "E", "G", // 4 
-            "A", "C", "E", "G", // 5 
-            "A", "C", "E", "G", // 6 
-            "A", "C", "E", "G", // 7 
-            "A", "C", "E", "G", // 8 
-            "A", "C", "E", "G", // 9 
-            "A", "C", "E", "G", // 10 
-            "A", "C", "E", "G", // 11
-            "A", "C", "E", "G", // 12
-        ];
-
-        row2s = [
-            "", "F", "H", // 3
-            "B", "D", "F", "H", // 4
-            "B", "D", "F", "H", // 5
-            "B", "D", "F", "H", // 6
-            "B", "D", "F", "H", // 7
-            "B", "D", "F", "H", // 8
-            "B", "D", "F", "H", // 9
-            "B", "D", "F", "H", // 10
-            "B", "D", "F", "H", // 11
-            "B", "D", "F", "H", // 12
-        ]
-
-        col = cols[sampleNum];
-        row1 = row1s[sampleNum];
-        row2 = row2s[sampleNum];
-
-        dataSearchWell1 = my_widget_script.dataSearch("well", "" + col+row1);
-        dataSearchWell2 = my_widget_script.dataSearch("well", "" + col+row2);
-
-        my_widget_script.watchValue($("." + valType + dataSearchVal), $(".plateImg"+plateSearch).find(".well" + dataSearchWell1));
-        my_widget_script.watchValue($("." + valType + dataSearchVal), $(".plateImg"+plateSearch).find(".well" + dataSearchWell2));
-
-        my_widget_script.resize();
-    },
-
-    toggleCard: function ($cardHead) {
-        // console.log($cardHead.next());
-        $cardHead.next().toggleClass("collapse");
-        $cardHead.next().find("textarea.autoAdjust").each(function () {
-            if(! $(this).is(":hidden")) {
-                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-            } 
-        });
-        my_widget_script.resize();
-    },
-
-    makeCard: function ($div, cardHeadContent, cardBodyContent) {
-        // Add extras to header, such as classes or data attributes in calling function after making the card
-        $div.append(
-            $("<div/>", {
-                "class": "card"
-            }).append(
-                $("<div/>", {
-                    "class": "card-header"
-                }).on("click", function () {
-                    // console.log($(this));
-                    my_widget_script.toggleCard($(this));
-                }).append(cardHeadContent)
-            ).append(
-                $("<div/>", {
-                    "class": "card-body"
-                }).append(
-                    cardBodyContent
-                )
-            )
-        )
-        my_widget_script.resize();
     },
 
     /**
@@ -1082,7 +935,7 @@ $(document).ready(function () {
      * @param {*} csv - This is the csv passed from the exportToCSV function
      * @param {*} filename - This is the name of the file passed from exportToCSV function
      */
-     downloadCSV: function (csv, filename) {
+    downloadCSV: function (csv, filename) {
         var csvFile;
         var downloadLink;
 
@@ -1137,6 +990,74 @@ $(document).ready(function () {
         this.downloadCSV(csv.join("\n"), filename);
     },
 
+    createCSV: function($table){
+        var csv = [];
+        $table.find("tr").each((i,e)=>{
+            var row = [];
+            $(e).find("td, th").each((i,e)=>{
+                var cellText = '"' + e.innerText + '"';
+                row.push(cellText)
+            })
+            csv.push(row.join(","));
+        });
+        csv = csv.join("\n");
+        return(csv);
+    },
+
+    exportAllTablesToCSV: function(filename){
+        var csv = [];
+
+        for(var i = 0; i < this.plateTypes.length; i++){
+            var plateType = this.plateTypes[i];
+
+            var $plate = $(".plateImg"+this.plateSearch(plateType))
+
+            csv.push(this.createCSV($plate));
+            console.log(csv);
+        }
+
+        this.downloadCSV(csv.join("\n\n"), filename);
+    },
+
+    /**
+     * The steps that should be taken when the copy data button is pressed
+     * Checks if the $copyHead is checked, and then
+     * checks if the data is valid. If it is, it shows the table, resizes, and then
+     * copies the table (via a temporary textarea that is then removed). 
+     * 
+     * @param $copyHead - checkbox for whether or not to copy the table head as jQuery object
+     * @param $tableToCopy - table to copy as jQuery object
+     * @param $tableDiv - div containing table to copy
+     * @param $errorMsg - error message div as jQuery object
+     * @param $divForCopy - div where the output should copy to
+     * @param $transpose - checkbox for whether or not to transpose the table head as jQuery object
+     */
+     copyDataFuncs: function (copyHead = true, $tableToCopy, $tableDiv, $errorMsg, $divForCopy
+    //  , $transpose
+     ){
+        var data_valid = this.data_valid_form($errorMsg); // update data_valid_form to print to specific error field
+        // var copyHead = false
+        var transpose = false;
+
+        // //only copy the heading when the input box is checked
+        // if ($copyHead.is(":checked")) {
+        //     copyHead = true;
+        // }
+
+        // if ($transpose.is(":checked")) {
+        //     transpose = true;
+        // }
+
+        if (data_valid) { //if data is valid
+            $tableDiv.show(); //show the table
+            this.resize(); //resize
+            this.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+    },
+
     /**
      * This function creates a temporary textarea and then appends the contents of the
      * specified table body to this textarea, separating each cell with a tab (\t).
@@ -1156,161 +1077,714 @@ $(document).ready(function () {
      * then removed from the page.
      * @param {*} $table - jQuery object for the table that will be copied
      * @param {*} copyHead - true/false for whether or not the table head should be copied
+     * @param {*} $divForCopy - where the temp textarea should be added
+     * @param {*} transpose - true if table should be transposed
      */
-    copyTable: function ($table, copyHead, $divForCopy) {
-        //create a temporary text area
+     
+     copyTable: function ($table, copyHead, $divForCopy, transpose) {
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-        var addLine = "";
-        var toAddLine = false;
+        var rows = [];
+        var rowNum = 0;
+        // If you copying the head of the table
         if (copyHead) {
-            $table.find("thead").children("tr").each(function () { //add each child of the row
-                var addTab = "";
-                $(this).children().each(function () {
-                    $temp.text($temp.text() + addTab + $(this).text());
-                    addTab = "\t";
+            // Find thead and then all children rows
+            $table.find("thead").children("tr").each((i,e)=> {
+                // If the table is being transposed, start the row number at 0 for each new row
+                if(transpose){rowNum = 0;}
+                // For each row, find each td or th element (table cell)
+                $(e).find("td, th").each((i,e)=> {
+                    // If there's not yet an array for this row, make an empty one
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    // Add the text of each cell to the row's array
+                    rows[rowNum].push($(e).text());
+                    // If table is being transposed, add one to the row number for each cell
+                    if(transpose){rowNum++;}
                 });
-                toAddLine = true;
+                // If table is not being transposed, add one to the row number for each row
+                if(!transpose){rowNum++;}
             });
-            if(toAddLine){addLine = "\n";}
         }
 
-        $table.find("tbody").children("tr").each(function () { //add each child of the row
-            $temp.text($temp.text() + addLine);
-            var addTab = "";
-            $(this).find("th, td").each(function () {
-                if ($(this).text()) {
-                    var addText = $(this).text();
-                } else {
-                    var addText = ""
-                }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                addLine = "\n";
+        // Find each row in the table body
+        $table.find("tbody").children("tr").each((i,e)=> {
+            // If transposing, start the row number at 0 for each new row
+            if(transpose){rowNum = 0;}
+            // Find each cell within the row
+            $(e).find("td, th").each((i,e)=> {
+                // If there's not yet an array for this row, make an empty one
+                if(rows[rowNum]===undefined){rows[rowNum] = []}
+                // Add the text of each cell to the row's array
+                rows[rowNum].push($(e).text());
+                // If the table is being transposed, add one to the row number for each cell
+                if(transpose){rowNum++;}
             });
+            // If table is not being transposed, add one to the row number for each row
+            if(!transpose){rowNum++;}
         });
 
-        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
+        // For each row, join together all of the elements of the array with a \t to separate them (tab)
+        for(var i = 0; i < rows.length; i++){
+            rows[i] = rows[i].join("\t");
+        }
+
+        // Add each row to the temporary text area using \n (new line) to separate them
+        $temp.append(rows.join("\n"));
+        // Append the textarea to the div for copy, then select it
+        $temp.appendTo($divForCopy).select();
+        // Copy the "selected" text
+        document.execCommand("copy");
         $temp.remove(); //remove temp
+        // Doesn't work within LA b/c of permissions, but would be easier way to copy w/o appending to page
+        // navigator.clipboard.writeText(rows.join("\n")); 
+    },
+    //#endregion copy tables
+
+    //#region cards
+    toggleCard: function ($cardHead) {
+        // console.log($cardHead.next());
+        $cardHead.next().toggleClass("collapse");
+        $cardHead.next().find("textarea.autoAdjust").each((i,e)=> {
+            if(! $(e).is(":hidden")) {
+                e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+            } 
+        });
+        this.resize();
     },
 
-    copyMouseIDs: function($divForCopy){
+    makeCard: function ($div, cardHeadContent, cardBodyContent) {
+        // Add extras to header, such as classes or data attributes in calling function after making the card
+        $div.append(
+            $("<div></div>", {
+                "class": "card"
+            }).append(
+                $("<button></button>", {
+                    "type": "button",
+                    "class": "card-header",
+                }).on("click", (e)=> {
+                    this.toggleCard($(e.currentTarget));
+                }).append(cardHeadContent)
+            ).append(
+                $("<div></div>", {
+                    "class": "card-body collapse"
+                }).append(
+                    cardBodyContent
+                )
+            )
+        )
+        this.resize();
+    },
+    //#endregion cards
+
+    plateTypes: [
+        "plateID"
+        , "netOD"
+        , "mouseID"
+        , "time"
+        , "type"
+        , "stdPgPerWell"
+        , "volPerWell"
+        , "dilutionFactor"
+    ],
+
+    entryTypes: [
+        "plateID"
+        , "mouseID"
+        , "time"
+        , "type"
+        , "stdPgPerWell"
+        , "volPerWell"
+        , "dilutionFactor"
+    ],
+
+    entryTypesNice: [
+        "Label"
+        , "Mouse"
+        , "Time"
+        , "Sample Type"
+        , "STD pg/well"
+        , "mL/well"
+        , "Dilution Factor"
+    ],
+
+    sampleTypes: {
+        "": {
+            label: "blank",
+            plateID: "",
+            mouseID: "",
+            time:"",
+            stdPgPerWell:"",
+            volPerWell: "",
+            dilutionFactor:""
+        },
+        "NSB": {
+            label: "NSB",
+            plateID: "NSB",
+            mouseID: "",
+            time:"",
+            stdPgPerWell:"",
+            volPerWell: "",
+            dilutionFactor:""
+        },
+        "STD": {
+            label: "standard",
+            plateID: "STD",
+            mouseID: "",
+            time:"",
+            volPerWell: 0.05,
+            dilutionFactor:1
+        },
+        "bufferCtrl": {
+            label: "buffer control",
+            plateID: "bufferCtrl",
+            mouseID: "",
+            time:"",
+            stdPgPerWell:"",
+            volPerWell: "",
+            dilutionFactor:""
+        },
+        "QC": {
+            label: "quality control",
+            plateID: "C_2",
+            mouseID: "",
+            time:"",
+            stdPgPerWell:"",
+            volPerWell: 0.05,
+            dilutionFactor:100
+        },
+        "sample": {
+            label: "sample",
+            stdPgPerWell:"",
+            volPerWell: 0.05,
+            dilutionFactor:100,
+        }
+    },
+
+    wellGroups: 48,
+
+    cols: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+
+    rows: ["A", "B", "C", "D", "E", "F", "G", "H"],
+
+    row1: ["A", "C", "E", "G"],
+    row2: ["B", "D", "F", "H"],
+
+    makePlates: function(){
+        var $platesDiv = $("#platesWrapper");
+        $platesDiv.html("");
+        for(var i = 0; i < this.plateTypes.length; i++){
+            var plateType = this.plateTypes[i];
+
+            // make a div
+            var $div = this.makePlateDiv(plateType, i+1);
+            $platesDiv.append($div);
+
+            var $table = this.makePlateTable(plateType);
+            var plateSearch = this.plateSearch(plateType);
+            $(".plateDiv" + plateSearch).append($table);
+        }
+    },
+
+    makePlateDiv: function(plateType, plateNum){
+        var $header = "<h3>" + plateType + "</h3>"
+        var $body = $("<div></div>", {
+            "class": "container mt-4 plateContainer",
+            "data-plate": plateType
+        }).append(
+            $("<div></div>", {
+                "class": "row mt-2"
+            }).append(
+                $("<div></div>", {
+                    "class": "col-12 col-sm-6 col-md-3"
+                }).append(
+                    $("<input></input>", {
+                        "type": "button",
+                        "class": "copyPlate fullWidth",
+                        "data-plate": plateType,
+                        "value": "COPY PLATE",
+                        "name": "copyplate"+plateNum
+                    })
+                )
+            )
+        ).append(
+            $("<div></div>", {
+                "class": "row mt-2"
+            }).append(
+                $("<div></div>", {
+                    "class": "col-12 errorMsg",
+                    "data-plate": plateType
+                })
+            ).append(
+                $("<div></div>", {
+                    "class": "col-12 forCopy",
+                    "data-plate": plateType
+                })
+            )
+        ).append(
+            $("<div></div>", {
+                "class": "mt-2 table-responsive xsTableDiv plateDiv",
+                "data-plate": plateType
+            })
+        );
+        
+        var $div = $("<div></div>", {
+            "class": "plateCard",
+            "data-plate": plateType
+        });
+        
+        this.makeCard($div, $header, $body)
+
+        return($div);
+    },
+
+    makePlateTable: function (plateType) {
+        var $table = $("<table></table>", {
+            "class": "table plateImg",
+            "data-plate": plateType
+        });
+
+        // Add the first row
+        $table.append(
+            $("<tr></tr>", {
+                "class": "row0"
+            })
+        );
+
+        var $tableRow = $table.find(".row0");
+
+        // Add the columns for the first row
+        for( var col = 0; col < 13; col ++) {
+            // If it's column 0, add the plateType label
+            if(col == 0){
+                $tableRow.append(
+                    $("<th></th>").append(plateType)
+                )
+            } else { // otherwise, make it class by column number and append the column number in a cell
+                $tableRow.append(
+                    $("<th></th>", {
+                        "class": "col"+col
+                    }).append(col)
+                )
+            }   
+        }
+
+        var rowLetters = ["", "A", "B", "C", "D", "E", "F", "G", "H"];
+        var rowPairs1 = [1, 2, 5, 6];
+        var shading;
+
+        // For subsequent rows
+        for (var row = 1; row < 9; row++) {
+            // Make the row and give it the class based on row letter
+            $table.append(
+                $("<tr></tr>", {
+                    "class": "row"+rowLetters[row]
+                })
+            )
+            
+            $tableRow = $table.find(".row"+rowLetters[row]);
+
+            for( var col = 0; col < 13; col++) {
+                // for even columns, dark for first and third pairs
+                // for odd columns, dark for second and fourth pairs
+                if (this.isEven(col)){
+                    if(rowPairs1.includes(row)){ // alt is checkInArray if slow/unsupported
+                        shading = "light";
+                    } else {shading = "dark";}
+                } else {
+                    if(rowPairs1.includes(row)){
+                        shading = "dark";
+                    } else {shading = "light";}
+                }
+                if(col == 0){
+                    $tableRow.append(
+                        $("<th></th>", {
+                            "class": "row"+rowLetters[row]
+                        }).append(rowLetters[row])
+                    )
+                } else {
+                    $tableRow.append(
+                        $("<td/>", {
+                            "class": "col" + col + " row" + rowLetters[row] + " well " + shading,
+                            "data-well": col + rowLetters[row]
+                        })
+                    )
+                }
+            }
+        }
+        return($table)
+    },
+
+    isEven: function(value) {
+        if (value%2 == 0)
+            return true;
+        else
+            return false;
+    },
+
+    makeWellEntries: function(){
+        $("#entryWrapper").html("");
+        for(i = 0; i < this.wellGroups; i++){
+            var wellGroup = i + 1;
+
+            var $cardDiv = this.makeWellEntry(wellGroup);
+            $("#entryWrapper").append($cardDiv);
+        }
+    },
+
+    makeWellEntry: function(wellGroup){
+        var $div = $("<div></div>", {
+            "class": "col-6 col-md-4 col-lg-3 col-xl-2",
+            "data-group": wellGroup
+        });
+
+        var $header = wellGroup + ". <span data-group='"+wellGroup+"' data-calc='plateID'>Sample " + wellGroup +"</span>";
+
+        var inputTypes = this.entryTypes;
+
+        var $body = $("<div></div>", {
+            "class": "container"
+        });
+
+        for(var i = 0; i < inputTypes.length; i++){
+            var inputType = inputTypes[i];
+
+            // Properties for input object
+            var inputObject = {
+                "class": "fullWidth watch " + inputType,
+                id: inputType + wellGroup,
+                name: inputType.toLowerCase() + wellGroup,
+                "data-group": wellGroup,
+                "data-watch": inputType 
+            }
+
+            var $input;
+
+            if(inputType === "type"){
+                $input = $("<select></select>", inputObject);
+                for(type in this.sampleTypes){
+                    $input.append(
+                        $("<option></option>", {
+                            value: type
+                        }).append(this.sampleTypes[type]["label"])
+                    );
+                }
+            } else {
+                if(inputType === "mouseID" || inputType === "plateID"){
+                    inputObject.type = "text"
+                } else{
+                    inputObject.type = "number"
+                }
+                $input = $("<input></input>", inputObject);
+            }
+
+            $body.append(
+                $("<div></div>", {
+                    "class": "row",
+                    "data-entry": inputType,
+                    "data-group": wellGroup
+                }).append(
+                    $("<div></div>", {
+                        "class": "col-12 font-weight-bold"
+                    }).append(
+                        this.entryTypesNice[i]
+                    )
+                ).append(
+                    $("<div></div>", {
+                        "class": "col",
+                    }).append(
+                        $input
+                    )
+                )
+            );
+        }
+        
+        this.makeCard($div, $header, $body);
+
+        return($div);
+    },
+
+    getWellIDsFromGroupNum: function(wellGroup){
+        var well1, well2;
+        if(wellGroup > 0 && wellGroup <= 48){
+
+            // Get the index for the column by dividing by 4
+            var colIndex = Math.ceil(wellGroup / 4) - 1;
+            // console.log(wellGroup, colIndex);
+            var col = this.cols[colIndex];
+
+            // Determine the row based on divisibility by 4
+            // For example, group 1 -> 0 / 4 = remainder 0
+            var remainder = (wellGroup - 1) % 4; 
+            var row1 = this.row1[remainder];
+            var row2 = this.row2[remainder];
+
+            well1 = col + row1;
+            well2 = col + row2;
+        }
+        var wells = {
+            well1: well1,
+            well2: well2
+        }
+        return(wells)
+    },
+
+    // Provide the plate type and an object with both well ids
+    // Fill in the wells with the provided value
+    // Get the well ids from getWellIDsFromGroupNum
+    fillWells: function(plateType, wells, val){
+        var plateSearch = this.plateSearch(plateType);
+        var well1Search = this.wellSearch(wells.well1);
+        var well2Search = this.wellSearch(wells.well2);
+        
+        $(".plateImg"+plateSearch).find(".well" + well1Search).text(val);
+        $(".plateImg"+plateSearch).find(".well" + well2Search).text(val);
+        this.resize();
+    },
+
+    fillByType: function($sampleType){
+        var type = $sampleType.val();
+        var infoObj = this.sampleTypes[type];
+        var wellGroup = $sampleType.data("group");
+        var groupSearch = this.groupSearch(wellGroup);
+
+        var wellIDs = this.getWellIDsFromGroupNum(wellGroup);
+
+        $(groupSearch + "[data-entry]").show();
+
+        for( info in infoObj ){
+            if(info !== "label"){
+                var watchSearch = this.watchSearch(info);
+                var entrySearch = this.dataSearch("entry", info);
+                var val = infoObj[info];
+
+                if(val === "STD"){
+                    var currentVal = $(watchSearch + groupSearch).val();
+                    if(currentVal.startsWith("STD")){
+                        val = currentVal;
+                    }
+                }
+
+                // Update the entry values
+                $(watchSearch + groupSearch).val(val);
+
+                if(info === "plateID"){
+                    $(groupSearch+this.calcSearch("plateID")).text(val);
+                }
+
+                // // Update the table
+                this.fillWells(info, wellIDs, val);
+
+                // Hide if a blank value specified
+                if(!val){
+                    $(groupSearch + entrySearch).hide();
+                }
+            }
+        }
+        this.resize();
+    },
+
+    calcNumAssignedWells: function(){
+        var total = 0;
+        $(".calcTotal").each((i,e)=>{
+            if(e.value){
+                total += parseInt(e.value);
+            }
+        });
+        this.updateCalcFromVal("totalWellGroups", total);
+        if(total>48){
+            $(this.calcSearch("totalWellGroups")).css("color", "red");
+            $("#numWarning").text("You have entered too many samples to fit on the plate");
+            return(false);
+        }
+        else {
+            $(this.calcSearch("totalWellGroups")).css("color", "black");
+            $("#numWarning").text("");
+            return(true);
+        }
+    },
+
+    checkAndUpdateWells: function(){
+        var numNSB = $("#numNSB").val();
+        var numSTD = $("#numSTD").val();
+        var numBuffer = $("#numBuffer").val();
+        var numQC = $("#numQC").val();
+        var numSamples = $("#numSamples").val();
+
+        if(this.calcNumAssignedWells()){
+            console.log("trying to update");
+            this.updateEntryWells(numNSB, numSTD, numBuffer, numQC, numSamples);
+        } else {
+            $("#numWarning").text("Did not update; too many samples");
+        }
+        this.resize();
+    },
+
+    firstSampleGroup: 0,
+
+    updateEntryWells: function(numNSB, numSTD, numBuffer, numQC, numSamples){
+        // console.log(numNSB, numSTD, numBuffer, numQC, numSamples);
+        for(var i = 0; i < this.wellGroups; i ++){
+            var wellGroup = i+1;
+            var groupSearch = this.groupSearch(wellGroup);
+            var type;
+            if(numNSB>0){
+                type = "NSB";
+                numNSB--;
+            } else if(numSTD > 0){
+                type = "STD";
+                numSTD--;
+            } else if(numBuffer > 0){
+                type = "bufferCtrl";
+                numBuffer--;
+            } else if(numQC > 0){
+                type = "QC";
+                numQC--;
+            } else if(numSamples > 0){
+                type = "sample";
+                numSamples--;
+                if(this.firstSampleGroup === 0){
+                    this.firstSampleGroup = wellGroup;
+                }else if(wellGroup < this.firstSampleGroup){
+                    this.firstSampleGroup = wellGroup;
+                }
+            } else {
+                type = "";
+            }
+            $(".type" + groupSearch).val(type);
+            var wellIDs = this.getWellIDsFromGroupNum(wellGroup);
+            this.fillWells("type", wellIDs, type);
+        }
+
+        this.updateSTDVals();
+
+        $(".type").each((i,e)=>{
+            this.fillByType($(e));
+        });
+
+        this.resize();
+    },
+
+    updateSTDVals: function(){
+        var stdVal = $("#largestSTD").val();
+        stdVal = parseFloat(stdVal);
+        var stdNum = 0;
+        $(".type").each((i,e)=>{
+            if($(e).val() === "STD"){
+                stdNum++;
+                var wellGroup = $(e).data("group");
+                var wellGroupSearch = this.groupSearch(wellGroup);
+                $(".plateID" + wellGroupSearch).val("STD " + stdNum);
+                $(".stdPgPerWell" + wellGroupSearch).val(stdVal);
+                
+                var wellIDs = this.getWellIDsFromGroupNum(wellGroup);
+
+                this.fillWells("plateID", wellIDs, "STD " + stdNum);
+                this.fillWells("stdPgPerWell", wellIDs, stdVal);
+
+                stdVal = stdVal / 2;
+            }
+        });
+        this.resize();
+    },
+
+    copyMouseIDs: function(listName, $divForCopy){
         //create a temporary text area
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
         var addLine = "";
 
-        var fullList = $("#idEntry").val();
+        var fullList = $("#"+listName).val();
         var splitList = fullList.split(/[\r\n]+/);
         var addText;
 
-        for (var i = 0; i < splitList.length && i < 19; i++ ){
+        for (var i = 0; i < splitList.length /*&& i < 19*/; i++ ){
             mouseID = splitList[i];
             $temp.text($temp.text() + addLine);
             addLine = "\n";
-            totalText = mouseID + addLine + mouseID + addLine + mouseID + addLine + mouseID;
+            totalText = mouseID + addLine + mouseID; // + addLine + mouseID + addLine + mouseID;
             $temp.text($temp.text() + totalText);
         }
 
-        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
+        $temp.appendTo($divForCopy).select(); //add temp to tableDiv and select
         document.execCommand("copy"); //copy the "selected" text
         $temp.remove(); //remove temp
     },
 
-    copySampleIDs: function ($divForCopy, duplicate) {
-        //create a temporary text area
-        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-        var addLine = "";
+    fillSampleIDsFromList: function($list){
+        var fullList = $list.val();
+        var splitList = fullList.split(/[\r\n]+/);
+        // get the current number of samples in case we need to restore it
+        var currentNumSamples = $("#numSamples").val();
+        var listLength = splitList.length;
 
-        var numSamples = $("#sampleNum").val();
-        var addText, sampleNum;
-        
-        for (i = 0; i < numSamples; i ++ ){
-            $temp.text($temp.text() + addLine);
-            addLine = "\n";
-            sampleNum = i + 1;
-            var dataSearch = my_widget_script.dataSearch("sample", sampleNum);
-            addText = $(".sample"+dataSearch).val();
-            if(duplicate){
-                totalText = addText + addLine + addText;
-            } else{
-                totalText = addText;
+        $("#numSamples").val(listLength);
+
+        // check if we're okay with the length of this list and other samples
+        if(!this.calcNumAssignedWells()){
+            // If not, post a warning, and restore the old value
+            $("#numWarning").text("You've entered too many mice");
+            $("#numSamples").val(currentNumSamples);
+            return;
+        }
+
+        // Update the well types with this new number of samples
+        // This will restart fresh
+        this.checkAndUpdateWells();
+
+        // Get the well group number for the first sample slot
+        var firstSample = this.firstSampleGroup;
+
+        var wellGroup, wellGroupSearch, mouseID, lastMouseID, lastWellGroupSearch, lastWellIDs, isLastDup = false;
+        for(var i = 0; i < listLength; i ++){
+            // get the well group and associated well IDs
+            wellGroup = firstSample + i;
+            wellGroupSearch = this.groupSearch(wellGroup);
+            var wellIDs = this.getWellIDsFromGroupNum(wellGroup);
+
+            // Get this mouseID
+            mouseID = splitList[i];
+            var thisID = mouseID;
+            // Assume the time is 0
+            var time = 0;
+            // If this id is the same as the last one and the last one wasn't a duplicate of the previous id
+            // This means that if there are 3 in a row, the first will be "pre", the second "post",
+            // and the third without an appendix. But if there are four in a row, have pre, post, pre, post
+            if(mouseID === lastMouseID && !isLastDup){
+                // Add pre to the last plateID
+                // entry
+                $(".plateID" + lastWellGroupSearch).val(lastMouseID + " pre");
+                // card head title
+                $(lastWellGroupSearch+this.calcSearch("plateID")).text(lastMouseID + " pre");
+                // table wells
+                this.fillWells("plateID", lastWellIDs, lastMouseID + " pre");
+
+                // add post to this plate ID
+                thisID = mouseID + " post";
+                // Set this time to 5
+                time = 5;
+                // Mark that this mouse was a duplicate
+                isLastDup = true;
+            } else {
+                isLastDup = false;
             }
-            $temp.text($temp.text() + totalText);
+
+            // update the plateID label
+            $(".plateID"+wellGroupSearch).val(thisID);
+            $(wellGroupSearch+this.calcSearch("plateID")).text(thisID);
+            this.fillWells("plateID", wellIDs, thisID);
+            
+            // Update the mouseID
+            $(".mouseID"+wellGroupSearch).val(mouseID);
+            this.fillWells("mouseID", wellIDs, mouseID);
+
+            // Update the time
+            $(".time"+wellGroupSearch).val(time);
+            this.fillWells("time", wellIDs, time);
+
+            lastMouseID = mouseID;
+            lastWellGroupSearch = wellGroupSearch;
+            lastWellIDs = wellIDs;
         }
-
-        $temp.appendTo($divForCopy).focus().select(); //add temp to tableDiv and select
-        document.execCommand("copy"); //copy the "selected" text
-        $temp.remove(); //remove temp
-    },
-
-    /**
-     * Set of functions when toCSVButton clicked
-     * 
-     * Checked if data is valid, then re-calculates values, exports the table to a CSV
-     * Updates the error message accordingly
-     * 
-     * @param {string} fileName - fileName for the CSV that will be produced
-     * @param {string} tableID - tableID as a string for the table that will be copied
-     * @param $errorMsg - error message div as jQuery object
-     */
-     toCSVFuncs: function (fileName, tableID, $errorMsg) {
-        var data_valid = my_widget_script.data_valid_form();
-
-        if (data_valid) {
-            my_widget_script.exportTableToCSV(fileName, tableID);
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
-        } else {
-            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
-        }
-    },
-
-    /**
-     * The steps that should be taken when the copy data button is pressed
-     * Checks if the $copyHead is checked, and then
-     * checks if the data is valid. If it is, it shows the table, resizes, and then
-     * copies the table (via a temporary textarea that is then removed). 
-     * 
-     * @param $copyHead - checkbox for whether or not to copy the table head as jQuery object
-     * @param $tableToCopy - table to copy as jQuery object
-     * @param $tableDiv - div containing table to copy
-     * @param $errorMsg - error message div as jQuery object
-     * @param $divForCopy - div where the output should copy to
-     */
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy){
-        var data_valid = my_widget_script.data_valid_form();
-        var copyHead = $copyHead;
-
-        // //only copy the heading when the input box is checked
-        // if ($copyHead.is(":checked")) {
-        //     copyHead = true;
-        // } else {
-        //     copyHead = false;
-        // }
-
-        if (data_valid) { //if data is valid
-            $tableDiv.show(); //show the table
-            my_widget_script.resize(); //resize
-            my_widget_script.copyTable($tableToCopy, copyHead, $divForCopy); //copy table
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
-        } else {
-            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
-        }
-    },  
-
-    copySampleIDsFuncs: function ($errorMsg, $divForCopy, duplicate){
-        var data_valid = my_widget_script.data_valid_form();
-
-        if (data_valid) { //if data is valid
-            if($("#sampleNum").val() > 0 && $("#sampleNum").val() <= 38){
-                my_widget_script.copySampleIDs($divForCopy, duplicate); //copy table
-                $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
-            } else{
-                $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Please enter a sample number from 1-38 </span>"); //add to error message
-            }
-        } else {
-            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
-        }
-    }      
+        this.resize();
+    }
 };
 
 //**************************************************************************
@@ -1342,6 +1816,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
 <!------------------------------------------------------------------------------------------>
 <!-- #region HTML -->
+<!-- Luxon Date Handling -->
+<script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -1351,7 +1827,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <!-- Load bootstrap java -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
+    crossorigin="anonymous">
+</script>
+<!-- Bootbox for dialogs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
 <script>
     var $jq351 = jQuery.noConflict(true);
@@ -1382,17 +1861,24 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     }
 
     .fullWidth {
-        width: 90%
+        width: 100%
     }
-
-    .fullWidth95 {
-        width: 95%
+    
+    .halfWidth {
+        width: 50%
     }
 
     td.dark {
         background: lightgray
     }
 
+    [data-plate='netOD']{
+        display: none
+    }
+
+    .netOD{
+        display: none
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
@@ -1417,143 +1903,131 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 <div class="container mt-4">
-    <div class="row hideView">
-        <div class="myLeftCol" style="color: red;">Use text entry of IDs</div>
+    <div id="forCopy">&nbsp;</div>
+    <div class="row hideView align-items-end">
+        <div class="col-12 col-md-6 container">
+            <div class="row">
+                <div class="col-12"><strong>Enter single mouse IDs</strong><br/>Put each mouse on a new line.<br/>Tip: copy/paste from a spreadsheet column</div>
+                <div class="col"><textarea name="identry" id="idEntry" rows="10" class="fullWidth" placeholder="Enter IDs"></textarea></div>
+                <div class="col-12">
+                    <input type="button" value="Copy Duplicated Mouse IDs" class="fullWidth copyMouseIDs" name="copymouseidsbutton" id="copyMouseIDsButton" data-list="idEntry">
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 mt-2 mt-md-0 container">
+            <div class="row">
+                <div class="col-12"><strong>Enter one mouse ID per samples</strong><br/>Put each mouse on a new line. <br/>Tip: copy the duplicated output from first entry and edit as needed</div>
+                <div class="col"><textarea name="identry2" id="idEntry2" rows="10" class="fullWidth" placeholder="Enter IDs"></textarea></div>
+                <div class="col-12">
+                    <input type="button" value="Copy Duplicated Mouse IDs" class="fullWidth copyMouseIDs" name="copymouseidsbutton2" id="copyMouseIDsButton2" data-list="idEntry2">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="row hideView">
+        <div class="col-12" style="color: red;">Use text entry of IDs</div>
         <div class="col"><input type="checkbox" name="usetextentry" id="useTextEntry"/></div>
     </div>
     <div class="row hideView">
-        <div class="myLeftCol">Enter mouse IDs. Put each mouse on a new line. Tip: copy/paste from a spreadsheet column</div>
-        <div class="col"><textarea name="identry" id="idEntry" rows="10" class="fullWidth" placeholder="Enter IDs"></textarea></div>
-    </div>
-    <div class="row mt-2">
+    </div> -->
+    <!-- <div class="row mt-2">
         <div class="myLeftCol">Copy IDs with 4 repeats</div>
         <div class="col">
             <input type="button" value="Copy Mouse IDs Quadruple" class="fullWidth" name="copymouseidsbutton" id="copyMouseIDsButton">
         </div>
-    </div>
+    </div> -->
 </div>
-<div class="container mt-2 hideView">
-    <div class="row stdsEntry">
-        <!-- Where standard entries will go -->
-        &nbsp; 
-    </div>
 
+<div class="container hideView mt-3">
+    <div class="row">
+        <div class="myLeftCol">
+            Recalculate
+        </div>
+        <div class="col">
+            <input type="button" value="Update Entries" class="halfWidth" name="updateentries" id="updateEntries"/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="myLeftCol"><em>For all numbers, a duplicate is 1</em></div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of NSB groups
+        </div>
+        <div class="col">
+            <input type="number" name="numnsb" id="numNSB" class="halfWidth calcTotal" min="0" step="1" value="1"/>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of standards
+        </div>
+        <div class="col">
+            <input type="number" name="numstd" id="numSTD" class="halfWidth calcTotal" min="0" step="1" value="9"/>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of buffer control groups
+        </div>
+        <div class="col">
+            <input type="number" name="numbuffer" id="numBuffer" class="halfWidth calcTotal" min="0" step="1" value="1"/>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of quality control
+        </div>
+        <div class="col">
+            <input type="number" name="numqc" id="numQC" class="halfWidth calcTotal" min="0" step="1" value="1"/>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of samples
+        </div>
+        <div class="col">
+            <input type="number" name="numsamples" id="numSamples" class="halfWidth calcTotal" min="0" step="1"/>
+        </div>
+    </div>
     <div class="row mt-2">
         <div class="myLeftCol">
-            Number of Samples
+            <strong>Total</strong>
         </div>
-        <div class="col">
-            <input type="number" name="samplenum" id="sampleNum" min="1", max="38">
-            <br/>
-            <div class="sampleNum_calc"></div>
-        </div>
-    </div>
-
-    <div class="row sampleEntry">
-        <!-- Where sample entries will go -->
-        &nbsp; 
-    </div>
-</div>
-
-
-<div class="container mt-4">
-    <div class="row">
-        <div class="col">
-            <h3>Plate Template</h3>
+        <div class="col" data-calc="totalWellGroups">
+            &nbsp;
         </div>
     </div>
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
-                class="fullWidth95" /></div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth95 copyPlate" data-plate="plateID"/>
-        </div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
-        </div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
-        </div>
-    </div>
-</div>
-
-<!-- Error Message Div -->
-<div class="container errorMsg" id="errorMsg" data-plate="plateID">&nbsp;</div>
-<div id="forCopy" class="forCopy" data-plate="plateID">&nbsp;</div>
-
-
-<div class="container mt-2">
-    <div class="table-responsive xsTableDiv plateDiv" data-plate="plateID">
-        <table class="table plateImg" id="plateIDImg" data-plate="plateID">
-        </table>
-        <p>&nbsp;</p>
-    </div>
-</div>
-
-<div class="container mt-4">
-    <div class="row">
-        <div class="col">
-            <h3>Plate Template - MouseID</h3>
-        </div>
+        <div class="myLeftCol">&nbsp;</div>
+        <div class="col" id="numWarning">&nbsp;</div>
     </div>
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" class="fullWidth95 copyPlate" data-plate="mouseID"/>
+        <div class="myLeftCol">
+            Largest STD pg/well
         </div>
-        
-        <!-- <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
-        </div>
-        
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
-        </div> -->
-    </div>
-</div>
-
-<div class="container errorMsg" data-plate="mouseID">&nbsp;</div>
-<div class="forCopy" data-plate="mouseID">&nbsp;</div>
-<div class="container mt-2">
-    <div class="table-responsive xsTableDiv plateDiv" data-plate="mouseID">
-        <table class="table plateImg" id="mouseIDImg" data-plate="mouseID">
-        </table>
-        <p>&nbsp;</p>
-    </div>
-</div>
-<div class="container mt-4">
-    <div class="row">
         <div class="col">
-            <h3>Plate Template - Time</h3>
+            <input type="number" name="largeststd" id="largestSTD" class="halfWidth" min="0" value="250"/>
         </div>
-    </div>
-    <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton3" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth95 copyPlate" data-plate="time"/>
-        </div>
-        
-        <!-- <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
-        </div>
-        
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
-        </div> -->
     </div>
 </div>
 
-<div class="container errorMsg" data-plate="time">&nbsp;</div>
-<div class="forCopy" data-plate="time">&nbsp;</div>
-<div class="container mt-2">
-    <div class="table-responsive xsTableDiv plateDiv" data-plate="time">
-        <table class="table plateImg" id="timeImg" data-plate="time">
-        </table>
-        <p>&nbsp;</p>
+<div class="container mt-2" id="entryContainer">
+    <div class="row" id="entryWrapper">
+        &nbsp;
     </div>
 </div>
 
+<div class="container mt-3">
+    <div class="row">
+        <div class="col"><input type="button" value="Download All Tables As CSV for R" id="downloadCSV" name="downloadcsv" class="fullWidth"/>
+        </div>
+    </div>
+</div>
+
+<div id="platesWrapper" class="mt-3">
+    &nbsp;
+</div>
 
 
 <!-- #endregion -->

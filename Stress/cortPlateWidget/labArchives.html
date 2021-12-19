@@ -1,3 +1,5 @@
+<!-- Luxon Date Handling -->
+<script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -7,7 +9,10 @@
 <!-- Load bootstrap java -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
+    crossorigin="anonymous">
+</script>
+<!-- Bootbox for dialogs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
 <script>
     var $jq351 = jQuery.noConflict(true);
@@ -38,17 +43,24 @@
     }
 
     .fullWidth {
-        width: 90%
+        width: 100%
     }
-
-    .fullWidth95 {
-        width: 95%
+    
+    .halfWidth {
+        width: 50%
     }
 
     td.dark {
         background: lightgray
     }
 
+    [data-plate='netOD']{
+        display: none
+    }
+
+    .netOD{
+        display: none
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
@@ -73,139 +85,128 @@
     </div>
 </div>
 <div class="container mt-4">
-    <div class="row hideView">
-        <div class="myLeftCol" style="color: red;">Use text entry of IDs</div>
+    <div id="forCopy">&nbsp;</div>
+    <div class="row hideView align-items-end">
+        <div class="col-12 col-md-6 container">
+            <div class="row">
+                <div class="col-12"><strong>Enter single mouse IDs</strong><br/>Put each mouse on a new line.<br/>Tip: copy/paste from a spreadsheet column</div>
+                <div class="col"><textarea name="identry" id="idEntry" rows="10" class="fullWidth" placeholder="Enter IDs"></textarea></div>
+                <div class="col-12">
+                    <input type="button" value="Copy Duplicated Mouse IDs" class="fullWidth copyMouseIDs" name="copymouseidsbutton" id="copyMouseIDsButton" data-list="idEntry">
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 mt-2 mt-md-0 container">
+            <div class="row">
+                <div class="col-12"><strong>Enter one mouse ID per samples</strong><br/>Put each mouse on a new line. <br/>Tip: copy the duplicated output from first entry and edit as needed</div>
+                <div class="col"><textarea name="identry2" id="idEntry2" rows="10" class="fullWidth" placeholder="Enter IDs"></textarea></div>
+                <div class="col-12">
+                    <input type="button" value="Copy Duplicated Mouse IDs" class="fullWidth copyMouseIDs" name="copymouseidsbutton2" id="copyMouseIDsButton2" data-list="idEntry2">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="row hideView">
+        <div class="col-12" style="color: red;">Use text entry of IDs</div>
         <div class="col"><input type="checkbox" name="usetextentry" id="useTextEntry"/></div>
     </div>
     <div class="row hideView">
-        <div class="myLeftCol">Enter mouse IDs. Put each mouse on a new line. Tip: copy/paste from a spreadsheet column</div>
-        <div class="col"><textarea name="identry" id="idEntry" rows="10" class="fullWidth" placeholder="Enter IDs"></textarea></div>
-    </div>
-    <div class="row mt-2">
+    </div> -->
+    <!-- <div class="row mt-2">
         <div class="myLeftCol">Copy IDs with 4 repeats</div>
         <div class="col">
             <input type="button" value="Copy Mouse IDs Quadruple" class="fullWidth" name="copymouseidsbutton" id="copyMouseIDsButton">
         </div>
-    </div>
+    </div> -->
 </div>
-<div class="container mt-2 hideView">
-    <div class="row stdsEntry">
-        <!-- Where standard entries will go -->
-        &nbsp; 
-    </div>
 
+<div class="container hideView mt-3">
+    <div class="row">
+        <div class="myLeftCol">
+            Recalculate
+        </div>
+        <div class="col">
+            <input type="button" value="Update Entries" class="halfWidth" name="updateentries" id="updateEntries"/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="myLeftCol"><em>For all numbers, a duplicate is 1</em></div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of NSB groups
+        </div>
+        <div class="col">
+            <input type="number" name="numnsb" id="numNSB" class="halfWidth calcTotal" min="0" step="1" value="1"/>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of standards
+        </div>
+        <div class="col">
+            <input type="number" name="numstd" id="numSTD" class="halfWidth calcTotal" min="0" step="1" value="9"/>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of buffer control groups
+        </div>
+        <div class="col">
+            <input type="number" name="numbuffer" id="numBuffer" class="halfWidth calcTotal" min="0" step="1" value="1"/>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of quality control
+        </div>
+        <div class="col">
+            <input type="number" name="numqc" id="numQC" class="halfWidth calcTotal" min="0" step="1" value="1"/>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            Number of samples
+        </div>
+        <div class="col">
+            <input type="number" name="numsamples" id="numSamples" class="halfWidth calcTotal" min="0" step="1"/>
+        </div>
+    </div>
     <div class="row mt-2">
         <div class="myLeftCol">
-            Number of Samples
+            <strong>Total</strong>
         </div>
-        <div class="col">
-            <input type="number" name="samplenum" id="sampleNum" min="1", max="38">
-            <br/>
-            <div class="sampleNum_calc"></div>
-        </div>
-    </div>
-
-    <div class="row sampleEntry">
-        <!-- Where sample entries will go -->
-        &nbsp; 
-    </div>
-</div>
-
-
-<div class="container mt-4">
-    <div class="row">
-        <div class="col">
-            <h3>Plate Template</h3>
+        <div class="col" data-calc="totalWellGroups">
+            &nbsp;
         </div>
     </div>
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV" name="tocsv" type="button" value="Save CSV"
-                class="fullWidth95" /></div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton" name="copydatabutton" type="button" value="Copy Data" class="fullWidth95 copyPlate" data-plate="plateID"/>
-        </div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
-        </div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
-        </div>
-    </div>
-</div>
-
-<!-- Error Message Div -->
-<div class="container errorMsg" id="errorMsg" data-plate="plateID">&nbsp;</div>
-<div id="forCopy" class="forCopy" data-plate="plateID">&nbsp;</div>
-
-
-<div class="container mt-2">
-    <div class="table-responsive xsTableDiv plateDiv" data-plate="plateID">
-        <table class="table plateImg" id="plateIDImg" data-plate="plateID">
-        </table>
-        <p>&nbsp;</p>
-    </div>
-</div>
-
-<div class="container mt-4">
-    <div class="row">
-        <div class="col">
-            <h3>Plate Template - MouseID</h3>
-        </div>
+        <div class="myLeftCol">&nbsp;</div>
+        <div class="col" id="numWarning">&nbsp;</div>
     </div>
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" class="fullWidth95 copyPlate" data-plate="mouseID"/>
+        <div class="myLeftCol">
+            Largest STD pg/well
         </div>
-        
-        <!-- <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
-        </div>
-        
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
-        </div> -->
-    </div>
-</div>
-
-<div class="container errorMsg" data-plate="mouseID">&nbsp;</div>
-<div class="forCopy" data-plate="mouseID">&nbsp;</div>
-<div class="container mt-2">
-    <div class="table-responsive xsTableDiv plateDiv" data-plate="mouseID">
-        <table class="table plateImg" id="mouseIDImg" data-plate="mouseID">
-        </table>
-        <p>&nbsp;</p>
-    </div>
-</div>
-<div class="container mt-4">
-    <div class="row">
         <div class="col">
-            <h3>Plate Template - Time</h3>
+            <input type="number" name="largeststd" id="largestSTD" class="halfWidth" min="0" value="250"/>
         </div>
-    </div>
-    <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton3" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth95 copyPlate" data-plate="time"/>
-        </div>
-        
-        <!-- <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy Sample IDs" class="fullWidth95" name="copysamplesbutton" id="copySamplesButton">
-        </div>
-        
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Copy IDs Duplicate" class="fullWidth95" name="copysamplesbuttondup" id="copySamplesButton_dup">
-        </div> -->
     </div>
 </div>
 
-<div class="container errorMsg" data-plate="time">&nbsp;</div>
-<div class="forCopy" data-plate="time">&nbsp;</div>
-<div class="container mt-2">
-    <div class="table-responsive xsTableDiv plateDiv" data-plate="time">
-        <table class="table plateImg" id="timeImg" data-plate="time">
-        </table>
-        <p>&nbsp;</p>
+<div class="container mt-2" id="entryContainer">
+    <div class="row" id="entryWrapper">
+        &nbsp;
     </div>
+</div>
+
+<div class="container mt-3">
+    <div class="row">
+        <div class="col"><input type="button" value="Download All Tables As CSV for R" id="downloadCSV" name="downloadcsv" class="fullWidth"/>
+        </div>
+    </div>
+</div>
+
+<div id="platesWrapper" class="mt-3">
+    &nbsp;
 </div>
