@@ -13,19 +13,19 @@ my_widget_script =
     },
 
     setUpInitialState: function () {
-        $("#DOB").on("change", function () {
-            my_widget_script.printPND_days();
-            my_widget_script.getPND_today();
+        $("#DOB").on("change", (e)=> {
+            this.printPND_days();
+            this.getPND_today();
         });
 
-        my_widget_script.printPND_days();
-        my_widget_script.getPND_today();
-        my_widget_script.resize();
+        this.printPND_days();
+        this.getPND_today();
+        this.resize();
     },
     
     resize: function () {
         //resize the container
-        my_widget_script.parent_class.resize_container();
+        this.parent_class.resize_container();
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -38,70 +38,43 @@ my_widget_script =
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
     getPND_today: function () {
-        // var offset = new Date().getTimezoneOffset();
         var $DOBVal = $("#DOB").val();
 
         if($DOBVal){
-            var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-            // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-            // for locales with different time zones, this means that the Date displayed could be the previous day
-    
-            var currentYear = new Date().getFullYear();
-            var currentMonth = new Date().getMonth();
-            var currentDay = new Date().getDate();
-            
-            var DOB_asDate = new Date($DOBVal);
-    
-            //Adjust for offset
-            var DOB_asDate_adj = new Date(DOB_asDate.getTime() + offset * 60 * 1000);
-            var today_asDate = new Date(currentYear, currentMonth, currentDay, 0, 0, 0, 0);
-    
-            var dateDiff_ms = today_asDate.getTime() - DOB_asDate_adj.getTime();
-    
-            var dateDiff_days = dateDiff_ms / (24 * 60 * 60 * 1000);
+            var startDate = luxon.DateTime.fromISO($DOBVal).startOf("day");
+            var todayDate = luxon.DateTime.now().startOf("day")
+            var dateDiff_days = todayDate.diff(startDate, "days").as("day");
+            // console.log(dateDiff_days);
     
             var pndTodayString = ".pnd.pnd" + dateDiff_days;
             var pndNotTodayString = ".pnd:not(.pnd" + dateDiff_days + ")";
     
             $(pndTodayString).css("color", "red");
             $(pndNotTodayString).css("color", "black");
-            
-            // Print PND # for any element with class .pndToday
+    
             $(".pndToday").text(dateDiff_days);
 
-            // This prints at what needs to be done today and cycling dates - adjust these functions to needs
-            my_widget_script.updateToDoStatus(dateDiff_days);
-            my_widget_script.updateCycleStatus(dateDiff_days);
+            // This prints at the top what needs to be done today and switches the Mass and AGD selector 
+            this.updateToDoStatus(dateDiff_days);
+            this.updateCycleStatus(dateDiff_days);
     
             return(dateDiff_days);
-    
-            // console.log(
-            //     "Current Year: " + currentYear +"\n" +
-            //     "Current Month: " + currentMonth + "\n" +
-            //     "Current Day: " + currentDay + "\n" +
-            //     "DOB String: " + $DOBVal + "\n" +
-            //     "DOB Date Obj: " + DOB_asDate + "\n" +
-            //     "DOB Adjusted Date Obj: " + DOB_asDate_adj + "\n" + 
-            //     "Today Date Obj: " + today_asDate + "\n" +
-            //     "Diff in ms: " + dateDiff_ms + "\n" +
-            //     "Diff in days: " + dateDiff_days
-            // )
         } else {
-            my_widget_script.switchMassTable($("#massSelect").val());
+            this.switchMassTable($("#massSelect").val());
         }
     },
-
-    // Get the postnatal day for a given date input
+    
     // dateInputVal needs to be in "yyyy-mm-dd" format, such as what comes out of date input
-    getPND: function (dateInputVal) {
+    getPND: function (dateInputVal, DOBisDay = 0) {
         //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
-        var DOBisDay = 0; //Change depending on whether you want DOB to be PND 0 or PND 1
-        var compDate_as_ms = new Date(dateInputVal).getTime();
         var textOutput;
-        if($("#DOB").val()){
+        var DOB_val = $("#dateOfBirth").val()
+        if(DOB_val){
             if(dateInputVal){
-                var DOB_as_ms = new Date($("#DOB").val()).getTime();
-                var pnd = (compDate_as_ms - DOB_as_ms) / (1000 * 3600 * 24) + DOBisDay;
+                var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
+                var DOB = luxon.DateTime.fromISO(DOB_val).startOf("day").minus({ days: DOBisDay });
+                var pnd = compDate.diff(DOB, "days").as("day");
+                // console.log(pnd);
                 textOutput = pnd;
             } else {
                 textOutput = "[Enter Date]";
@@ -113,27 +86,6 @@ my_widget_script =
         return textOutput;
     },
 
-    // getPND: function (dateInputVal, DOBisDay) {
-    //     //https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
-    //     var textOutput;
-    //     var DOB_val = $("#dateOfBirth").val()
-    //     if(DOB_val){
-    //         if(dateInputVal){
-    //             var compDate = luxon.DateTime.fromISO(dateInputVal).startOf("day");
-    //             var DOB = luxon.DateTime.fromISO(DOB_val).startOf("day").minus({ days: DOBisDay });
-    //             var pnd = compDate.diff(DOB, "days").as("day");
-    //             // console.log(pnd);
-    //             textOutput = pnd;
-    //         } else {
-    //             textOutput = "[Enter Recording Date]";
-    //         }
-    //     } else {
-    //         textOutput = "[Enter DOB]";
-    //     }
-        
-    //     return textOutput;
-    // },
-
     updateToDoStatus: function (PND_today) {
         // TO DO - Change these to match your tasks and output divs
         var $toDoStatus = $(".toDo_status");
@@ -141,20 +93,20 @@ my_widget_script =
             $toDoStatus.html("<span style='color:blue'>Take mass today</span>");
             // Set massSelect to today's date
             $("#massSelect").val("pnd"+PND_today);
-            my_widget_script.switchMassTable("pnd"+PND_today);
+            this.switchMassTable("pnd"+PND_today);
         } else if ($.inArray(PND_today, [22, 23, 24, 70, 71, 72]) !== -1) {
             $toDoStatus.html("<span style='color:blue'>Take mass and AGD today</span>");
             // Set massSelect to today's date
             $("#massSelect").val("pnd"+PND_today);
-            my_widget_script.switchMassTable("pnd"+PND_today);
+            this.switchMassTable("pnd"+PND_today);
         } else if (PND_today === 21) {
             $toDoStatus.html("<span style='color:blue'>Wean and take mass today - enter in litter widget</span>");
             $("#massSelect").val("");
-            my_widget_script.switchMassTable("");
+            this.switchMassTable("");
         } else {
             $toDoStatus.html("<em>No mass or AGD today</em>");
             $("#massSelect").val("");
-            my_widget_script.switchMassTable($("#massSelect").val());
+            this.switchMassTable($("#massSelect").val());
         }
     },
 
@@ -167,20 +119,18 @@ my_widget_script =
         }
     },
 
-    // Add a certain number of days to a starting date and print the result as a string in all elements of $newDateClass
+    /**
+     * This function takes a startDateVal from a date input and adds a certain 
+     * numDays (number of days), and replaces the text in the $newDate element 
+     * which can be either an id or a class with date string of that addition
+     * 
+     * @param {*} $startDateVal - the value from the data input
+     * @param {*} $newDateClass - the element where the text with the date string will be printed. jQuery obj
+     * @param {*} numDays - number of days to add 
+    **/
     addDays: function ($startDateVal, $newDateClass, numDays) {
-        var dateString = $startDateVal; //get the date string from the input
-
-        var startDate = new Date(dateString);
-
-        var offset = new Date().getTimezoneOffset(); //get the offset of local time from GTC
-        // this is necessary because making a Date object from the input date string creates a date with time of midnight GTC
-        // for locales with different time zones, this means that the Date displayed could be the previous day
-
-        //Add the number of days (in ms) and offset (in ms) to the start Date (in ms) and make it a new date object
-        var newDate = new Date(startDate.getTime() + numDays * 24 * 60 * 60 * 1000 + offset * 60 * 1000);
-
-        $newDateClass.text(newDate.toDateString());
+        var newDate = luxon.DateTime.fromISO($startDateVal).plus({days: numDays}).toISODate();
+        $newDateClass.text(newDate);
     },
 
     printPND_days: function () {
@@ -193,10 +143,10 @@ my_widget_script =
                 //For each PND
                 var pnd = pndDays[i];
                 // Run the addDays function and update elements that have the .pnd class and the .pnd# corresponding to the pnd with the date string
-                my_widget_script.addDays($("#DOB").val(), $(".pnd"+pnd), pnd);
+                this.addDays($("#DOB").val(), $(".pnd"+pnd), pnd);
             }
         }
 
-        my_widget_script.resize();
+        this.resize();
     },
 };
