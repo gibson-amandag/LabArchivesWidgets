@@ -368,17 +368,21 @@ my_widget_script =
             my_widget_script.resize();
         });
 
-        $("#choiceButton").on("click", function(){
-            my_widget_script.buttonPress(); // works before
-            my_widget_script.dialogConfirm(
+        $("#choiceButton").on("click", (e)=>{
+            console.log("this", this);
+            console.log("event", e);
+            console.log("data", $(e.target).data("mouse"));
+            this.buttonPress(); // works before
+            this.dialogConfirm(
                 "Make a choice:", 
                 (result)=>{ // arrow function, "this" still in context of button
                     if(result){
-                        my_widget_script.printFunc("You chose OK");
+                        this.printFunc("You chose OK");
                     } else {
-                        my_widget_script.printFunc("You canceled or closed the dialog");
+                        this.printFunc("You canceled or closed the dialog");
                     }
-                }
+                },
+                $(e.target)
             );
         });
 

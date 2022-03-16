@@ -432,6 +432,7 @@ $(document).ready(function () {
         });
 
         $("#testConfirm").on("click", (e)=>{
+            console.log(e.currentTarget.offsetParent);
             this.runIfConfirmed(
                 "Sure?",
                 ()=>{
@@ -442,7 +443,7 @@ $(document).ready(function () {
                     console.log("scrollTop", e.currentTarget.scrollTop);
                     console.log("offsetTop", e.currentTarget.offsetTop);
                 }
-                // ,e.currentTarget
+                ,e.currentTarget
             );
             // console.log($(".modal-dialog").css("top"));
             // $(".modal-dialog").css("top", e.currentTarget.offsetTop + "px")
@@ -585,6 +586,7 @@ $(document).ready(function () {
                 }
             }
         });
+        console.log(top);
         $(".modal-dialog").css("top", top);
     },
 
@@ -818,7 +820,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container">
     <div class="row"><input class="col" type="button" value="Test Confirm" id="testConfirm" name="testconfirm"></div>
-    <div class="row"><input class="col" type="button" value="Test Alert" id="testAlert" name="testconfirm"></div>
+    <div class="row"><input class="col" type="button" value="Test Alert" id="testAlert" name="testalert"></div>
 </div>
 
 
