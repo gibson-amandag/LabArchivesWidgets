@@ -26,7 +26,7 @@ my_widget_script =
         this.initDynamicContent(parsedJson);
 
         //resize the content box when the window size changes
-        window.onresize = this.resize;
+        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
 
         //Define behavior when buttons are clicked or checkboxes/selctions change
         this.addEventListeners();
@@ -42,6 +42,8 @@ my_widget_script =
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
+
+        this.resetFilter();
     },
     
     to_json: function () {
@@ -59,8 +61,8 @@ my_widget_script =
         // Will be accessed within the init and from_json methods
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
-            cellNums: my_widget_script.cellNums,
-            cells: my_widget_script.cells
+            cellNums: this.cellNums,
+            cells: this.cells
         };
 
         //uncomment to check stringified output
@@ -148,23 +150,23 @@ my_widget_script =
         var name; //create a name variable
 
         //search the_form for all elements that are of type select, textarea, or input
-        $('#the_form').find('select, textarea, input').each(function () {
-            if (!$(this).prop('required')) { //if this element does not have a required attribute
+        $('#the_form').find('select, textarea, input').each((i, e)=> {
+            if (!$(e).prop('required')) { //if this element does not have a required attribute
                 //don't change anything (fail remains false)
             } else { //if there is a required attribute
-                if (!$(this).val()) { //if there is not a value for this input
+                if (!$(e).val()) { //if there is not a value for this input
                     fail = true; //change fail to true
-                    name = $(this).attr('id'); //replace the name variable with the name attribute of this element
+                    name = $(e).attr('id'); //replace the name variable with the name attribute of this element
                     fail_log += name + " is required \n"; //add to the fail log that this name is required
                 }
 
             }
         });
 
-        $("input[type='date']").each(function () {
-            var date = $(this).val();
+        $("input[type='date']").each((i, e)=> {
+            var date = $(e).val();
             if(date){
-                var validDate = my_widget_script.isValidDate(date);
+                var validDate = this.isValidDate(date);
                 if(!validDate){
                     fail = true;
                     fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
@@ -172,10 +174,10 @@ my_widget_script =
             }
         });
 
-        $("input[type='time']").each(function () {
-            var time = $(this).val();
+        $("input[type='time']").each((i, e)=> {
+            var time = $(e).val();
             if(time){
-                var validtime = my_widget_script.isValidTime(time);
+                var validtime = this.isValidTime(time);
                 if(!validtime){
                     fail = true;
                     fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
@@ -184,7 +186,7 @@ my_widget_script =
         });
 
         if (fail) { //if fail is true (meaning a required element didn't have a value)
-            return alert(fail_log); //return the fail log as an alert
+            return bootbox.alert(fail_log); //return the fail log as an alert
         } else {
             var noErrors = [];
             return noErrors;
@@ -225,22 +227,22 @@ my_widget_script =
     initDynamicContent: function (parsedJson) {
        // console.log(parsedJson);
        if(parsedJson.cells){
-            my_widget_script.cells = parsedJson.cells;
+            this.cells = parsedJson.cells;
         } else {
-            my_widget_script.cells = {}
+            this.cells = {}
         }
 
-        // console.log(my_widget_script.cells);
+        // console.log(this.cells);
 
         // console.time("initDynamic");
         if(parsedJson.cellNums){
             for (var i = 0; i < parsedJson.cellNums.length; i++){
                 cell = parsedJson.cellNums[i];
-                my_widget_script.cellNums.push(cell);
-                my_widget_script.makeCellCard(cell);
+                this.cellNums.push(cell);
+                this.makeCellCard(cell);
             }
         } else {
-            my_widget_script.cellNums = [];
+            this.cellNums = [];
         }
         // console.timeEnd("initDynamic");
     },
@@ -258,13 +260,16 @@ my_widget_script =
             $(".disableOnView").prop("disabled", true);
             $(".hideView").hide();
             $("input[type='date']").removeClass(".hasDatePicker");
+            $(".filter").prop("readonly", "").prop("disabled", "");
+            $(".filter").find("option").prop("disabled", "");
+
         } else {
-            $("input[type='date']").each(function () {
-                my_widget_script.checkDateFormat($(this));
+            $("input[type='date']").each((i,e)=> {
+                this.checkDateFormat($(e));
             });
             
-            $("input[type='time']").each(function () {
-                my_widget_script.checkTimeFormat($(this));
+            $("input[type='time']").each((i,e)=> {
+                this.checkTimeFormat($(e));
             });
         }
     },
@@ -274,7 +279,35 @@ my_widget_script =
      * This could include when buttons are clicked or when inputs change.
      */
     addEventListeners: function () {
-        
+        $(".toggleTable").on("click", (e)=> {
+            var tableID = $(e.currentTarget).data("table");
+            var $table = $("#"+tableID);
+            this.toggleTableFuncs($table);
+        });
+
+        $('.toCSV').on("click", (e)=> {
+            var tableID = $(e.currentTarget).data("table");
+            var dateToday = luxon.DateTime.now().toISODate(); // Luxon has to be added in HTML
+            var fileName = "table_"+tableID+"_"+dateToday;
+            var $errorMsg = $("#errorMsg");
+            
+            this.toCSVFuncs(fileName, tableID, $errorMsg);
+        });
+
+       $(".copyData").on("click", (e)=> {
+            var tableID = $(e.currentTarget).data("table");
+            // Get the data-table text string to add to the query to find the table
+            var tableSearch = this.tableSearch(tableID);
+            // Find the element that tells whether or not to copy the table
+            var $copyHead = $(".copyHead"+tableSearch);
+            var $transpose = $(".transpose"+tableSearch);
+            var $tableToCopy = $("#"+tableID);
+            var $tableDiv = $tableToCopy.parent();
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+            
+            this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose)
+        });
     },
 
     /**
@@ -285,14 +318,14 @@ my_widget_script =
      * red * before fields with the "requiredLab" property
      */
     addRequiredFieldIndicators: function () {
-        $('.needForTableLab').each(function () { //find element with class "needForFormLab"
+        $('.needForTableLab').each((i,e)=> { //find element with class "needForFormLab"
             //alert($(this).val());
-            $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
+            $(e).html("<span style='color:blue'>#</span>" + $(e).html()); //add # before
         });
 
-        $('.requiredLab').each(function () { //find element with class "requiredLab"
-            //alert($(this).val());
-            $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
+        $('.requiredLab').each((i,e)=> { //find element with class "requiredLab"
+            //alert($(e).val());
+            $(e).html("<span style='color:red'>*</span>" + $(e).html()); //add # before
         });
     },
 
@@ -313,17 +346,17 @@ my_widget_script =
         if(input.type !== "time"){
             supported = false;
         }
-        my_widget_script.timeSupported = supported;
+        this.timeSupported = supported;
         return (supported);
     },
 
     timeSupported: true,
 
     checkTimeFormat: function ($timeInput) {
-        if(!my_widget_script.timeSupported){ // if not supported
+        if(!this.timeSupported){ // if not supported
             $timeInput.next(".timeWarning").remove();
             var time = $timeInput.val();
-            var isValid = my_widget_script.isValidTime(time);
+            var isValid = this.isValidTime(time);
             if(!isValid){
                 $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
             }
@@ -350,17 +383,17 @@ my_widget_script =
         if(input.type !== "date"){
             supported = false;
         }
-        my_widget_script.dateSupported = supported;
+        this.dateSupported = supported;
         return (supported);
     },
 
     dateSupported: true,
 
     checkDateFormat: function ($dateInput) {
-        if(!my_widget_script.dateSupported){ // if not supported
+        if(!this.dateSupported){ // if not supported
             $dateInput.next(".dateWarning").remove();
             var date = $dateInput.val();
-            var isValid = my_widget_script.isValidDate(date);
+            var isValid = this.isValidDate(date);
             if(!isValid){
                 $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
             }
@@ -375,67 +408,79 @@ my_widget_script =
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
-        my_widget_script.isDateSupported();
-        my_widget_script.isTimeSupported();
+        this.isDateSupported();
+        this.isTimeSupported();
         
-        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
-            my_widget_script.checkDateFormat($(this));
-        }).each(function () {
-            my_widget_script.checkDateFormat($(this));
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", (e)=> {
+            this.checkDateFormat($(e.currentTarget));
+        }).each((i,e)=> {
+            this.checkDateFormat($(e));
         });
         
-        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
-            my_widget_script.checkTimeFormat($(this));
-        }).each(function () {
-            my_widget_script.checkTimeFormat($(this));
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", (e)=> {
+            this.checkTimeFormat($(e.currentTarget));
+        }).each((i,e)=> {
+            this.checkTimeFormat($(e));
         });
         
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
         
-        $('textarea.autoAdjust').each(function () {
-            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-        }).on('input', function () {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-            my_widget_script.resize();
+        $('textarea.autoAdjust').each((i, e)=> {
+            e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', (e)=> {
+            e.currentTarget.style.height = 'auto';
+            e.currentTarget.style.height = (e.currentTarget.scrollHeight) + 'px';
+            this.resize();
         });
 
-        $(".watchTime").each(function () {
-            my_widget_script.watchTimeNextEl($(this));
-        }).on("input", function () {
-            my_widget_script.watchTimeNextEl($(this));
+        $(".watchTime").each((i, e)=> {
+            this.watchTimeNextEl($(e));
+        }).on("input", (e)=> {
+            this.watchTimeNextEl($(e.currentTarget));
         });
 
-        $("#addCell").on("click", function () {
-            if(my_widget_script.cellNums.length > 0){
-                var lastCell = my_widget_script.cellNums[my_widget_script.cellNums.length - 1];
+        $(".addCell").on("click", (e)=> {
+            if(this.cellNums.length > 0){
+                var lastCell = this.cellNums[this.cellNums.length - 1];
                 var cellNum = lastCell + 1;
             } else {
                 var cellNum = 1;
             }
 
-            var inArray = my_widget_script.checkInArray(cellNum, my_widget_script.cellNums);
+            var inArray = this.checkInArray(cellNum, this.cellNums);
             if(! inArray){
-                my_widget_script.cellNums.push(cellNum);
-                my_widget_script.cells[cellNum] = {}
-                my_widget_script.makeCellCard(cellNum);
+                this.cellNums.push(cellNum);
+                this.cells[cellNum] = {}
+                this.makeCellCard(cellNum);
             }
         });
 
-        $(".watch").each(function () {
-            my_widget_script.watchValue($(this));
+        $(".filter").on("input", (e)=>{
+            // console.log("changed a filter")
+            this.filterData();
         });
 
-        $("input.extractedTime").each(function () {
-            my_widget_script.watchTimeNextEl($(this));
+        $("#resetFilter").on("click", (e)=>{
+            // console.log("pressed reset filter");
+            this.resetFilter();
         });
 
-        $(".cellHeader").each(function () {
-            my_widget_script.toggleCard($(this));
+        $(".watch").each((i,e)=> {
+            this.watchValue($(e));
         });
 
-        my_widget_script.resize();
+        $("input.extractedTime").each((i,e)=> {
+            this.watchTimeNextEl($(e));
+        });
+
+        $(".cellHeader").each((i,e)=> {
+            this.toggleCard($(e));
+        });
+
+        this.updateAllExclusion();
+        // this.resetFilter();
+        this.resize();
     },
 
     cellNums: [],
@@ -445,7 +490,7 @@ my_widget_script =
        var $elToFill = $elToWatch.next($(".fillTime"));
         // console.log($elToFill);
 
-        my_widget_script.watchTime($elToWatch, $elToFill);
+        this.watchTime($elToWatch, $elToFill);
     },
 
     /**
@@ -454,7 +499,7 @@ my_widget_script =
      */
     resize: function () {
         //resize the container
-        my_widget_script.parent_class.resize_container();
+        this.parent_class.resize_container();
     },
     // ********************** END CUSTOM INIT METHODS **********************
 
@@ -476,26 +521,36 @@ my_widget_script =
      * source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
      * -----------------------------------------------------------------------------
      */
-    data_valid_form: function () {
+     data_valid_form: function ($errorMsg) {
         var valid = true; //begin with a valid value of true
-        //var fail_log = ''; //begin with an empty fail log
-        //var name; //create a name variable
+        var fail_log = $("<div></div>").append("Missing values for:");
+        var name; //create a name variable
 
         //search the_form for all elements that are of class "needForForm"
-        $('.needForTable').each(function () {
-            if (!$(this).val()) { //if there is not a value for this input
+        $('.needForTable').each((i, e)=> {
+            if (!$(e).val()) { //if there is not a value for this input
                 valid = false; //change valid to false
-                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
-                //fail_log += name + " is required \n"; //add to the fail log that this name is required
+                name = $(e).attr('id'); //replace the name variable with the id attribute of this element
+                fail_log.append("<br/>"+name)
+                // fail_log += name + " is required \n"; //add to the fail log that this name is required
             }
         });
 
         if (!valid) {
-            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+            $errorMsg.html(
+                "<span style='color:red; font-size:36px;'>" +
+                    "Please fill out all elements marked by a"+
+                    "</span><span style='color:blue; font-size:36px;'>" +
+                    " blue #"+
+                "</span>"
+            );
+            $errorMsg.append(fail_log);
+            // console.log("fail log\n", fail_log)    
         } else {
-            $("#errorMsg").html("");
+            $errorMsg.html("");
         }
 
+        this.resize();
         return valid;
     },
 
@@ -517,8 +572,8 @@ my_widget_script =
         var startTime = $elToWatch.val();
         if(startTime){
             var time = new Date();
-            startTimeSplit = my_widget_script.getHoursMin(startTime);
-            addTimeSplit = my_widget_script.getHoursMin(addTime);
+            startTimeSplit = this.getHoursMin(startTime);
+            addTimeSplit = this.getHoursMin(addTime);
             // set start time
             time.setHours(startTimeSplit.hours, startTimeSplit.mins, 00, 000);
             time.setHours(time.getHours() + addTimeSplit.hours);
@@ -529,18 +584,18 @@ my_widget_script =
             $elToFill.text("{Enter Start Time}")
         }
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     toggleCard: function ($cardHead) {
         // console.log($cardHead.next());
         $cardHead.next().toggleClass("collapse");
-        $cardHead.next().find("textarea.autoAdjust").each(function () {
-            if(! $(this).is(":hidden")) {
-                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+        $cardHead.next().find("textarea.autoAdjust").each((i,e)=> {
+            if(! $(e).is(":hidden")) {
+                e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
             } 
         });
-        my_widget_script.resize();
+        this.resize();
     },
 
     makeCard: function ($div, cardHeadContent, cardBodyContent) {
@@ -552,8 +607,8 @@ my_widget_script =
                 $("<button></button>", {
                     "type": "button",
                     "class": "card-header",
-                }).on("click", function () {
-                    my_widget_script.toggleCard($(this));
+                }).on("click", (e)=> {
+                    this.toggleCard($(e.currentTarget));
                 }).append(cardHeadContent)
             ).append(
                 $("<div/>", {
@@ -563,7 +618,7 @@ my_widget_script =
                 )
             )
         )
-        my_widget_script.resize();
+        this.resize();
     },
 
     dataSearch: function (dataName, dataValue) {
@@ -572,31 +627,36 @@ my_widget_script =
     },
 
     calcSearch: function (calc) {
-        var calcSearch = my_widget_script.dataSearch("calc", calc);
+        var calcSearch = this.dataSearch("calc", calc);
         return calcSearch;
     },
 
     cellSearch: function (cell) {
-        var cellSearch = my_widget_script.dataSearch("cell", cell);
+        var cellSearch = this.dataSearch("cell", cell);
         return cellSearch;
     },
 
     tableSearch: function (table){
-        var tableSearch = my_widget_script.dataSearch("table", table);
+        var tableSearch = this.dataSearch("table", table);
         return tableSearch;
+    },
+    
+    watchSearch: function (watch){
+        var watchSearch = this.dataSearch("watch", watch);
+        return watchSearch;
     },
 
     watchValue: function ($el) {
         var watch = $el.data("watch");
-        var calcSearch = my_widget_script.calcSearch(watch);
+        var calcSearch = this.calcSearch(watch);
         var dayNum = $el.data("day");
         var cellNum = $el.data("cell");
         var val = $el.val();
         if(dayNum){
-            calcSearch += my_widget_script.daySearch(dayNum);
+            calcSearch += this.daySearch(dayNum);
         }
         if(cellNum){
-            calcSearch += my_widget_script.cellSearch(cellNum);
+            calcSearch += this.cellSearch(cellNum);
         }
         if(watch == "cell"){
             if(!val){
@@ -605,7 +665,39 @@ my_widget_script =
         }
         $(calcSearch).html(val);
 
-        my_widget_script.resize();
+        if(cellNum){
+            this.updateExclusion(cellNum);
+        }
+        this.resize();
+    },
+
+    updateAllExclusion: function(){
+        var cells = this.cellNums;
+        var numCells = cells.length;
+        for(var i = 0; i<numCells; i++){
+            var thisCell = cells[i];
+            my_widget_script.updateExclusion(thisCell);
+        }
+    },
+        
+    updateExclusion: function(cellNum){   
+        var calcSearch = this.calcSearch("excludeCell");
+        var cellSearch = this.cellSearch(cellNum);
+
+        var exclude = false;
+        var acqData = $(".acqData"+cellSearch).val();
+        var passive = $(".passives"+cellSearch).val();
+        var includeCell = $(".incCell"+cellSearch).val();
+        if(acqData == "no" || passive == "no" || includeCell == "no"){
+            exclude = true;
+        }
+        $(calcSearch+cellSearch).text(exclude);
+        if(exclude){
+            // console.log("make it red");
+            this.findCellRow(cellNum).css("background-color", "lightpink")
+        } else {
+            this.findCellRow(cellNum).css("background-color", "white")
+        }
     },
 
     checkInArray: function (searchVal, array){
@@ -616,30 +708,30 @@ my_widget_script =
     checkDateKeyPress: function ($el) {
         // https://stackoverflow.com/questions/40762549/html5-input-type-date-onchange-event
         $el.off("change blur"); // remove change/blur listeners
-        $el.on("blur", function () {
-            my_widget_script.checkDateFormat($el);
+        $el.on("blur", (e)=> {
+            this.checkDateFormat($el);
             $el.off("blur"); //remove listener
-            $el.on("change", function () { //add back change listener
-                my_widget_script.checkDateFormat($el);
+            $el.on("change", (e)=> { //add back change listener
+                this.checkDateFormat($el);
             });
         });
         if (event.keyCode === 13) { // also fire if press enter
-            my_widget_script.checkDateFormat($el);
+            this.checkDateFormat($el);
         }
     },
 
     checkTimeKeyPress: function ($el) {
         // https://stackoverflow.com/questions/40762549/html5-input-type-date-onchange-event
         $el.off("change blur"); // remove change/blur listeners
-        $el.on("blur", function () {
-            my_widget_script.checkTimeFormat($el);
+        $el.on("blur", (e)=> {
+            this.checkTimeFormat($el);
             $el.off("blur"); //remove listener
-            $el.on("change", function () { //add back change listener
-                my_widget_script.checkTimeFormat($el);
+            $el.on("change", (e)=> { //add back change listener
+                this.checkTimeFormat($el);
             });
         });
         if (event.keyCode === 13) { // also fire if press enter
-            my_widget_script.checkTimeFormat($el);
+            this.checkTimeFormat($el);
         }
     },
 
@@ -670,16 +762,6 @@ my_widget_script =
         // var extractedTimeRow = this.makeTimeRow(row, col, "Time of brain extraction:", "extracted", cellNum);
         // var changedSucroseTimeRow = this.makeTimeRow(row, col, "Time vial changed to sucrose:", "changedSucrose", cellNum);
 
-        // extractedTimeRow.find("div.col").append(
-        //     "Change to sucrose at <span class='fillTime purple' data-time='01:30'>{Enter Time}</span>"
-        // )
-
-        // extractedTimeRow.find(".extractedTime").on("input", function (){
-        //     my_widget_script.watchTimeNextEl($(this));
-        // }).each(function () {
-        //     my_widget_script.watchTimeNextEl($(this));
-        // });
-
         $div.append(
             $("<div/>", {
                 "class": "col col-md-6 mt-2 cellCard",
@@ -693,8 +775,8 @@ my_widget_script =
                         "type": "button",
                         "data-calc": "cell",
                         "data-cell": cellNum
-                    }).on("click", function () {
-                        my_widget_script.toggleCard($(this));
+                    }).on("click", (e)=> {
+                        this.toggleCard($(e.currentTarget));
                     }).append("Cell " + cellNum)
                 ).append(
                     $("<div/>", {
@@ -717,8 +799,8 @@ my_widget_script =
                                     name: "cellid"+cellNum,
                                     "class": "cellID fullWidth watch",
                                     "data-watch": "cell"
-                                }).on("change", function () {
-                                    my_widget_script.cells[cellNum]["id"] = $(this).val();
+                                }).on("change", (e)=> {
+                                    this.cells[cellNum]["id"] = $(e.currentTarget).val();
                                 })
                             )
                         )
@@ -740,8 +822,8 @@ my_widget_script =
                                     id: "deleteCell"+cellNum,
                                     name: "deletecell"+cellNum,
                                     "class": "deleteCell fullWidth",
-                                }).on("click", function () {
-                                    my_widget_script.deleteCellFuncs($(this).data("cell"));
+                                }).on("click", (e)=> {
+                                    this.deleteCellFuncs($(e.currentTarget).data("cell"));
                                 })
                             )
                         )
@@ -788,10 +870,10 @@ my_widget_script =
                                     name: "incnotes"+cellNum,
                                     "rows": 1,
                                     "class": "incNotes fullWidth autoAdjust"
-                                }).on('input', function () {
-                                    this.style.height = 'auto';
-                                    this.style.height = (this.scrollHeight) + 'px';
-                                    my_widget_script.resize();
+                                }).on('input', (e)=> {
+                                    e.currentTarget.style.height = 'auto';
+                                    e.currentTarget.style.height = (e.currentTarget.scrollHeight) + 'px';
+                                    this.resize();
                                 })
                             )
                         )
@@ -808,10 +890,10 @@ my_widget_script =
                                     name: "notes"+cellNum,
                                     "rows": 1,
                                     "class": "notes fullWidth autoAdjust"
-                                }).on('input', function () {
-                                    this.style.height = 'auto';
-                                    this.style.height = (this.scrollHeight) + 'px';
-                                    my_widget_script.resize();
+                                }).on('input', (e)=> {
+                                    e.currentTarget.style.height = 'auto';
+                                    e.currentTarget.style.height = (e.currentTarget.scrollHeight) + 'px';
+                                    this.resize();
                                 })
                             )
                         )
@@ -819,7 +901,6 @@ my_widget_script =
                 )
             )
         )
-
         
         var $cellTable = $("#cellTable");
 
@@ -840,32 +921,33 @@ my_widget_script =
             "passives", 
             "evDetectDate", 
             "evConfirmDate",
-            "incCell"
+            "incCell",
+            "excludeCell"
         ]
             
         for(i in cells){
             var cell = cells[i];
-            var $el = my_widget_script.makeDataCell(cell, cellNum);
+            var $el = this.makeDataCell(cell, cellNum);
             $thisRow.append($el);
         }
 
-        $(".watch").on("input", function () {
-            my_widget_script.watchValue($(this));
+        $(".watch").on("input", (e)=> {
+            this.watchValue($(e.currentTarget));
         });
 
-        $("input[type='date']").each(function () {
-            my_widget_script.checkDateFormat($(this));
-        }).on("input", function (){
-            my_widget_script.checkDateFormat($(this));
+        $("input[type='date']").each((i,e)=> {
+            this.checkDateFormat($(e));
+        }).on("input", (e)=>{
+            this.checkDateFormat($(e.currentTarget));
         });
         
-        $("input[type='time']").each(function () {
-            my_widget_script.checkTimeFormat($(this));
-        }).on("input", function() {
-            my_widget_script.checkTimeFormat($(this));
+        $("input[type='time']").each((i,e)=> {
+            this.checkTimeFormat($(e));
+        }).on("input", (e)=> {
+            this.checkTimeFormat($(e.currentTarget));
         });
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     makeCheckRow: function (row, col, label, className, cellNum) {
@@ -960,18 +1042,395 @@ my_widget_script =
         var proceed = confirm("Are you sure that you wish to delete this cell?");
         if(proceed){
             // Remove it from the cellNums
-            var index = my_widget_script.cellNums.indexOf(cellNum);
+            var index = this.cellNums.indexOf(cellNum);
             if(index > -1){
-                my_widget_script.cellNums.splice(index, 1);
+                this.cellNums.splice(index, 1);
             }
 
             //Remove it from cells
-            delete my_widget_script.cells[cellNum];
+            delete this.cells[cellNum];
     
-            var cellSearch = my_widget_script.cellSearch(cellNum);
+            var cellSearch = this.cellSearch(cellNum);
             $(cellSearch).remove();
         }
 
-        my_widget_script.resize();
+        this.resize();
+    },
+
+    resetFilter: function(){
+        // console.log("reset filter");
+        this.resetFilterSelections();
+        this.filterData();
+    },
+
+    resetFilterSelections: function(){
+        $("#nameFilter").val("");
+        // $("#acqDataFilter").find("option").prop("selected", false);
+        $("#acqDataFilter").val("yes");
+        $("#checkPassFilter").val("either");
+        $("#passiveFilter").find("option").prop("selected", false);
+        $("#evDetectFilter").val("either");
+        $("#evConfirmFilter").val("either");
+        $("#includeFilter").find("option").prop("selected", false);
+    },
+
+    filterData: function(){
+        var cells = this.cellNums;
+        var numCells = cells.length;
+        // console.log("cells", cells, "number of cells", numCells)
+        
+        var nameFilter = $("#nameFilter").val();
+        var acqDataFilter = $("#acqDataFilter").val();
+        var checkPassFilter = $("#checkPassFilter").val();
+        var passiveFilter = $("#passiveFilter").val();
+        var evDetectFilter = $("#evDetectFilter").val();
+        var evConfirmFilter = $("#evConfirmFilter").val();
+        var includeFilter = $("#includeFilter").val();
+        // console.log(acqDataFilter);
+        var keepCell;
+        for(var i = 0; i<numCells; i++){
+            var thisCell = cells[i];
+            var keepCell = false
+            if(this.matchesName(thisCell, nameFilter)){
+                if(this.matchesFilter(thisCell, "acqData", acqDataFilter)){
+                    if(this.matchesDate(thisCell, "checkPassDate", checkPassFilter)){
+                        if(this.matchesFilter(thisCell, "passives", passiveFilter)){
+                            // keepCell = true
+                            if(this.matchesDate(thisCell, "evDetectDate", evDetectFilter)){
+                                if(this.matchesDate(thisCell, "evConfirmDate", evConfirmFilter)){
+                                    if(this.matchesFilter(thisCell, "incCell", includeFilter)){
+                                        keepCell = true;
+                                        // console.log("keep cell", thisCell)
+                                    // } else {
+                                    //     console.log(thisCell, "doesn't match inclusion")
+                                    }
+                                // } else {
+                                //     console.log(thisCell, "doesn't match confirmation")
+                                }
+                            // } else {
+                            //     console.log(thisCell, "doesn't match detection")
+                            }
+                        // } else {
+                        //     console.log(thisCell, "doesn't match passives")
+                        }
+                    // } else {
+                    //     console.log(thisCell, "doesn't match check passives")
+                    }
+                // } else {
+                //     console.log(thisCell, "doesn't match acquired data")
+                }
+            // } else {
+            //     console.log(thisCell, "doesn't match name")
+            }
+
+            if(keepCell){
+                this.findCellCard(thisCell).show();
+                this.findCellRow(thisCell).show();
+            } else{
+                this.findCellCard(thisCell).hide();
+                this.findCellRow(thisCell).hide();
+            }
+        }
+        this.resize();
+    },
+
+    findCellCard: function(cellNum){
+        var cellSearch = this.cellSearch(cellNum);
+        var $cellCard = $(".cellCard"+cellSearch);
+        return $cellCard
+    },
+
+    findCellRow: function(cellNum){
+        var cellSearch = this.cellSearch(cellNum);
+        var $row = $("tr"+cellSearch);
+        return $row
+    },
+
+    matchesFilter: function(cellNum, watchName, matchArray){
+        var matches = false;
+        if(matchArray){
+            var cellSearch = this.cellSearch(cellNum);
+            var watchSearch = this.watchSearch(watchName);
+            var $el = $(watchSearch + cellSearch);
+            var thisVal = $el.val();
+            // console.log("thisVal", thisVal, "matchArray", matchArray);
+            if(!thisVal){thisVal = ""}
+            var matches = this.checkInArray(thisVal, matchArray);
+        } else {
+            // console.log("no match array");
+            matches = true;
+        }
+        return matches
+    },
+
+    matchesName: function(cellNum, matchString){
+        var matches = false;
+        if(matchString){
+            // console.log(matchString);
+            var cellSearch = this.cellSearch(cellNum);
+            var watchSearch = this.watchSearch("cell");
+            var $el = $(watchSearch + cellSearch);
+            var thisVal = $el.val();
+            // console.log(thisVal)
+            if(thisVal){
+                matchArray = thisVal.match(matchString);
+                // console.log("match name", matches);
+                if(matchArray){
+                    matches = true
+                }
+            } else{ // for when viewing
+                matchArray = "".match(matchString);
+                if(matchArray){
+                    matches = true
+                }
+            }
+        } else {
+            matches = true; // they all match if no filter on name
+        }
+        return matches
+    },
+    
+    matchesDate: function(cellNum, watchName, dateType){
+        var matches = false;
+        // console.log(dateType);
+        if(dateType == "either"){
+            matches = true;
+        } else {
+            var cellSearch = this.cellSearch(cellNum);
+            var watchSearch = this.watchSearch(watchName);
+            var $el = $(watchSearch + cellSearch);
+            console.log($el);
+            var thisVal = $el.val();
+            var thisDateType = "invalid"
+            // console.log(thisVal);
+            if(thisVal){
+                // console.log(thisVal, this.isValidDate(thisVal));
+                if(this.isValidDate(thisVal)){
+                    thisDateType = "valid"
+                }
+            }
+            if(dateType == thisDateType){
+                matches = true;
+            } 
+        }
+        return matches
+    },
+
+    /**
+     * This function takes a csv element and filename that are passed from the
+     * exportTableToCSV function.
+     * 
+     * This creates a csvFile and builds a download link that references this file.
+     * The download link is "clicked" by the function to prompt the browser to 
+     * download this file
+     * 
+     * source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+     * 
+     * @param {*} csv - This is the csv passed from the exportToCSV function
+     * @param {*} filename - This is the name of the file passed from exportToCSV function
+     */
+     downloadCSV: function (csv, filename) {
+        var csvFile;
+        var downloadLink;
+
+        // CSV file
+        csvFile = new Blob([csv], { type: "text/csv" });
+
+        // Download link
+        downloadLink = document.createElement("a");
+
+        // File name
+        downloadLink.download = filename;
+
+        // Create a link to the file
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+
+        // Hide download link
+        downloadLink.style.display = "none";
+
+        // Add the link to DOM
+        document.body.appendChild(downloadLink);
+
+        // Click download link
+        downloadLink.click();
+    },
+    
+    /**
+     * This function takes a filename and table name (both strings) as input
+     * It then creates a csv element from the table
+     * This csv element is passed to the downloadCSV function along with the filename
+     * 
+     * source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+     * @param {string} filename the name of the CSV file that will be downloaded
+     * @param {string} table the id of the table that will be exported
+     */
+    exportTableToCSV: function (filename, table) {
+        var csv = [];
+        var datatable = document.getElementById(table);
+        var rows = datatable.querySelectorAll("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
+
+            for (var j = 0; j < cols.length; j++) {
+                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
+                row.push(cellText);
+            };
+
+            csv.push(row.join(","));
+        }
+
+        // Download CSV file
+        this.downloadCSV(csv.join("\n"), filename);
+    },
+
+    /**
+     * This function creates a temporary textarea and then appends the contents of the
+     * specified table body to this textarea, separating each cell with a tab (\t).
+     * Because the script editor in LA is within a <textarea> the script cannot contain
+     * the verbatim string "textarea" so this must be separated as "text" + "area"
+     * to avoid errors.
+     * 
+     * If copying a table that has form inputs, then need to refer to the children of 
+     * <td> tags, and get the values by using .val() instead of .text()
+     * 
+     * If copying a table that could have multiple table rows (<tr>), the use the 
+     * \n new line separator
+     * 
+     * The temporary <textarea> is appended to the HTML form, focused on, and selected.
+     * Note that this moves the literal page focus, so having this append near the 
+     * button that calls this function is best. After the <textarea> is copied, it is
+     * then removed from the page.
+     * @param {*} $table - jQuery object for the table that will be copied
+     * @param {*} copyHead - true/false for whether or not the table head should be copied
+     * @param {*} $divForCopy - where the temp textarea should be added
+     * @param {*} transpose - true if table should be transposed
+     */
+     
+     copyTable: function ($table, copyHead, $divForCopy, transpose) {
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+        var rows = [];
+        var rowNum = 0;
+        // If you copying the head of the table
+        if (copyHead) {
+            // Find thead and then all children rows
+            $table.find("thead").children("tr").each((i,e)=> {
+                // If the table is being transposed, start the row number at 0 for each new row
+                if(transpose){rowNum = 0;}
+                // For each row, find each td or th element (table cell)
+                $(e).find("td, th").each((i,e)=> {
+                    // If there's not yet an array for this row, make an empty one
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    // Add the text of each cell to the row's array
+                    rows[rowNum].push($(e).text());
+                    // If table is being transposed, add one to the row number for each cell
+                    if(transpose){rowNum++;}
+                });
+                // If table is not being transposed, add one to the row number for each row
+                if(!transpose){rowNum++;}
+            });
+        }
+
+        // Find each row in the table body
+        $table.find("tbody").children("tr").not(":hidden").each((i,e)=> { // don't copy hidden rows
+            // If transposing, start the row number at 0 for each new row
+            if(transpose){rowNum = 0;}
+            // Find each cell within the row
+            $(e).find("td, th").each((i,e)=> {
+                // If there's not yet an array for this row, make an empty one
+                if(rows[rowNum]===undefined){rows[rowNum] = []}
+                // Add the text of each cell to the row's array
+                rows[rowNum].push($(e).text());
+                // If the table is being transposed, add one to the row number for each cell
+                if(transpose){rowNum++;}
+            });
+            // If table is not being transposed, add one to the row number for each row
+            if(!transpose){rowNum++;}
+        });
+
+        // For each row, join together all of the elements of the array with a \t to separate them (tab)
+        for(var i = 0; i < rows.length; i++){
+            rows[i] = rows[i].join("\t");
+        }
+
+        // Add each row to the temporary text area using \n (new line) to separate them
+        $temp.append(rows.join("\n"));
+        // Append the textarea to the div for copy, then select it
+        $temp.appendTo($divForCopy).select();
+        // Copy the "selected" text
+        document.execCommand("copy");
+        $temp.remove(); //remove temp
+        // Doesn't work within LA b/c of permissions, but would be easier way to copy w/o appending to page
+        // navigator.clipboard.writeText(rows.join("\n")); 
+    },
+
+    /**
+     * This either shows or hides (toggles) the table provided as a parameter. 
+     * It checks if the data is valid, but this doesn't stop it from running.
+     * It resizes the widget in the process.
+     * 
+     * @param {*} $table - jQuery object for table
+    **/
+     toggleTableFuncs: function ($table) {
+        this.data_valid_form();
+        $table.toggle();
+        this.resize();
+    },
+
+    /**
+     * Set of functions when toCSVButton clicked
+     * 
+     * Checked if data is valid, exports the table to a CSV
+     * Updates the error message accordingly
+     * 
+     * @param {string} fileName - fileName for the CSV that will be produced
+     * @param {string} tableID - tableID as a string for the table that will be copied
+     * @param $errorMsg - error message div as jQuery object
+     */
+    toCSVFuncs: function (fileName, tableID, $errorMsg) {
+        var data_valid = this.data_valid_form($errorMsg); // update data_valid_form to print to specific error field
+
+        if (data_valid) {
+            this.exportTableToCSV(fileName, tableID);
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
+        }
+    },
+
+    /**
+     * The steps that should be taken when the copy data button is pressed
+     * Checks if the $copyHead is checked, and then
+     * checks if the data is valid. If it is, it shows the table, resizes, and then
+     * copies the table (via a temporary textarea that is then removed). 
+     * 
+     * @param $copyHead - checkbox for whether or not to copy the table head as jQuery object
+     * @param $tableToCopy - table to copy as jQuery object
+     * @param $tableDiv - div containing table to copy
+     * @param $errorMsg - error message div as jQuery object
+     * @param $divForCopy - div where the output should copy to
+     * @param $transpose - checkbox for whether or not to transpose the table head as jQuery object
+     */
+     copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
+        var data_valid = this.data_valid_form($errorMsg); // update data_valid_form to print to specific error field
+        var copyHead = false, transpose = false;
+
+        //only copy the heading when the input box is checked
+        if ($copyHead.is(":checked")) {
+            copyHead = true;
+        }
+
+        if ($transpose.is(":checked")) {
+            transpose = true;
+        }
+
+        if (data_valid) { //if data is valid
+            $tableDiv.show(); //show the table
+            this.resize(); //resize
+            this.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
     },
 };

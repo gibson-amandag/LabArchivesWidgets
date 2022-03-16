@@ -91,12 +91,149 @@
 
     <div class="row mt-2">
         <div class="col hideView">
-            <input type="button" value="Add Cell" name="addcell" id="addCell" class="fullWidth"/>
+            <input type="button" value="Add Cell" name="addcelltop" id="addCellTop" class="addCell fullWidth"/>
         </div>
     </div>
 
+    <div class="row">
+        <h4 class="col">Filter Cells</h4>
+    </div>
+    <div class="row">
+        <div class="col"><input type="button" value="Reset Filter" id="resetFilter" class="fullWidth" name="resetfilter"/></div>
+    </div>
+
+    <div class="row mt-2 filterRow">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Cell name:
+                </div>
+                <div class="col">
+                    <input type="text" id="nameFilter" class="filter fullWidth" name="namefilter" data-filter="name"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Acquired data:
+                </div>
+                <div class="col">
+                    <select id="acqDataFilter" class="filter fullWidth" name="acqdatafilter" data-filter="acqData" multiple="true">
+                        <option value="">Unmarked</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                        <option value="unsure">Unsure</option>
+                        <option value="NA">NA</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Checked passives:
+                </div>
+                <div class="col">
+                    <select id="checkPassFilter" class="filter fullWidth" name="checkpassfilter" data-filter="checkPass">
+                        <option value="either">Either</option>
+                        <option value="invalid">Not done</option>
+                        <option value="valid">Done</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Passives pass quality:
+                </div>
+                <div class="col">
+                    <select id="passiveFilter" class="filter fullWidth" name="passivefilter" data-filter="passive" multiple="true">
+                        <option value="">Unmarked</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                        <option value="unsure">Unsure</option>
+                        <option value="NA">NA</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Completed event detection:
+                </div>
+                <div class="col">
+                    <select id="evDetectFilter" class="filter fullWidth" name="evdetectfilter" data-filter="evDetect">
+                        <option value="either">Either</option>
+                        <option value="invalid">Not done</option>
+                        <option value="valid">Done</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Completed event confirmation:
+                </div>
+                <div class="col">
+                    <select id="evConfirmFilter" class="filter fullWidth" name="evconfirmfilter" data-filter="evConfirm">
+                        <option value="either">Either</option>
+                        <option value="invalid">Not done</option>
+                        <option value="valid">Done</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Include cell:
+                </div>
+                <div class="col">
+                    <select id="includeFilter" class="filter fullWidth" name="includefilter" data-filter="include" multiple="true">
+                        <option value="">Unmarked</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                        <option value="unsure">Unsure</option>
+                        <option value="NA">NA</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div class="row cellInfo">
         &nbsp;
+    </div>
+    <div class="row mt-2">
+        <div class="col hideView">
+            <input type="button" value="Add Cell" name="addcellbottom" id="addCellButton" class="addCell fullWidth"/>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div id="forCopy">&nbsp;</div>
+    <div id="errorMsg">&nbsp;</div>
+</div>
+
+<div class="container mt-2">
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable1" name="toggletable1" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="cellTable"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="cellTable" /></div>
+        
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="cellTable"/>
+            <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="cellTable"/>
+            <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="cellTable" />
+        </div>
     </div>
 </div>
 
@@ -112,6 +249,7 @@
                     <th class="evDetectDate">Event detection</th>
                     <th class="evConfirmDate">Event confirmation</th>
                     <th class="incCell">Include cell</th>
+                    <th class="excludeCell">Exclude cell</th>
                 </tr>
             </thead>
             <tbody>
