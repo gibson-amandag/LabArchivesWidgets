@@ -11,7 +11,7 @@
 </script>
 <!-- Bootbox for dialogs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
+<!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
 <script>
     var $jq351 = jQuery.noConflict(true);
 </script>
@@ -199,6 +199,21 @@
         <div class="myLeftCol3">3. <input type="checkbox" name="step5" id="step5"></div>
         <div class="col">Pipette <span class="green">250 &micro;L</span> of <span class="lightBlue">Assay Buffer</span> into tubes <span class="red">S2</span> to <span class="red">S7</span></div>
     </div>
+    <div class="row">
+        <div class="col"><em>Standard Curve with 9 points</em></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">1. <input type="checkbox" name="stepstd91" id="stepstd91"></div>
+        <div class="col"><span class="blue">Label</span> tubes as <span class="red">S1</span>-<span class="red">S9</span> (1.5-mL microcentrifuge)</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">2. <input type="checkbox" name="stepstd92" id="stepstd92"></div>
+        <div class="col">Pipette <span class="green">450 &micro;L</span> of <span class="lightBlue">Assay Buffer</span> into tube <span class="red">S1</span></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">3. <input type="checkbox" name="stepstd95" id="stepstd95"></div>
+        <div class="col">Pipette <span class="green">250 &micro;L</span> of <span class="lightBlue">Assay Buffer</span> into tubes <span class="red">S2</span> to <span class="red">S9</span></div>
+    </div>
 </div>
 
 <div class="container mt-2">
@@ -272,6 +287,9 @@
         </div>
     </div>
     <div class="row mt-2">
+        <div class="col strong">7-point curve</div>
+    </div>
+    <div class="row mt-2">
         <div class="myLeftCol3">1. <input type="checkbox" name="step3" id="step3"></div>
         <div class="col">Vortex <span class="lightBlue">Corticosterone Stock Solution</span> <em>labeled "standard"</em>
         <br/><em>The instructions say to pre-wash the pipette tip as this solution contains an organic solvent</em></div>
@@ -296,9 +314,42 @@
         <div class="col">S6: <input type="checkbox" name="step10" id="step10"></div>
         <div class="col">S7: <input type="checkbox" name="step11" id="step11"></div>
     </div>
+    <div class="row mt-2">
+        <div class="col strong">9-point curve</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">1. <input type="checkbox" name="stepstd93" id="stepstd93"></div>
+        <div class="col">Vortex <span class="lightBlue">Corticosterone Stock Solution</span> <em>labeled "standard"</em>
+        <br/><em>The instructions say to pre-wash the pipette tip as this solution contains an organic solvent</em></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">2. <input type="checkbox" name="stepstd94" id="stepstd94"></div>
+        <div class="col">Pipette <span class="green">50 &micro;L</span> of <span class="lightBlue">Corticosterone Stock Solution</span> into <span class="red">S1</span><br/><span class="blue">Vortex</span></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">3. <input type="checkbox" name="stepstd96" id="stepstd96"></div>
+        <div class="col">Take <span class="green">250 &micro;L</span> from <span class="red">S1</span> and add to <span class="red">S2</span><br/><span class="blue">Vortex</span></div>
+    </div>
+    <div class="row mt-2">
+       <div class="col">4. Repeat serial dilutions for tubes <span class="red">S3</span> to <span class="red">S9</span>
+        <br/><em class="orange">Use a new tip for each standard</em>
+    </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col">S3: <input type="checkbox" name="stepstd97" id="stepstd97"></div>
+        <div class="col">S4: <input type="checkbox" name="stepstd98" id="stepstd98"></div>
+        <div class="col">S5: <input type="checkbox" name="stepstd99" id="stepstd99"></div>
+        <div class="col">S6: <input type="checkbox" name="stepstd910" id="stepstd910"></div>
+        <div class="col">S7: <input type="checkbox" name="stepstd911" id="stepstd911"></div>
+        <div class="col">S8: <input type="checkbox" name="stepstd911" id="stepstd911"></div>
+        <div class="col">S9: <input type="checkbox" name="stepstd911" id="stepstd911"></div>
+    </div>
 </div>
 
 <div class="container mt-2">
+    <div class="row">
+        <div class="col">7-point curve</div>
+    </div>
     <div class="table-responsive xsTableDiv">
         <table class="table">
             <tbody>
@@ -355,6 +406,75 @@
             </tbody>
         </table>
     </div>
+    <div class="row">
+        <div class="col">9-point curve</div>
+    </div>
+    <div class="table-responsive xsTableDiv">
+        <table class="table">
+            <tbody>
+                <tr class="red">
+                    <th>&nbsp;</th>
+                    <th>Std 1</th>
+                    <th>Std 2</th>
+                    <th>Std 3</th>
+                    <th>Std 4</th>
+                    <th>Std 5</th>
+                    <th>Std 6</th>
+                    <th>Std 7</th>
+                    <th>Std 8</th>
+                    <th>Std 9</th>
+                </tr>
+                <tr>
+                    <th>Assay buffer (&micro;L)</th>
+                    <td>450</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                </tr>
+                <tr>
+                    <th>Addition</th>
+                    <td>Stock</td>
+                    <td>Std 1</td>
+                    <td>Std 2</td>
+                    <td>Std 3</td>
+                    <td>Std 4</td>
+                    <td>Std 5</td>
+                    <td>Std 6</td>
+                    <td>Std 7</td>
+                    <td>Std 8</td>
+                </tr>
+                <tr>
+                    <th>Vol of addition (&micro;L)</th>
+                    <td>50</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                    <td>250</td>
+                </tr>
+                <tr>
+                    <th>Final conc (pg/mL)</th>
+                    <td>10000</td>
+                    <td>5000</td>
+                    <td>2500</td>
+                    <td>1250</td>
+                    <td>625</td>
+                    <td>312.5</td>
+                    <td>156.25</td>
+                    <td>78.125</td>
+                    <td>39.0625</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <div class="container mt-2">
@@ -401,7 +521,7 @@
         <div class="myLeftCol3">3. <input type="checkbox" name="step22" id="step22"></div>
         <div class="col">
             Pipette <span class="green">50 &micro;L</span> of <span class="lightBlue">assay buffer</span> into <span class="red">buffer control wells</span>
-            <br/>These are just after the standards (A3 + B3)
+            <br/>These are just after the standards (A3 + B3 for 7-point curve, E3 + F3 for 9-point curve)
             <br/>Will serve as a measure of maximal binding without any displacement of conjugate by sample
         </div>
     </div>

@@ -15,6 +15,7 @@ my_widget_script =
         //uncomment to inspect and view code while developing
         // debugger;
         
+        
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
         
@@ -430,7 +431,7 @@ my_widget_script =
             // +exp+"_"
             +date;
             this.exportAllTablesToCSV(fileName);
-        })
+        });
 
         $(".copyMouseIDs").on("click", (e)=>{
             var $divForCopy = $("#forCopy");
@@ -440,27 +441,30 @@ my_widget_script =
         });
 
         $("#idEntry2").each((i,e)=> {
-            this.fillSampleIDsFromList($(e));
+            // This will push times to 0 and 5 if there's pre/post
+            // Won't save if you manually change it
+            // The widget itself should actually fill in the values since they're form 
+            // this.fillSampleIDsFromList($(e));
         }).on("change", (e)=> {
             this.fillSampleIDsFromList($(e.currentTarget));
         });
-
+        
         $(".calcTotal").on("change", (e)=>{
             this.calcNumAssignedWells();
         });
-
+        
         $("#updateEntries").on("click", ()=>{
             this.checkAndUpdateWells();
         });
-
+        
         this.calcNumAssignedWells();
         this.checkAndUpdateWells();
-
+        
         $(".type").each((i,e)=>{
             this.fillByType($(e));
         }).on("change", (e)=>{
             this.fillByType($(e.currentTarget));
-        })
+        });
 
         // Generic update when any part of the form has user input
         $("#the_form").on("input", (e)=>{
@@ -953,7 +957,7 @@ my_widget_script =
             var $plate = $(".plateImg"+this.plateSearch(plateType))
 
             csv.push(this.createCSV($plate));
-            console.log(csv);
+            // console.log(csv);
         }
 
         this.downloadCSV(csv.join("\n\n"), filename);
@@ -1207,6 +1211,8 @@ my_widget_script =
 
     row1: ["A", "C", "E", "G"],
     row2: ["B", "D", "F", "H"],
+
+    sampleTimes: [],
 
     makePlates: function(){
         var $platesDiv = $("#platesWrapper");
@@ -1550,7 +1556,6 @@ my_widget_script =
         var numSamples = $("#numSamples").val();
 
         if(this.calcNumAssignedWells()){
-            console.log("trying to update");
             this.updateEntryWells(numNSB, numSTD, numBuffer, numQC, numSamples);
         } else {
             $("#numWarning").text("Did not update; too many samples");
