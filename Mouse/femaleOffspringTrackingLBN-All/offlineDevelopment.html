@@ -629,6 +629,8 @@ $(document).ready(function () {
 
         $(".removeMatCheck").on("click", (e)=> {
             var el = e.currentTarget;
+            // console.log("in mat check", e.currentTarget.offsetTop);
+            // console.log(e.currentTarget.offsetParent);
             this.runIfConfirmed(
                 "Are you sure that you want to remove the last date?",
                 ()=>{
@@ -641,6 +643,7 @@ $(document).ready(function () {
                         this.watchFor1E();
                     }
                 }
+                , el
             );
         });
 
@@ -830,11 +833,29 @@ $(document).ready(function () {
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
+    getOffsetTop: function(element){
+        var offsetTop = 0;
+        var lastElement = 0;
+        while(element && !lastElement){
+            // console.log("the element", element);
+            var formChild = $(element).children("#the_form");
+            if(formChild.length>0){
+                // console.log("found the child");
+                lastElement = 1;
+            }
+            offsetTop += element.offsetTop;
+            element = element.offsetParent;
+            // console.log("offsetTop", offsetTop)
+        }
+        return offsetTop
+    },
+
     /**
      * Run the supplied function if user presses OK
      * 
      * @param text The message to be displayed to the user. 
      * @param functionToCall Function to run if user pressed OK
+     * @param elForHeight Element to based the height of the dialog box on
      * 
      * If no text is provided, "Are you sure?" is used
      * Can supply a function with no parameters and no () after the name,
@@ -842,18 +863,26 @@ $(document).ready(function () {
      * 
      * Nothing happens if cancel or "X" is pressed
      * 
+     * If elForHeight is left blank, height is auto
+     * 
      * Example:
-     * my_widget_script.runIfConfirmed(
+     * this.runIfConfirmed(
             "Do you want to run the function?", 
             ()=>{
                 console.log("pretend delete function");
             }
         );
     */
-    runIfConfirmed: function(text, functionToCall){
+    runIfConfirmed: function(text, functionToCall, elForHeight = null){
         var thisMessage = "Are you sure?";
         if(text){
             thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            // top = elForHeight.offsetTop + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
         bootbox.confirm({
             message: thisMessage,
@@ -863,6 +892,8 @@ $(document).ready(function () {
                 }
             }
         });
+        console.log(top)
+        $(".modal-dialog").css("top", top);
     },
 
     /**
@@ -870,12 +901,15 @@ $(document).ready(function () {
      * 
      * @param text The message to display to user
      * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
      * 
      * If no text is provided, "Do you wish to proceed?" is the default
      * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
      * 
+     * If elForHeight is left blank, height is auto
+     * 
      * Example:
-     * my_widget_script.dialogConfirm(
+     * this.dialogConfirm(
             "Make a choice:", 
             (result)=>{ // arrow function, "this" still in context of button
                 if(result){
@@ -886,17 +920,23 @@ $(document).ready(function () {
             }
         );
         */
-    dialogConfirm: function(text, functionToCall){
+    dialogConfirm: function(text, functionToCall, elForHeight = null){
         var thisMessage = "Do you want to proceed?";
         if(text){
             thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
         }
         bootbox.confirm({
             message: thisMessage,
             callback: (result)=>{
                 functionToCall(result);
             }
-        })
+        });
+        $(".modal-dialog").css("top", top);
     },
 
     /**
@@ -904,12 +944,15 @@ $(document).ready(function () {
      * 
      * @param prompt Text to provide to the user
      * @param functionToCall Function to run, with the user input as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
      * 
      * If no text is provided, "Enter value:" is used as default
      * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
      * 
+     * If elForHeight is left blank, height is auto
+     *  
      * Example:
-     * my_widget_script.runBasedOnInput(
+     * this.runBasedOnInput(
             "Enter a number from 0-10", (result)=>{
                 if(result <= 10 && result >= 0){
                     console.log("You entered: " + result);
@@ -919,10 +962,15 @@ $(document).ready(function () {
             }
         );
         */ 
-    runBasedOnInput: function(prompt, functionToCall){
+    runBasedOnInput: function(prompt, functionToCall, elForHeight = null){
         var thisTitle = "Enter value:"
         if(prompt){
             thisTitle = prompt;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
         }
         bootbox.prompt({
             title: thisTitle,
@@ -930,6 +978,7 @@ $(document).ready(function () {
                 functionToCall(result);
             }
         });
+        $(".modal-dialog").css("top", top);
     },
 
     dataSearch: function (dataName, dataValue) {
@@ -1493,7 +1542,9 @@ $(document).ready(function () {
         } else if(whichPheno === "firstE"){
             var $div = $(".firstE_div" + dataSearch);
         }
-        $div.find(".addedRow").last().remove();
+        var numRows = $div.find(".addedRow").length;
+        $div.find(".Row_"+numRows).remove();
+        // $div.find(".addedRow").first().remove(); // remove first now, since that's the most recent
 
         this.resize();
     },
@@ -2291,584 +2342,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
     <div id="forMassEntry">&nbsp;</div>
     
-    <!-- <div id = "oldmassdiv">
-        <div class="container mt-2 _pnd22 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 22:</div>
-        
-                <div class="col pnd22">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd22_1" id="mass_pnd22_1" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd22_1" id="AGD_pnd22_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd22_2" id="mass_pnd22_2" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd22_2" id="AGD_pnd22_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd22_3" id="mass_pnd22_3" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd22_3" id="AGD_pnd22_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd22_4" id="mass_pnd22_4" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd22_4" id="AGD_pnd22_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd22_5" id="mass_pnd22_5" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd22_5" id="AGD_pnd22_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd23 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 23:</div>
-        
-                <div class="col pnd23">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd23_1" id="mass_pnd23_1" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd23_1" id="AGD_pnd23_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd23_2" id="mass_pnd23_2" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd23_2" id="AGD_pnd23_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd23_3" id="mass_pnd23_3" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd23_3" id="AGD_pnd23_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd23_4" id="mass_pnd23_4" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd23_4" id="AGD_pnd23_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd23_5" id="mass_pnd23_5" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd23_5" id="AGD_pnd23_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd24 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 24:</div>
-        
-                <div class="col pnd24">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd24_1" id="mass_pnd24_1" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd24_1" id="AGD_pnd24_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd24_2" id="mass_pnd24_2" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd24_2" id="AGD_pnd24_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd24_3" id="mass_pnd24_3" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd24_3" id="AGD_pnd24_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd24_4" id="mass_pnd24_4" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd24_4" id="AGD_pnd24_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd24_5" id="mass_pnd24_5" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd24_5" id="AGD_pnd24_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd28 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 28:</div>
-        
-                <div class="col pnd28">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd28_1" id="mass_pnd28_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd28_2" id="mass_pnd28_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd28_3" id="mass_pnd28_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd28_4" id="mass_pnd28_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd28_5" id="mass_pnd28_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd35 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 35:</div>
-        
-                <div class="col pnd35">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd35_1" id="mass_pnd35_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd35_2" id="mass_pnd35_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd35_3" id="mass_pnd35_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd35_4" id="mass_pnd35_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd35_5" id="mass_pnd35_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd42 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 42:</div>
-        
-                <div class="col pnd42">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd42_1" id="mass_pnd42_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd42_2" id="mass_pnd42_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd42_3" id="mass_pnd42_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd42_4" id="mass_pnd42_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd42_5" id="mass_pnd42_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd49 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 49:</div>
-        
-                <div class="col pnd49">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd49_1" id="mass_pnd49_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd49_2" id="mass_pnd49_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd49_3" id="mass_pnd49_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd49_4" id="mass_pnd49_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd49_5" id="mass_pnd49_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd56 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 56:</div>
-        
-                <div class="col pnd56">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd56_1" id="mass_pnd56_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd56_2" id="mass_pnd56_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd56_3" id="mass_pnd56_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd56_4" id="mass_pnd56_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd56_5" id="mass_pnd56_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd63 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 63:</div>
-        
-                <div class="col pnd63">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd63_1" id="mass_pnd63_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd63_2" id="mass_pnd63_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd63_3" id="mass_pnd63_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd63_4" id="mass_pnd63_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd63_5" id="mass_pnd63_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-           <div class="container mt-2 _pnd70 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 70:</div>
-        
-                <div class="col pnd70">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd70_1" id="mass_pnd70_1" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd70_1" id="AGD_pnd70_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd70_2" id="mass_pnd70_2" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd70_2" id="AGD_pnd70_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd70_3" id="mass_pnd70_3" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd70_3" id="AGD_pnd70_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd70_4" id="mass_pnd70_4" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd70_4" id="AGD_pnd70_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd70_5" id="mass_pnd70_5" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd70_5" id="AGD_pnd70_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd71 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 71:</div>
-        
-                <div class="col pnd71">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd71_1" id="mass_pnd71_1" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd71_1" id="AGD_pnd71_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd71_2" id="mass_pnd71_2" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd71_2" id="AGD_pnd71_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd71_3" id="mass_pnd71_3" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd71_3" id="AGD_pnd71_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd71_4" id="mass_pnd71_4" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd71_4" id="AGD_pnd71_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd71_5" id="mass_pnd71_5" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd71_5" id="AGD_pnd71_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container mt-2 _pnd72 massDiv">
-            <div class="row align-items-end mt-2 blackBackground">
-                <div class="myLeftCol2">PND 72:</div>
-        
-                <div class="col pnd72">&nbsp;</div>
-            </div>
-            <div class="entry" data-num="1">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd72_1" id="mass_pnd72_1" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd72_1" id="AGD_pnd72_1" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="2">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd72_2" id="mass_pnd72_2" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd72_2" id="AGD_pnd72_2" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="3">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd72_3" id="mass_pnd72_3" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd72_3" id="AGD_pnd72_3" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="4">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd72_4" id="mass_pnd72_4" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd72_4" id="AGD_pnd72_4" class="simpleCalc"/></div>
-                </div>
-            </div>
-            <div class="entry" data-num="5">
-                <div class="row mt-2">
-                    <div class="myLeftCol3">Mass (g):</div>
-                    <div class="col"><input type="number" name="mass_pnd72_5" id="mass_pnd72_5" class="simpleCalc"/></div>
-                </div>
-                <div class="row mt-2">
-                    <div class="myLeftCol3">AGD:</div>
-                    <div class="col"><input type="number" name="agd_pnd72_5" id="AGD_pnd72_5" class="simpleCalc"/></div>
-                </div>
-            </div>
-        </div>
-    </div> -->
-
     <!-- Mouse 1 -->
     <div class="entry mat" data-num="1">
        <div class="container mt-2 VO VO_div_outer" data-num="1">
@@ -3479,7 +2952,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
     </div>
 </div>
-
 
 <!-- #endregion -->
 <!------------------------------------------------------------------------------------------>
