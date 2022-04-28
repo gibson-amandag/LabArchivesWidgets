@@ -72,7 +72,23 @@
     <div class="row mt-2">
         <div class="myLeftCol">Dam ID:</div>
         <div class="col">
-            <input type="text" name="damid" id="damID" class="fullWidth">
+            <input type="text" name="damid" id="damID" class="fullWidth simpleCalc">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            PND:
+        </div>
+        <div class="col">
+            <input type="number" name="pnd" id="pnd" class="fullWidth simpleCalc">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Zeitgeber Time:
+        </div>
+        <div class="col">
+            <input type="number" min="0" max="24" name="zt" id="zt" class="fullWidth simpleCalc">
         </div>
     </div>
     <div class="row mt-2">
@@ -151,6 +167,14 @@
         </div>
     </div>
     <div class="row mt-2">
+        <div class="myLeftCol">Keys to change video</div>
+        <div class="col">
+            <code>q</code> = 3x; <code>w</code> = 5x; <code>a</code> = 10x; <code>s</code> = 16x<br/>
+            <code>z</code> = back 30 sec; <code>x</code> = play/pause; <code>c</code> = forward 30 sec<br/>
+            <em>work when focus is on add entry/exit button</em>
+        </div>
+    </div>
+    <div class="row mt-2">
         <div class="myLeftCol">
             Press to add stamp:
         </div>
@@ -212,6 +236,9 @@
         <table class="table" id="outTable">
             <thead>
                 <tr>
+                    <th>damID</th>
+                    <th>PND</th>
+                    <th>ZT</th>
                     <th>Duration</th>
                     <th>Num_exits</th>
                     <th>Num_entries</th>
@@ -225,6 +252,9 @@
             </thead>
             <tbody>
                 <tr>
+                    <td class="damID_calc">&nbsp;</td>
+                    <td class="pnd_calc">&nbsp;</td>
+                    <td class="zt_calc">&nbsp;</td>
                     <td class="videoDur_calc">&nbsp;</td>
                     <td class="numExits_calc">&nbsp;</td>
                     <td class="numEntries_calc">&nbsp;</td>

@@ -413,6 +413,54 @@ $(document).ready(function () {
             } else {
                 alert("Enter the starting state of the dam");
             }
+        }).on("keydown", (e)=>{
+            var key = e.key;
+            var vidSpeed = 5;
+            var changeSpeed = false;
+            switch (key) {
+                case "q":
+                    vidSpeed = 3;
+                    changeSpeed = true;
+                    break;
+                case "w":
+                    vidSpeed = 5;
+                    changeSpeed = true;
+                    break;
+                case "a":
+                    vidSpeed = 10;
+                    changeSpeed = true;
+                    break;
+                case "s":
+                    vidSpeed = 16; // max
+                    changeSpeed = true;
+                    break;
+                case "z":
+                    var timeInSec = parseFloat(my_widget_script.getTimeStamp());
+                    timeInSec = timeInSec - 30;
+                    this._vid.currentTime = timeInSec;
+                    $("#addStampButton").select();
+                    break;
+                case "c":
+                    var timeInSec = parseFloat(my_widget_script.getTimeStamp());
+                    timeInSec = timeInSec + 30;
+                    this._vid.currentTime = timeInSec;
+                    break;
+                case "x":
+                    if(this._vid.paused){
+                        this._vid.play();
+                    } else {
+                        this._vid.pause();
+                    }
+                    $("#addStampButton").select();
+                    break;
+                default:
+                    break;
+            }
+            if(changeSpeed){
+                $("#changeSpeed").val(vidSpeed);
+                this._vid.playbackRate = vidSpeed;
+                $("#addStampButton").select();
+            }
         });
 
         $("#removeStampButton").on("click", function () {
@@ -460,11 +508,7 @@ $(document).ready(function () {
         });
 
         // Output table calculations
-        $(".simpleCalc").each(function () {
-            var elementID = this.id;
-            var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
-        }).on("input", function () {
+        $(".simpleCalc").on("input", function () {
             var elementID = this.id;
             var calcID = "." + elementID + "_calc";
             my_widget_script.watchValue($(this), $(calcID));
@@ -871,6 +915,12 @@ $(document).ready(function () {
         }).on('input', function () {
             my_widget_script.adjustTextareaHeight(this);
         });
+        
+        $(".simpleCalc").each(function () {
+            var elementID = this.id;
+            var calcID = "." + elementID + "_calc";
+            my_widget_script.watchValue($(this), $(calcID));
+        });
 
         my_widget_script.calcValues();
 
@@ -926,6 +976,7 @@ $(document).ready(function () {
 
     watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
+        console.log($elToWatch, value);
         $elToUpdate.text(value);
     },
 
@@ -1422,7 +1473,23 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row mt-2">
         <div class="myLeftCol">Dam ID:</div>
         <div class="col">
-            <input type="text" name="damid" id="damID" class="fullWidth">
+            <input type="text" name="damid" id="damID" class="fullWidth simpleCalc">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            PND:
+        </div>
+        <div class="col">
+            <input type="number" name="pnd" id="pnd" class="fullWidth simpleCalc">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Zeitgeber Time:
+        </div>
+        <div class="col">
+            <input type="number" min="0" max="24" name="zt" id="zt" class="fullWidth simpleCalc">
         </div>
     </div>
     <div class="row mt-2">
@@ -1501,6 +1568,14 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
     </div>
     <div class="row mt-2">
+        <div class="myLeftCol">Keys to change video</div>
+        <div class="col">
+            <code>q</code> = 3x; <code>w</code> = 5x; <code>a</code> = 10x; <code>s</code> = 16x<br/>
+            <code>z</code> = back 30 sec; <code>x</code> = play/pause; <code>c</code> = forward 30 sec<br/>
+            <em>work when focus is on add entry/exit button</em>
+        </div>
+    </div>
+    <div class="row mt-2">
         <div class="myLeftCol">
             Press to add stamp:
         </div>
@@ -1562,6 +1637,9 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <table class="table" id="outTable">
             <thead>
                 <tr>
+                    <th>damID</th>
+                    <th>PND</th>
+                    <th>ZT</th>
                     <th>Duration</th>
                     <th>Num_exits</th>
                     <th>Num_entries</th>
@@ -1575,6 +1653,9 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </thead>
             <tbody>
                 <tr>
+                    <td class="damID_calc">&nbsp;</td>
+                    <td class="pnd_calc">&nbsp;</td>
+                    <td class="zt_calc">&nbsp;</td>
                     <td class="videoDur_calc">&nbsp;</td>
                     <td class="numExits_calc">&nbsp;</td>
                     <td class="numEntries_calc">&nbsp;</td>

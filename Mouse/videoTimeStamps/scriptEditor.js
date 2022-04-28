@@ -353,6 +353,54 @@ my_widget_script =
             } else {
                 alert("Enter the starting state of the dam");
             }
+        }).on("keydown", (e)=>{
+            var key = e.key;
+            var vidSpeed = 5;
+            var changeSpeed = false;
+            switch (key) {
+                case "q":
+                    vidSpeed = 3;
+                    changeSpeed = true;
+                    break;
+                case "w":
+                    vidSpeed = 5;
+                    changeSpeed = true;
+                    break;
+                case "a":
+                    vidSpeed = 10;
+                    changeSpeed = true;
+                    break;
+                case "s":
+                    vidSpeed = 16; // max
+                    changeSpeed = true;
+                    break;
+                case "z":
+                    var timeInSec = parseFloat(my_widget_script.getTimeStamp());
+                    timeInSec = timeInSec - 30;
+                    this._vid.currentTime = timeInSec;
+                    $("#addStampButton").select();
+                    break;
+                case "c":
+                    var timeInSec = parseFloat(my_widget_script.getTimeStamp());
+                    timeInSec = timeInSec + 30;
+                    this._vid.currentTime = timeInSec;
+                    break;
+                case "x":
+                    if(this._vid.paused){
+                        this._vid.play();
+                    } else {
+                        this._vid.pause();
+                    }
+                    $("#addStampButton").select();
+                    break;
+                default:
+                    break;
+            }
+            if(changeSpeed){
+                $("#changeSpeed").val(vidSpeed);
+                this._vid.playbackRate = vidSpeed;
+                $("#addStampButton").select();
+            }
         });
 
         $("#removeStampButton").on("click", function () {
@@ -400,11 +448,7 @@ my_widget_script =
         });
 
         // Output table calculations
-        $(".simpleCalc").each(function () {
-            var elementID = this.id;
-            var calcID = "." + elementID + "_calc";
-            my_widget_script.watchValue($(this), $(calcID));
-        }).on("input", function () {
+        $(".simpleCalc").on("input", function () {
             var elementID = this.id;
             var calcID = "." + elementID + "_calc";
             my_widget_script.watchValue($(this), $(calcID));
@@ -811,6 +855,12 @@ my_widget_script =
         }).on('input', function () {
             my_widget_script.adjustTextareaHeight(this);
         });
+        
+        $(".simpleCalc").each(function () {
+            var elementID = this.id;
+            var calcID = "." + elementID + "_calc";
+            my_widget_script.watchValue($(this), $(calcID));
+        });
 
         my_widget_script.calcValues();
 
@@ -866,6 +916,7 @@ my_widget_script =
 
     watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
+        console.log($elToWatch, value);
         $elToUpdate.text(value);
     },
 
