@@ -1677,6 +1677,114 @@ my_widget_script =
         // Get the well group number for the first sample slot
         var firstSample = this.firstSampleGroup;
 
+        var wellGroup, wellGroupSearch, mouseID, lastMouseID, lastWellGroupSearch, lastWellIDs, isLastDup = false, numDups = 1;
+        for(var i = 0; i < listLength; i ++){
+            // get the well group and associated well IDs
+            wellGroup = firstSample + i;
+            wellGroupSearch = this.groupSearch(wellGroup);
+            var wellIDs = this.getWellIDsFromGroupNum(wellGroup);
+
+            // Get this mouseID
+            mouseID = splitList[i];
+            var thisID = mouseID;
+            
+            // Assume the time is 0
+            var time = 0;
+            
+            if(mouseID === lastMouseID){
+                if(!isLastDup){ // this is a duplicate, but the last mouse wasn't a duplicate; i.e., first of label
+                    // Add pre to the last plateID
+                    // entry
+                    $(".plateID" + lastWellGroupSearch).val(lastMouseID + " pre");
+                    // card head title
+                    $(lastWellGroupSearch+this.calcSearch("plateID")).text(lastMouseID + " pre");
+                    // table wells
+                    this.fillWells("plateID", lastWellIDs, lastMouseID + " pre");
+                } 
+                time = NaN; // don't make assumptions about time for the rest of the matches
+                
+                // Mark that this mouse was a duplicate
+                isLastDup = true;
+                numDups++; // add one to number of duplicates
+
+                // don't make assumptions about plateID
+                thisID = mouseID
+            } else {
+                isLastDup = false;
+                if(numDups == 2){ // if there were only two duplicates, assume post at 5h
+                    // Add post to the last plateID
+                    // entry
+                    $(".plateID" + lastWellGroupSearch).val(lastMouseID + " post");
+                    // card head title
+                    $(lastWellGroupSearch+this.calcSearch("plateID")).text(lastMouseID + " post");
+                    // table wells
+                    this.fillWells("plateID", lastWellIDs, lastMouseID + " post");
+                    // Update the time
+                    $(".time"+lastWellGroupSearch).val(5);
+                    this.fillWells("time", lastWellIDs, 5);
+                }
+                numDups = 1 // reset
+            }
+
+            // update the plateID label
+            $(".plateID"+wellGroupSearch).val(thisID);
+            $(wellGroupSearch+this.calcSearch("plateID")).text(thisID);
+            this.fillWells("plateID", wellIDs, thisID);
+            
+            // Update the mouseID
+            $(".mouseID"+wellGroupSearch).val(mouseID);
+            this.fillWells("mouseID", wellIDs, mouseID);
+
+            // Update the time
+            $(".time"+wellGroupSearch).val(time);
+            this.fillWells("time", wellIDs, time);
+
+            lastMouseID = mouseID;
+            lastWellGroupSearch = wellGroupSearch;
+            lastWellIDs = wellIDs;
+        }
+
+        // Check after last entry
+        if(numDups == 2){ // if there were only two duplicates, assume post at 5h
+            // Add post to the last plateID
+            // entry
+            $(".plateID" + lastWellGroupSearch).val(lastMouseID + " post");
+            // card head title
+            $(lastWellGroupSearch+this.calcSearch("plateID")).text(lastMouseID + " post");
+            // table wells
+            this.fillWells("plateID", lastWellIDs, lastMouseID + " post");
+            // Update the time
+            $(".time"+lastWellGroupSearch).val(5);
+            this.fillWells("time", lastWellIDs, 5);
+        }
+
+        this.resize();
+    },
+
+    fillSampleIDsFromList_old: function($list){
+        var fullList = $list.val();
+        var splitList = fullList.split(/[\r\n]+/);
+        // get the current number of samples in case we need to restore it
+        var currentNumSamples = $("#numSamples").val();
+        var listLength = splitList.length;
+
+        $("#numSamples").val(listLength);
+
+        // check if we're okay with the length of this list and other samples
+        if(!this.calcNumAssignedWells()){
+            // If not, post a warning, and restore the old value
+            $("#numWarning").text("You've entered too many mice");
+            $("#numSamples").val(currentNumSamples);
+            return;
+        }
+
+        // Update the well types with this new number of samples
+        // This will restart fresh
+        this.checkAndUpdateWells();
+
+        // Get the well group number for the first sample slot
+        var firstSample = this.firstSampleGroup;
+
         var wellGroup, wellGroupSearch, mouseID, lastMouseID, lastWellGroupSearch, lastWellIDs, isLastDup = false;
         for(var i = 0; i < listLength; i ++){
             // get the well group and associated well IDs
