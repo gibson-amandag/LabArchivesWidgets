@@ -29,6 +29,10 @@
         }
     }
 
+    .slideDiv {
+        overflow-x: scroll;
+    }
+
     table {
         border: 2px solid black;
     }
@@ -75,13 +79,19 @@
             style="color:blue">#</span></p>
 </div>
 
+<input type="file" id="fileUpload" name="fileupload"/>
+<input type="button" id="upload" name="upload" value="Upload" onclick="my_widget_script.upload()" />
+<hr />
+<div id="dvCSV">
+</div>
+
 <div class="container mt-2">
     <div class="row">
         <div class="myLeftCol">
             Pick a region:
         </div>
         <div class="col">
-            <select name="region" id="region" class="editOnView">
+            <select name="region" id="region" class="editOnView fullWidth">
                 <option value="">NA</option>
                 <option value="POA">pre-optic area</option>
             </select>
@@ -92,9 +102,10 @@
             Pick a section #:
         </div>
         <div class="col">
-            <select name="section" id="section" class="editOnView">
+            <select name="section" id="section" class="editOnView fullWidth">
                 &nbsp;
             </select>
+            <a id="downloadSection" name="downloadsection" class="downloadSection fullWidth mt-1">Download Section</a>
         </div>
     </div>
     <div class="row mt-2">

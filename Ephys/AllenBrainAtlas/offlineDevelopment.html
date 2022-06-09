@@ -182,14 +182,14 @@ $(document).ready(function () {
             cellNums: [1, 2],
             cells: {
                 1: {
-                    cellName: "a",
+                    cellID: "a",
                     region: "POA",
                     section: 49,
                     xPos: 249,
                     yPos: 285
                 },
                 2: {
-                    cellName: "b",
+                    cellID: "b",
                     region: "POA",
                     section: 51,
                     xPos: 270,
@@ -311,12 +311,13 @@ $(document).ready(function () {
     initDynamicContent: function (parsedJson) {
         if(parsedJson.cells){
             for(cell in parsedJson.cells){
-                var cellName = parsedJson.cells[cell].cellName;
-                var region = parsedJson.cells[cell].region;
-                var section = parsedJson.cells[cell].section;
-                var xPos = parsedJson.cells[cell].xPos;
-                var yPos = parsedJson.cells[cell].yPos;
-                this.addCellRow(cell, cellName, region, section, xPos, yPos);
+                // var cellID = parsedJson.cells[cell].cellID;
+                // var region = parsedJson.cells[cell].region;
+                // var section = parsedJson.cells[cell].section;
+                // var xPos = parsedJson.cells[cell].xPos;
+                // var yPos = parsedJson.cells[cell].yPos;
+                // this.addCellRow(cell, cellID, region, section, xPos, yPos);
+                this.addCellRow(cell, parsedJson.cells[cell]);
             }
             this.cells = parsedJson.cells;
         } else {
@@ -675,32 +676,36 @@ $(document).ready(function () {
 
     cells: {},
 
-    addCellToCells: function(cellNum, cellName, region, section, xPos, yPos){
-        this.cells[cellNum] = {
-            cellName: cellName,
+    addCellToCells: function(cellNum, cellID, region, section, xPos, yPos){
+        var cellObj = {
+            cellID: cellID,
             region: region,
             section: section,
             xPos: xPos,
             yPos: yPos
         }
-        this.addCellRow(cellNum, cellName, region, section, xPos, yPos);
+        this.cells[cellNum] = cellObj;
+
+        this.addCellRow(cellNum, cellObj);
+        // this.addCellRow(cellNum, cellID, region, section, xPos, yPos);
     },
     
-    addCellRow: function(cellNum, cellName, region, section, xPos, yPos){
+    // addCellRow: function(cellNum, cellID, region, section, xPos, yPos){
+    addCellRow: function(cellNum, cellObj){
         $("#cellTable").find("tbody").append(
             $("<tr></tr>", {
                 "data-cell": cellNum,
                 "class": "cellRow"
             }).append(
-                "<td>" + cellName + "</td>"
+                "<td>" + cellObj.cellID + "</td>"
             ).append(
-                "<td>" + region + "</td>"
+                "<td>" + cellObj.region + "</td>"
             ).append(
-                "<td>" + section + "</td>"
+                "<td>" + cellObj.section + "</td>"
             ).append(
-                "<td class='hideCol'>" + xPos + "</td>"
+                "<td class='hideCol'>" + cellObj.xPos + "</td>"
             ).append(
-                "<td class='hideCol'>" + yPos + "</td>"
+                "<td class='hideCol'>" + cellObj.yPos + "</td>"
             ).append(
                 $("<td></td>", {
                     "class": "removeCol hideView"
@@ -760,9 +765,9 @@ $(document).ready(function () {
             var x = e.clientX - rect.left; //x position within the element.
             var y = e.clientY - rect.top;  //y position within the element.
             // console.log("Left? : " + x + " ; Top? : " + y + ".");
-            var cellName = $("#cellName").val();
-            this.addDot(cellNum, cellName, x, y, e.currentTarget);
-            this.addCellToCells(cellNum, cellName, region, section, x, y);
+            var cellID = $("#cellName").val();
+            this.addDot(cellNum, cellID, x, y, e.currentTarget);
+            this.addCellToCells(cellNum, cellID, region, section, x, y);
             $("#cellNameRow").hide();
             $(e.currentTarget).off("click");
             this.resize();
@@ -775,10 +780,10 @@ $(document).ready(function () {
             var region = cells[cell].region;
             var section = cells[cell].section;
             if(region == $("#region").val() && section == $("#section").val()){
-                var cellName = cells[cell].cellName;
+                var cellID = cells[cell].cellID;
                 var xPos = cells[cell].xPos;
                 var yPos = cells[cell].yPos;
-                this.addDot(cell, cellName, xPos, yPos, $(".ABI_section"));
+                this.addDot(cell, cellID, xPos, yPos, $(".ABI_section"));
             }
         }
         this.resize();
@@ -788,17 +793,17 @@ $(document).ready(function () {
         $(".dot").remove();
     },
 
-    addDot: function(cellNum, cellName, xPos, yPos, el) {
+    addDot: function(cellNum, cellID, xPos, yPos, el) {
         $(el).parent().append(
             $("<div></div>", {
                 "data-cell": cellNum,
-                "data-cellname": cellName,
+                "data-cellid": cellID,
                 "class": "dot",
                 "style": "left:" + xPos + "px; top:" + yPos + "px;"
             }).on("mouseover", (e)=>{
-                var cellName = $(e.target).data("cellname");
+                var cellID = $(e.target).data("cellid");
                 var cellNum = $(e.target).data("cell");
-                $(".hoverInfo").text("You're hovered over cell " + cellName);
+                $(".hoverInfo").text("You're hovered over cell " + cellID);
                 this.resize();
             }).on("mouseout", (e)=>{
                 $(".hoverInfo").text("Hover over a cell to see its ID");
@@ -1202,13 +1207,17 @@ $(document).ready(function () {
         var rows = datatable.querySelectorAll("tr");
 
         for (var i = 0; i < rows.length; i++) {
-            var row = [], cols = rows[i].querySelectorAll("td, th");
+            var row = [], cols = rows[i].querySelectorAll("td:not(.removeCol), th:not(.removeCol)");
+
+            console.log(cols);
 
             for (var j = 0; j < cols.length; j++) {
-                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
+                // var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
+                var cellText = cols[j].innerText; // removed because reads odd, shouldn't have commas here
                 row.push(cellText);
             };
 
+            // csv.push(row.join(","));
             csv.push(row.join(","));
         }
 
@@ -1370,18 +1379,20 @@ $(document).ready(function () {
     //#endregion cards
 
     //#region upload
-    upload: function() {
+    preview: function() {
         var fileUpload = document.getElementById("fileUpload");
         var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
         if (regex.test(fileUpload.value.toLowerCase())) {
             if (typeof (FileReader) != "undefined") {
                 var reader = new FileReader();
                 reader.onload = (e) => {
+                    // console.log("csv results", e.target.result);
                     var table = document.createElement("table");
+                    table.className = "table";
                     var rows = e.target.result.split("\n");
                     for (var i = 0; i < rows.length; i++) {
                         var cells = rows[i].split(",");
-                        if (cells.length > 1) {
+                        if (cells.length > 0) {// changed to greater than 0, from 1
                             var row = table.insertRow(-1);
                             for (var j = 0; j < cells.length; j++) {
                                 var cell = row.insertCell(-1);
@@ -1395,11 +1406,84 @@ $(document).ready(function () {
                 }
                 reader.readAsText(fileUpload.files[0]);
             } else {
-                alert("This browser does not support HTML5.");
+                bootbox.alert("This browser does not support HTML5.");
             }
         } else {
-            alert("Please upload a valid CSV file.");
+            bootbox.alert("Please upload a valid CSV file.");
         }
+    },
+
+    upload: function() {
+        var fileUpload = document.getElementById("fileUpload");
+        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
+        if (regex.test(fileUpload.value.toLowerCase())) {
+            if (typeof (FileReader) != "undefined") {
+                var reader = new FileReader();
+                reader.onload = (e) => {
+                    var cells = this.getCellsFromCSVTable(e.target.result);
+                    console.log(cells);
+                    for(cell in cells){
+                        var cellInfo = cells[cell];
+                        var isDup = this.checkIfCellIsDuplicate(cellInfo);
+                        // console.log(isDup);
+                        if(!isDup){
+                            if(this.cellNums.length > 0){
+                                var lastCell = this.cellNums[this.cellNums.length - 1];
+                                var cellNum = lastCell + 1;
+                            } else {
+                                var cellNum = 1;
+                            }
+
+                            var inArray = this.checkInArray(cellNum, this.cellNums);
+                            if(! inArray){
+                                this.cellNums.push(cellNum);
+                                this.cells[cellNum] = cellInfo;
+                                this.addCellRow(cellNum, cellInfo);
+                            }
+                        }
+                        $("#dvCSV").text(""); // clear preview after upload
+                    }
+                }
+                reader.readAsText(fileUpload.files[0]);
+            } else {
+                bootbox.alert("This browser does not support HTML5.");
+            }
+        } else {
+            bootbox.alert("Please upload a valid CSV file.");
+        }
+    },
+
+    getCellsFromCSVTable: function(csv){
+        var rows = csv.split("\n");
+        // console.log(rows);
+        if(rows.length>0){
+            var headings = rows[0].split(",");
+            var cellsInfo = {};
+            for(var i = 1; i < rows.length; i++){
+                var cells = rows[i].split(",");
+                cellsInfo[i] = {}; // make an object for each cell
+                for(var j = 0; j < cells.length; j++){
+                    var heading = headings[j];
+                    cellsInfo[i][heading] = cells[j];
+                }
+            }
+        }
+        // console.log(cellsInfo);
+        return cellsInfo;
+    },
+
+    checkIfCellIsDuplicate: function(cellInfo){
+        var cellID = cellInfo.cellID;
+        var isDup = 0;
+        for(cell in this.cells){
+            var existingID = this.cells[cell].cellID;
+            if(cellID == existingID){
+                isDup = 1;
+                bootbox.alert("cellID " + cellID + " already exists in database");
+                break;
+            }
+        }
+        return isDup;
     }
     //#endregion upload
 
@@ -1514,12 +1598,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             style="color:blue">#</span></p>
 </div>
 
-<input type="file" id="fileUpload" />
-<input type="button" id="upload" value="Upload" onclick="my_widget_script.upload()" />
-<hr />
-<div id="dvCSV">
-</div>
-
 <div class="container mt-2">
     <div class="row">
         <div class="myLeftCol">
@@ -1613,10 +1691,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2">
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+        <div class="col-12 col-sm-6"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
                 class="fullWidth toCSV" data-table="cellTable" /></div>
         
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="col-12 col-sm-6">
             <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="cellTable"/>
             <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="cellTable"/>
             <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="cellTable" />
@@ -1627,6 +1705,39 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 <div class="container mt-2">
     <div id="forCopy">&nbsp;</div>
     <div id="errorMsg">&nbsp;</div>
+</div>
+
+<div class="container mt-2 hideView">
+    <div class="row">
+        <h4 class="col-12">Import cells from another widget</h4>
+        <p class="col">Save as CSV in other widget, then select the CSV below</p>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Select CSV:
+        </div>
+        <div class="col">
+            <input type="file" id="fileUpload" name="fileupload" class="fullWidth"></input>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Preview cells:
+        </div>
+        <div class="col">
+            <input type="button" id="preview" name="preview" value="Preview" class="fullWidth" onclick="my_widget_script.preview()"></input>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class= "col table-responsive xsTableDiv" id="dvCSV">
+            &nbsp;
+        </div>
+    </div>
+    <hr />
+    <div class="row mt-2">
+        <div class="myLeftCol">Add cells:</div>
+        <div class="col"><input type="button" value="upload" id="upload" name="upload" class="fullWidth" onclick="my_widget_script.upload()"></div>
+    </div>
 </div>
 
 

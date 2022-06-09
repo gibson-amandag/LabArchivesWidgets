@@ -520,7 +520,7 @@ my_widget_script =
 
         $(".hideCells").on("click", (e)=>{
             this.hideCells();
-        })
+        });
 
         $("#cellNameRow").hide();
         // $(".hoverInfo").css("display", "none")
@@ -549,6 +549,7 @@ my_widget_script =
         $(".mouseBrain").html("");
         $("#addCellRow").hide();
         $("#cellNameRow").hide();
+        $(".downloadSection").attr("href", "").hide();
         var region = $("#region").val();
         if(region){
             var section = $("#section").val();
@@ -558,7 +559,8 @@ my_widget_script =
                     var src = this.buildImgSrc(sectionID);
                     $(".mouseBrain").append(
                         $("<div></div>", {
-                            "style": 'position:relative'
+                            "style": 'position:relative',
+                            "class": "xsTableDiv" // so that you can see it on a small screen. Adds scroll bar
                         }).append(
                             $("<img></img>", {
                                 "class": "ABI_section",
@@ -580,6 +582,14 @@ my_widget_script =
                             this.resize();
                         })
                     }
+
+                    var src = this.buildDownloadSrc(sectionID)
+
+                    var fileName = "ABI_3Dcoronal_section"+section+"_sectionID"+sectionID+"downsample4.svg"
+
+                    console.log(fileName)
+                    $(".downloadSection").attr("href", src).show();
+
                     $("#addCellRow").show();
                 }
             }
@@ -587,8 +597,17 @@ my_widget_script =
         this.resize();
     },
 
+
+    // If the link is ever broken, SVG files have been downloaded to the AllUsers folder of the server
+    // Within AllenBrainAtlasSVGs folder
+    // Also added to LabArchives Shared Resources Notebook
     buildImgSrc: function(sectionID){
         var src = "https://api.brain-map.org/api/v2/svg/" + sectionID + "?groups=28&downsample=4";
+        return src
+    },
+
+    buildDownloadSrc: function(sectionID){
+        var src = "https://api.brain-map.org/api/v2/svg_download/" + sectionID + "?groups=28&downsample=4";
         return src
     },
 
@@ -1290,5 +1309,38 @@ my_widget_script =
     },
     //#endregion cards
 
+    //#region upload
+    upload: function() {
+        var fileUpload = document.getElementById("fileUpload");
+        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
+        if (regex.test(fileUpload.value.toLowerCase())) {
+            if (typeof (FileReader) != "undefined") {
+                var reader = new FileReader();
+                reader.onload = (e) => {
+                    var table = document.createElement("table");
+                    var rows = e.target.result.split("\n");
+                    for (var i = 0; i < rows.length; i++) {
+                        var cells = rows[i].split(",");
+                        if (cells.length > 1) {
+                            var row = table.insertRow(-1);
+                            for (var j = 0; j < cells.length; j++) {
+                                var cell = row.insertCell(-1);
+                                cell.innerHTML = cells[j];
+                            }
+                        }
+                    }
+                    var dvCSV = document.getElementById("dvCSV");
+                    dvCSV.innerHTML = "";
+                    dvCSV.appendChild(table);
+                }
+                reader.readAsText(fileUpload.files[0]);
+            } else {
+                alert("This browser does not support HTML5.");
+            }
+        } else {
+            alert("Please upload a valid CSV file.");
+        }
+    }
+    //#endregion upload
 
 };
