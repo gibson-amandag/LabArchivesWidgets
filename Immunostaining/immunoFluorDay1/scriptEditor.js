@@ -416,6 +416,16 @@ my_widget_script =
             var solns = this.blockingSolnCalc(); // updating within function now
         });
 
+        // When an amount of PBST1 solution is changed, update the volumes of components
+        $(".updatePBST1").on("change", (e)=>{
+            var solns = this.PBST1Calc(); // updating within function now
+        });
+
+        // When an amount of PBST1 solution is changed, update the volumes of components
+        $(".updatePBST2").on("change", (e)=>{
+            var solns = this.PBST2Calc(); // updating within function now
+        });
+
         $("#addAntibody").on("click", ()=>{
             this.addAntibodyClick();
         });
@@ -428,6 +438,12 @@ my_widget_script =
             this.primaryAbSolnCalc();
         });
 
+        $(".calcVol").on("change", (e)=>{
+            this.calcVolByPlate($(e.currentTarget));
+        }).each((i,e)=>{
+            this.calcVolByPlate($(e));
+        });
+
         // Simple watch update
         $(".watch").each((i,e)=>{
             this.watchValue($(e));
@@ -436,6 +452,8 @@ my_widget_script =
         });
 
         this.blockingSolnCalc();
+        this.PBST1Calc();
+        this.PBST2Calc();
         this.primaryAbSolnCalc();
         this.resize();
     },
@@ -721,6 +739,24 @@ my_widget_script =
         return(startVol)
     },
 
+    calcVolByPlate: function($el){
+        var plateSize = $el.val();
+        var type = $el.data("volwatch");
+        var typeSearch = this.dataSearch("volcalc", type);
+
+        var amnt;
+        if(plateSize == 24){
+            amnt = "500&micro;"
+        }else if(plateSize == 12){
+            amnt = "1.5m"
+        } else if(plateSize == 6){
+            amnt = "3m"
+        } else {
+            amnt = "specify appropriate plate size"
+        }
+        $(".printVol"+typeSearch).html(amnt)
+    },
+
     // Return the amount of normal goat serum, triton, and PBS for blocking solution
     // Default is 4% NGS and 0.4% triton
     blockingSolnCalc: function(){
@@ -761,6 +797,74 @@ my_widget_script =
         $("#volNGSBlock").text(solns.NGS);
         $("#volTritonBlock").text(solns.triton);
         $("#volPBSBlock").text(solns.PBS);
+        return(
+            solns
+        )
+    },
+
+    // Return the amount of triton, and PBS for first PBST solution
+    // Default is 0.1% triton
+    PBST1Calc: function(version){
+        var desiredFinalVol = $("#desiredPBST2Vol").val();
+        var percTriton = $("#percTriton2").val();
+        if(!(percTriton>0) || percTriton > 100){
+            percTriton = 0.1;
+            $("#percTriton2").val(0.1);
+            this.watchValue($("#percTriton2"));
+        }
+        var dilFractionTriton = percTriton/100;
+        if(desiredFinalVol > 0){
+            // var dilFractionTriton = 0.004; // 0.4% triton
+            var startVolTritonx100 = this.startVolOfDilutionCalc(dilFractionTriton, desiredFinalVol);
+            // console.log(startVolTritonx100);
+            var startVolTriton20percmL = startVolTritonx100 * 5;
+            var startVolTriton20percuL = +(startVolTriton20percmL * 1000).toFixed(2);
+            var startVolPBS = +(desiredFinalVol - startVolTriton20percmL).toFixed(2);
+        } else {
+            var startVolTriton20percuL = "[Enter desired amount]"
+            var startVolPBS = "[Enter desired amount]"
+        }
+        solns = {
+            triton2: startVolTriton20percuL,
+            PBS2: startVolPBS
+        }
+        $("#volTriton2").text(solns.triton2);
+        $("#volPBS2").text(solns.PBS2);
+        $(".PBST1_option").text(percTriton + "% PBS-T");
+        return(
+            solns
+        )
+    },
+
+    // Return the amount of triton, and PBS for first PBST solution
+    // Default is 0.1% triton
+    PBST2Calc: function(version){
+        var desiredFinalVol = $("#desiredPBST3Vol").val();
+        var percTriton = $("#percTriton3").val();
+        if(!(percTriton>0) || percTriton > 100){
+            percTriton = 0.4;
+            $("#percTriton3").val(0.4);
+            this.watchValue($("#percTriton3"));
+        }
+        var dilFractionTriton = percTriton/100;
+        if(desiredFinalVol > 0){
+            // var dilFractionTriton = 0.004; // 0.4% triton
+            var startVolTritonx100 = this.startVolOfDilutionCalc(dilFractionTriton, desiredFinalVol);
+            // console.log(startVolTritonx100);
+            var startVolTriton20percmL = startVolTritonx100 * 5;
+            var startVolTriton20percuL = +(startVolTriton20percmL * 1000).toFixed(2);
+            var startVolPBS = +(desiredFinalVol - startVolTriton20percmL).toFixed(2);
+        } else {
+            var startVolTriton20percuL = "[Enter desired amount]"
+            var startVolPBS = "[Enter desired amount]"
+        }
+        solns = {
+            triton3: startVolTriton20percuL,
+            PBS3: startVolPBS
+        }
+        $("#volTriton3").text(solns.triton3);
+        $("#volPBS3").text(solns.PBS3);
+        $(".PBST2_option").text(percTriton + "% PBS-T");
         return(
             solns
         )

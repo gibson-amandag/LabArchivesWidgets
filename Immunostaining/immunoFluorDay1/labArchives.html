@@ -1,3 +1,4 @@
+<!-- #region HTML -->
 <!-- Bootstrap CSS -->
 <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
@@ -42,6 +43,10 @@
 
     .fullWidth {
         width: 90%
+    }
+
+    .halfWidth {
+        width: 50%
     }
 
     .green{
@@ -137,11 +142,142 @@
             </div>
         </div>
         
+        <!-- PBS-T Solution 1 -->
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <button class="card-header" type="button">
+                    PBS + <span data-calc="percTriton2">0.1</span>% Triton
+                </button>
+                <div class="card-body container collapse">
+                    <div class="row font-italic">
+                        Prepare a solution of TritonX100 at 20% dilution 1:5 (8mL Triton + 32mL PBS 1X). You can keep it for a very long time at 4&deg;C.
+                        Diluted triton is easier to use as it is a sticky detergent
+                    </div>
+                    <div class="row mt-2 align-items-end">
+                        <div class="myLeftCol2">
+                            <input type="date" name="pbst1date" id="pbst1Date">
+                        </div>
+                        <div class="col">Date</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Percentages:</strong>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="myLeftCol">
+                            <input type="number" name="perctriton2" id="percTriton2" class="fullWidth updatePBST1 watch" data-watch="percTriton2" value="0.1" min="0" max="100" step="0.1"/>
+                        </div>
+                        <div class="col">
+                            % triton
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Desired Amount:</strong><br/>
+                        </div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">
+                            <input type="number" name="desiredpbst2vol" id="desiredPBST2Vol" class="fullWidth updatePBST1 watch" data-watch="vol2" value="30">
+                        </div>
+                        <div class="col">Desired blocking solution volume (mL)</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="volTriton2">[Enter desired amount]</span> &micro;L</div>
+                        <div class="col">20% triton</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol bottomLine">
+                            <div class="row">
+                                <div class="col-2 text-left">
+                                    +
+                                </div>
+                                <div class="col green"><span id="volPBS2">[Enter desired amount]</span> mL</div>
+                            </div>
+                        </div>
+                        <div class="col">PBS 1x</div>
+                    </div>
+
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol"><span data-calc="vol2">[Enter desired amount]</span> mL</div>
+                        <div class="col"><strong>total</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- PBS-T Solution 2 -->
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <button class="card-header" type="button">
+                    PBS + <span data-calc="percTriton3">0.4</span>% Triton
+                </button>
+                <div class="card-body container collapse">
+                    <div class="row font-italic">
+                        Prepare a solution of TritonX100 at 20% dilution 1:5 (8mL Triton + 32mL PBS 1X). You can keep it for a very long time at 4&deg;C.
+                        Diluted triton is easier to use as it is a sticky detergent
+                    </div>
+                    <div class="row mt-2 align-items-end">
+                        <div class="myLeftCol2">
+                            <input type="date" name="pbst2date" id="pbst2Date">
+                        </div>
+                        <div class="col">Date</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Percentages:</strong>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="myLeftCol">
+                            <input type="number" name="perctriton3" id="percTriton3" class="fullWidth updatePBST2 watch" data-watch="percTriton3" value="0.4" min="0" max="100" step="0.1"/>
+                        </div>
+                        <div class="col">
+                            % triton
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Desired Amount:</strong><br/>
+                        </div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">
+                            <input type="number" name="desiredpbst3vol" id="desiredPBST3Vol" class="fullWidth updatePBST2 watch" data-watch="vol3" value="30">
+                        </div>
+                        <div class="col">Desired blocking solution volume (mL)</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="volTriton3">[Enter desired amount]</span> &micro;L</div>
+                        <div class="col">20% triton</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol bottomLine">
+                            <div class="row">
+                                <div class="col-2 text-left">
+                                    +
+                                </div>
+                                <div class="col green"><span id="volPBS3">[Enter desired amount]</span> mL</div>
+                            </div>
+                        </div>
+                        <div class="col">PBS 1x</div>
+                    </div>
+
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol"><span data-calc="vol3">[Enter desired amount]</span> mL</div>
+                        <div class="col"><strong>total</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Blocking Solution -->
         <div class="col-12 col-lg-6">
             <div class="card">
                 <button class="card-header" type="button">
-                    PBS + <span data-calc="percNGS">4</span>% Normal Goat Serum + <span data-calc="percTriton">0.4</span>% Triton
+                    PBS + <span data-calc="percNGS">4</span>% Normal <span data-calc="secondaryType">Goat</span> Serum + <span data-calc="percTriton">0.4</span>% Triton
                 </button>
                 <div class="card-body container collapse">
                     <div class="row font-italic">
@@ -164,7 +300,8 @@
                             <input type="number" name="percngs" id="percNGS" class="fullWidth updateBlocking watch" data-watch="percNGS" value="4" min="0" max="100"/>
                         </div>
                         <div class="col">
-                            % normal goat serum
+                            % Normal <select name="secondarytype" id="secondaryType" class="watch" data-watch="secondaryType"><option value="Goat">Goat</option>
+                            <option value="Donkey">Donkey</option></select> Serum
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -189,7 +326,7 @@
                     </div>
                     <div class="row mt-2 align-items-start">
                         <div class="myLeftCol green"><span id="volNGSBlock">[Enter desired amount]</span> &micro;L</div>
-                        <div class="col">Normal goat serum <em>aliquots in freezer</em></div>
+                        <div class="col">Normal <span data-calc="secondaryType">Goat</span> Serum <em>aliquots in freezer</em></div>
                     </div>
                     <div class="row mt-2 align-items-start">
                         <div class="myLeftCol green"><span id="volTritonBlock">[Enter desired amount]</span> &micro;L</div>
@@ -224,7 +361,7 @@
                 <div class="card-body container collapse">
                     <div class="row">
                         <div class="col">
-                            <strong>Prepare in  blocking solution (PBS + triton + NGS)</strong>
+                            <strong>Prepare in  blocking solution (PBS + triton + normal serum)</strong>
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -276,6 +413,44 @@
 
 <div class="container mt-2">
     <div class="row">
+        <h3 class="col">Experiment Information:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            Experiment:
+        </div>
+        <div class="col">
+            <input type="text" id="experiment" name="experiment" class="fullWidth"></input>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            Date:
+        </div>
+        <div class="col">
+            <input type="date" name="expdate" id="expDate" class="fullWidth"></input>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            Purpose:
+        </div>
+        <div class="col">
+            <textarea name="purpose" id="purpose" class="fullWidth autoAdjust"></textarea>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            Samples:
+        </div>
+        <div class="col">
+            <textarea name="samples" id="samples" class="fullWidth autoAdjust"></textarea>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
         <h3 class="col">Day 1:</h3>
     </div>
     <div class="row">
@@ -287,17 +462,33 @@
     <div class="row mt-2">
         <div class="myLeftCol3">1. <input type="checkbox" name="step1" id="step1"/></div>
         <div class="col">
-            Remove slices from freezer and transfer them into a basket (cell strainer), inside a 6-well plate, filled with <span class="lightBlue">PBS 1x</span><br/>
+            Remove slices from freezer and transfer them into a basket (cell strainer), inside a 6-well plate, filled with 
+            <select name="initialsoln" id="initialSoln" class="lightBlue">
+                <option value="PBS1x">1x PBS</option>
+                <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
+                <option value="PBST2" class="PBST2_option">PBS + 0.4% Triton</option>
+            </select><br/>
             Label baskets and plate cover
         </div>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol3">2. <input type="checkbox" name="step2" id="step2"/></div>
         <div class="col">
-            Wash sections <span class="blue">3X for 10 min</span> on shaker with <span class="lightBlue">PBS 1x</span>
+            Wash sections <span class="blue">3X for 10 min</span> on shaker <em>(describe below)</em> with 
+            <select name="washsoln" id="washSoln" class="lightBlue">
+                <option value="PBS1x">1x PBS</option>
+                <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
+                <option value="PBST2" class="PBST2_option">PBS + 0.4% Triton</option>
+            </select><br/>
         </div>
     </div>
-    <div class="row">
+    <div class="row mt-1">
+        <div class="myLeftCol3">&nbsp;</div>
+        <div class="col">
+            <textarea name="shakerinfo" id="shakerInfo" class="autoAdjust halfWidth" placeholder="shaker info"></textarea>
+        </div>
+    </div>
+    <div class="row mt-2">
         <div class="myLeftCol4"><input type="time" name="rinsetime1" id="rinseTime1" class="watchTime fullWidth"></div>
         <div class="col">
             Wash 1 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
@@ -315,11 +506,24 @@
             Wash 3 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
         </div>
     </div>
+    <!-- <div class="row mt-2">
+        <div class="myLeftCol3">&nbsp;</div>
+        <div class="col">
+            <input type="button" value="Add a plate" id="addWashPlate" name="addwashplate" class="addWashPlate halfWidth"></input>
+        </div>
+    </div>
+    <div class="washPlates">&nbsp;</div> -->
     <div class="row mt-2">
         <div class="myLeftCol3">3. <input type="checkbox" name="step3" id="step3"/></div>
         <div class="col">
-            Incubate the slices in 24-well plate with <span class="green">500 &micro;L</span> of 
-            <span class="lightBlue">blocking solution</span> <em>(see PBS + <span data-calc="percNGS">4</span>% NGS + <span data-calc="percTriton">0.4</span>% triton above)</em>
+            Incubate the slices in 
+            <select name="plateblocking" id="plateBlocking" class="calcVol" data-volwatch="blocking">
+                <option value="24">24</option>
+                <option value="12">12</option>
+                <option value="6">6</option>
+            </select>
+            -well plate with <span class="green"><span class="printVol" data-volcalc="blocking">500&micro;</span>L</span> of 
+            <span class="lightBlue">blocking solution</span> <em>(see PBS + <span data-calc="percNGS">4</span>% Normal <span data-calc="secondaryType">Goat</span> Serum + <span data-calc="percTriton">0.4</span>% triton above)</em>
             for <span class="blue">1 hr</span> at RT
         </div>
     </div>
@@ -332,7 +536,12 @@
     <div class="row mt-2">
         <div class="myLeftCol3">4. <input type="checkbox" name="step4" id="step4"/></div>
         <div class="col">
-            Incubate slices in 24-well plate with 500 &micro;L <span class="lightBlue">primary antibody</span>
+            <select name="plateincub" id="plateIncub" class="calcVol" data-volwatch="incub">
+                <option value="24">24</option>
+                <option value="12">12</option>
+                <option value="6">6</option>
+            </select>
+            -well plate with <span class="green"><span class="printVol" data-volcalc="incub">500&micro;</span>L</span> of <span class="lightBlue">primary antibody</span>
             diluted in the blocking solution (see above)<br/>
             <div class="mt-1 font-italic">
                 You can leave the primary for several nights, but try to be consistent. Ideally, have control and treatment groups done at the same time,
