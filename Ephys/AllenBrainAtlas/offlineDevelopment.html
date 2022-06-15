@@ -73,8 +73,85 @@ $(document).ready(function () {
             56: 576987673,
             57: 576987633,
             58: 576987593,
-            59: 576987553
-        }
+            59: 576987553,
+            47: 576988793, // always going to show first
+            60: 576987513  
+        },
+        AVPV: {
+            47: 576988793,
+            48: 576987993,
+            49: 576987953,
+            50: 576987913,
+            51: 576987873,
+            52: 576987833,
+            53: 576987793,
+            46: 576988833,
+            54: 576987753,
+        },
+        ARC: {
+            65: 576987303,
+            66: 576987259,
+            67: 576990261,
+            68: 576990221,
+            69: 576990181,
+            70: 576990141,
+            71: 576990101,
+            72: 576990061,
+            73: 576990020,
+            74: 576989980,
+            75: 576989940,
+            64: 576987346,
+            76: 576989900
+        },
+        BNST: {
+            48: 576987993,
+            49: 576987953,
+            50: 576987913,
+            51: 576987873,
+            52: 576987833,
+            53: 576987793,
+            54: 576987753,
+            55: 576987713,
+            56: 576987673,
+            57: 576987633,
+            58: 576987593,
+            59: 576987553,
+            47: 576988793,
+            60: 576987513
+        },
+        PVN: {
+            58: 576987593,
+            59: 576987553,
+            60: 576987513,
+            61: 576987473,
+            62: 576987433,
+            63: 576987387,
+            64: 576987346,
+            65: 576987303,
+            66: 576987259,
+            67: 576990261,
+            57: 576987633,
+            68: 576990221
+        },
+        CeA: {
+            60: 576987513,
+            61: 576987473,
+            62: 576987433,
+            63: 576987387,
+            64: 576987346,
+            65: 576987303,
+            66: 576987259,
+            67: 576990261,
+            68: 576990221,
+            69: 576990181,
+            70: 576990141,
+            71: 576990101,
+            72: 576990061,
+            73: 576990020,
+            74: 576989980,
+            59: 576987553,
+            75: 576989940
+        },
     },
 
     init: function (mode, json_data) {
@@ -186,14 +263,16 @@ $(document).ready(function () {
                     region: "POA",
                     section: 49,
                     xPos: 249,
-                    yPos: 285
+                    yPos: 285,
+                    imgPath: "testLoc/name.tif"
                 },
                 2: {
                     cellID: "b",
                     region: "POA",
                     section: 51,
                     xPos: 270,
-                    yPos: 385
+                    yPos: 385,
+                    imgPath: "testLoc/name2.tif"
                 }
             } 
         };
@@ -597,11 +676,19 @@ $(document).ready(function () {
         if(region){
             var sections = this.sections[region];
             // console.log(sections);
+            var startSection = 0, numSections = 0;
             for(section in sections){
+                if(numSections == 1){
+                    startSection = section;
+                } 
                 $section.append(
                     "<option value='"+ section + "'>"+ section + "</option>"
-                )
+                );
+                numSections++;
             }
+        }
+        if(startSection>0){
+            $section.val(startSection);
         }
         this.resize();
     },
@@ -611,6 +698,8 @@ $(document).ready(function () {
         $("#addCellRow").hide();
         $("#cellNameRow").hide();
         $(".downloadSection").attr("href", "").hide();
+        $("#viewSection").attr("href", "https://atlas.brain-map.org/atlas?atlas=602630314");
+        $("#imgSrc").attr("href", "").html("").hide();
         var region = $("#region").val();
         if(region){
             var section = $("#section").val();
@@ -623,11 +712,15 @@ $(document).ready(function () {
                             "style": 'position:relative',
                             "class": "xsTableDiv" // so that you can see it on a small screen. Adds scroll bar
                         }).append(
-                            $("<img></img>", {
-                                "class": "ABI_section",
-                                "id": "ABI_section",
-                                "src": src
-                            })
+                            $("<div></div>", {
+                                "id": "ABI_div"
+                            }).append(
+                                $("<img></img>", {
+                                    "class": "ABI_section",
+                                    "id": "ABI_section",
+                                    "src": src
+                                })
+                            )
                         )
                     );
 
@@ -635,14 +728,21 @@ $(document).ready(function () {
                     // console.log("img", img);
                     if(img.complete){
                         // console.log("complete");
+                        // img.scrollIntoView();
                         this.resize();
                     } else {
                         // console.log("not complete");
                         $(".ABI_section").on("load", ()=>{
+                            // img.scrollIntoView();
                             // console.log("loaded");
                             this.resize();
-                        })
+                        });
                     }
+
+                    $("#imgSrc").attr("href", src).attr("target", "_blank").show().append("["+src+"]");
+
+                    $("#viewSection").attr("href", "https://atlas.brain-map.org/atlas?atlas=602630314" + "&plate=" + sectionID);
+
 
                     var src = this.buildDownloadSrc(sectionID)
 
@@ -692,11 +792,30 @@ $(document).ready(function () {
     
     // addCellRow: function(cellNum, cellID, region, section, xPos, yPos){
     addCellRow: function(cellNum, cellObj){
+        var imgPath = ""
+        if(cellObj.imgPath){
+            imgPath = cellObj.imgPath;
+        }
         $("#cellTable").find("tbody").append(
             $("<tr></tr>", {
                 "data-cell": cellNum,
                 "class": "cellRow"
             }).append(
+                $("<td></td>", {
+                    "class": "removeCol"
+                }).append(
+                    $("<input></input>", {
+                        "type": "button",
+                        "data-cell": cellNum,
+                        "class": "showCell fullWidth",
+                        "value": "Show Cell",
+                        "id": "showCell"+cellNum,
+                        "name": "showcell"+cellNum
+                    }).on("click", (e)=> {
+                        this.showCell($(e.currentTarget).data("cell"));
+                    })
+                )
+            ).append(
                 "<td>" + cellObj.cellID + "</td>"
             ).append(
                 "<td>" + cellObj.region + "</td>"
@@ -706,6 +825,27 @@ $(document).ready(function () {
                 "<td class='hideCol'>" + cellObj.xPos + "</td>"
             ).append(
                 "<td class='hideCol'>" + cellObj.yPos + "</td>"
+            ).append(
+                $("<td></td>", {
+                    "class": "imgPath",
+                    "data-cell": cellNum
+                }).append(imgPath)
+            ).append(
+                $("<td></td>", {
+                    "class": "imgPathButton removeCol hideView",
+                    "data-cell": cellNum
+                }).append(
+                    $("<input></input>", {
+                        "type": "button",
+                        "data-cell": cellNum,
+                        "class": "addImgPath fullWidth disableOnView",
+                        "value": "Add/edit image file path",
+                        "id": "addImgPath"+cellNum,
+                        "name": "addimgpath"+cellNum
+                    }).on("click", (e)=> {
+                        this.addImgPath($(e.currentTarget).data("cell"));
+                    })
+                )
             ).append(
                 $("<td></td>", {
                     "class": "removeCol hideView"
@@ -759,9 +899,12 @@ $(document).ready(function () {
     },
 
     makeClickFunc: function(cellNum, region, section){
-        $(".ABI_section").on("click", (e)=>{
+        // $(".ABI_section").on("click", (e)=>{
+        $("#ABI_div").on("click", (e)=>{
+            console.log(e);
             // e = Mouse click event.
-            var rect = e.target.getBoundingClientRect();
+            // var rect = e.target.getBoundingClientRect();
+            var rect = e.currentTarget.getBoundingClientRect();
             var x = e.clientX - rect.left; //x position within the element.
             var y = e.clientY - rect.top;  //y position within the element.
             // console.log("Left? : " + x + " ; Top? : " + y + ".");
@@ -775,18 +918,42 @@ $(document).ready(function () {
     },
 
     showCells: function(){
+        this.hideCells();
         var cells = this.cells;
         for(cell in cells){
             var region = cells[cell].region;
             var section = cells[cell].section;
-            if(region == $("#region").val() && section == $("#section").val()){
-                var cellID = cells[cell].cellID;
-                var xPos = cells[cell].xPos;
-                var yPos = cells[cell].yPos;
-                this.addDot(cell, cellID, xPos, yPos, $(".ABI_section"));
+            if(region == $("#region").val()){
+                if(section == $("#section").val()){
+                    var cellID = cells[cell].cellID;
+                    var xPos = cells[cell].xPos;
+                    var yPos = cells[cell].yPos;
+                    this.addDot(cell, cellID, xPos, yPos, $("#ABI_div"));
+                }
             }
         }
         this.resize();
+    },
+
+    showCell: function(cellNum){
+        var cells = this.cells;
+        var region = cells[cellNum].region;
+        var section = cells[cellNum].section;
+        if(region){
+            if(section){
+                $("#region").val(region);
+                this.changeSectionList(region);
+                $("#section").val(section);
+                this.changeSectionDisplay();
+                var cellID = cells[cellNum].cellID;
+                var xPos = cells[cellNum].xPos;
+                var yPos = cells[cellNum].yPos;
+                this.addDot(cellNum, cellID, xPos, yPos, $("#ABI_div"));
+                this.resize();
+                var img = document.getElementById("ABI_section");
+                img.scrollIntoView();
+            }
+        }
     },
 
     hideCells: function(){
@@ -794,7 +961,8 @@ $(document).ready(function () {
     },
 
     addDot: function(cellNum, cellID, xPos, yPos, el) {
-        $(el).parent().append(
+        // $(el).parent().append(
+        $(el).append(
             $("<div></div>", {
                 "data-cell": cellNum,
                 "data-cellid": cellID,
@@ -803,7 +971,11 @@ $(document).ready(function () {
             }).on("mouseover", (e)=>{
                 var cellID = $(e.target).data("cellid");
                 var cellNum = $(e.target).data("cell");
-                $(".hoverInfo").text("You're hovered over cell " + cellID);
+                $(".hoverInfo").text("").append("This is cell ").append(
+                    $("<span></span>", {
+                        "class": "font-weight-bold"
+                    }).append(cellID)
+                );
                 this.resize();
             }).on("mouseout", (e)=>{
                 $(".hoverInfo").text("Hover over a cell to see its ID");
@@ -811,6 +983,25 @@ $(document).ready(function () {
             })
         );
         this.resize();
+    },
+
+    // https://drive.google.com/file/d/13mIH15JSXzCan_vVcd1z8Zdm_w75wmcl/view?usp=sharing
+    addImgPath: function(cellNum){
+        var cellSearch = this.cellSearch(cellNum);
+        var $path = $(".imgPath"+cellSearch);
+        var currentPath = $path.text();
+        this.runBasedOnInput(
+            "Enter img path or link to slice image",
+            (path)=>{
+                if(!path){
+                    path = currentPath;
+                }
+                $(".imgPath"+this.dataSearch("cell", cellNum)).text(path);
+                this.cells[cellNum].imgPath = path;
+            },
+            undefined,
+            currentPath
+        );
     },
 
     /**
@@ -1008,7 +1199,7 @@ $(document).ready(function () {
             }
         );
         */ 
-    runBasedOnInput: function(prompt, functionToCall, elForHeight = null){
+    runBasedOnInput: function(prompt, functionToCall, elForHeight = null, defValue = null){
         var thisTitle = "Enter value:"
         if(prompt){
             thisTitle = prompt;
@@ -1018,11 +1209,13 @@ $(document).ready(function () {
             // Used to change the position of the modal dialog box
             top = elForHeight.offsetTop + "px";
         }
+        console.log("defValue", defValue);
         bootbox.prompt({
             title: thisTitle,
             callback: (result)=>{
                 functionToCall(result);
-            }
+            },
+            value: defValue
         });
         $(".modal-dialog").css("top", top);
     },
@@ -1575,10 +1768,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     }
 
     .dot {
-        height: 8px;
-        width: 8px;
+        height: 6px;
+        width: 6px;
         position: absolute;
-        border: 2px solid black;
+        border: 1px solid black;
         background-color: rgb(180, 129, 180);
         border-radius: 50%;
         z-index: 10;
@@ -1591,11 +1784,16 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
-<div class="container hideView">
-    <p>Elements that are required to save this page are marked with a red asterisk <span
-            style="color:red">*</span><br />
-        Elements that are required to copy the table or save to CSV are marked with a blue pound sign <span
-            style="color:blue">#</span></p>
+<div class="container mt-2 imgCite">
+    Image credit: Allen Institute for Brain Science. <a id="imgSrc"></a><br/>
+    <div class="row">
+        <div class="myLeftCol">
+            <a id="downloadSection" name="downloadsection" class="downloadSection fullWidth mt-1">Download Section</a>
+        </div>
+        <div class="col">
+            <a id="viewSection" href="https://atlas.brain-map.org/atlas?atlas=602630314" target="_blank">View annotated Allen Brain Atlas - 3D coronal section</a><br/>
+        </div>
+    </div>
 </div>
 
 <div class="container mt-2">
@@ -1607,6 +1805,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <select name="region" id="region" class="editOnView fullWidth">
                 <option value="">NA</option>
                 <option value="POA">pre-optic area</option>
+                <option value="AVPV">anteroventral periventricular nuc</option>
+                <option value="ARC">arcuate</option>
+                <option value="BNST">bed nuc of stria terminalis</option>
+                <option value="PVN">paraventricular nuc</option>
+                <option value="CeA">central amygdala</option>
             </select>
         </div>
     </div>
@@ -1618,7 +1821,6 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <select name="section" id="section" class="editOnView fullWidth">
                 &nbsp;
             </select>
-            <a id="downloadSection" name="downloadsection" class="downloadSection fullWidth mt-1">Download Section</a>
         </div>
     </div>
     <div class="row mt-2">
@@ -1674,11 +1876,14 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <table class="table" id="cellTable">
             <thead>
                 <tr>
+                    <th class="removeCol">Show cell</th>
                     <th>cellID</th>
                     <th>region</th>
                     <th>section</th>
                     <th class="hideCol">xPos</th>
                     <th class="hideCol">yPos</th>
+                    <th>imgPath</th>
+                    <th class="removeCol hideView">Add Path</th>
                     <th class="removeCol hideView">Remove</th>
                 </tr>
             </thead>
@@ -1737,6 +1942,37 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row mt-2">
         <div class="myLeftCol">Add cells:</div>
         <div class="col"><input type="button" value="upload" id="upload" name="upload" class="fullWidth" onclick="my_widget_script.upload()"></div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <!-- Original sharing link - want the stuff after /d/ and before /view? -->
+        <!-- https://drive.google.com/file/d/1DjIzaGP4WcfrWOEucm3uTyLlrSZJPgO2/view?usp=sharing -->
+        
+        <!-- TIFs don't work to view -->
+        <!-- <img src="https://drive.google.com/uc?export=view&id=13mIH15JSXzCan_vVcd1z8Zdm_w75wmcl" alt="slice" class="col"> -->
+        
+        <!-- JPG works to view -->
+        <!-- <img src="https://drive.google.com/uc?export=view&id=1DjIzaGP4WcfrWOEucm3uTyLlrSZJPgO2" alt="slice" class="col"> -->
+        
+        <!-- TIF within LabArchives and then embed -> prompt to download -->
+        <!-- <embed src="https://mynotebook.labarchives.com/share_attachment/GIBSON%2520-%2520General%2520Notes/MjYxLjN8NjcyMjA2LzIwMS02NTkvVHJlZU5vZGUvMTE5NzExMzA2M3w2NjMuMw=="></embed> -->
+        
+        <!-- Giving it a type seems to lead to problems -->
+        <!-- <embed src="https://mynotebook.labarchives.com/share_attachment/GIBSON%2520-%2520General%2520Notes/MjYxLjN8NjcyMjA2LzIwMS02NTkvVHJlZU5vZGUvMTE5NzExMzA2M3w2NjMuMw==" type="image/tif"> -->
+        
+            <!-- JPG within LabArchives and then embed -> prompt to download.  -->
+        <!-- <embed src="https://mynotebook.labarchives.com/share_attachment/GIBSON%2520-%2520General%2520Notes/MjYxLjN8NjcyMjA2LzIwMS02NjEvVHJlZU5vZGUvMzcyMDUxNzc5OHw2NjMuMw=="> -->
+        
+        <!-- JPG within LabArchives and then embed, type, works -->
+        <!-- <embed src="https://mynotebook.labarchives.com/share_attachment/GIBSON%2520-%2520General%2520Notes/MjYxLjN8NjcyMjA2LzIwMS02NjEvVHJlZU5vZGUvMzcyMDUxNzc5OHw2NjMuMw==" type="image/jpg"> -->
+        
+        <!-- Also works for JPG -->
+        <!-- <img src="https://mynotebook.labarchives.com/share_attachment/GIBSON%2520-%2520General%2520Notes/MjYxLjN8NjcyMjA2LzIwMS02NjEvVHJlZU5vZGUvMzcyMDUxNzc5OHw2NjMuMw==" alt="testLA"/> -->
+        
+        <!-- Doesn't work for TIF -->
+        <!-- <img src="https://mynotebook.labarchives.com/share_attachment/GIBSON%2520-%2520General%2520Notes/MjYxLjN8NjcyMjA2LzIwMS02NTkvVHJlZU5vZGUvMTE5NzExMzA2M3w2NjMuMw==" alt="testLA"/> -->
     </div>
 </div>
 

@@ -13,8 +13,85 @@ my_widget_script =
             56: 576987673,
             57: 576987633,
             58: 576987593,
-            59: 576987553
-        }
+            59: 576987553,
+            47: 576988793, // always going to show first
+            60: 576987513  
+        },
+        AVPV: {
+            47: 576988793,
+            48: 576987993,
+            49: 576987953,
+            50: 576987913,
+            51: 576987873,
+            52: 576987833,
+            53: 576987793,
+            46: 576988833,
+            54: 576987753,
+        },
+        ARC: {
+            65: 576987303,
+            66: 576987259,
+            67: 576990261,
+            68: 576990221,
+            69: 576990181,
+            70: 576990141,
+            71: 576990101,
+            72: 576990061,
+            73: 576990020,
+            74: 576989980,
+            75: 576989940,
+            64: 576987346,
+            76: 576989900
+        },
+        BNST: {
+            48: 576987993,
+            49: 576987953,
+            50: 576987913,
+            51: 576987873,
+            52: 576987833,
+            53: 576987793,
+            54: 576987753,
+            55: 576987713,
+            56: 576987673,
+            57: 576987633,
+            58: 576987593,
+            59: 576987553,
+            47: 576988793,
+            60: 576987513
+        },
+        PVN: {
+            58: 576987593,
+            59: 576987553,
+            60: 576987513,
+            61: 576987473,
+            62: 576987433,
+            63: 576987387,
+            64: 576987346,
+            65: 576987303,
+            66: 576987259,
+            67: 576990261,
+            57: 576987633,
+            68: 576990221
+        },
+        CeA: {
+            60: 576987513,
+            61: 576987473,
+            62: 576987433,
+            63: 576987387,
+            64: 576987346,
+            65: 576987303,
+            66: 576987259,
+            67: 576990261,
+            68: 576990221,
+            69: 576990181,
+            70: 576990141,
+            71: 576990101,
+            72: 576990061,
+            73: 576990020,
+            74: 576989980,
+            59: 576987553,
+            75: 576989940
+        },
     },
 
     init: function (mode, json_data) {
@@ -122,18 +199,20 @@ my_widget_script =
             cellNums: [1, 2],
             cells: {
                 1: {
-                    cellName: "a",
+                    cellID: "a",
                     region: "POA",
                     section: 49,
                     xPos: 249,
-                    yPos: 285
+                    yPos: 285,
+                    imgPath: "testLoc/name.tif"
                 },
                 2: {
-                    cellName: "b",
+                    cellID: "b",
                     region: "POA",
                     section: 51,
                     xPos: 270,
-                    yPos: 385
+                    yPos: 385,
+                    imgPath: "testLoc/name2.tif"
                 }
             } 
         };
@@ -251,12 +330,13 @@ my_widget_script =
     initDynamicContent: function (parsedJson) {
         if(parsedJson.cells){
             for(cell in parsedJson.cells){
-                var cellName = parsedJson.cells[cell].cellName;
-                var region = parsedJson.cells[cell].region;
-                var section = parsedJson.cells[cell].section;
-                var xPos = parsedJson.cells[cell].xPos;
-                var yPos = parsedJson.cells[cell].yPos;
-                this.addCellRow(cell, cellName, region, section, xPos, yPos);
+                // var cellID = parsedJson.cells[cell].cellID;
+                // var region = parsedJson.cells[cell].region;
+                // var section = parsedJson.cells[cell].section;
+                // var xPos = parsedJson.cells[cell].xPos;
+                // var yPos = parsedJson.cells[cell].yPos;
+                // this.addCellRow(cell, cellID, region, section, xPos, yPos);
+                this.addCellRow(cell, parsedJson.cells[cell]);
             }
             this.cells = parsedJson.cells;
         } else {
@@ -536,11 +616,19 @@ my_widget_script =
         if(region){
             var sections = this.sections[region];
             // console.log(sections);
+            var startSection = 0, numSections = 0;
             for(section in sections){
+                if(numSections == 1){
+                    startSection = section;
+                } 
                 $section.append(
                     "<option value='"+ section + "'>"+ section + "</option>"
-                )
+                );
+                numSections++;
             }
+        }
+        if(startSection>0){
+            $section.val(startSection);
         }
         this.resize();
     },
@@ -550,6 +638,8 @@ my_widget_script =
         $("#addCellRow").hide();
         $("#cellNameRow").hide();
         $(".downloadSection").attr("href", "").hide();
+        $("#viewSection").attr("href", "https://atlas.brain-map.org/atlas?atlas=602630314");
+        $("#imgSrc").attr("href", "").html("").hide();
         var region = $("#region").val();
         if(region){
             var section = $("#section").val();
@@ -562,11 +652,15 @@ my_widget_script =
                             "style": 'position:relative',
                             "class": "xsTableDiv" // so that you can see it on a small screen. Adds scroll bar
                         }).append(
-                            $("<img></img>", {
-                                "class": "ABI_section",
-                                "id": "ABI_section",
-                                "src": src
-                            })
+                            $("<div></div>", {
+                                "id": "ABI_div"
+                            }).append(
+                                $("<img></img>", {
+                                    "class": "ABI_section",
+                                    "id": "ABI_section",
+                                    "src": src
+                                })
+                            )
                         )
                     );
 
@@ -574,14 +668,21 @@ my_widget_script =
                     // console.log("img", img);
                     if(img.complete){
                         // console.log("complete");
+                        // img.scrollIntoView();
                         this.resize();
                     } else {
                         // console.log("not complete");
                         $(".ABI_section").on("load", ()=>{
+                            // img.scrollIntoView();
                             // console.log("loaded");
                             this.resize();
-                        })
+                        });
                     }
+
+                    $("#imgSrc").attr("href", src).attr("target", "_blank").show().append("["+src+"]");
+
+                    $("#viewSection").attr("href", "https://atlas.brain-map.org/atlas?atlas=602630314" + "&plate=" + sectionID);
+
 
                     var src = this.buildDownloadSrc(sectionID)
 
@@ -615,32 +716,76 @@ my_widget_script =
 
     cells: {},
 
-    addCellToCells: function(cellNum, cellName, region, section, xPos, yPos){
-        this.cells[cellNum] = {
-            cellName: cellName,
+    addCellToCells: function(cellNum, cellID, region, section, xPos, yPos){
+        var cellObj = {
+            cellID: cellID,
             region: region,
             section: section,
             xPos: xPos,
             yPos: yPos
         }
-        this.addCellRow(cellNum, cellName, region, section, xPos, yPos);
+        this.cells[cellNum] = cellObj;
+
+        this.addCellRow(cellNum, cellObj);
+        // this.addCellRow(cellNum, cellID, region, section, xPos, yPos);
     },
     
-    addCellRow: function(cellNum, cellName, region, section, xPos, yPos){
+    // addCellRow: function(cellNum, cellID, region, section, xPos, yPos){
+    addCellRow: function(cellNum, cellObj){
+        var imgPath = ""
+        if(cellObj.imgPath){
+            imgPath = cellObj.imgPath;
+        }
         $("#cellTable").find("tbody").append(
             $("<tr></tr>", {
                 "data-cell": cellNum,
                 "class": "cellRow"
             }).append(
-                "<td>" + cellName + "</td>"
+                $("<td></td>", {
+                    "class": "removeCol"
+                }).append(
+                    $("<input></input>", {
+                        "type": "button",
+                        "data-cell": cellNum,
+                        "class": "showCell fullWidth",
+                        "value": "Show Cell",
+                        "id": "showCell"+cellNum,
+                        "name": "showcell"+cellNum
+                    }).on("click", (e)=> {
+                        this.showCell($(e.currentTarget).data("cell"));
+                    })
+                )
             ).append(
-                "<td>" + region + "</td>"
+                "<td>" + cellObj.cellID + "</td>"
             ).append(
-                "<td>" + section + "</td>"
+                "<td>" + cellObj.region + "</td>"
             ).append(
-                "<td class='hideCol'>" + xPos + "</td>"
+                "<td>" + cellObj.section + "</td>"
             ).append(
-                "<td class='hideCol'>" + yPos + "</td>"
+                "<td class='hideCol'>" + cellObj.xPos + "</td>"
+            ).append(
+                "<td class='hideCol'>" + cellObj.yPos + "</td>"
+            ).append(
+                $("<td></td>", {
+                    "class": "imgPath",
+                    "data-cell": cellNum
+                }).append(imgPath)
+            ).append(
+                $("<td></td>", {
+                    "class": "imgPathButton removeCol hideView",
+                    "data-cell": cellNum
+                }).append(
+                    $("<input></input>", {
+                        "type": "button",
+                        "data-cell": cellNum,
+                        "class": "addImgPath fullWidth disableOnView",
+                        "value": "Add/edit image file path",
+                        "id": "addImgPath"+cellNum,
+                        "name": "addimgpath"+cellNum
+                    }).on("click", (e)=> {
+                        this.addImgPath($(e.currentTarget).data("cell"));
+                    })
+                )
             ).append(
                 $("<td></td>", {
                     "class": "removeCol hideView"
@@ -694,15 +839,18 @@ my_widget_script =
     },
 
     makeClickFunc: function(cellNum, region, section){
-        $(".ABI_section").on("click", (e)=>{
+        // $(".ABI_section").on("click", (e)=>{
+        $("#ABI_div").on("click", (e)=>{
+            console.log(e);
             // e = Mouse click event.
-            var rect = e.target.getBoundingClientRect();
+            // var rect = e.target.getBoundingClientRect();
+            var rect = e.currentTarget.getBoundingClientRect();
             var x = e.clientX - rect.left; //x position within the element.
             var y = e.clientY - rect.top;  //y position within the element.
             // console.log("Left? : " + x + " ; Top? : " + y + ".");
-            var cellName = $("#cellName").val();
-            this.addDot(cellNum, cellName, x, y, e.currentTarget);
-            this.addCellToCells(cellNum, cellName, region, section, x, y);
+            var cellID = $("#cellName").val();
+            this.addDot(cellNum, cellID, x, y, e.currentTarget);
+            this.addCellToCells(cellNum, cellID, region, section, x, y);
             $("#cellNameRow").hide();
             $(e.currentTarget).off("click");
             this.resize();
@@ -710,35 +858,64 @@ my_widget_script =
     },
 
     showCells: function(){
+        this.hideCells();
         var cells = this.cells;
         for(cell in cells){
             var region = cells[cell].region;
             var section = cells[cell].section;
-            if(region == $("#region").val() && section == $("#section").val()){
-                var cellName = cells[cell].cellName;
-                var xPos = cells[cell].xPos;
-                var yPos = cells[cell].yPos;
-                this.addDot(cell, cellName, xPos, yPos, $(".ABI_section"));
+            if(region == $("#region").val()){
+                if(section == $("#section").val()){
+                    var cellID = cells[cell].cellID;
+                    var xPos = cells[cell].xPos;
+                    var yPos = cells[cell].yPos;
+                    this.addDot(cell, cellID, xPos, yPos, $("#ABI_div"));
+                }
             }
         }
         this.resize();
+    },
+
+    showCell: function(cellNum){
+        var cells = this.cells;
+        var region = cells[cellNum].region;
+        var section = cells[cellNum].section;
+        if(region){
+            if(section){
+                $("#region").val(region);
+                this.changeSectionList(region);
+                $("#section").val(section);
+                this.changeSectionDisplay();
+                var cellID = cells[cellNum].cellID;
+                var xPos = cells[cellNum].xPos;
+                var yPos = cells[cellNum].yPos;
+                this.addDot(cellNum, cellID, xPos, yPos, $("#ABI_div"));
+                this.resize();
+                var img = document.getElementById("ABI_section");
+                img.scrollIntoView();
+            }
+        }
     },
 
     hideCells: function(){
         $(".dot").remove();
     },
 
-    addDot: function(cellNum, cellName, xPos, yPos, el) {
-        $(el).parent().append(
+    addDot: function(cellNum, cellID, xPos, yPos, el) {
+        // $(el).parent().append(
+        $(el).append(
             $("<div></div>", {
                 "data-cell": cellNum,
-                "data-cellname": cellName,
+                "data-cellid": cellID,
                 "class": "dot",
                 "style": "left:" + xPos + "px; top:" + yPos + "px;"
             }).on("mouseover", (e)=>{
-                var cellName = $(e.target).data("cellname");
+                var cellID = $(e.target).data("cellid");
                 var cellNum = $(e.target).data("cell");
-                $(".hoverInfo").text("You're hovered over cell " + cellName);
+                $(".hoverInfo").text("").append("This is cell ").append(
+                    $("<span></span>", {
+                        "class": "font-weight-bold"
+                    }).append(cellID)
+                );
                 this.resize();
             }).on("mouseout", (e)=>{
                 $(".hoverInfo").text("Hover over a cell to see its ID");
@@ -746,6 +923,25 @@ my_widget_script =
             })
         );
         this.resize();
+    },
+
+    // https://drive.google.com/file/d/13mIH15JSXzCan_vVcd1z8Zdm_w75wmcl/view?usp=sharing
+    addImgPath: function(cellNum){
+        var cellSearch = this.cellSearch(cellNum);
+        var $path = $(".imgPath"+cellSearch);
+        var currentPath = $path.text();
+        this.runBasedOnInput(
+            "Enter img path or link to slice image",
+            (path)=>{
+                if(!path){
+                    path = currentPath;
+                }
+                $(".imgPath"+this.dataSearch("cell", cellNum)).text(path);
+                this.cells[cellNum].imgPath = path;
+            },
+            undefined,
+            currentPath
+        );
     },
 
     /**
@@ -943,7 +1139,7 @@ my_widget_script =
             }
         );
         */ 
-    runBasedOnInput: function(prompt, functionToCall, elForHeight = null){
+    runBasedOnInput: function(prompt, functionToCall, elForHeight = null, defValue = null){
         var thisTitle = "Enter value:"
         if(prompt){
             thisTitle = prompt;
@@ -953,11 +1149,13 @@ my_widget_script =
             // Used to change the position of the modal dialog box
             top = elForHeight.offsetTop + "px";
         }
+        console.log("defValue", defValue);
         bootbox.prompt({
             title: thisTitle,
             callback: (result)=>{
                 functionToCall(result);
-            }
+            },
+            value: defValue
         });
         $(".modal-dialog").css("top", top);
     },
@@ -1142,13 +1340,17 @@ my_widget_script =
         var rows = datatable.querySelectorAll("tr");
 
         for (var i = 0; i < rows.length; i++) {
-            var row = [], cols = rows[i].querySelectorAll("td, th");
+            var row = [], cols = rows[i].querySelectorAll("td:not(.removeCol), th:not(.removeCol)");
+
+            console.log(cols);
 
             for (var j = 0; j < cols.length; j++) {
-                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
+                // var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
+                var cellText = cols[j].innerText; // removed because reads odd, shouldn't have commas here
                 row.push(cellText);
             };
 
+            // csv.push(row.join(","));
             csv.push(row.join(","));
         }
 
@@ -1310,18 +1512,20 @@ my_widget_script =
     //#endregion cards
 
     //#region upload
-    upload: function() {
+    preview: function() {
         var fileUpload = document.getElementById("fileUpload");
         var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
         if (regex.test(fileUpload.value.toLowerCase())) {
             if (typeof (FileReader) != "undefined") {
                 var reader = new FileReader();
                 reader.onload = (e) => {
+                    // console.log("csv results", e.target.result);
                     var table = document.createElement("table");
+                    table.className = "table";
                     var rows = e.target.result.split("\n");
                     for (var i = 0; i < rows.length; i++) {
                         var cells = rows[i].split(",");
-                        if (cells.length > 1) {
+                        if (cells.length > 0) {// changed to greater than 0, from 1
                             var row = table.insertRow(-1);
                             for (var j = 0; j < cells.length; j++) {
                                 var cell = row.insertCell(-1);
@@ -1335,11 +1539,84 @@ my_widget_script =
                 }
                 reader.readAsText(fileUpload.files[0]);
             } else {
-                alert("This browser does not support HTML5.");
+                bootbox.alert("This browser does not support HTML5.");
             }
         } else {
-            alert("Please upload a valid CSV file.");
+            bootbox.alert("Please upload a valid CSV file.");
         }
+    },
+
+    upload: function() {
+        var fileUpload = document.getElementById("fileUpload");
+        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
+        if (regex.test(fileUpload.value.toLowerCase())) {
+            if (typeof (FileReader) != "undefined") {
+                var reader = new FileReader();
+                reader.onload = (e) => {
+                    var cells = this.getCellsFromCSVTable(e.target.result);
+                    console.log(cells);
+                    for(cell in cells){
+                        var cellInfo = cells[cell];
+                        var isDup = this.checkIfCellIsDuplicate(cellInfo);
+                        // console.log(isDup);
+                        if(!isDup){
+                            if(this.cellNums.length > 0){
+                                var lastCell = this.cellNums[this.cellNums.length - 1];
+                                var cellNum = lastCell + 1;
+                            } else {
+                                var cellNum = 1;
+                            }
+
+                            var inArray = this.checkInArray(cellNum, this.cellNums);
+                            if(! inArray){
+                                this.cellNums.push(cellNum);
+                                this.cells[cellNum] = cellInfo;
+                                this.addCellRow(cellNum, cellInfo);
+                            }
+                        }
+                        $("#dvCSV").text(""); // clear preview after upload
+                    }
+                }
+                reader.readAsText(fileUpload.files[0]);
+            } else {
+                bootbox.alert("This browser does not support HTML5.");
+            }
+        } else {
+            bootbox.alert("Please upload a valid CSV file.");
+        }
+    },
+
+    getCellsFromCSVTable: function(csv){
+        var rows = csv.split("\n");
+        // console.log(rows);
+        if(rows.length>0){
+            var headings = rows[0].split(",");
+            var cellsInfo = {};
+            for(var i = 1; i < rows.length; i++){
+                var cells = rows[i].split(",");
+                cellsInfo[i] = {}; // make an object for each cell
+                for(var j = 0; j < cells.length; j++){
+                    var heading = headings[j];
+                    cellsInfo[i][heading] = cells[j];
+                }
+            }
+        }
+        // console.log(cellsInfo);
+        return cellsInfo;
+    },
+
+    checkIfCellIsDuplicate: function(cellInfo){
+        var cellID = cellInfo.cellID;
+        var isDup = 0;
+        for(cell in this.cells){
+            var existingID = this.cells[cell].cellID;
+            if(cellID == existingID){
+                isDup = 1;
+                bootbox.alert("cellID " + cellID + " already exists in database");
+                break;
+            }
+        }
+        return isDup;
     }
     //#endregion upload
 
