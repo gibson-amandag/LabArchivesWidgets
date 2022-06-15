@@ -487,13 +487,14 @@ $(document).ready(function () {
             my_widget_script.copyTimeStampsFuncs($errorMsg, $divForCopy);
         });
 
-        //when the toCSV button is clicked, run the exportTableToCSV function if data is valid
-        $('#toCSV').on("click", function () {
-            var fileName = "damVideoMonitor";
-            var tableID = "outTable";
+        //when the toCSV button is clicked, run the exportInfoToCSV function if data is valid
+        $('#toCSV').on("click", (e)=> {
+            // var fileName = "damVideoMonitor";
+            var fileName = $("#damID").val() + "_P" + $("#pnd").val() + "_ZT" + $("#zt").val();
+            // var tableID = "outTable";
             var $errorMsg = $("#errorMsg"); 
             
-            my_widget_script.toCSVFuncs(fileName, tableID, $errorMsg);
+            this.toCSVFuncs(fileName, $errorMsg);
         });
 
         //When the copy button is clicked, run the copyTable function
@@ -925,6 +926,10 @@ $(document).ready(function () {
         my_widget_script.calcValues();
 
         my_widget_script.resize();
+
+        $("#saveChart").on("click", ()=>{
+            this.downloadTimeline();
+        })
     },
 
     resize: function () {
@@ -976,7 +981,7 @@ $(document).ready(function () {
 
     watchValue: function ($elToWatch, $elToUpdate) {
         var value = $elToWatch.val();
-        console.log($elToWatch, value);
+        // console.log($elToWatch, value);
         $elToUpdate.text(value);
     },
 
@@ -1091,8 +1096,101 @@ $(document).ready(function () {
         // Click download link
         downloadLink.click();
     },
+
+    zip: function(...args){
+        var len = 0;
+        var array
+        for(array of args){
+            var arrLen = array.length;
+            // console.log("array length", arrLen);
+            if(arrLen>len){
+                len = arrLen
+            }
+        }
+        var numArrays = args.length;
+
+        var arr = new Array(len);
+
+        for(var i = 0; i < len; i += 1){
+            arr[i] = [];
+            for(array of args){
+                arr[i].push(array[i]);
+            }
+        }
+        // console.log("array", arr);
+        return arr;
+    },
     
-    exportTableToCSV: function (filename, table) {
+    exportInfoToCSV: function (filename) {
+        var csv = [];
+        var columnJoin = ","
+        // var columnJoin = "\t"
+
+        var exitStamps = ["OffTimes"].concat(this._exitStamps);
+        var entryStamps = ["OnTimes"].concat(this._entryStamps);
+        var exitDurs = ["OffDurations"].concat(this._exitDurs);
+        var entryDurs = ["OnDurations"].concat(this._entryDurs);
+        var locationStates = ["states"].concat(this._stampStates);
+        var changeTimes = ["changeTimes"].concat(this._stampTimes);
+
+
+        csv = this.zip(exitStamps, entryStamps, exitDurs, entryDurs, changeTimes, locationStates)
+
+        // console.log(csv);
+        for(var row = 0; row < csv.length; row++){
+            csv[row] = csv[row].join(columnJoin); // add the separator between columns
+        }
+
+        // Download CSV file
+        this.downloadCSV(csv.join("\n"), filename);
+    },
+    exportInfoToCSV_v2: function (filename) {
+        var csv = [];
+
+        var exitStamps = my_widget_script._exitStamps;
+        var entryStamps = my_widget_script._entryStamps;
+        var exitDurs = my_widget_script._exitDurs;
+        var entryDurs = my_widget_script._entryDurs;
+
+        var row = [];
+        // var prefix = $("#damID").val() + "_P" + $("#pnd").val() + "_ZT" + $("#zt").val() + "_";
+
+        row.push("OnTimes");
+        row.push("OffTimes");
+        row.push("OnDurations");
+        row.push("OffDurations");
+        csv.push(row.join(","));
+
+        for(i = 0; i < exitStamps.length || i < entryStamps.length || i < exitDurs.length || i < entryDurs.length; i++){
+            if(exitStamps[i]) {
+                var exitTime = exitStamps[i]; 
+            } else { var exitTime = "NA"}
+
+            if(entryStamps[i]) {
+                var entryTime = entryStamps[i]; 
+            } else { var entryTime = "NA"}
+
+            if(exitDurs[i]) {
+                var exitDur = exitDurs[i]; 
+            } else { var exitDur = "NA"}
+
+            if(entryDurs[i]) {
+                var entryDur = entryDurs[i]; 
+            } else { var entryDur = "NA"}
+
+            row = [];
+            row.push(entryTime);
+            row.push(exitTime);
+            row.push(entryDur);
+            row.push(exitDur);
+            csv.push(row.join(","));
+        }
+
+        // Download CSV file
+        this.downloadCSV(csv.join("\n"), filename);
+    },
+
+    exportTableToCSV_old: function (filename, table) {
         var csv = [];
         var datatable = document.getElementById(table);
         var rows = datatable.querySelectorAll("tr");
@@ -1252,12 +1350,12 @@ $(document).ready(function () {
         my_widget_script.calcValues();
     },
 
-    toCSVFuncs: function (fileName, tableID, $errorMsg) {
-        var data_valid = my_widget_script.data_valid_form();
+    toCSVFuncs: function (fileName, $errorMsg) {
+        var data_valid = this.data_valid_form();
 
         if (data_valid) {
-            my_widget_script.calcValues();
-            my_widget_script.exportTableToCSV(fileName, tableID);
+            this.calcValues();
+            this.exportInfoToCSV(fileName);
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
@@ -1365,9 +1463,66 @@ $(document).ready(function () {
             };
             var container = document.getElementById("chart_div");
             var chart = new google.visualization.Timeline(container);
+            
             chart.draw(dataTable, options);
         }
-    }
+    },
+
+    // downloadTimeline: function(){
+    //     var chartContainer = document.getElementById("chart_div");
+    //     var chartArea = chartContainer.getElementsByTagName('svg')[0].parentNode;
+    //     var svg = chartArea.innerHTML;
+    //     var doc = chartContainer.ownerDocument;
+    //     var canvas = doc.createElement('canvas');
+    //     canvas.setAttribute('width', chartArea.offsetWidth);
+    //     canvas.setAttribute('height', chartArea.offsetHeight);
+    
+    //     canvas.setAttribute(
+    //         'style',
+    //         'position: absolute; ' +
+    //         'top: ' + (-chartArea.offsetHeight * 2) + 'px;' +
+    //         'left: ' + (-chartArea.offsetWidth * 2) + 'px;');
+    //     doc.body.appendChild(canvas);
+    //     canvg(canvas, svg); // would have to add another set of libraries
+    //     var imgData = canvas.toDataURL('image/png');
+    //     canvas.parentNode.removeChild(canvas);
+    // },
+
+    // // https://stackoverflow.com/questions/41277531/google-timeline-chart-to-image
+    // // http://jsfiddle.net/xfh7nctk/23/
+    // // Doesn't draw full timeline
+    // downloadTimeline_test: function(){
+    //     var container = document.getElementById("chart_div");
+
+    //     var getSVG = container.getElementsByTagName("svg")[0]; // Gets the graph
+    //     getSVG.setAttribute('xmlns', "http://www.w3.org/2000/svg"); // Add attr to svg
+    //     getSVG.setAttribute('xmlns:svg', "http://www.w3.org/2000/svg"); // Add attr to svg
+
+    //     // From Fiddle
+    //     var myCanvas = document.getElementById("canvas");
+    //     var ctxt = myCanvas.getContext("2d");
+
+
+    //     my_widget_script.drawInlineSVG(ctxt, getSVG.outerHTML, function() {
+    //         console.log("printing?")
+    //         console.log(canvas.toDataURL());  // -> PNG
+    //     });
+    // },
+
+    // drawInlineSVG: function(ctx, rawSVG, callback) {
+    //     var svg = new Blob([rawSVG], {type:"image/svg+xml;charset=utf-8"}),
+    //         domURL = self.URL || self.webkitURL || self,
+    //         url = domURL.createObjectURL(svg),
+    //         img = new Image;
+
+    //     img.onload = function () {
+    //         ctx.drawImage(this, 0, 0);     
+    //         domURL.revokeObjectURL(url);
+    //         callback(this);
+    //     };
+
+    //     img.src = url;
+    // }
 };
 
 //**************************************************************************
@@ -1673,6 +1828,16 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 </div>
 
 <div class="container mt-2">
+    <!-- <div class="row">
+        <div class="col">
+            <input type="button" value="Save Timeline" id="saveChart" name="savechart"/>
+        </div>
+    </div>
+    <div class="row canvasRow">
+        <div class="col">
+            <canvas id="canvas" class="fullWidth" height="150px"></canvas>
+        </div>
+    </div> -->
     <div class="row">
         <h3 class="col">Timeline</h3>
     </div>
