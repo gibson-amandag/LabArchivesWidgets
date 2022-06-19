@@ -1,6 +1,7 @@
 my_widget_script =
 {
-    numWashes: 0,
+    numWashes1: 0,
+    numWashes2: 0,
 
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
@@ -35,14 +36,21 @@ my_widget_script =
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
-        // Set wash times equal to what was stored in to_json - should be the same, but just in case
         // Default to 3
-        var numWashes = 3
-        if(parsedJson.numWashes){
-            numWashes = parsedJson.numWashes;
+        var numWashes1 = 3
+        if(parsedJson.numWashes1){
+            numWashes1 = parsedJson.numWashes1;
         }
 
-        $("#numWashes").val(numWashes);
+        $("#numWashes1").val(numWashes1);
+
+        // Default to 3
+        var numWashes2 = 3
+        if(parsedJson.numWashes2){
+            numWashes2 = parsedJson.numWashes2;
+        }
+
+        $("#numWashes2").val(numWashes2);
 
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
@@ -73,7 +81,8 @@ my_widget_script =
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
             abNums: this.abNums,
-            numWashes: this.numWashes
+            numWashes1: this.numWashes1,
+            numWashes2: this.numWashes2
         };
 
         //uncomment to check stringified output
@@ -231,12 +240,21 @@ my_widget_script =
                 this.addAntibodies(abNum);
             }
         }
+
         // Default to 3
-        var numWashes = 3;
-        if(parsedJson.numWashes){
-            numWashes = parsedJson.numWashes;
+        var numWashes1 = 3
+        if(parsedJson.numWashes1){
+            numWashes1 = parsedJson.numWashes1;
         }
-        this.updateWashTracking(numWashes);
+
+        this.updateWashTracking(numWashes1, 1);
+
+        // Default to 3
+        var numWashes2 = 3
+        if(parsedJson.numWashes2){
+            numWashes2 = parsedJson.numWashes2;
+        }
+        this.updateWashTracking(numWashes2, 2);
     },
 
     /**
@@ -428,11 +446,6 @@ my_widget_script =
             $("#vol10xPBS").text(startVol);
         });
 
-        // When an amount of blocking solution is changed, update the volumes of components
-        $(".updateBlocking").on("change", (e)=>{
-            var solns = this.blockingSolnCalc(); // updating within function now
-        });
-
         // When an amount of PBST1 solution is changed, update the volumes of components
         $(".updatePBST1").on("change", (e)=>{
             var solns = this.PBST1Calc(); // updating within function now
@@ -451,8 +464,8 @@ my_widget_script =
             this.addCRHcFosABsClick();
         });
 
-        $("#desiredPrimaryVol").on("input", ()=>{
-            this.primaryAbSolnCalc();
+        $("#desiredSecondaryVol").on("input", ()=>{
+            this.secondaryAbSolnCalc();
         });
 
         $(".calcVol").on("change", (e)=>{
@@ -468,16 +481,18 @@ my_widget_script =
             this.watchValue($(e.currentTarget));
         });
 
-        $("#numWashes").each((i,e)=>{
-            // this.updateWashTracking($(e).val());
-        }).on("change", (e)=>{
-            this.updateWashTracking($(e.currentTarget).val());
+        $(".numWashes").on("change", (e)=>{
+            var whichWash = $(e.currentTarget).data("whichwash");
+            // console.log("change number of washes", whichWash);
+            this.updateWashTracking($(e.currentTarget).val(), whichWash);
         });
 
-        $("#washDur").on("change", (e)=>{
-            var timeText = this.getTimeText($(e.currentTarget).val());
-            $(".updateWashDur").attr("data-time", timeText); // change it on the page
-            $(".updateWashDur").data('time', timeText); // change what jquery works with
+        $(".washDur").on("change", (e)=>{
+            var washDur = $(e.currentTarget).val();
+            var timeText = this.getTimeText(washDur);
+            var whichWash = $(e.currentTarget).data("whichwash");
+            $(".updateWashDur"+whichWash).attr("data-time", timeText); // change it on the page
+            $(".updateWashDur"+whichWash).data('time', timeText); // change what jquery works with
 
             $(".watchTime").each((i,e)=> {
                 var $elToWatch = $(e);
@@ -488,12 +503,12 @@ my_widget_script =
             });
         });
 
-        $("#blockDur").on("change", (e)=>{
-            var blockDur = $(e.currentTarget).val();
-            var timeText = this.getTimeText(blockDur);
+        $("#secondaryDur").on("change", (e)=>{
+            var secondaryDur = $(e.currentTarget).val();
+            var timeText = this.getTimeText(secondaryDur);
 
-            $(".updateBlockDur").attr("data-time", timeText);
-            $(".updateBlockDur").data("time", timeText);
+            $(".updateSecondaryDur").attr("data-time", timeText);
+            $(".updateSecondaryDur").data("time", timeText);
 
             $(".watchTime").each((i,e)=> {
                 var $elToWatch = $(e);
@@ -502,12 +517,11 @@ my_widget_script =
 
                 this.watchTime($elToWatch, $elToFill);
             });
-        })
+        });
 
-        this.blockingSolnCalc();
         this.PBST1Calc();
         this.PBST2Calc();
-        this.primaryAbSolnCalc();
+        this.secondaryAbSolnCalc();
         this.resize();
     },
 
@@ -812,51 +826,6 @@ my_widget_script =
         $(".printVol"+typeSearch).html(amnt)
     },
 
-    // Return the amount of normal goat serum, triton, and PBS for blocking solution
-    // Default is 4% NGS and 0.4% triton
-    blockingSolnCalc: function(){
-        var desiredFinalVol = $("#desiredPBSTBlockVol").val();
-        var percNGS = $("#percNGS").val();
-        var percTriton = $("#percTriton").val();
-        if(!(percNGS>0) || percNGS > 100){
-            percNGS = 4;
-            $("#percNGS").val(percNGS);
-            this.watchValue($("#percNGS"));
-        }
-        if(!(percTriton>0) || percTriton > 100){
-            percTriton = 0.4;
-            $("#percTriton").val(0.4);
-            this.watchValue($("#percTriton"));
-        }
-        var dilFractionNGS = percNGS/100;
-        var dilFractionTriton = percTriton/100;
-        if(desiredFinalVol > 0){
-            // var dilFractionNGS = 0.04; // 4% NGS
-            var startVolNGSmL = this.startVolOfDilutionCalc(dilFractionNGS, desiredFinalVol);
-            var startVolNGSuL = +(startVolNGSmL * 1000).toFixed(2);
-            // var dilFractionTriton = 0.004; // 0.4% triton
-            var startVolTritonx100 = this.startVolOfDilutionCalc(dilFractionTriton, desiredFinalVol);
-            var startVolTriton20percmL = startVolTritonx100 * 5;
-            var startVolTriton20percuL = +(startVolTriton20percmL * 1000).toFixed(2);
-            var startVolPBS = +(desiredFinalVol - startVolNGSmL - startVolTriton20percmL).toFixed(2);
-        } else {
-            var startVolNGSuL = "[Enter desired amount]"
-            var startVolTriton20percuL = "[Enter desired amount]"
-            var startVolPBS = "[Enter desired amount]"
-        }
-        solns = {
-            NGS: startVolNGSuL,
-            triton: startVolTriton20percuL,
-            PBS: startVolPBS
-        }
-        $("#volNGSBlock").text(solns.NGS);
-        $("#volTritonBlock").text(solns.triton);
-        $("#volPBSBlock").text(solns.PBS);
-        return(
-            solns
-        )
-    },
-
     // Return the amount of triton, and PBS for first PBST solution
     // Default is 0.1% triton
     PBST1Calc: function(version){
@@ -925,11 +894,11 @@ my_widget_script =
         )
     },
 
-    primaryAbSolnCalc: function(){
-        var $primaryVol = $("#desiredPrimaryVol");
-        var primaryVol = $primaryVol.val();
+    secondaryAbSolnCalc: function(){
+        var $secondaryVol = $("#desiredSecondaryVol");
+        var secondaryVol = $secondaryVol.val();
 
-        if(primaryVol > 0){
+        if(secondaryVol > 0){
             // For each dilution factor entry
             $(".abDilution").each((i,e)=>{
                 var abNum = $(e).data("abnum");
@@ -940,7 +909,7 @@ my_widget_script =
                     // Convert to a proportion
                     var dilutionVal = 1/dilutionFactor;
                     // Get the volume in mL
-                    var amountAb_mL = this.startVolOfDilutionCalc(dilutionVal, primaryVol);
+                    var amountAb_mL = this.startVolOfDilutionCalc(dilutionVal, secondaryVol);
                     // Convert to uL
                     var amountAb_uL = +(amountAb_mL * 1000).toFixed(2);
                     var stockDilution = $(".abStock"+abSearch).val();
@@ -957,14 +926,14 @@ my_widget_script =
                 $(".abAmount"+abSearch).text(amountAbStock_uL);
             });
         } else{
-            primaryVol = "[Enter desired volume]";
+            secondaryVol = "[Enter desired volume]";
             $(".abDilution").each((i,e)=>{
                 var abNum = $(e).data("abnum");
                 var abSearch = this.abNumSearch(abNum);
                 $(".abAmount"+abSearch).text("[Enter desired volume]");
             });
         }
-        $("#volBlockingForPrimary").text(primaryVol);
+        $("#volBlockingForSecondary").text(secondaryVol);
     },
 
     addAntibodyClick: function (){
@@ -997,10 +966,10 @@ my_widget_script =
         
         // Fill in the information
         var abSearch = this.abNumSearch(abNum);
-        $(".abName"+abSearch).val("rabbit anti-cFos");
+        $(".abName"+abSearch).val("goat anti-rabbit");
         var calcSearch = this.calcSearch("abName");
-        $(calcSearch + abSearch).text("rabbit anti-cFos");
-        $(".abDilution"+abSearch).val("2000");
+        $(calcSearch + abSearch).text("goat anti-rabbit");
+        $(".abDilution"+abSearch).val("500");
 
         // Go to the next antibody number
         abNum++;
@@ -1013,13 +982,13 @@ my_widget_script =
         
         // Fill in the info
         var abSearch = this.abNumSearch(abNum);
-        $(".abName"+abSearch).val("chicken anti-GFP");
+        $(".abName"+abSearch).val("goat anti-chicken");
         var calcSearch = this.calcSearch("abName");
-        $(calcSearch + abSearch).text("chicken anti-GFP");
-        $(".abDilution"+abSearch).val("1000");
+        $(calcSearch + abSearch).text("goat anti-chicken");
+        $(".abDilution"+abSearch).val("500");
 
         // Update the calculation
-        this.primaryAbSolnCalc();
+        this.secondaryAbSolnCalc();
     },
 
     addAntibodies: function(abNum){
@@ -1092,7 +1061,7 @@ my_widget_script =
                         "data-abnum": abNum
                     })
                 ).on("input", (e)=>{
-                    this.primaryAbSolnCalc();
+                    this.secondaryAbSolnCalc();
                 })
             )
         ).append(
@@ -1114,7 +1083,7 @@ my_widget_script =
                         "data-abnum": abNum
                     })
                 ).on("input", (e)=>{
-                    this.primaryAbSolnCalc();
+                    this.secondaryAbSolnCalc();
                 })
             )
         );
@@ -1163,25 +1132,27 @@ my_widget_script =
         )
     },
 
-    updateWashTracking: function(numWashes){
-        var currentNumWashes = parseInt(this.numWashes);
+    updateWashTracking: function(numWashes, whichWash){
+        var currentNumWashes;
+        currentNumWashes = parseInt(this["numWashes"+whichWash]);
+        // console.log("current number of washes", currentNumWashes);
         if( currentNumWashes < numWashes){
             for(i = currentNumWashes; i < numWashes; i++){
-                this.makeWashRow(i);
+                this.makeWashRow(i, whichWash);
             }
-            this.numWashes = numWashes
+            this["numWashes"+whichWash] = numWashes;
         } else if(currentNumWashes > numWashes){
             this.dialogConfirm(
                 "Are you sure you want to remove a wash?", 
                 (result)=>{
                     if(result){
                         for(i = currentNumWashes; i >= numWashes; i--){
-                            var washSearch = this.dataSearch("wash", i)
+                            var washSearch = this.dataSearch("wash", i) + this.dataSearch("whichwash", whichWash);
                             $(washSearch).remove();
                         }
-                        this.numWashes = numWashes;
+                        this["numWashes"+whichWash] = numWashes;
                     } else {
-                        $("#numWashes").val(currentNumWashes); // reset
+                        $("#numWashes"+whichWash).val(currentNumWashes); // reset
                     }
                     this.resize();
                 }
@@ -1200,22 +1171,23 @@ my_widget_script =
         return timeText
     },
 
-    makeWashRow: function(washIndex){
+    makeWashRow: function(washIndex, whichWash){
         var myLeftCol4 = "col-6 col-md-4 col-lg-3 text-right"
         var timeText = this.getTimeText($("#washDur").val());
         var printNum = washIndex + 1;
-        $("#washTimeDiv").append(
+        $("#washTimeDiv"+whichWash).append(
             $("<div></div>", {
                 "class": "row mt-1",
-                "data-wash": washIndex
+                "data-wash": washIndex,
+                "data-whichwash": whichWash
             }).append(
                 $("<div></div>", {
                     "class": myLeftCol4
                 }).append(
                     $("<input></input>", {
                         "type": "time",
-                        "name": "rinsetime" + washIndex,
-                        "id": "rinseTime" + washIndex,
+                        "name": "rinsetime" + washIndex + "w" + whichWash,
+                        "id": "rinseTime" + washIndex + "w" + whichWash,
                         "class": "watchTime fullWidth"
                     }).on("input", (e)=>{
                         var $elToWatch = $(e.currentTarget);
@@ -1228,7 +1200,7 @@ my_widget_script =
                 $("<div></div>", {
                     "class": "col"
                 }).append(
-                    "Wash " + printNum + " complete at <span class='fillTime purple updateWashDur' data-time='" + timeText + "'>{Enter Start Time}</span>"
+                    "Wash " + printNum + " complete at <span class='fillTime purple updateWashDur"+whichWash+"' data-time='" + timeText + "'>{Enter Start Time}</span>"
                 )
             )
         )

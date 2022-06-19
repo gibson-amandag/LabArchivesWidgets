@@ -273,100 +273,27 @@
             </div>
         </div>
 
-        <!-- Blocking Solution -->
+        <!-- Secondary -->
         <div class="col-12 col-lg-6">
             <div class="card">
                 <button class="card-header" type="button">
-                    PBS + <span data-calc="percNGS">4</span>% Normal <span data-calc="secondaryType">Goat</span> Serum + <span data-calc="percTriton">0.4</span>% Triton
-                </button>
-                <div class="card-body container collapse">
-                    <div class="row font-italic">
-                        Prepare a solution of TritonX100 at 20% dilution 1:5 (8mL Triton + 32mL PBS 1X). You can keep it for a very long time at 4&deg;C.
-                        Diluted triton is easier to use as it is a sticky detergent
-                    </div>
-                    <div class="row mt-2 align-items-end">
-                        <div class="myLeftCol2">
-                            <input type="date" name="pbs1xdate" id="pbs1xDate">
-                        </div>
-                        <div class="col">Date</div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col">
-                            <strong>Percentages:</strong>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="myLeftCol">
-                            <input type="number" name="percngs" id="percNGS" class="fullWidth updateBlocking watch" data-watch="percNGS" value="4" min="0" max="100"/>
-                        </div>
-                        <div class="col">
-                            % Normal <select name="secondarytype" id="secondaryType" class="watch" data-watch="secondaryType"><option value="Goat">Goat</option>
-                            <option value="Donkey">Donkey</option></select> Serum
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="myLeftCol">
-                            <input type="number" name="perctriton" id="percTriton" class="fullWidth updateBlocking watch" data-watch="percTriton" value="0.4" min="0" max="100" step="0.1"/>
-                        </div>
-                        <div class="col">
-                            % triton
-                        </div>
-                    </div>
-
-                    <div class="row mt-2">
-                        <div class="col">
-                            <strong>Desired Amount:</strong><br/>
-                        </div>
-                    </div>
-                    <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol">
-                            <input type="number" name="desiredpbstblockvol" id="desiredPBSTBlockVol" class="fullWidth updateBlocking watch" data-watch="blockVol" value="30">
-                        </div>
-                        <div class="col">Desired blocking solution volume (mL)</div>
-                    </div>
-                    <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol green"><span id="volNGSBlock">[Enter desired amount]</span> &micro;L</div>
-                        <div class="col">Normal <span data-calc="secondaryType">Goat</span> Serum <em>aliquots in freezer</em></div>
-                    </div>
-                    <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol green"><span id="volTritonBlock">[Enter desired amount]</span> &micro;L</div>
-                        <div class="col">20% triton</div>
-                    </div>
-                    <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol bottomLine">
-                            <div class="row">
-                                <div class="col-2 text-left">
-                                    +
-                                </div>
-                                <div class="col green"><span id="volPBSBlock">[Enter desired amount]</span> mL</div>
-                            </div>
-                        </div>
-                        <div class="col">PBS 1x</div>
-                    </div>
-
-                    <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol"><span data-calc="blockVol">[Enter desired amount]</span> mL</div>
-                        <div class="col"><strong>total</strong></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Primary -->
-        <div class="col-12 col-lg-6">
-            <div class="card">
-                <button class="card-header" type="button">
-                    Primary Antibody Solution
+                    Secondary Antibody Solution
                 </button>
                 <div class="card-body container collapse">
                     <div class="row">
                         <div class="col">
-                            <strong>Prepare in  blocking solution (PBS + triton + normal serum)</strong>
+                            <strong>Prepare in  
+                                <select name="secondarystartsoln" id="secondaryStartSoln" class="lightBlue">
+                                    <option value="PBS1x">1x PBS</option>
+                                    <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
+                                    <option value="PBST2" class="PBST2_option" selected="true">PBS + 0.4% Triton</option>
+                                </select>
+                            </strong>
                         </div>
                     </div>
                     <div class="row mt-2">
                         <div class="myLeftCol2">
-                            <input type="date" name="primarydate" id="primaryDate">
+                            <input type="date" name="secondarydate" id="secondaryDate">
                         </div>
                         <div class="col">Date</div>
                     </div>
@@ -377,13 +304,13 @@
                     </div>
                     <div class="row mt-2 align-items-start">
                         <div class="myLeftCol">
-                            <input type="number" name="desiredprimaryvol" id="desiredPrimaryVol" class="fullWidth">
+                            <input type="number" name="desiredsecondaryvol" id="desiredSecondaryVol" class="fullWidth">
                         </div>
-                        <div class="col">Desired primary antibody solution volume (mL)</div>
+                        <div class="col">Desired secondary antibody solution volume (mL)</div>
                     </div>
                     <div class="row mt-2 align-items-start">
-                        <div class="myLeftCol green"><span id="volBlockingForPrimary">[Enter desired amount]</span> mL</div>
-                        <div class="col">Amount of blocking solution to use</div>
+                        <div class="myLeftCol green"><span id="volBlockingForSecondary">[Enter desired amount]</span> mL</div>
+                        <div class="col">Amount of solution to use</div>
                     </div>
                     <div id="abAmountInfo">&nbsp;</div>
                     <div class="row mt-2 hideView">
@@ -400,7 +327,7 @@
                     </div>  
                     <div class="row mt-2">
                         <div class="col font-italic">
-                            Tips: To prepare less primary AB, you can transer the slices from basket to the well (3 mL of AB in a well of 6well plate is enough,
+                            Tips: To prepare less secondary AB, you can transer the slices from basket to the well (3 mL of AB in a well of 6well plate is enough,
                             vs 7mL minimum when you use the basket)
                             or, use a 24-well plate with 500&micro;L per well<br/>
                         </div>
@@ -451,18 +378,12 @@
 
 <div class="container mt-2">
     <div class="row">
-        <h3 class="col">Day 1:</h3>
-    </div>
-    <div class="row">
-        <div class="col">
-            Free-floating sections are stored in anti-freeze solution (cryoprotectant)<br/>
-            Gently shake for all incubation steps unless otherwise indicated
-        </div>
+        <h3 class="col">Day 2:</h3>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol3">1. <input type="checkbox" name="step1" id="step1"/></div>
         <div class="col">
-            Remove slices from freezer and transfer them into a basket (cell strainer), inside a 6-well plate, filled with 
+            Remove slices from primary incubation and transfer them into a basket (cell strainer), inside a 6-well plate, filled with 
             <select name="initialsoln" id="initialSoln" class="lightBlue">
                 <option value="PBS1x">1x PBS</option>
                 <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
@@ -475,11 +396,11 @@
         <div class="myLeftCol3">2. <input type="checkbox" name="step2" id="step2"/></div>
         <div class="col">
             Wash sections <span class="blue">
-            <input type="number" id="numWashes" name="numwashes" value="3" step="1" style="width: 3em;" class="blue"></input>
+            <input type="number" id="numWashes1" name="numwashes1" value="3" step="1" style="width: 3em;" class="blue numWashes" data-whichwash="1"></input>
             times for 
-            <input type="number" id="washDur" name="washdur" value="10" step="1" style="width: 3em;" class="blue"></input>
+            <input type="number" id="washDur1" name="washdur1" value="10" step="1" style="width: 3em;" class="blue washDur" data-whichwash="1"></input>
             min</span> on shaker <em>(describe below)</em> with 
-            <select name="washsoln" id="washSoln" class="lightBlue">
+            <select name="washsoln1" id="washSoln1" class="lightBlue">
                 <option value="PBS1x">1x PBS</option>
                 <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
                 <option value="PBST2" class="PBST2_option">PBS + 0.4% Triton</option>
@@ -492,103 +413,141 @@
             <textarea name="shakerinfo" id="shakerInfo" class="autoAdjust halfWidth" placeholder="shaker info"></textarea>
         </div>
     </div>
-    <div class="mt-2" id="washTimeDiv">
+    <div class="mt-2" id="washTimeDiv1">
         &nbsp;
     </div>
-    <!-- <div class="row mt-2">
-        <div class="myLeftCol4"><input type="time" name="rinsetime1" id="rinseTime1" class="watchTime fullWidth"></div>
-        <div class="col">
-            Wash 1 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
-        </div>
-    </div>
-    <div class="row">
-        <div class="myLeftCol4"><input type="time" name="rinsetime2" id="rinseTime2" class="watchTime fullWidth"></div>
-        <div class="col">
-            Wash 2 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
-        </div>
-    </div>
-    <div class="row">
-        <div class="myLeftCol4"><input type="time" name="rinsetime3" id="rinseTime3" class="watchTime fullWidth"></div>
-        <div class="col">
-            Wash 3 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
-        </div>
-    </div> -->
-    <!-- <div class="row mt-2">
-        <div class="myLeftCol3">&nbsp;</div>
-        <div class="col">
-            <input type="button" value="Add a plate" id="addWashPlate" name="addwashplate" class="addWashPlate halfWidth"></input>
-        </div>
-    </div>
-    <div class="washPlates">&nbsp;</div> -->
     <div class="row mt-2">
         <div class="myLeftCol3">3. <input type="checkbox" name="step3" id="step3"/></div>
         <div class="col">
             Incubate the slices in 
-            <select name="plateblocking" id="plateBlocking" class="calcVol" data-volwatch="blocking">
+            <select name="platesecondary" id="plateBlocking" class="calcVol" data-volwatch="secondary">
                 <option value="24">24</option>
                 <option value="12">12</option>
                 <option value="6">6</option>
             </select>
-            -well plate with <span class="green"><span class="printVol" data-volcalc="blocking">500&micro;</span>L</span> of 
-            <span class="lightBlue">blocking solution</span> <em>(see PBS + <span data-calc="percNGS">4</span>% Normal <span data-calc="secondaryType">Goat</span> Serum + <span data-calc="percTriton">0.4</span>% triton above)</em>
+            -well plate with <span class="green"><span class="printVol" data-volcalc="secondary">500&micro;</span>L</span> of 
+            <span class="lightBlue">secondary solution</span> <em>(see secondary antibodies above)</em>
             for <span class="blue">
-                <input type="number" name="blockdur" id="blockDur" value="60" style="width:4em;" class="blue"></input> min
-            </span> at RT
+                <input type="number" name="secondarydur" id="secondaryDur" value="90" style="width:4em;" class="blue"></input> min
+            </span> at RT<br/>
+            <em>From this step until the end, sections should be protected from light. Fluorescent antibodies are light sensitive</em>
         </div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol4"><input type="time" name="blockingtime" id="blockingtime" class="watchTime fullWidth"></div>
+        <div class="myLeftCol4"><input type="time" name="secondarytime" id="secondarytime" class="watchTime fullWidth"></div>
         <div class="col">
-            Blocking complete at <span class="fillTime purple updateBlockDur" data-time="01:00">{Enter Start Time}</span>
+            Secondary incubation complete at <span class="fillTime purple updateSecondaryDur" data-time="01:30">{Enter Start Time}</span>
         </div>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol3">4. <input type="checkbox" name="step4" id="step4"/></div>
         <div class="col">
-            <select name="plateincub" id="plateIncub" class="calcVol" data-volwatch="incub">
-                <option value="24">24</option>
-                <option value="12">12</option>
-                <option value="6">6</option>
-            </select>
-            -well plate with <span class="green"><span class="printVol" data-volcalc="incub">500&micro;</span>L</span> of <span class="lightBlue">primary antibody</span>
-            diluted in the blocking solution (see above)<br/>
-            <div class="mt-1 font-italic">
-                You can leave the primary for several nights, but try to be consistent. Ideally, have control and treatment groups done at the same time,
-                as the quality of IHC may vary, you don't want to do only one type of treatment on one day
-                and only another type on another day
-            </div>
+            Wash sections <span class="blue">
+            <input type="number" id="numWashes2" name="numwashes2" value="3" step="1" style="width: 3em;" class="blue numWashes" data-whichwash="2"></input>
+            times for 
+            <input type="number" id="washDur2" name="washdur2" value="10" step="1" style="width: 3em;" class="blue washDur" data-whichwash="2"></input>
+            min</span> on shaker with 
+            <select name="washsoln2" id="washSoln2" class="lightBlue">
+                <option value="PBS1x">1x PBS</option>
+                <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
+                <option value="PBST2" class="PBST2_option">PBS + 0.4% Triton</option>
+            </select><br/>
+        </div>
+    </div>
+    <div class="mt-2" id="washTimeDiv2">
+        &nbsp;
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">5. <input type="checkbox" name="step5" id="step5"/></div>
+        <div class="col">
+            Transfer the sections into PBS 1X in the lid of a 10cm Petri dish
         </div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol4">
-            <input type="date" name="startdate" id="startDate" class="fullWidth">
-        </div>
+        <div class="myLeftCol3">6. <input type="checkbox" name="step6" id="step6"/></div>
         <div class="col">
-            Start Date
+            Order the sections from rostral to caudal to allow for seamless imaging
         </div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol4">
-            <input type="time" name="starttime" id="startTime" class="fullWidth">
-        </div>
+        <div class="myLeftCol3">7. <input type="checkbox" name="step7" id="step7"/></div>
         <div class="col">
-            Start Time
+            Fill the Petri dish with PBS 1X. Place the sections on charged glass slides in the established order. <em>Charged slides limit the floating of the sections</em>
+            <ol type="a">
+                <li>
+                    Nearly submerge the slide in the PBS in the Petri dish, 
+                    resting one edge on the bottom of the dish and holding 
+                    the labeled end with thumb and index finger
+                </li>
+                <li>
+                    Use a paintbrush to move the sections from the lid of 
+                    the Petri dish to the proper place on the slide in the Petri dish
+                </li>
+                <li>
+                    Begin with the sections that will be placed closest to your hand 
+                    and finish with the sections closest to the resting end of the slide 
+                    to ensure that the previously placed sections with not slip off the slide
+                </li>
+                <li>
+                    Place the sections so they are in the same orientation and parallel
+                    with the edge of the slide to prevent discrepancies while imaging
+                </li>
+            </ol>
         </div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol4">
-            <input type="date" name="enddate" id="endDate" class="fullWidth">
-        </div>
+        <div class="myLeftCol3">8. <input type="checkbox" name="step8" id="step8"/></div>
         <div class="col">
-            End Date
+            Allow to air dry at room temp for 45-60 min in dark conditions to avoid photobleaching. Label.
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol4"><input type="time" name="drytime" id="drytime" class="watchTime fullWidth"></div>
+        <div class="col">
+            Drying should be complete at <span class="fillTime purple" data-time="01:00">{Enter Start Time}</span>
         </div>
     </div>
     <div class="row mt-2">
-        <div class="myLeftCol4">
-            <input type="time" name="endtime" id="endTime" class="fullWidth">
-        </div>
+        <div class="myLeftCol3">9. <input type="checkbox" name="step9" id="step9"/></div>
         <div class="col">
-            End Time
+            Using a cut P1000 tip to avoid making bubbles, add 170 μL of ProLong Gold antifade reagent 
+            with DAPI (mounting media) to the slide. 
+            Apply in a “T” shape with the top of the “T” on the side opposite of label.
+            <em>DAPI stains cell DNA marking the nuclei of the cells. This provides a structural overview
+                of the section when imaging and viewing. ProLong Gold physically and chemically stabilizes
+                the section on the slide to prevent moving of the sections and photobleaching
+            </em>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">10. <input type="checkbox" name="step10" id="step10"/></div>
+        <div class="col">
+            Slowly lower the coverslip over the sections, beginning from the top of the "T" and
+            lowering towards the slide label. Ensure that the media covers all of the sections.
+            Gently use a KimWipe and your fingers to push off any resulting bubbles
+            <em>Try to avoid leaking from beneath the cover slip</em><br/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">11. <input type="checkbox" name="step11" id="step11"/></div>
+        <div class="col">
+            Let mounting media cure for 24hr at room temperature
+        </div>
+    </div>
+    <div class="row">
+        <h3 class="col">Day 3:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">12. <input type="checkbox" name="step12" id="step12"/></div>
+        <div class="col">
+            Add clear nail polish along the edge of the slide to seal the coverslip and prevent slipping
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">13. <input type="checkbox" name="step13" id="step13"/></div>
+        <div class="col">
+            Clean up excess mounting media on the top of the coverslip and the bottom of the slide
+            using ethanol and KimWipes
         </div>
     </div>
 </div>

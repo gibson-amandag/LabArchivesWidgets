@@ -1,6 +1,67 @@
-my_widget_script =
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<!-- START:stylesheet
+-->
+
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/stylesheets/labarchive.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery-ui.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/themes/base/ui.all.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/chosen/chosen.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/css/jquery.dataTables_themeroller.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/css/TableTools.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/css/ColVis.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.css">
+  <link rel="stylesheet" type="text/css" href="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.css">
+          <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-1.7.2.min.js"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery-ui-1.9.1.custom.min.js"></script>
+                    <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/populate/jquery.populate.pack.js" defer="defer"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/numeric/jquery.numeric.js" defer="defer"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/jquery.calculator.package-1.3.2/jquery.calculator.js" defer="defer"></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/daepark-postmessage/postmessage.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/widget_proxy.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/parent_form_script.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/forms/database_form_script.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/media/js/jquery.dataTables.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/TableTools.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/TableTools/media/js/ZeroClipboard.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColVis/media/js/ColVis.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/DataTables-1.9.3/extras/ColResize/ColReorderWithResize.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/chosen/chosen.jquery_modified.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/autoresize/jquery.autoresize.min.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.freezerbox.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/jquery.colorselect.js" ></script>
+            <script type="text/javascript" src="https://mynotebook.labarchives.com/javascripts/freezerbox/freezerbox_form_script.js" ></script>
+    
+<title></title>
+</head>
+<body>
+<script>
+    // #region
+var form_script = null;
+try {
+$(document).ready(function () {
+      
+      
+      // Create window var to store the locale for the datepicker
+      window.datepicker_locale = '';
+//***************************************************************************
+//***************************************************************************
+//***************************************************************************
+//place your javascript code below and when you have it the way you want it
+//just paste it into the LA Dev tool
+//***************************************************************************
+//***************************************************************************
+//***************************************************************************
+// #endregion
+    form_script = 
+    my_widget_script =
 {
-    numWashes: 0,
+    numWashes1: 0,
+    numWashes2: 0,
 
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
@@ -35,14 +96,21 @@ my_widget_script =
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
-        // Set wash times equal to what was stored in to_json - should be the same, but just in case
         // Default to 3
-        var numWashes = 3
-        if(parsedJson.numWashes){
-            numWashes = parsedJson.numWashes;
+        var numWashes1 = 3
+        if(parsedJson.numWashes1){
+            numWashes1 = parsedJson.numWashes1;
         }
 
-        $("#numWashes").val(numWashes);
+        $("#numWashes1").val(numWashes1);
+
+        // Default to 3
+        var numWashes2 = 3
+        if(parsedJson.numWashes2){
+            numWashes2 = parsedJson.numWashes2;
+        }
+
+        $("#numWashes2").val(numWashes2);
 
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
@@ -73,7 +141,8 @@ my_widget_script =
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
             abNums: this.abNums,
-            numWashes: this.numWashes
+            numWashes1: this.numWashes1,
+            numWashes2: this.numWashes2
         };
 
         //uncomment to check stringified output
@@ -231,12 +300,21 @@ my_widget_script =
                 this.addAntibodies(abNum);
             }
         }
+
         // Default to 3
-        var numWashes = 3;
-        if(parsedJson.numWashes){
-            numWashes = parsedJson.numWashes;
+        var numWashes1 = 3
+        if(parsedJson.numWashes1){
+            numWashes1 = parsedJson.numWashes1;
         }
-        this.updateWashTracking(numWashes);
+
+        this.updateWashTracking(numWashes1, 1);
+
+        // Default to 3
+        var numWashes2 = 3
+        if(parsedJson.numWashes2){
+            numWashes2 = parsedJson.numWashes2;
+        }
+        this.updateWashTracking(numWashes2, 2);
     },
 
     /**
@@ -428,11 +506,6 @@ my_widget_script =
             $("#vol10xPBS").text(startVol);
         });
 
-        // When an amount of blocking solution is changed, update the volumes of components
-        $(".updateBlocking").on("change", (e)=>{
-            var solns = this.blockingSolnCalc(); // updating within function now
-        });
-
         // When an amount of PBST1 solution is changed, update the volumes of components
         $(".updatePBST1").on("change", (e)=>{
             var solns = this.PBST1Calc(); // updating within function now
@@ -451,8 +524,8 @@ my_widget_script =
             this.addCRHcFosABsClick();
         });
 
-        $("#desiredPrimaryVol").on("input", ()=>{
-            this.primaryAbSolnCalc();
+        $("#desiredSecondaryVol").on("input", ()=>{
+            this.secondaryAbSolnCalc();
         });
 
         $(".calcVol").on("change", (e)=>{
@@ -468,16 +541,18 @@ my_widget_script =
             this.watchValue($(e.currentTarget));
         });
 
-        $("#numWashes").each((i,e)=>{
-            // this.updateWashTracking($(e).val());
-        }).on("change", (e)=>{
-            this.updateWashTracking($(e.currentTarget).val());
+        $(".numWashes").on("change", (e)=>{
+            var whichWash = $(e.currentTarget).data("whichwash");
+            // console.log("change number of washes", whichWash);
+            this.updateWashTracking($(e.currentTarget).val(), whichWash);
         });
 
-        $("#washDur").on("change", (e)=>{
-            var timeText = this.getTimeText($(e.currentTarget).val());
-            $(".updateWashDur").attr("data-time", timeText); // change it on the page
-            $(".updateWashDur").data('time', timeText); // change what jquery works with
+        $(".washDur").on("change", (e)=>{
+            var washDur = $(e.currentTarget).val();
+            var timeText = this.getTimeText(washDur);
+            var whichWash = $(e.currentTarget).data("whichwash");
+            $(".updateWashDur"+whichWash).attr("data-time", timeText); // change it on the page
+            $(".updateWashDur"+whichWash).data('time', timeText); // change what jquery works with
 
             $(".watchTime").each((i,e)=> {
                 var $elToWatch = $(e);
@@ -488,12 +563,12 @@ my_widget_script =
             });
         });
 
-        $("#blockDur").on("change", (e)=>{
-            var blockDur = $(e.currentTarget).val();
-            var timeText = this.getTimeText(blockDur);
+        $("#secondaryDur").on("change", (e)=>{
+            var secondaryDur = $(e.currentTarget).val();
+            var timeText = this.getTimeText(secondaryDur);
 
-            $(".updateBlockDur").attr("data-time", timeText);
-            $(".updateBlockDur").data("time", timeText);
+            $(".updateSecondaryDur").attr("data-time", timeText);
+            $(".updateSecondaryDur").data("time", timeText);
 
             $(".watchTime").each((i,e)=> {
                 var $elToWatch = $(e);
@@ -502,12 +577,11 @@ my_widget_script =
 
                 this.watchTime($elToWatch, $elToFill);
             });
-        })
+        });
 
-        this.blockingSolnCalc();
         this.PBST1Calc();
         this.PBST2Calc();
-        this.primaryAbSolnCalc();
+        this.secondaryAbSolnCalc();
         this.resize();
     },
 
@@ -812,51 +886,6 @@ my_widget_script =
         $(".printVol"+typeSearch).html(amnt)
     },
 
-    // Return the amount of normal goat serum, triton, and PBS for blocking solution
-    // Default is 4% NGS and 0.4% triton
-    blockingSolnCalc: function(){
-        var desiredFinalVol = $("#desiredPBSTBlockVol").val();
-        var percNGS = $("#percNGS").val();
-        var percTriton = $("#percTriton").val();
-        if(!(percNGS>0) || percNGS > 100){
-            percNGS = 4;
-            $("#percNGS").val(percNGS);
-            this.watchValue($("#percNGS"));
-        }
-        if(!(percTriton>0) || percTriton > 100){
-            percTriton = 0.4;
-            $("#percTriton").val(0.4);
-            this.watchValue($("#percTriton"));
-        }
-        var dilFractionNGS = percNGS/100;
-        var dilFractionTriton = percTriton/100;
-        if(desiredFinalVol > 0){
-            // var dilFractionNGS = 0.04; // 4% NGS
-            var startVolNGSmL = this.startVolOfDilutionCalc(dilFractionNGS, desiredFinalVol);
-            var startVolNGSuL = +(startVolNGSmL * 1000).toFixed(2);
-            // var dilFractionTriton = 0.004; // 0.4% triton
-            var startVolTritonx100 = this.startVolOfDilutionCalc(dilFractionTriton, desiredFinalVol);
-            var startVolTriton20percmL = startVolTritonx100 * 5;
-            var startVolTriton20percuL = +(startVolTriton20percmL * 1000).toFixed(2);
-            var startVolPBS = +(desiredFinalVol - startVolNGSmL - startVolTriton20percmL).toFixed(2);
-        } else {
-            var startVolNGSuL = "[Enter desired amount]"
-            var startVolTriton20percuL = "[Enter desired amount]"
-            var startVolPBS = "[Enter desired amount]"
-        }
-        solns = {
-            NGS: startVolNGSuL,
-            triton: startVolTriton20percuL,
-            PBS: startVolPBS
-        }
-        $("#volNGSBlock").text(solns.NGS);
-        $("#volTritonBlock").text(solns.triton);
-        $("#volPBSBlock").text(solns.PBS);
-        return(
-            solns
-        )
-    },
-
     // Return the amount of triton, and PBS for first PBST solution
     // Default is 0.1% triton
     PBST1Calc: function(version){
@@ -925,11 +954,11 @@ my_widget_script =
         )
     },
 
-    primaryAbSolnCalc: function(){
-        var $primaryVol = $("#desiredPrimaryVol");
-        var primaryVol = $primaryVol.val();
+    secondaryAbSolnCalc: function(){
+        var $secondaryVol = $("#desiredSecondaryVol");
+        var secondaryVol = $secondaryVol.val();
 
-        if(primaryVol > 0){
+        if(secondaryVol > 0){
             // For each dilution factor entry
             $(".abDilution").each((i,e)=>{
                 var abNum = $(e).data("abnum");
@@ -940,7 +969,7 @@ my_widget_script =
                     // Convert to a proportion
                     var dilutionVal = 1/dilutionFactor;
                     // Get the volume in mL
-                    var amountAb_mL = this.startVolOfDilutionCalc(dilutionVal, primaryVol);
+                    var amountAb_mL = this.startVolOfDilutionCalc(dilutionVal, secondaryVol);
                     // Convert to uL
                     var amountAb_uL = +(amountAb_mL * 1000).toFixed(2);
                     var stockDilution = $(".abStock"+abSearch).val();
@@ -957,14 +986,14 @@ my_widget_script =
                 $(".abAmount"+abSearch).text(amountAbStock_uL);
             });
         } else{
-            primaryVol = "[Enter desired volume]";
+            secondaryVol = "[Enter desired volume]";
             $(".abDilution").each((i,e)=>{
                 var abNum = $(e).data("abnum");
                 var abSearch = this.abNumSearch(abNum);
                 $(".abAmount"+abSearch).text("[Enter desired volume]");
             });
         }
-        $("#volBlockingForPrimary").text(primaryVol);
+        $("#volBlockingForSecondary").text(secondaryVol);
     },
 
     addAntibodyClick: function (){
@@ -997,10 +1026,10 @@ my_widget_script =
         
         // Fill in the information
         var abSearch = this.abNumSearch(abNum);
-        $(".abName"+abSearch).val("rabbit anti-cFos");
+        $(".abName"+abSearch).val("goat anti-rabbit");
         var calcSearch = this.calcSearch("abName");
-        $(calcSearch + abSearch).text("rabbit anti-cFos");
-        $(".abDilution"+abSearch).val("2000");
+        $(calcSearch + abSearch).text("goat anti-rabbit");
+        $(".abDilution"+abSearch).val("500");
 
         // Go to the next antibody number
         abNum++;
@@ -1013,13 +1042,13 @@ my_widget_script =
         
         // Fill in the info
         var abSearch = this.abNumSearch(abNum);
-        $(".abName"+abSearch).val("chicken anti-GFP");
+        $(".abName"+abSearch).val("goat anti-chicken");
         var calcSearch = this.calcSearch("abName");
-        $(calcSearch + abSearch).text("chicken anti-GFP");
-        $(".abDilution"+abSearch).val("1000");
+        $(calcSearch + abSearch).text("goat anti-chicken");
+        $(".abDilution"+abSearch).val("500");
 
         // Update the calculation
-        this.primaryAbSolnCalc();
+        this.secondaryAbSolnCalc();
     },
 
     addAntibodies: function(abNum){
@@ -1092,7 +1121,7 @@ my_widget_script =
                         "data-abnum": abNum
                     })
                 ).on("input", (e)=>{
-                    this.primaryAbSolnCalc();
+                    this.secondaryAbSolnCalc();
                 })
             )
         ).append(
@@ -1114,7 +1143,7 @@ my_widget_script =
                         "data-abnum": abNum
                     })
                 ).on("input", (e)=>{
-                    this.primaryAbSolnCalc();
+                    this.secondaryAbSolnCalc();
                 })
             )
         );
@@ -1163,25 +1192,27 @@ my_widget_script =
         )
     },
 
-    updateWashTracking: function(numWashes){
-        var currentNumWashes = parseInt(this.numWashes);
+    updateWashTracking: function(numWashes, whichWash){
+        var currentNumWashes;
+        currentNumWashes = parseInt(this["numWashes"+whichWash]);
+        // console.log("current number of washes", currentNumWashes);
         if( currentNumWashes < numWashes){
             for(i = currentNumWashes; i < numWashes; i++){
-                this.makeWashRow(i);
+                this.makeWashRow(i, whichWash);
             }
-            this.numWashes = numWashes
+            this["numWashes"+whichWash] = numWashes;
         } else if(currentNumWashes > numWashes){
             this.dialogConfirm(
                 "Are you sure you want to remove a wash?", 
                 (result)=>{
                     if(result){
                         for(i = currentNumWashes; i >= numWashes; i--){
-                            var washSearch = this.dataSearch("wash", i)
+                            var washSearch = this.dataSearch("wash", i) + this.dataSearch("whichwash", whichWash);
                             $(washSearch).remove();
                         }
-                        this.numWashes = numWashes;
+                        this["numWashes"+whichWash] = numWashes;
                     } else {
-                        $("#numWashes").val(currentNumWashes); // reset
+                        $("#numWashes"+whichWash).val(currentNumWashes); // reset
                     }
                     this.resize();
                 }
@@ -1200,22 +1231,23 @@ my_widget_script =
         return timeText
     },
 
-    makeWashRow: function(washIndex){
+    makeWashRow: function(washIndex, whichWash){
         var myLeftCol4 = "col-6 col-md-4 col-lg-3 text-right"
         var timeText = this.getTimeText($("#washDur").val());
         var printNum = washIndex + 1;
-        $("#washTimeDiv").append(
+        $("#washTimeDiv"+whichWash).append(
             $("<div></div>", {
                 "class": "row mt-1",
-                "data-wash": washIndex
+                "data-wash": washIndex,
+                "data-whichwash": whichWash
             }).append(
                 $("<div></div>", {
                     "class": myLeftCol4
                 }).append(
                     $("<input></input>", {
                         "type": "time",
-                        "name": "rinsetime" + washIndex,
-                        "id": "rinseTime" + washIndex,
+                        "name": "rinsetime" + washIndex + "w" + whichWash,
+                        "id": "rinseTime" + washIndex + "w" + whichWash,
                         "class": "watchTime fullWidth"
                     }).on("input", (e)=>{
                         var $elToWatch = $(e.currentTarget);
@@ -1228,9 +1260,599 @@ my_widget_script =
                 $("<div></div>", {
                     "class": "col"
                 }).append(
-                    "Wash " + printNum + " complete at <span class='fillTime purple updateWashDur' data-time='" + timeText + "'>{Enter Start Time}</span>"
+                    "Wash " + printNum + " complete at <span class='fillTime purple updateWashDur"+whichWash+"' data-time='" + timeText + "'>{Enter Start Time}</span>"
                 )
             )
         )
     }
 };
+
+//**************************************************************************
+//End of your code
+//**************************************************************************
+//**************************************************************************
+      //the parent class functionality is added to your class below.
+      form_script.parent_class = parent_form_script;
+      //**************************************************************************
+      //**************************************************************************
+      //call to the init function in your script.  Note that you can change the mode in the call here.
+      //your choices are view,view_dev,edit,edit_dev,  see the parent class source for details
+      form_script.init("edit", function() {return form_script.test_data()});
+
+
+    }
+)
+
+}
+catch (e) {
+
+}
+
+parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00:23-05:00","last_modified_at":"2021-01-03T18:51:34-05:00","last_modified_by":"Amanda Gibson","owned_by":"unknown"};
+
+</script>
+<form id="the_form" style="display:table">
+<!------------------------------------------------------------------------------------------>
+<!--the html for your tool goes here.  Paste it into the LA dev tool when you have it the way you want it-->
+<!------------------------------------------------------------------------------------------>
+<!-- #region HTML -->
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<!-- Load jQuery for Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<!-- Load bootstrap java -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous">
+</script>
+<!-- Bootbox for dialogs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
+<script>
+    var $jq351 = jQuery.noConflict(true);
+</script>
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 90%
+    }
+
+    .halfWidth {
+        width: 50%
+    }
+
+    .green{
+        color: green;
+    }
+
+    .bottomLine{
+        border-bottom: 2px solid black;
+    }
+
+    .blue{
+        color: blue;
+    }
+
+    .orange{
+        color: orange;
+    }
+
+    .lightBlue{
+        color: rgb(77, 167, 246);
+    }
+
+    .red{
+        color: red;
+    }
+
+    .purple{
+        color: purple;
+    }
+
+    ul {
+        margin-left: 0;
+        padding-left: 20px;
+    }
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="container hideView">
+    <p>Elements that are required to save this page are marked with a red asterisk <span
+            style="color:red">*</span></p>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- PBS Card -->
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <button class="card-header" type="button">
+                    1x PBS
+                </button>
+                <div class="card-body container collapse">
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green">50 mL</div>
+                        <div class="col">10x PBS</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol bottomLine">
+                            <div class="row">
+                                <div class="col-2 text-left">
+                                    +
+                                </div>
+                                <div class="col green">450 mL</div>
+                            </div>
+                        </div>
+                        <div class="col">H<sub>2</sub>O <em>use milliQ water and fill to 500 mL </em></div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">500 mL</div>
+                        <div class="col"><strong>total</strong></div>
+                    </div>
+                    <div class="row mt-2 align-items-end">
+                        <div class="myLeftCol2">
+                            <input type="date" name="pbs1xdate" id="pbs1xDate">
+                        </div>
+                        <div class="col">Date</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Alternate Amount:</strong><br/>
+                        </div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">
+                            <input type="number" name="desiredpbsvol" id="desiredPBSVol" class="fullWidth">
+                        </div>
+                        <div class="col">Desired 1x PBS final volume (mL)</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="vol10xPBS">[Enter desired amount]</span> mL</div>
+                        <div class="col">Amount of 10x PBS to add</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PBS-T Solution 1 -->
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <button class="card-header" type="button">
+                    PBS + <span data-calc="percTriton2">0.1</span>% Triton
+                </button>
+                <div class="card-body container collapse">
+                    <div class="row font-italic">
+                        Prepare a solution of TritonX100 at 20% dilution 1:5 (8mL Triton + 32mL PBS 1X). You can keep it for a very long time at 4&deg;C.
+                        Diluted triton is easier to use as it is a sticky detergent
+                    </div>
+                    <div class="row mt-2 align-items-end">
+                        <div class="myLeftCol2">
+                            <input type="date" name="pbst1date" id="pbst1Date">
+                        </div>
+                        <div class="col">Date</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Percentages:</strong>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="myLeftCol">
+                            <input type="number" name="perctriton2" id="percTriton2" class="fullWidth updatePBST1 watch" data-watch="percTriton2" value="0.1" min="0" max="100" step="0.1"/>
+                        </div>
+                        <div class="col">
+                            % triton
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Desired Amount:</strong><br/>
+                        </div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">
+                            <input type="number" name="desiredpbst2vol" id="desiredPBST2Vol" class="fullWidth updatePBST1 watch" data-watch="vol2" value="30">
+                        </div>
+                        <div class="col">Desired solution volume (mL)</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="volTriton2">[Enter desired amount]</span> &micro;L</div>
+                        <div class="col">20% triton</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol bottomLine">
+                            <div class="row">
+                                <div class="col-2 text-left">
+                                    +
+                                </div>
+                                <div class="col green"><span id="volPBS2">[Enter desired amount]</span> mL</div>
+                            </div>
+                        </div>
+                        <div class="col">PBS 1x</div>
+                    </div>
+
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol"><span data-calc="vol2">[Enter desired amount]</span> mL</div>
+                        <div class="col"><strong>total</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- PBS-T Solution 2 -->
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <button class="card-header" type="button">
+                    PBS + <span data-calc="percTriton3">0.4</span>% Triton
+                </button>
+                <div class="card-body container collapse">
+                    <div class="row font-italic">
+                        Prepare a solution of TritonX100 at 20% dilution 1:5 (8mL Triton + 32mL PBS 1X). You can keep it for a very long time at 4&deg;C.
+                        Diluted triton is easier to use as it is a sticky detergent
+                    </div>
+                    <div class="row mt-2 align-items-end">
+                        <div class="myLeftCol2">
+                            <input type="date" name="pbst2date" id="pbst2Date">
+                        </div>
+                        <div class="col">Date</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Percentages:</strong>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="myLeftCol">
+                            <input type="number" name="perctriton3" id="percTriton3" class="fullWidth updatePBST2 watch" data-watch="percTriton3" value="0.4" min="0" max="100" step="0.1"/>
+                        </div>
+                        <div class="col">
+                            % triton
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Desired Amount:</strong><br/>
+                        </div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">
+                            <input type="number" name="desiredpbst3vol" id="desiredPBST3Vol" class="fullWidth updatePBST2 watch" data-watch="vol3" value="30">
+                        </div>
+                        <div class="col">Desired solution volume (mL)</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="volTriton3">[Enter desired amount]</span> &micro;L</div>
+                        <div class="col">20% triton</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol bottomLine">
+                            <div class="row">
+                                <div class="col-2 text-left">
+                                    +
+                                </div>
+                                <div class="col green"><span id="volPBS3">[Enter desired amount]</span> mL</div>
+                            </div>
+                        </div>
+                        <div class="col">PBS 1x</div>
+                    </div>
+
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol"><span data-calc="vol3">[Enter desired amount]</span> mL</div>
+                        <div class="col"><strong>total</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary -->
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <button class="card-header" type="button">
+                    Secondary Antibody Solution
+                </button>
+                <div class="card-body container collapse">
+                    <div class="row">
+                        <div class="col">
+                            <strong>Prepare in  
+                                <select name="secondarystartsoln" id="secondaryStartSoln" class="lightBlue">
+                                    <option value="PBS1x">1x PBS</option>
+                                    <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
+                                    <option value="PBST2" class="PBST2_option" selected="true">PBS + 0.4% Triton</option>
+                                </select>
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="myLeftCol2">
+                            <input type="date" name="secondarydate" id="secondaryDate">
+                        </div>
+                        <div class="col">Date</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <strong>Amounts:</strong><br/>
+                        </div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol">
+                            <input type="number" name="desiredsecondaryvol" id="desiredSecondaryVol" class="fullWidth">
+                        </div>
+                        <div class="col">Desired secondary antibody solution volume (mL)</div>
+                    </div>
+                    <div class="row mt-2 align-items-start">
+                        <div class="myLeftCol green"><span id="volBlockingForSecondary">[Enter desired amount]</span> mL</div>
+                        <div class="col">Amount of solution to use</div>
+                    </div>
+                    <div id="abAmountInfo">&nbsp;</div>
+                    <div class="row mt-2 hideView">
+                        <div class="col"><input type="button" value="Add Antibody" id="addAntibody" name="addantibody" class="fullWidth disableOnView"></div>
+                    </div>
+                    <div class="row mt-2 hideView">
+                        <div class="col"><input type="button" value="Add CRH cFos Study ABs" id="addCRHcFosABs" name="addcrhcfosabs" class="fullWidth disableOnView"></div>
+                    </div>
+                    <div id="abInfo">&nbsp;</div>
+                    <div class="row mt-2 font-italic">
+                        <div class="col">
+                            To find where your AB is stored (4&deg;C, -20&deg;C, -80&deg;C), look at the IHC folder in the IHC drawer<br/>
+                        </div>
+                    </div>  
+                    <div class="row mt-2">
+                        <div class="col font-italic">
+                            Tips: To prepare less secondary AB, you can transer the slices from basket to the well (3 mL of AB in a well of 6well plate is enough,
+                            vs 7mL minimum when you use the basket)
+                            or, use a 24-well plate with 500&micro;L per well<br/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Experiment Information:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            Experiment:
+        </div>
+        <div class="col">
+            <input type="text" id="experiment" name="experiment" class="fullWidth"></input>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            Date:
+        </div>
+        <div class="col">
+            <input type="date" name="expdate" id="expDate" class="fullWidth"></input>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            Purpose:
+        </div>
+        <div class="col">
+            <textarea name="purpose" id="purpose" class="fullWidth autoAdjust"></textarea>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4">
+            Samples:
+        </div>
+        <div class="col">
+            <textarea name="samples" id="samples" class="fullWidth autoAdjust"></textarea>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h3 class="col">Day 2:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">1. <input type="checkbox" name="step1" id="step1"/></div>
+        <div class="col">
+            Remove slices from primary incubation and transfer them into a basket (cell strainer), inside a 6-well plate, filled with 
+            <select name="initialsoln" id="initialSoln" class="lightBlue">
+                <option value="PBS1x">1x PBS</option>
+                <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
+                <option value="PBST2" class="PBST2_option">PBS + 0.4% Triton</option>
+            </select><br/>
+            Label baskets and plate cover
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">2. <input type="checkbox" name="step2" id="step2"/></div>
+        <div class="col">
+            Wash sections <span class="blue">
+            <input type="number" id="numWashes1" name="numwashes1" value="3" step="1" style="width: 3em;" class="blue numWashes" data-whichwash="1"></input>
+            times for 
+            <input type="number" id="washDur1" name="washdur1" value="10" step="1" style="width: 3em;" class="blue washDur" data-whichwash="1"></input>
+            min</span> on shaker <em>(describe below)</em> with 
+            <select name="washsoln1" id="washSoln1" class="lightBlue">
+                <option value="PBS1x">1x PBS</option>
+                <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
+                <option value="PBST2" class="PBST2_option">PBS + 0.4% Triton</option>
+            </select><br/>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol3">&nbsp;</div>
+        <div class="col">
+            <textarea name="shakerinfo" id="shakerInfo" class="autoAdjust halfWidth" placeholder="shaker info"></textarea>
+        </div>
+    </div>
+    <div class="mt-2" id="washTimeDiv1">
+        &nbsp;
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">3. <input type="checkbox" name="step3" id="step3"/></div>
+        <div class="col">
+            Incubate the slices in 
+            <select name="platesecondary" id="plateBlocking" class="calcVol" data-volwatch="secondary">
+                <option value="24">24</option>
+                <option value="12">12</option>
+                <option value="6">6</option>
+            </select>
+            -well plate with <span class="green"><span class="printVol" data-volcalc="secondary">500&micro;</span>L</span> of 
+            <span class="lightBlue">secondary solution</span> <em>(see secondary antibodies above)</em>
+            for <span class="blue">
+                <input type="number" name="secondarydur" id="secondaryDur" value="90" style="width:4em;" class="blue"></input> min
+            </span> at RT<br/>
+            <em>From this step until the end, sections should be protected from light. Fluorescent antibodies are light sensitive</em>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol4"><input type="time" name="secondarytime" id="secondarytime" class="watchTime fullWidth"></div>
+        <div class="col">
+            Secondary incubation complete at <span class="fillTime purple updateSecondaryDur" data-time="01:30">{Enter Start Time}</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">4. <input type="checkbox" name="step4" id="step4"/></div>
+        <div class="col">
+            Wash sections <span class="blue">
+            <input type="number" id="numWashes2" name="numwashes2" value="3" step="1" style="width: 3em;" class="blue numWashes" data-whichwash="2"></input>
+            times for 
+            <input type="number" id="washDur2" name="washdur2" value="10" step="1" style="width: 3em;" class="blue washDur" data-whichwash="2"></input>
+            min</span> on shaker with 
+            <select name="washsoln2" id="washSoln2" class="lightBlue">
+                <option value="PBS1x">1x PBS</option>
+                <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
+                <option value="PBST2" class="PBST2_option">PBS + 0.4% Triton</option>
+            </select><br/>
+        </div>
+    </div>
+    <div class="mt-2" id="washTimeDiv2">
+        &nbsp;
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">5. <input type="checkbox" name="step5" id="step5"/></div>
+        <div class="col">
+            Transfer the sections into PBS 1X in the lid of a 10cm Petri dish
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">6. <input type="checkbox" name="step6" id="step6"/></div>
+        <div class="col">
+            Order the sections from rostral to caudal to allow for seamless imaging
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">7. <input type="checkbox" name="step7" id="step7"/></div>
+        <div class="col">
+            Fill the Petri dish with PBS 1X. Place the sections on charged glass slides in the established order. <em>Charged slides limit the floating of the sections</em>
+            <ol type="a">
+                <li>
+                    Nearly submerge the slide in the PBS in the Petri dish, 
+                    resting one edge on the bottom of the dish and holding 
+                    the labeled end with thumb and index finger
+                </li>
+                <li>
+                    Use a paintbrush to move the sections from the lid of 
+                    the Petri dish to the proper place on the slide in the Petri dish
+                </li>
+                <li>
+                    Begin with the sections that will be placed closest to your hand 
+                    and finish with the sections closest to the resting end of the slide 
+                    to ensure that the previously placed sections with not slip off the slide
+                </li>
+                <li>
+                    Place the sections so they are in the same orientation and parallel
+                    with the edge of the slide to prevent discrepancies while imaging
+                </li>
+            </ol>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">8. <input type="checkbox" name="step8" id="step8"/></div>
+        <div class="col">
+            Allow to air dry at room temp for 45-60 min in dark conditions to avoid photobleaching. Label.
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol4"><input type="time" name="drytime" id="drytime" class="watchTime fullWidth"></div>
+        <div class="col">
+            Drying should be complete at <span class="fillTime purple" data-time="01:00">{Enter Start Time}</span>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">9. <input type="checkbox" name="step9" id="step9"/></div>
+        <div class="col">
+            Using a cut P1000 tip to avoid making bubbles, add 170 μL of ProLong Gold antifade reagent 
+            with DAPI (mounting media) to the slide. 
+            Apply in a “T” shape with the top of the “T” on the side opposite of label.
+            <em>DAPI stains cell DNA marking the nuclei of the cells. This provides a structural overview
+                of the section when imaging and viewing. ProLong Gold physically and chemically stabilizes
+                the section on the slide to prevent moving of the sections and photobleaching
+            </em>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">10. <input type="checkbox" name="step10" id="step10"/></div>
+        <div class="col">
+            Slowly lower the coverslip over the sections, beginning from the top of the "T" and
+            lowering towards the slide label. Ensure that the media covers all of the sections.
+            Gently use a KimWipe and your fingers to push off any resulting bubbles
+            <em>Try to avoid leaking from beneath the cover slip</em><br/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">11. <input type="checkbox" name="step11" id="step11"/></div>
+        <div class="col">
+            Let mounting media cure for 24hr at room temperature
+        </div>
+    </div>
+    <div class="row">
+        <h3 class="col">Day 3:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">12. <input type="checkbox" name="step12" id="step12"/></div>
+        <div class="col">
+            Add clear nail polish along the edge of the slide to seal the coverslip and prevent slipping
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol3">13. <input type="checkbox" name="step13" id="step13"/></div>
+        <div class="col">
+            Clean up excess mounting media on the top of the coverslip and the bottom of the slide
+            using ethanol and KimWipes
+        </div>
+    </div>
+</div>
+<!-- #endregion -->
+<!------------------------------------------------------------------------------------------>
+<!--end of your code-->
+<!------------------------------------------------------------------------------------------>
+
+</form>
+</body>
+</html>

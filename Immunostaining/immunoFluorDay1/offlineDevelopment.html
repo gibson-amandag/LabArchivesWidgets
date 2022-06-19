@@ -60,7 +60,8 @@ $(document).ready(function () {
     form_script = 
     my_widget_script =
 {
-    
+    numWashes: 0,
+
     init: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
@@ -94,6 +95,15 @@ $(document).ready(function () {
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
+        // Set wash times equal to what was stored in to_json - should be the same, but just in case
+        // Default to 3
+        var numWashes = 3
+        if(parsedJson.numWashes){
+            numWashes = parsedJson.numWashes;
+        }
+
+        $("#numWashes").val(numWashes);
+
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
 
@@ -122,7 +132,8 @@ $(document).ready(function () {
         // Will be accessed within the init and from_json methods
         var output = { 
             widgetData: JSON.parse(widgetJsonString),
-            abNums: this.abNums
+            abNums: this.abNums,
+            numWashes: this.numWashes
         };
 
         //uncomment to check stringified output
@@ -280,6 +291,12 @@ $(document).ready(function () {
                 this.addAntibodies(abNum);
             }
         }
+        // Default to 3
+        var numWashes = 3;
+        if(parsedJson.numWashes){
+            numWashes = parsedJson.numWashes;
+        }
+        this.updateWashTracking(numWashes);
     },
 
     /**
@@ -510,6 +527,42 @@ $(document).ready(function () {
         }).on("input", (e)=>{
             this.watchValue($(e.currentTarget));
         });
+
+        $("#numWashes").each((i,e)=>{
+            // this.updateWashTracking($(e).val());
+        }).on("change", (e)=>{
+            this.updateWashTracking($(e.currentTarget).val());
+        });
+
+        $("#washDur").on("change", (e)=>{
+            var timeText = this.getTimeText($(e.currentTarget).val());
+            $(".updateWashDur").attr("data-time", timeText); // change it on the page
+            $(".updateWashDur").data('time', timeText); // change what jquery works with
+
+            $(".watchTime").each((i,e)=> {
+                var $elToWatch = $(e);
+                var $elToFill = $(e).parent().next().find($(".fillTime"));
+                // console.log($elToFill);
+
+                this.watchTime($elToWatch, $elToFill);
+            });
+        });
+
+        $("#blockDur").on("change", (e)=>{
+            var blockDur = $(e.currentTarget).val();
+            var timeText = this.getTimeText(blockDur);
+
+            $(".updateBlockDur").attr("data-time", timeText);
+            $(".updateBlockDur").data("time", timeText);
+
+            $(".watchTime").each((i,e)=> {
+                var $elToWatch = $(e);
+                var $elToFill = $(e).parent().next().find($(".fillTime"));
+                // console.log($elToFill);
+
+                this.watchTime($elToWatch, $elToFill);
+            });
+        })
 
         this.blockingSolnCalc();
         this.PBST1Calc();
@@ -751,7 +804,9 @@ $(document).ready(function () {
     },
 
     watchTime: function ($elToWatch, $elToFill) {
+        // console.log($elToFill);
         var addTime = $elToFill.data("time");
+        // console.log(addTime);
         // console.log(length);
 
         var startTime = $elToWatch.val();
@@ -763,7 +818,7 @@ $(document).ready(function () {
             time.setHours(startTimeSplit.hours, startTimeSplit.mins, 00, 000);
             time.setHours(time.getHours() + addTimeSplit.hours);
             time.setMinutes(time.getMinutes() + addTimeSplit.mins);
-            console.log(time);
+            // console.log(time);
             $elToFill.text(time.toLocaleTimeString());
         } else{
             $elToFill.text("{Enter Start Time}")
@@ -948,11 +1003,18 @@ $(document).ready(function () {
                     var amountAb_mL = this.startVolOfDilutionCalc(dilutionVal, primaryVol);
                     // Convert to uL
                     var amountAb_uL = +(amountAb_mL * 1000).toFixed(2);
+                    var stockDilution = $(".abStock"+abSearch).val();
+                    if(stockDilution>0){
+                        var amountAbStock_uL = +(amountAb_uL*stockDilution).toFixed(2);
+                    } else{
+                        var amountAbStock_uL = "[Enter stock dilution]"
+                    }
                 } else{
                     var amountAb_uL = "[Enter dilution factor]"
+                    var amountAbStock_uL = "[Enter dilution factor]"
                 }
                 // Fill in the amount for the abnum matches
-                $(".abAmount"+abSearch).text(amountAb_uL);
+                $(".abAmount"+abSearch).text(amountAbStock_uL);
             });
         } else{
             primaryVol = "[Enter desired volume]";
@@ -1077,7 +1139,7 @@ $(document).ready(function () {
                 "class": "row",
                 "data-abnum": abNum
             }).append(
-                "<div class='"+myLeftCol+"'>Antibody dilution (1:x)</div>"
+                "<div class='"+myLeftCol+"'>Final ab dilution (1:x)</div>"
             ).append(
                 $("<div></div>", {
                     "class": "col"
@@ -1087,6 +1149,28 @@ $(document).ready(function () {
                         type: "number",
                         "name": "abdilution"+abNum,
                         "id": "abDilution"+abNum,
+                        "data-abnum": abNum
+                    })
+                ).on("input", (e)=>{
+                    this.primaryAbSolnCalc();
+                })
+            )
+        ).append(
+            $("<div></div>", {
+                "class": "row",
+                "data-abnum": abNum
+            }).append(
+                "<div class='"+myLeftCol+"'>Current ab stock dilution(1:x)</div>"
+            ).append(
+                $("<div></div>", {
+                    "class": "col"
+                }).append(
+                    $("<input></input>", {
+                        "class": "fullWidth abStock", 
+                        type: "number",
+                        "name": "abstock"+abNum,
+                        "id": "abStock"+abNum,
+                        "value": 1,
                         "data-abnum": abNum
                     })
                 ).on("input", (e)=>{
@@ -1138,6 +1222,77 @@ $(document).ready(function () {
             }
         )
     },
+
+    updateWashTracking: function(numWashes){
+        var currentNumWashes = parseInt(this.numWashes);
+        if( currentNumWashes < numWashes){
+            for(i = currentNumWashes; i < numWashes; i++){
+                this.makeWashRow(i);
+            }
+            this.numWashes = numWashes
+        } else if(currentNumWashes > numWashes){
+            this.dialogConfirm(
+                "Are you sure you want to remove a wash?", 
+                (result)=>{
+                    if(result){
+                        for(i = currentNumWashes; i >= numWashes; i--){
+                            var washSearch = this.dataSearch("wash", i)
+                            $(washSearch).remove();
+                        }
+                        this.numWashes = numWashes;
+                    } else {
+                        $("#numWashes").val(currentNumWashes); // reset
+                    }
+                    this.resize();
+                }
+            )
+        }
+        this.resize();
+    },
+
+    getTimeText: function(timeInMin){
+        var hours = 0, min = 0; timeText = "00:00"
+        if(timeInMin){
+            hours = Math.floor(timeInMin/60);
+            min = Math.round(timeInMin % 60);
+            timeText = ("00" + hours).slice(-2) + ":" + ("00"+min).slice(-2);
+        }
+        return timeText
+    },
+
+    makeWashRow: function(washIndex){
+        var myLeftCol4 = "col-6 col-md-4 col-lg-3 text-right"
+        var timeText = this.getTimeText($("#washDur").val());
+        var printNum = washIndex + 1;
+        $("#washTimeDiv").append(
+            $("<div></div>", {
+                "class": "row mt-1",
+                "data-wash": washIndex
+            }).append(
+                $("<div></div>", {
+                    "class": myLeftCol4
+                }).append(
+                    $("<input></input>", {
+                        "type": "time",
+                        "name": "rinsetime" + washIndex,
+                        "id": "rinseTime" + washIndex,
+                        "class": "watchTime fullWidth"
+                    }).on("input", (e)=>{
+                        var $elToWatch = $(e.currentTarget);
+                        var $elToFill = $(e.currentTarget).parent().next().find($(".fillTime"));
+                        // console.log($elToFill);
+                        this.watchTime($elToWatch, $elToFill);
+                    })
+                )
+            ).append(
+                $("<div></div>", {
+                    "class": "col"
+                }).append(
+                    "Wash " + printNum + " complete at <span class='fillTime purple updateWashDur' data-time='" + timeText + "'>{Enter Start Time}</span>"
+                )
+            )
+        )
+    }
 };
 
 //**************************************************************************
@@ -1352,7 +1507,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <div class="myLeftCol">
                             <input type="number" name="desiredpbst2vol" id="desiredPBST2Vol" class="fullWidth updatePBST1 watch" data-watch="vol2" value="30">
                         </div>
-                        <div class="col">Desired blocking solution volume (mL)</div>
+                        <div class="col">Desired solution volume (mL)</div>
                     </div>
                     <div class="row mt-2 align-items-start">
                         <div class="myLeftCol green"><span id="volTriton2">[Enter desired amount]</span> &micro;L</div>
@@ -1417,7 +1572,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                         <div class="myLeftCol">
                             <input type="number" name="desiredpbst3vol" id="desiredPBST3Vol" class="fullWidth updatePBST2 watch" data-watch="vol3" value="30">
                         </div>
-                        <div class="col">Desired blocking solution volume (mL)</div>
+                        <div class="col">Desired solution volume (mL)</div>
                     </div>
                     <div class="row mt-2 align-items-start">
                         <div class="myLeftCol green"><span id="volTriton3">[Enter desired amount]</span> &micro;L</div>
@@ -1644,7 +1799,11 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     <div class="row mt-2">
         <div class="myLeftCol3">2. <input type="checkbox" name="step2" id="step2"/></div>
         <div class="col">
-            Wash sections <span class="blue">3X for 10 min</span> on shaker <em>(describe below)</em> with 
+            Wash sections <span class="blue">
+            <input type="number" id="numWashes" name="numwashes" value="3" step="1" style="width: 3em;" class="blue"></input>
+            times for 
+            <input type="number" id="washDur" name="washdur" value="10" step="1" style="width: 3em;" class="blue"></input>
+            min</span> on shaker <em>(describe below)</em> with 
             <select name="washsoln" id="washSoln" class="lightBlue">
                 <option value="PBS1x">1x PBS</option>
                 <option value="PBST1" class="PBST1_option">PBS + 0.1% Triton</option>
@@ -1658,7 +1817,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <textarea name="shakerinfo" id="shakerInfo" class="autoAdjust halfWidth" placeholder="shaker info"></textarea>
         </div>
     </div>
-    <div class="row mt-2">
+    <div class="mt-2" id="washTimeDiv">
+        &nbsp;
+    </div>
+    <!-- <div class="row mt-2">
         <div class="myLeftCol4"><input type="time" name="rinsetime1" id="rinseTime1" class="watchTime fullWidth"></div>
         <div class="col">
             Wash 1 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
@@ -1675,7 +1837,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="col">
             Wash 3 complete at <span class="fillTime purple" data-time="00:10">{Enter Start Time}</span>
         </div>
-    </div>
+    </div> -->
     <!-- <div class="row mt-2">
         <div class="myLeftCol3">&nbsp;</div>
         <div class="col">
@@ -1694,13 +1856,15 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             </select>
             -well plate with <span class="green"><span class="printVol" data-volcalc="blocking">500&micro;</span>L</span> of 
             <span class="lightBlue">blocking solution</span> <em>(see PBS + <span data-calc="percNGS">4</span>% Normal <span data-calc="secondaryType">Goat</span> Serum + <span data-calc="percTriton">0.4</span>% triton above)</em>
-            for <span class="blue">1 hr</span> at RT
+            for <span class="blue">
+                <input type="number" name="blockdur" id="blockDur" value="60" style="width:4em;" class="blue"></input> min
+            </span> at RT
         </div>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol4"><input type="time" name="blockingtime" id="blockingtime" class="watchTime fullWidth"></div>
         <div class="col">
-            Blocking complete at <span class="fillTime purple" data-time="01:00">{Enter Start Time}</span>
+            Blocking complete at <span class="fillTime purple updateBlockDur" data-time="01:00">{Enter Start Time}</span>
         </div>
     </div>
     <div class="row mt-2">
