@@ -190,7 +190,9 @@ my_widget_script =
             $(".disableOnView").prop("disabled", true);
             $(".hideView").hide();
             $("input[type='date']").removeClass(".hasDatePicker");
+            $(".ifView").show();
         } else {
+            $(".ifView").hide();
             $("input[type='date']").each((i,e)=> {
                 this.checkDateFormat($(e));
             });
@@ -233,6 +235,20 @@ my_widget_script =
             var $divForCopy = $("#forCopy");
             
             this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
+        });
+
+       $(".copyLH").on("click", (e)=> {
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+
+            this.copyLHSampleNums($divForCopy, $errorMsg);
+        });
+
+       $(".copyNutella").on("click", (e)=> {
+            var $errorMsg = $("#errorMsg");
+            var $divForCopy = $("#forCopy");
+
+            this.copyNutellaEating($divForCopy, $errorMsg);
         });
     },
 
@@ -321,6 +337,22 @@ my_widget_script =
         $('.requiredLab').each((i,e)=> { //find element with class "requiredLab"
             $(e).html("<span style='color:red'>*</span>" + $(e).html()); //add # before
         });
+    },
+
+    updateTextareas: function () {
+        $('textarea.autoAdjust').each((i,e)=> {
+            if(! $(e).is(":hidden")) {
+                e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
+            } 
+        });
+        this.resize();
+    },
+
+    updateTextarea: function(textarea) {
+        if(! $(textarea).is(":hidden")) {
+            textarea.setAttribute('style', 'height:' + (textarea.scrollHeight) + 'px;overflow-y:hidden;');
+        } 
+        this.resize();
     },
 
     setUpInitialState: function () {
@@ -475,12 +507,61 @@ my_widget_script =
             this.calcAllStock();
         });
 
+        $(".sex").each((i,e)=>{
+            var sex = $(e).val();
+            var mouseNum = $(e).data("mouse");
+            var mouseSearch = this.mouseSearch(mouseNum);
+            if(sex == "female"){
+                $(".ifFemale"+mouseSearch).show();
+                if($(".checkOvulation"+mouseSearch).is(":checked")){
+                    $(".ifOvulation"+mouseSearch).show();
+                }
+            }else {
+                $(".ifFemale"+mouseSearch).hide().find(".stage").val("");
+                $(".ifFemale"+mouseSearch).find(".checkOvulation").prop("checked", false);
+                $(".ifOvulation"+mouseSearch).hide();
+            }
+        });
+
+        $(".nutellaAtTime").each((i,e)=>{
+            var sampleNum = $(e).data("sample");
+            var sampleSearch = this.sampleSearch(sampleNum);
+            if($(e).is(":checked")){
+                $(".ifNutella"+sampleSearch).show();
+            } else {
+                $(".ifNutella"+sampleSearch).hide();
+            }
+        });
+
+        $(".LH").each((i,e)=>{
+            var sampleNum = $(e).data("sample");
+            var sampleSearch = this.sampleSearch(sampleNum);
+            if($(e).is(":checked")){
+                $(".ifLH"+sampleSearch).show();
+            } else {
+                $(".ifLH"+sampleSearch).hide();
+            }
+        });
+
+        for(var sampleNum of this.sampleNums){
+            this.adjustForSampling(sampleNum);
+        }
+
         this.calcAllStock();
 
         this.calcVehicle();
 
         this.resize();
 
+    },
+
+    adjustForSampling: function(sampleNum){
+        var sampleSearch = this.sampleSearch(sampleNum);
+        if($(".cort"+sampleSearch).is(":checked") || $(".LH"+sampleSearch).is(":checked") || $(".otherSample"+sampleSearch).is(":checked")){
+            $(".ifSampling"+sampleSearch).show();
+        } else {
+            $(".ifSampling"+sampleSearch).hide();
+        }
     },
 
     makeVehCard: function () {
@@ -1334,32 +1415,56 @@ my_widget_script =
                                         '<option value="">[Select]</option><option value="male">Male</option><option value="female">Female</option>'
                                     ).on("input", (e)=> {
                                         var sex = $(e.currentTarget).val();
+                                        var mouseSearch = this.mouseSearch(mouseNum);
                                         if(sex == "female"){
-                                            $(e.currentTarget).parents(".row").next(".ifFemale").show();
+                                            $(".ifFemale"+mouseSearch).show();
+                                            if($(".checkOvulation"+mouseSearch).is(":checked")){
+                                                $(".ifOvulation"+mouseSearch).show();
+                                            }
                                         }else {
-                                            $(e.currentTarget).parents(".row").next(".ifFemale").hide().find(".stage").val("");
+                                            $(".ifFemale"+mouseSearch).hide().find(".stage").val("");
+                                            $(".ifFemale"+mouseSearch).find(".checkOvulation").prop("checked", false);
+                                            $(".ifOvulation"+mouseSearch).hide();
+                                        }
+                                    }).each((i,e)=>{
+                                        var sex = $(e).val();
+                                        var mouseSearch = this.mouseSearch(mouseNum);
+                                        if(sex == "female"){
+                                            $(".ifFemale"+mouseSearch).show();
+                                            if($(".checkOvulation"+mouseSearch).is(":checked")){
+                                                $(".ifOvulation"+mouseSearch).show();
+                                            }
+                                        }else {
+                                            $(".ifFemale"+mouseSearch).hide().find(".stage").val("");
+                                            $(".ifFemale"+mouseSearch).find(".checkOvulation").prop("checked", false);
+                                            $(".ifOvulation"+mouseSearch).hide();
                                         }
                                     })
                                 )
                             )
                         ).append(
-                            $("<div/>", {
-                                "class": row + " ifFemale"
+                            $("<div></div>", {
+                                "class": "ifFemale",
+                                "data-mouse": mouseNum
                             }).append(
                                 $("<div/>", {
-                                    "class": col
-                                }).append("Estrous Stage:")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
+                                    "class": row
                                 }).append(
-                                    $("<select/>", {
-                                        "data-mouse": mouseNum,
-                                        id: "stage"+mouseNum,
-                                        name: "stage"+mouseNum,
-                                        "class": "stage fullWidth watch",
-                                        "data-watch": "stage"
-                                    }).append('<option value="">Select</option><option value="diestrus">Diestrus</option><option value="proestrus">Proestrus</option><option value="estrus">Estrus</option>')
+                                    $("<div/>", {
+                                        "class": col
+                                    }).append("Estrous Stage:")
+                                ).append(
+                                    $("<div/>", {
+                                        "class": "col"
+                                    }).append(
+                                        $("<select/>", {
+                                            "data-mouse": mouseNum,
+                                            id: "stage"+mouseNum,
+                                            name: "stage"+mouseNum,
+                                            "class": "stage fullWidth watch",
+                                            "data-watch": "stage"
+                                        }).append('<option value="">Select</option><option value="diestrus">Diestrus</option><option value="proestrus">Proestrus</option><option value="estrus">Estrus</option>')
+                                    )
                                 )
                             )
                         ).append(
@@ -1368,7 +1473,7 @@ my_widget_script =
                             }).append(
                                 $("<div/>", {
                                     "class": col
-                                }).append("Body Mass (g):")
+                                }).append("Start Body Mass (g):")
                             ).append(
                                 $("<div/>", {
                                     "class": "col"
@@ -1440,6 +1545,243 @@ my_widget_script =
                                     })
                                 )
                             )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Adrenal Mass (mg):")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<input/>", {
+                                        type: "text", 
+                                        "data-mouse": mouseNum,
+                                        id: "adrenalMass"+mouseNum,
+                                        name: "adrenalmass"+mouseNum,
+                                        "class": "adrenalMass fullWidth watch",
+                                        "data-watch": "adrenalMass"
+                                    })
+                                )
+                            )
+                        ).append(
+                            $("<div/>", {
+                                "class": row
+                            }).append(
+                                $("<div/>", {
+                                    "class": col
+                                }).append("Post body mass (g):")
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col"
+                                }).append(
+                                    $("<input/>", {
+                                        type: "text", 
+                                        "data-mouse": mouseNum,
+                                        id: "postBodyMass"+mouseNum,
+                                        name: "postbodymass"+mouseNum,
+                                        "class": "postBodyMass fullWidth watch",
+                                        "data-watch": "postBodyMass"
+                                    })
+                                )
+                            )
+                        ).append(
+                            $("<div></div>", {
+                                "class": "ifFemale",
+                                "data-mouse": mouseNum
+                            }).append(
+                                $("<div/>", {
+                                    "class": row
+                                }).append(
+                                    $("<div/>", {
+                                        "class": col
+                                    }).append("Check for ovulation?")
+                                ).append(
+                                    $("<div/>", {
+                                        "class": "col"
+                                    }).append(
+                                        $("<input/>", {
+                                            type: "checkbox", 
+                                            "data-mouse": mouseNum,
+                                            id: "checkOvulation"+mouseNum,
+                                            name: "checkovulation"+mouseNum,
+                                            "class": "checkOvulation fullWidth watch",
+                                            "data-watch": "checkOvulation"
+                                        }).on("change", (e)=>{
+                                            var mouseSearch = this.mouseSearch(mouseNum);
+                                            if($(e.currentTarget).is(":checked")){
+                                                $(".ifOvulation"+mouseSearch).show();
+                                            } else {
+                                                $(".ifOvulation"+mouseSearch).hide();
+                                            }
+                                            })
+                                    )
+                                )
+                            )
+                        ).append(
+                            $("<div></div>", {
+                                "class": "ifOvulation",
+                                "data-mouse": mouseNum
+                            }).append(
+                                $("<div/>", {
+                                    "class": row
+                                }).append(
+                                    $("<div/>", {
+                                        "class": col
+                                    }).append("Sac date:")
+                                ).append(
+                                    $("<div/>", {
+                                        "class": "col"
+                                    }).append(
+                                        $("<input/>", {
+                                            type: "date", 
+                                            "data-mouse": mouseNum,
+                                            id: "sacDate"+mouseNum,
+                                            name: "sacdate"+mouseNum,
+                                            "class": "sacDate fullWidth watch",
+                                            "data-watch": "sacDate"
+                                        }).each((i,e)=> {
+                                            this.checkDateFormat($(e));
+                                        }).on("change", (e)=> {
+                                            this.checkDateFormat($(e.currentTarget));
+                                        })
+                                    )
+                                )
+                            ).append(
+                                $("<div/>", {
+                                    "class": row
+                                }).append(
+                                    $("<div/>", {
+                                        "class": col
+                                    }).append("Sac time:")
+                                ).append(
+                                    $("<div/>", {
+                                        "class": "col"
+                                    }).append(
+                                        $("<input/>", {
+                                            type: "time", 
+                                            "data-mouse": mouseNum,
+                                            id: "sacTime"+mouseNum,
+                                            name: "sactime"+mouseNum,
+                                            "class": "sacTime fullWidth watch",
+                                            "data-watch": "sacTime"
+                                        }).each((i,e)=> {
+                                            this.checkTimeFormat($(e));
+                                        }).on("change", (e)=> {
+                                            this.checkTimeFormat($(e.currentTarget));
+                                        })
+                                    )
+                                )
+                            ).append(
+                                $("<div/>", {
+                                    "class": row
+                                }).append(
+                                    $("<div/>", {
+                                        "class": col
+                                    }).append("Estrous Stage:")
+                                ).append(
+                                    $("<div/>", {
+                                        "class": "col"
+                                    }).append(
+                                        $("<input></input>", {
+                                            "type": "text",
+                                            "data-mouse": mouseNum,
+                                            id: "nextStage"+mouseNum,
+                                            name: "nextstage"+mouseNum,
+                                            "class": "nextStage fullWidth watch",
+                                            "data-watch": "nextStage"
+                                        })
+                                    )
+                                )
+                            ).append(
+                                $("<div/>", {
+                                    "class": row
+                                }).append(
+                                    $("<div/>", {
+                                        "class": "col-12"
+                                    }).append("Uterine Description:")
+                                ).append(
+                                    $("<div/>", {
+                                        "class": "col-12"
+                                    }).append(
+                                        $("<texta"+ "rea></tex" + "tarea>", {
+                                            "data-mouse": mouseNum,
+                                            id: "uterus"+mouseNum,
+                                            name: "uterus"+mouseNum,
+                                            "class": "uterus fullWidth watch autoAdjust",
+                                            "data-watch": "uterus"
+                                        }).on("input", (e)=>{
+                                            this.updateTextarea(e.currentTarget);
+                                        })
+                                    )
+                                )
+                            ).append(
+                                $("<div/>", {
+                                    "class": row
+                                }).append(
+                                    $("<div/>", {
+                                        "class": col
+                                    }).append("# Oocytes - oviduct 1:")
+                                ).append(
+                                    $("<div/>", {
+                                        "class": "col"
+                                    }).append(
+                                        $("<input></input>", {
+                                            "type": "number",
+                                            "data-mouse": mouseNum,
+                                            id: "oocytes1"+mouseNum,
+                                            name: "oocytes1"+mouseNum,
+                                            "class": "oocytes1 fullWidth watch",
+                                            "data-watch": "oocytes1"
+                                        })
+                                    )
+                                )
+                            ).append(
+                                $("<div/>", {
+                                    "class": row
+                                }).append(
+                                    $("<div/>", {
+                                        "class": col
+                                    }).append("# Oocytes - oviduct 2:")
+                                ).append(
+                                    $("<div/>", {
+                                        "class": "col"
+                                    }).append(
+                                        $("<input></input>", {
+                                            "type": "number",
+                                            "data-mouse": mouseNum,
+                                            id: "oocytes2"+mouseNum,
+                                            name: "oocytes2"+mouseNum,
+                                            "class": "oocytes2 fullWidth watch",
+                                            "data-watch": "oocytes2"
+                                        })
+                                    )
+                                )
+                            ).append(
+                                $("<div/>", {
+                                    "class": row
+                                }).append(
+                                    $("<div/>", {
+                                        "class": "col-12"
+                                    }).append("Notes:")
+                                ).append(
+                                    $("<div/>", {
+                                        "class": "col-12"
+                                    }).append(
+                                        $("<texta"+ "rea></tex" + "tarea>", {
+                                            "data-mouse": mouseNum,
+                                            id: "notes"+mouseNum,
+                                            name: "notes"+mouseNum,
+                                            "class": "notes fullWidth watch autoAdjust",
+                                            "data-watch": "notes"
+                                        }).on("input", (e)=>{
+                                            this.updateTextarea(e.currentTarget);
+                                        })
+                                    )
+                                )
+                            )
                         )
                     )
                 )
@@ -1459,9 +1801,17 @@ my_widget_script =
                     "data-mouse": mouseNum
                 })
             );
+            var $mouseTable3 = $("#mouseTable3");
+            $mouseTable3.find("tbody").append(
+                $("<tr/>", {
+                    "data-mouse": mouseNum
+                })
+            );
 
             var calcs = ["mouseID", "sex", "stage", "treatment", "mouseDose", "mass", "reproMass", "gonadMass"];
             var calcs2 = ["mouseID", "date", "stage", "treatment", "mouseDose", "mass", "reproMass", "gonadMass"];
+            var calcs3 = ["mouseID", "sacDate", "sacTime", "nextStage", "uterus", "oocytes1", "oocytes2", "notes"];
+
             var mouseSearch = this.mouseSearch(mouseNum);
 
             for(var i = 0; i < calcs.length; i++){
@@ -1491,9 +1841,19 @@ my_widget_script =
                     );
                 }
             }
+            for(var i = 0; i < calcs3.length; i++){
+                var calc = calcs3[i];
+                $mouseTable3.find("tbody").find("tr"+mouseSearch).append(
+                    $("<td></td>", {
+                        "data-calc": calc,
+                        "data-mouse": mouseNum
+                    })
+                );
+            }
             
             this.calcNutella(mouseNum);
             this.updateDoseChoices();
+            this.updateTextareas();
             this.resize();
         }
     },
@@ -1740,6 +2100,36 @@ my_widget_script =
                     ).append(
                         $("<div/>", {
                             "class": labelClass
+                        }).append(
+                            $("<label></label>", {
+                                "for": "nutellaAtTime"+sampleNum,
+                            }).append(
+                                "Administer Nutella?"
+                            )
+                        )
+                    ).append(
+                        $("<div/>", {
+                            "class": inputClass
+                        }).append(
+                            $("<input/>", {
+                                type: "checkbox",
+                                name: "nutellaattime"+sampleNum,
+                                id: "nutellaAtTime"+sampleNum,
+                                "data-sample": sampleNum,
+                                "class": "nutellaAtTime watch",
+                                "data-watch": "nutellaAtTime"
+                            }).on("change", (e)=> {
+                                var sampleSearch = this.sampleSearch(sampleNum);
+                                if($(e.currentTarget).is(":checked")){
+                                    $(".ifNutella"+sampleSearch).show();
+                                } else {
+                                    $(".ifNutella"+sampleSearch).hide();
+                                }
+                            })
+                        )
+                    ).append(
+                        $("<div/>", {
+                            "class": labelClass
                         }).append("Sample for:")
                     ).append(
                         $("<div/>", {
@@ -1761,7 +2151,7 @@ my_widget_script =
                                         "class": "cort watch",
                                         "data-watch": "cort"
                                     }).on("change", (e)=> {
-
+                                        this.adjustForSampling(sampleNum);
                                     })
                                 )
                             ).append(
@@ -1777,6 +2167,14 @@ my_widget_script =
                                         "data-sample": sampleNum,
                                         "class": "LH watch",
                                         "data-watch": "LH"
+                                    }).on("change", (e)=> {
+                                        this.adjustForSampling(sampleNum);
+                                        var sampleSearch = this.sampleSearch(sampleNum);
+                                        if($(e.currentTarget).is(":checked")){
+                                            $(".ifLH"+sampleSearch).show();
+                                        } else {
+                                            $(".ifLH"+sampleSearch).hide();
+                                        }
                                     })
                                 )
                             )
@@ -1797,6 +2195,7 @@ my_widget_script =
                                         "class": "otherSample"
                                     }).on("change", (e)=> {
                                         this.showIfOtherCheck($(e.currentTarget));
+                                        this.adjustForSampling(sampleNum);
                                     })
                                 ).append(
                                     $("<input/>", {
@@ -1896,7 +2295,12 @@ my_widget_script =
                         "data-mouse": mouseNum,
                         "data-sample": sampleNum
                     }).append(
-                        this.makeTimeButtonRow(sampMouseID, mouseNum, sampleNum, "Time")
+                        $("<div></div>", {
+                            "class": "ifSampling",
+                            "data-sample": sampleNum
+                        }).append(
+                            this.makeTimeButtonRow(sampMouseID, mouseNum, sampleNum, "Time")
+                        )
                     ).append(
                         $("<div/>", {
                             "class": "row mt-2"
@@ -1963,7 +2367,8 @@ my_widget_script =
                         )
                     ).append(
                         $("<div/>", {
-                            "class": "row mt-2"
+                            "class": "row mt-2 ifLH",
+                            "data-sample": sampleNum
                         }).append(
                             $("<div/>", {
                                 "class": "col-12 col-md-6"
@@ -1985,43 +2390,48 @@ my_widget_script =
                             )
                         )
                     ).append(
-                        this.makeTimeButtonRow(sampMouseID, mouseNum, sampleNum, "Nutella")
-                    ).append(
-                        $("<div/>", {
-                            "class": "row mt-2"
+                        $("<div></div>", {
+                            "class": "ifNutella",
+                            "data-sample": sampleNum
                         }).append(
-                            $("<div/>", {
-                                "class": "col-12 col-md-6"
-                            }).append(
-                                "Nutella consumption:"
-                            )
+                        this.makeTimeButtonRow(sampMouseID, mouseNum, sampleNum, "Nutella")
                         ).append(
                             $("<div/>", {
-                                "class": "col-12 col-md-6 mt-2 mt-md-0"
+                                "class": "row mt-2"
                             }).append(
-                                $('<select></select>', {
-                                    id: "nutellaConsumption"+sampMouseID,
-                                    name: "nutellaconsumption"+sampMouseID,
-                                    "class": "nutellaConsumption fullWidth watch",
-                                    "data-mouse": mouseNum,
-                                    "data-sample": sampleNum,
-                                    "data-watch": "nutellaConsumption"
+                                $("<div/>", {
+                                    "class": "col-12 col-md-6"
                                 }).append(
-                                    $("<option></option>",{
-                                        value: ""
-                                    }).append("[select]")
-                                ).append(
-                                    $("<option></option>",{
-                                        value: "none"
-                                    }).append("None")
-                                ).append(
-                                    $("<option></option>",{
-                                        value: "some"
-                                    }).append("Some")
-                                ).append(
-                                    $("<option></option>",{
-                                        value: "all"
-                                    }).append("All")
+                                    "Nutella consumption:"
+                                )
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col-12 col-md-6 mt-2 mt-md-0"
+                                }).append(
+                                    $('<select></select>', {
+                                        id: "nutellaConsumption"+sampMouseID,
+                                        name: "nutellaconsumption"+sampMouseID,
+                                        "class": "nutellaConsumption fullWidth watch",
+                                        "data-mouse": mouseNum,
+                                        "data-sample": sampleNum,
+                                        "data-watch": "nutellaConsumption"
+                                    }).append(
+                                        $("<option></option>",{
+                                            value: ""
+                                        }).append("[select]")
+                                    ).append(
+                                        $("<option></option>",{
+                                            value: "none"
+                                        }).append("None")
+                                    ).append(
+                                        $("<option></option>",{
+                                            value: "some"
+                                        }).append("Some")
+                                    ).append(
+                                        $("<option></option>",{
+                                            value: "all"
+                                        }).append("All")
+                                    )
                                 )
                             )
                         )
@@ -2230,11 +2640,12 @@ my_widget_script =
         if (copyHead) {
             $table.find("thead").children("tr").each((i,e)=> { //add each child of the row
                 var addTab = "";
-                $(e.currentTarget).children().each((i,e)=> {
-                    $temp.text($temp.text() + addTab + $(e.currentTarget).text());
+                $(e).children().each((i,e)=> {
+                    $temp.text($temp.text() + addTab + $(e).text());
                     addTab = "\t";
                 });
             });
+            console.log("temp after head", $temp.text());
             addLine = "\n";
         }
 
@@ -2451,4 +2862,132 @@ my_widget_script =
     },
     //#endregion dialog boxes
 
+    copyLHSampleNums: function($divForCopy, $errorMsg){
+        var table = this.getLHSampleNums();
+        this.copyStringToClipboard(table, $divForCopy, $errorMsg);
+    },
+
+    copyNutellaEating: function($divForCopy, $errorMsg){
+        var table = this.getNutellaEating();
+        this.copyStringToClipboard(table, $divForCopy, $errorMsg);
+    },
+
+    copyStringToClipboard: function(textStr, $divForCopy, $errorMsg){
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+
+        if(textStr){
+            errorStr = "Copy attempted";
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copy attempted</span>");
+        } else {
+            textStr = " ";
+            $errorMsg.html("<span style='color:red; font-size:24px;'>Nothing to copy</span>");
+        }
+        $temp.text(textStr);
+
+        $temp.appendTo($divForCopy).select();
+        document.execCommand("copy");
+        $temp.remove();
+    },
+
+    getLHSampleNums: function(){
+        var mice = [];
+        var times = [];
+        var LHIDs = [];
+        for(var mouseNum of this.mouseNums){
+            var mouseSearch = this.mouseSearch(mouseNum);
+            var mouseID = $(".mouseID"+mouseSearch).val();
+            if(!mouseID){
+                mouseID = ""
+            }
+            for(var sampleNum of this.sampleNums){
+                var sampleSearch = this.sampleSearch(sampleNum);
+                var time = $(".sampleTime"+sampleSearch).val();
+                if(time){
+                    time = parseInt(time);
+                } else {
+                    time = "";
+                }
+                if($(".LH"+sampleSearch).is(":checked")){
+                    var LHID = $(".lhnum"+sampleSearch+mouseSearch).val();
+                    mice.push(mouseID);
+                    times.push(time);
+                    LHIDs.push(LHID);
+                }
+            }
+        }
+
+        var table = [];
+        var columnJoin = "\t";
+
+        table = this.zip(mice, times, LHIDs);
+
+        for(var row = 0; row < table.length; row++){
+            table[row] = table[row].join(columnJoin); // add the separator between columns
+        }
+
+        return(table.join("\n"));
+    },
+
+    getNutellaEating: function(){
+        var mice = [];
+        var times = [];
+        var nutellaNotes = [];
+        for(var mouseNum of this.mouseNums){
+            var mouseSearch = this.mouseSearch(mouseNum);
+            var mouseID = $(".mouseID"+mouseSearch).val();
+            if(!mouseID){
+                mouseID = ""
+            }
+            for(var sampleNum of this.sampleNums){
+                var sampleSearch = this.sampleSearch(sampleNum);
+                var time = $(".sampleTime"+sampleSearch).val();
+                if(time){
+                    time = parseInt(time);
+                } else {
+                    time = "";
+                }
+                if($(".nutellaAtTime"+sampleSearch).is(":checked")){
+                    var nutellaNote = $(".nutellaConsumption"+sampleSearch+mouseSearch).val();
+                    mice.push(mouseID);
+                    times.push(time);
+                    nutellaNotes.push(nutellaNote);
+                }
+            }
+        }
+
+        var table = [];
+        var columnJoin = "\t";
+
+        table = this.zip(mice, times, nutellaNotes);
+
+        for(var row = 0; row < table.length; row++){
+            table[row] = table[row].join(columnJoin); // add the separator between columns
+        }
+
+        return(table.join("\n"));
+    },
+
+    zip: function(...args){
+        var len = 0;
+        var array
+        for(array of args){
+            var arrLen = array.length;
+            // console.log("array length", arrLen);
+            if(arrLen>len){
+                len = arrLen
+            }
+        }
+        var numArrays = args.length;
+    
+        var arr = new Array(len);
+    
+        for(var i = 0; i < len; i += 1){
+            arr[i] = [];
+            for(array of args){
+                arr[i].push(array[i]);
+            }
+        }
+        // console.log("array", arr);
+        return arr;
+    }
 };
