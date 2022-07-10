@@ -416,13 +416,7 @@ my_widget_script =
             this.resize();
         });
 
-        $(".watchTime").each((i,e)=> {
-            var $elToWatch = $(e);
-            var $elToFill = $(e).parent().next().find($(".fillTime"));
-            // console.log($elToFill);
-
-            this.watchTime($elToWatch, $elToFill);
-        }).on("input", (e)=> {
+        $(".watchTime").on("input", (e)=> {
             var $elToWatch = $(e.currentTarget);
             var $elToFill = $(e.currentTarget).parent().next().find($(".fillTime"));
             // console.log($elToFill);
@@ -488,19 +482,9 @@ my_widget_script =
         });
 
         $(".washDur").on("change", (e)=>{
-            var washDur = $(e.currentTarget).val();
-            var timeText = this.getTimeText(washDur);
-            var whichWash = $(e.currentTarget).data("whichwash");
-            $(".updateWashDur"+whichWash).attr("data-time", timeText); // change it on the page
-            $(".updateWashDur"+whichWash).data('time', timeText); // change what jquery works with
-
-            $(".watchTime").each((i,e)=> {
-                var $elToWatch = $(e);
-                var $elToFill = $(e).parent().next().find($(".fillTime"));
-                // console.log($elToFill);
-
-                this.watchTime($elToWatch, $elToFill);
-            });
+            this.updateWashDataTimes($(e.currentTarget));
+        }).each((i,e)=>{
+            this.updateWashDataTimes($(e));
         });
 
         $("#secondaryDur").on("change", (e)=>{
@@ -510,19 +494,35 @@ my_widget_script =
             $(".updateSecondaryDur").attr("data-time", timeText);
             $(".updateSecondaryDur").data("time", timeText);
 
-            $(".watchTime").each((i,e)=> {
-                var $elToWatch = $(e);
-                var $elToFill = $(e).parent().next().find($(".fillTime"));
-                // console.log($elToFill);
-
-                this.watchTime($elToWatch, $elToFill);
-            });
+            this.updateAllWatchTimes();
         });
 
+        this.updateAllWatchTimes();
         this.PBST1Calc();
         this.PBST2Calc();
         this.secondaryAbSolnCalc();
         this.resize();
+    },
+
+    updateWashDataTimes: function($el){
+        var washDur = $el.val();
+        var timeText = this.getTimeText(washDur);
+        var whichWash = $el.data("whichwash");
+        // console.log("whichwash", whichWash);
+        $(".updateWashDur"+whichWash).attr("data-time", timeText); // change it on the page
+        $(".updateWashDur"+whichWash).data('time', timeText); // change what jquery works with
+
+        this.updateAllWatchTimes();
+    },
+
+    updateAllWatchTimes: function(){
+        $(".watchTime").each((i,e)=> {
+            var $elToWatch = $(e);
+            var $elToFill = $(e).parent().next().find($(".fillTime"));
+            // console.log($elToFill);
+
+            this.watchTime($elToWatch, $elToFill);
+        });
     },
 
     /**

@@ -36,6 +36,26 @@ my_widget_script =
 
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
+        
+        // Perhaps not the most efficient way to do this, but the
+        // channel specific RGB outputs can't be made until we know the check states
+        // and I don't feel like recording this in the widget to pass to to_json
+        var numImages = this.imageNums.length;
+        for(var i = 0; i<numImages; i++){
+            var imgNum = this.imageNums[i];
+            this.updateFileName(imgNum);
+            if(!this.images[imgNum]){
+                this.images[imgNum] = {addImages: []}
+            }
+            if(this.images[imgNum].addImages){
+                for(var j = 0; j < this.images[imgNum].addImages.length; j++){
+                    var addImageNum = this.images[imgNum].addImages[j];
+                    this.makeAnalysisImageRows(imgNum, addImageNum);
+                }
+            }
+        }
+
+        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
         var numChannels = 3
         if(parsedJson.numChannels){
@@ -115,7 +135,9 @@ my_widget_script =
             widgetData: testData,
             numChannels: 1,
             imageNums: [1],
-            images: {1:{}} 
+            images: {1:{
+                addImages: [1]
+            }} 
         };
 
         //Add additional content to match the objects in to_json
@@ -246,6 +268,16 @@ my_widget_script =
         } else {
             this.imageNums = [];
         }
+
+        if(parsedJson.images){
+            // console.log("initDynamic, parsedJson.images", parsedJson.images);
+            this.images = parsedJson.images;
+        } else {
+            for (var i = 0; i < this.imageNums.length; i++){
+                image = parsedJson.imageNums[i];
+                this.images[image] = {};
+            }
+        }
     },
 
     /**
@@ -269,6 +301,8 @@ my_widget_script =
             $("input[type='time']").each((i, e)=> {
                 this.checkTimeFormat($(e));
             });
+
+            $(".hideEdit").hide();
         }
     },
 
@@ -383,6 +417,7 @@ my_widget_script =
     setUpInitialState: function () {
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
+        $('.myLeftCol2').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left");
         
         this.isDateSupported();
         this.isTimeSupported();
@@ -487,6 +522,10 @@ my_widget_script =
                 this.updateFileName(imageNum);
             }
         });
+
+        $("#useCRHcFos").on("click", (e)=>{
+            this.CRHcFosOpticalConfigs();
+        })
 
         this.resize();
     },
@@ -762,6 +801,11 @@ my_widget_script =
         return imageSearch;
     },
 
+    analysisSearch: function(analysis){
+        var analysisSearch = this.dataSearch("analysis", analysis);
+        return analysisSearch;
+    },
+
     updateCalcFromEl: function (el) {
         // Get the element id
         var calc = el.id;
@@ -807,6 +851,12 @@ my_widget_script =
             if(!val){
                 var printChannel = parseInt(channelNum)+1;
                 val = "Channel " + printChannel;
+            }
+        }
+        if(watch == "fileName"){
+            if(!val){
+                var printNum = val + 1;
+                val = "Image " + ("000" + printNum).slice(-3);
             }
         }
         $(calcSearch).html(val);
@@ -1158,6 +1208,18 @@ my_widget_script =
                 )
             ).append(
                 this.makeOCRow(
+                    "Channel Name",
+                    $("<input></input>", {
+                        "type": "text", 
+                        "id": "channelName"+channelNum,
+                        "name": "configname"+channelNum,
+                        "class": "channelName fullWidth watch",
+                        "data-watch": "channelName",
+                        "data-channel": channelNum
+                    })
+                )
+            ).append(
+                this.makeOCRow(
                     "Default Intensity",
                     $("<input></input>", {
                         "class": "defIntensity fullWidth",
@@ -1232,9 +1294,25 @@ my_widget_script =
 
     makeImageCard: function(imgNum){
         var $div = $("#imgDiv");
-        var $header = "<span data-calc='imgNum' data-image='" + imgNum + "'>Image " + ("000" +imgNum).slice(-3) + "</span>"
-
+        // var $header = "<span data-calc='imgNum' data-image='" + imgNum + "'>Image " + ("000" +imgNum).slice(-3) + "</span>"
+        var $header = $("<div></div>", {
+            "data-calc": "fileName",
+            "data-image": imgNum
+        })
         var myLeftCol = "col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right";
+
+        if(this.imageNums.length > 1){
+            var lastImage = this.imageNums[this.imageNums.length - 2];
+            var lastImageSearch = this.imageSearch(lastImage);
+            var lastImgVal = $(".imgNum"+lastImageSearch).val();
+            if(lastImgVal){
+                var imgVal = parseInt(lastImgVal)+1;
+            } else {
+                var imgVal = 1;
+            }
+        } else {
+            var imgVal = 1;
+        }
 
         var $body = $("<div></div>", {
             "class": "container"
@@ -1250,7 +1328,7 @@ my_widget_script =
                     "type": "number",
                     "step": 1,
                     "min": 0,
-                    value: imgNum
+                    value: imgVal
                 })
             )
         ).append(
@@ -1312,10 +1390,11 @@ my_widget_script =
             this.makeRow(
                 "File name", 
                 $("<input></input>", {
-                    "class": "fileName fullWidth updateImgName",
+                    "class": "fileName fullWidth updateImgName watch",
                     "id": "fileName" + imgNum,
                     "name": "filename" + imgNum,
-                    "data-image": imgNum
+                    "data-image": imgNum,
+                    "data-watch": "fileName"
                 })
             ) 
         ).append(
@@ -1329,7 +1408,7 @@ my_widget_script =
                     "data-image": imgNum,
                     "value": "Delete image"
                 }).on("click", (e)=>{
-                    this.deleteImageFuncs(imgNum, e.currentTarget);
+                    this.deleteImageFuncs(imgNum);
                 }),
                 "hideView"
             )
@@ -1353,6 +1432,18 @@ my_widget_script =
                     )
                 ).append(
                     this.makeOCRow(
+                        "Channel name",
+                        $("<input></input>", {
+                            "type": "text",
+                            "class": "bfName updateImgName fullWidth",
+                            "name": "bfname" + imgNum,
+                            "id": "bfName" + imgNum,
+                            "data-image": imgNum,
+                            "value": "Brightfield"
+                        })
+                    )
+                ).append(
+                    this.makeOCRow(
                         "Exposure (ms)",
                         $("<input></input>", {
                             "class": "BFexposure fullWidth",
@@ -1366,7 +1457,29 @@ my_widget_script =
             )
         ).append(
             this.makeRow(
-                "Observations", 
+                "Merged RGB Export", 
+                $("<input></input>", {
+                    "type": "checkbox",
+                    "class": "mergeExport",
+                    "name": "mergeexport" + imgNum,
+                    "id": "mergeExport" + imgNum,
+                    "data-image": imgNum
+                }).after(
+                    $("<span></span>", {
+                        "class": "mergeRBGName",
+                        "data-image": imgNum
+                    })
+                ),
+                "align-items-center"
+            )
+        ).append(
+            $("<div></div>", {
+                "class": "indivChannelRGBdiv",
+                "data-image": imgNum
+            })
+        ).append(
+            this.makeRow(
+                "Description/Observations", 
                 $("<text"+"area></tex" + "tarea>", {
                     "class": "observations fullWidth autoAdjust",
                     "id": "observations" + imgNum,
@@ -1378,6 +1491,28 @@ my_widget_script =
                     this.resize();
                 })
             )
+        ).append(
+            "<hr/>"
+        ).append(
+            this.makeRow(
+                "Add analysis image",
+                $("<input></input>", {
+                    "type": "button",
+                    "class": "addAnalysisImg fullWidth disableOnView",
+                    "id": "addAnalysisImg" + imgNum,
+                    "name": "addanalysisimg" + imgNum,
+                    "data-image": imgNum,
+                    "value": "Add analysis image"
+                }).on("click", (e)=>{
+                    this.addAnalysisImage(imgNum);
+                }),
+                "hideView"
+            )
+        ).append(
+            $("<div></div>", {
+                "class": "analysisImages mt-4",
+                "data-image": imgNum
+            })
         );
 
         this.makeCard($div, $header, $body);
@@ -1389,11 +1524,90 @@ my_widget_script =
         });
     },
 
+    makeAnalysisImageRows: function(imgNum, addImageNum){
+        var imageSearch = this.imageSearch(imgNum);
+
+        $(".analysisImages"+imageSearch).append(
+            $("<div></div>", {
+                "data-image": imgNum,
+                "data-analysis": addImageNum
+            }).append(
+                this.makeRow(
+                    "File Name",
+                    $("<input></input>", {
+                        "class": "addFileName fullWidth",
+                        "id": "addFileName" + imgNum + addImageNum,
+                        "name": "addfilename" + imgNum + addImageNum,
+                        "data-image": imgNum,
+                        "data-analysis": addImageNum,
+                        "value": $(".fileName"+imageSearch).val() // default to current name
+                    })
+                )
+            ).append(
+                this.makeRow(
+                "Notes", 
+                $("<text"+"area></tex" + "tarea>", {
+                    "class": "notes fullWidth autoAdjust",
+                    "id": "notes" + imgNum + addImageNum,
+                    "name": "notes" + imgNum + addImageNum,
+                    "data-image": imgNum,
+                    "data-analysis": addImageNum
+                }).on("input", (e)=>{
+                    e.target.style.height = 'auto';
+                    e.target.style.height = (e.target.scrollHeight) + 'px';
+                    this.resize();
+                })
+            )
+            ).append(
+                this.makeRow(
+                    "Delete",
+                    $("<input></input>", {
+                        "type": "button",
+                        "class": "deleteAddImg fullWidth",
+                        "id": "deleteAddImg" + imgNum,
+                        "name": "deleteaddimg" + imgNum,
+                        "data-image": imgNum,
+                        "data-analysis": addImageNum,
+                        "value": "Delete additional image"
+                    }).on("click", (e)=>{
+                        this.deleteAddImageFuncs(imgNum, addImageNum);
+                    }),
+                    "hideView"
+                )
+            ).append(
+                "<hr/>"
+            )
+        )
+    },
+
+    addAnalysisImage: function(imgNum){
+        if(!this.images[imgNum].addImages){
+            this.images[imgNum].addImages = []
+        }
+
+        var addImages = this.images[imgNum].addImages;
+
+        if(addImages.length > 0){
+            var lastAddImage = addImages[addImages.length - 1];
+            var addImageNum = lastAddImage + 1;
+        } else {
+            var addImageNum = 1;
+        }
+
+        var inArray = this.checkInArray(addImageNum, this.images[imgNum].addImages);
+        if(! inArray){
+            this.images[imgNum].addImages.push(imgNum);
+            this.makeAnalysisImageRows(imgNum, addImageNum);
+        }
+
+    },
+
     makeConfig: function(configNum, imgNum){
         var imageSearch = this.imageSearch(imgNum);
         var $div = $(".opticalConfigDiv"+imageSearch);
         var channelSearch = this.channelSearch(configNum);
         var fluorTarget = $(".fluor"+channelSearch).val();
+        var channelName = $(".channelName"+channelSearch).val();
         var defIntensity = $(".defIntensity"+channelSearch).val();
         var defExposure = $(".defExposure"+channelSearch).val();
         var printConfig = parseInt(configNum) + 1;
@@ -1425,6 +1639,19 @@ my_widget_script =
                         "data-channel": configNum,
                         "type": "text",
                         "value": fluorTarget
+                    })
+                )
+            ).append(
+                this.makeOCRow(
+                    "Channel Name",
+                    $("<input></input>", {
+                        "class": "oChannelName fullWidth updateImgName",
+                        "id": "oChannelName" + imgNum + configNum,
+                        "name": "ochannelname" + imgNum + configNum,
+                        "data-image": imgNum,
+                        "data-channel": configNum,
+                        "type": "text",
+                        "value": channelName
                     })
                 )
             ).append(
@@ -1463,6 +1690,7 @@ my_widget_script =
         if($(".autoUpdate"+imageSearch).is(":checked")){
             autoUpdate = true;
         }
+        var nameString = ""
         if(autoUpdate){
             var realNumber = ("000" + $(".imgNum"+imageSearch).val()).slice(-3);
             var date = $(".captureDate"+imageSearch).val();
@@ -1471,7 +1699,6 @@ my_widget_script =
             var mouseID = $("#mouseID").val();
             var seriesID = $("#seriesID").val();
             var sectionID = $("#sectionID").val();
-            var nameString = ""
             if(mouseID){
                 nameString = mouseID 
                 if(seriesID){
@@ -1506,11 +1733,69 @@ my_widget_script =
                 }
                 nameString += ".nd2"
             }
-            $(".fileName"+imageSearch).val(nameString)
+            $(".fileName"+imageSearch).val(nameString);
+        }
+        var fileName = $(".fileName"+imageSearch).val();
+        // console.log("fileName", fileName);
+        var output;
+        if(!fileName){
+            output = "";
+            fileName = "Image " + ("000" + imgNum).slice(-3);
+        } else {
+            output = fileName.substr(0, fileName.lastIndexOf('.')) || fileName;
+
+        }
+        $(this.calcSearch("fileName")+imageSearch).text(fileName);
+        $(".indivChannelRGBdiv"+imageSearch).text("");
+        if(output){
+            $(".mergeRBGName"+imageSearch).text(" " + output + "_RGB.tif");
+            if($(".useBF"+imageSearch).is(":checked")){
+                var bfName = $(".bfName"+imageSearch).val();
+                $(".indivChannelRGBdiv"+imageSearch).append(
+                    this.makeRow(
+                        "Brightfield export", 
+                        $("<input></input>", {
+                            "type": "checkbox",
+                            "class": "bfExport",
+                            "name": "bfexport" + imgNum,
+                            "id": "bfExport" + imgNum,
+                            "data-image": imgNum
+                        }).after(
+                            " " + output + "_RGB_" + bfName + ".tif" 
+                        ),
+                        "align-items-center"
+                    )
+                )
+            }
+            for(var i = 0; i < this.numChannels; i++){
+                var channelSearch = this.channelSearch(i);
+                var printChannel = i+1;
+                var channelName = $(".oChannelName"+imageSearch+channelSearch).val();
+                if($(".useOC"+channelSearch + imageSearch).is(":checked")){
+                    $(".indivChannelRGBdiv"+imageSearch).append(
+                        this.makeRow(
+                            "Channel " + printChannel + " export", 
+                            $("<input></input>", {
+                                "type": "checkbox",
+                                "class": "channelExport",
+                                "name": "channelexport" + imgNum + i,
+                                "id": "channelExport" + imgNum + i,
+                                "data-image": imgNum,
+                                "data-channel": i
+                            }).after(
+                                " " + output + "_RGB_" + channelName + ".tif" 
+                            ),
+                            "align-items-center"
+                        )
+                    )
+                }
+            }
+        } else {
+            $(".mergeRBGName"+imageSearch).text(" [Enter a file name]");
         }
     },
 
-    deleteImageFuncs: function (imageNum, el) {
+    deleteImageFuncs: function (imageNum) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this image?",
             ()=>{
@@ -1529,5 +1814,57 @@ my_widget_script =
             }
         )
     },
+
+    deleteAddImageFuncs: function (imageNum, addImageNum) {
+        this.runIfConfirmed(
+            "Are you sure that you wish to delete this image?",
+            ()=>{
+                // Remove it from the addImages
+                var index = this.images[imageNum].addImages.indexOf(addImageNum);
+                if(index > -1){
+                    this.images[imageNum].addImages.splice(index, 1);
+                }
+
+                var imageSearch = this.imageSearch(imageNum);
+                var addImageSearch = this.analysisSearch(addImageNum);
+                $(imageSearch+addImageSearch).remove();
+                this.resize();
+            }
+        )
+    },
+
+    CRHcFosOpticalConfigs: function(){
+        $("#numChannels").val(3);
+        this.updateChannels(3);
+        for(var i = 0; i < 3; i++){
+            var channelSearch = this.channelSearch(i);
+            var fluor = "", intensity, channelName
+            switch (i) {
+                case 0:
+                    fluor = "488-GFP";
+                    intensity = 25;
+                    channelName = "AF488";
+                    break;
+
+                case 1:
+                    fluor = "594-cFos";
+                    intensity = 25;
+                    channelName = "AF594"
+                    break;
+
+                case 2:
+                    fluor = "DAPI";
+                    intensity = 25;
+                    channelName = "DAPI"
+                    break;
+            
+                default:
+                    break;
+            }
+            $(".fluor"+channelSearch).val(fluor);
+            $(".defIntensity"+channelSearch).val(intensity);
+            $(".channelName"+channelSearch).val(channelName);
+        }
+    }
 
 };
