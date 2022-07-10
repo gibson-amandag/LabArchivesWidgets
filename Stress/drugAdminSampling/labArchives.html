@@ -46,7 +46,7 @@
         width: 100%
     }
 
-    .forTextBox, .ifOther, .ifFemale, .ifOvulation {
+    .forTextBox, .ifOther, .ifFemale, .ifOvulation, .ifLH, .ifNutella, .ifSampling {
         display: none;
     }
 
@@ -57,23 +57,37 @@
     input[type="date"], input[type="time"] {
         min-height: 1rem;
     }
+
+    .make100 {
+        width: 100vw
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
+<div class="make100">
 <div class="container info">
-    <div class="row">
-        <h3 class="col">Experiment Info:</h3>
+    <div class="row ifView">
+        <h3 class="col">Quick copy:</h3>
+    </div>
+    <div class="row ifView">
+        <div class="col-12 errorMsg">&nbsp;</div>
     </div>
     <div class = "row mt-2 ifView">
-        <div class="col-12 col-sm-6 col-md-4">
-            <input id="copyDataButtonView" name="copydatabuttonview" type="button" value="Copy Mouse Data" class="fullWidth copyData" data-table="mouseTable2"/>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButtonView" name="copydatabuttonview" type="button" value="Mouse Data" class="fullWidth copyData" data-table="mouseTable2"/>
         </div>
-        <div class="col-12 col-sm-6 col-md-4"><input id="copyLHView" name="copylhview" type="button" value="Copy LH sample IDs"
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton4View" name="copydatabutton4view" type="button" value="Ovulation Data" class="fullWidth copyOvulation" data-table="mouseTable3"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3"><input id="copyLHView" name="copylhview" type="button" value="LH sample IDs"
                 class="fullWidth copyLH"/>
         </div>
-        <div class="col-12 col-sm-6 col-md-4"><input id="copyNutellaView" name="copynutellaview" type="button" value="Copy Nutella notes"
+        <div class="col-12 col-sm-6 col-md-3"><input id="copyNutellaView" name="copynutellaview" type="button" value="Nutella notes"
                 class="fullWidth copyNutella"/>
         </div>
+    </div>
+    <div class="row-3">
+        <h3 class="col">Experiment Info:</h3>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol">Date:</div>
@@ -217,7 +231,7 @@
 
 <div class="container mt-2">
     <div id="forCopy">&nbsp;</div>
-    <div id="errorMsg">&nbsp;</div>
+    <div class="errorMsg">&nbsp;</div>
     <div class="row">
         <h3 class="col-12">Output Tables:</h3>
     </div>
@@ -237,7 +251,7 @@
         </div>
         
         <div class="col-12 col-sm-6 col-md-4">
-            <input id="copyDataButton2" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable2"/>
+            <input id="copyDataButton3" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable2"/>
             <br />Copy Table Head? <input id="copyHead3" name="copyhead3" type="checkbox" class="copyHead" data-table="mouseTable2"/>
         </div>
     </div> 
@@ -279,8 +293,8 @@
         </div>
         
         <div class="col-12 col-sm-6 col-md-4">
-            <input id="copyDataButton2" name="copydatabutton4" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable3"/>
-            <br />Copy Table Head? <input id="copyHead4" name="copyhead4" type="checkbox" class="copyHead" data-table="mouseTable2"/>
+            <input id="copyDataButton4" name="copydatabutton4" type="button" value="Copy Data" class="fullWidth copyOvulation" data-table="mouseTable3"/>
+            <br />Copy Table Head? <input id="copyHead4" name="copyhead4" type="checkbox" class="copyHead" data-table="mouseTable3"/>
         </div>
     </div> 
 </div>
@@ -309,7 +323,7 @@
 
 <div class="container mt-2">
     <div class="row">
-        <h4 class="col">Sampling Info</h4>
+        <h4 class="col">Sampling Info:</h4>
     </div>
     <div class = "row mt-2">
         <div class="col-12 col-sm-6"><input id="copyLH" name="copylh" type="button" value="Copy LH sample IDs"
@@ -393,6 +407,7 @@
         </table>
         <p>&nbsp;</p>
     </div>
+</div>
 </div>
 
 <!-- #endregion -->

@@ -69,16 +69,16 @@ $(document).ready(function () {
         this.makeVehCard();
         this.initDynamicContent(parsedJson);
         // this.updateDoseChoices();
-        $(".mouseDose").each((i,e)=>{
-            console.log("dosages before parent init", $(e).val());
-        })
+        // $(".mouseDose").each((i,e)=>{
+        //     console.log("dosages before parent init", $(e).val());
+        // })
         //resize the content box when the window size changes
         window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
         this.addEventListeners();
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
-        $(".mouseDose").each((i,e)=>{
-            console.log("dosages after parent init", $(e).val());
-        })
+        // $(".mouseDose").each((i,e)=>{
+        //     console.log("dosages after parent init", $(e).val());
+        // })
 
         if(parsedJson.sampleNums){
             $("#numSamples").val(parsedJson.sampleNums.length);
@@ -103,7 +103,7 @@ $(document).ready(function () {
             // miceDoses: dynamicContent.miceDoses
         };
 
-        console.log(output.widgetData[9])
+        // console.log(output.widgetData[9])
 
         //uncomment to check stringified output
         //console.log("to JSON", JSON.stringify(output));
@@ -291,21 +291,34 @@ $(document).ready(function () {
             var $copyHead = $(".copyHead"+tableSearch);
             var $tableToCopy = $("#"+tableID);
             var $tableDiv = $tableToCopy.parent();
-            var $errorMsg = $("#errorMsg");
+            var $errorMsg = $(".errorMsg");
             var $divForCopy = $("#forCopy");
             
             this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy)
         });
 
+       $(".copyOvulation").on("click", (e)=> {
+            var tableID = $(e.currentTarget).data("table");
+            var tableSearch = this.tableSearch(tableID);
+            var $copyHead = $(".copyHead"+tableSearch);
+            var $tableToCopy = $("#"+tableID);
+            var $tableDiv = $tableToCopy.parent();
+            var $errorMsg = $(".errorMsg");
+            var $divForCopy = $("#forCopy");
+            var ovulation = true;
+            
+            this.copyDataFuncs($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, ovulation = ovulation)
+        });
+
        $(".copyLH").on("click", (e)=> {
-            var $errorMsg = $("#errorMsg");
+            var $errorMsg = $(".errorMsg");
             var $divForCopy = $("#forCopy");
 
             this.copyLHSampleNums($divForCopy, $errorMsg);
         });
 
        $(".copyNutella").on("click", (e)=> {
-            var $errorMsg = $("#errorMsg");
+            var $errorMsg = $(".errorMsg");
             var $divForCopy = $("#forCopy");
 
             this.copyNutellaEating($divForCopy, $errorMsg);
@@ -781,7 +794,7 @@ $(document).ready(function () {
         // $doseSelects.html("<option value='0'>Vehicle</option>");
         var doses = this.doses;
         for(var doseNum in doses){
-            console.log(doseNum);
+            // console.log(doseNum);
             var dosage = doses[doseNum].id
             if(!dosage>0){
                 dosage = doseNum
@@ -813,7 +826,7 @@ $(document).ready(function () {
     
     deleteDoseFuncs: function (el) {
         var doseNum = $(el).data("dose");
-        console.log($(el), doseNum)
+        // console.log($(el), doseNum)
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dose?", 
             ()=>{
@@ -1236,9 +1249,9 @@ $(document).ready(function () {
         });
 
         if (!valid) {
-            $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
+            $(".errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
         } else {
-            $("#errorMsg").html("");
+            $(".errorMsg").html("");
         }
 
         return valid;
@@ -1886,7 +1899,7 @@ $(document).ready(function () {
             for(var i = 0; i < calcs2.length; i++){
                 var calc = calcs2[i];
                 if(calc !== "date"){
-                    console.log(calc)
+                    // console.log(calc)
                     $mouseTable2.find("tbody").find("tr"+mouseSearch).append(
                         $("<td></td>", {
                             "data-calc": calc,
@@ -2035,7 +2048,7 @@ $(document).ready(function () {
                             $(this.sampleSearch(sampleNum)).remove();
                             this.sampleNums.splice(i, 1);
                             // Need to remove it from this.SampleNums
-                            console.log(this.sampleNums)
+                            // console.log(this.sampleNums)
                         } else {
                             $("#numSamples").val(this.sampleNums.length);
                         }
@@ -2694,39 +2707,64 @@ $(document).ready(function () {
         this.downloadCSV(csv.join("\n"), filename);
     },
 
-    copyTable: function ($table, copyHead, $divForCopy) {
+    copyStringToClipboard: function(textStr, $divForCopy, $errorMsg){
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+
+        if(textStr){
+            errorStr = "Copy attempted";
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copy attempted</span>");
+        } else {
+            textStr = " ";
+            $errorMsg.html("<span style='color:red; font-size:24px;'>Nothing to copy</span>");
+        }
+        $temp.text(textStr);
+
+        $temp.appendTo($divForCopy).select();
+        document.execCommand("copy");
+        $temp.remove();
+        this.resize();
+    },
+
+    copyTable: function ($table, copyHead, $divForCopy, $errorMsg, ovulation = false) {
+        var textStr = "";
         var addLine = "";
         if (copyHead) {
             $table.find("thead").children("tr").each((i,e)=> { //add each child of the row
                 var addTab = "";
                 $(e).children().each((i,e)=> {
-                    $temp.text($temp.text() + addTab + $(e).text());
+                    textStr += addTab + $(e).text();
                     addTab = "\t";
                 });
             });
-            console.log("temp after head", $temp.text());
             addLine = "\n";
         }
 
         $table.find("tbody").children("tr").each((i,e)=> {
-            $temp.text($temp.text() + addLine);
-            var addTab = "";
-            $(e).find("td").each((i,e)=> {
-                if ($(e).text()) {
-                    var addText = $(e).text();
-                } else {
-                    var addText = "NA"
+            var doCopy = true;
+            if(ovulation){
+                var mouseNum = $(e).data("mouse");
+                var mouseSearch = this.mouseSearch(mouseNum);
+                if(!$(".checkOvulation"+mouseSearch).is(":checked")){
+                    doCopy = false;
                 }
-                $temp.text($temp.text() + addTab + addText);
-                addTab = "\t";
-                addLine = "\n";
-            });
+            }
+            if(doCopy){
+                textStr += addLine;
+                var addTab = "";
+                $(e).find("td").each((i,e)=> {
+                    if ($(e).text()) {
+                        var addText = $(e).text();
+                    } else {
+                        var addText = "NA"
+                    }
+                    textStr += addTab + addText;
+                    addTab = "\t";
+                    addLine = "\n";
+                });
+            }
         });
 
-        $temp.appendTo($divForCopy).select();
-        document.execCommand("copy");
-        $temp.remove();
+        this.copyStringToClipboard(textStr, $divForCopy, $errorMsg);
     },
 
     toggleTableFuncs: function ($table) {
@@ -2747,7 +2785,7 @@ $(document).ready(function () {
         }
     },
 
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy){
+    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, ovulation = false){
         var data_valid = this.data_valid_form();
         var copyHead
 
@@ -2761,166 +2799,12 @@ $(document).ready(function () {
         if (data_valid) {
             $tableDiv.show(); 
             this.resize();
-            this.copyTable($tableToCopy, copyHead, $divForCopy);
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            // $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            this.copyTable($tableToCopy, copyHead, $divForCopy, $errorMsg, ovulation = ovulation);
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
     },
-
-        //#region dialog boxes
-    // Need this because there is positioning for some elements within the form, and it gives the offset relative to that
-    // parent element with positioning, rather than to the top of the form
-    getOffsetTop: function(element){
-        var offsetTop = 0;
-        var lastElement = 0;
-        while(element && !lastElement){
-            // console.log("the element", element);
-            var formChild = $(element).children("#the_form");
-            if(formChild.length>0){
-                // console.log("found the child");
-                lastElement = 1;
-            }
-            offsetTop += element.offsetTop;
-            element = element.offsetParent;
-            // console.log("offsetTop", offsetTop)
-        }
-        return offsetTop
-    },
-
-    /**
-     * Run the supplied function if user presses OK
-     * 
-     * @param text The message to be displayed to the user. 
-     * @param functionToCall Function to run if user pressed OK
-     * @param elForHeight Element to based the height of the dialog box on
-     * 
-     * If no text is provided, "Are you sure?" is used
-     * Can supply a function with no parameters and no () after the name,
-     * or an anonymous function using function(){} or ()=>{}
-     * 
-     * Nothing happens if cancel or "X" is pressed
-     * 
-     * If elForHeight is left blank, height is auto
-     * 
-     * Example:
-     * this.runIfConfirmed(
-            "Do you want to run the function?", 
-            ()=>{
-                console.log("pretend delete function");
-            }
-            (optional)
-            , e.currentTarget
-        );
-    */
-    runIfConfirmed: function(text, functionToCall, elForHeight = null){
-        var thisMessage = "Are you sure?";
-        if(text){
-            thisMessage = text;
-        }
-        var top = "auto";
-        if(elForHeight){
-            // Used to change the position of the modal dialog box
-            // top = elForHeight.offsetTop + "px";
-            top = this.getOffsetTop(elForHeight) + "px";
-        }
-        bootbox.confirm({
-            message: thisMessage,
-            callback: (proceed)=>{
-                if(proceed){
-                    functionToCall()
-                }
-            }
-        });
-        console.log(top)
-        $(".modal-dialog").css("top", top);
-    },
-
-    /**
-     * Confirm with user
-     * 
-     * @param text The message to display to user
-     * @param functionToCall Function to run, with the result (true/false) as a parameter
-     * @param elForHeight Element to based the height of the dialog box on
-     * 
-     * If no text is provided, "Do you wish to proceed?" is the default
-     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
-     * 
-     * If elForHeight is left blank, height is auto
-     * 
-     * Example:
-     * this.dialogConfirm(
-            "Make a choice:", 
-            (result)=>{ // arrow function, "this" still in context of button
-                if(result){
-                    console.log("You chose OK");
-                } else {
-                    console.log("You canceled or closed the dialog");
-                }
-            }
-        );
-        */
-    dialogConfirm: function(text, functionToCall, elForHeight = null){
-        var thisMessage = "Do you want to proceed?";
-        if(text){
-            thisMessage = text;
-        }
-        var top = "auto";
-        if(elForHeight){
-            // Used to change the position of the modal dialog box
-            top = this.getOffsetTop(elForHeight) + "px";
-        }
-        bootbox.confirm({
-            message: thisMessage,
-            callback: (result)=>{
-                functionToCall(result);
-            }
-        });
-        $(".modal-dialog").css("top", top);
-    },
-
-    /**
-     * Get user input for a function
-     * 
-     * @param prompt Text to provide to the user
-     * @param functionToCall Function to run, with the user input as a parameter
-     * @param elForHeight Element to based the height of the dialog box on
-     * 
-     * If no text is provided, "Enter value:" is used as default
-     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
-     * 
-     * If elForHeight is left blank, height is auto
-     *  
-     * Example:
-     * this.runBasedOnInput(
-            "Enter a number from 0-10", (result)=>{
-                if(result <= 10 && result >= 0){
-                    console.log("You entered: " + result);
-                } else {
-                    console.log("You did not enter an appropriate value");
-                }
-            }
-        );
-        */ 
-    runBasedOnInput: function(prompt, functionToCall, elForHeight = null){
-        var thisTitle = "Enter value:"
-        if(prompt){
-            thisTitle = prompt;
-        }
-        var top = "auto";
-        if(elForHeight){
-            // Used to change the position of the modal dialog box
-            top = this.getOffsetTop(elForHeight) + "px";
-        }
-        bootbox.prompt({
-            title: thisTitle,
-            callback: (result)=>{
-                functionToCall(result);
-            }
-        });
-        $(".modal-dialog").css("top", top);
-    },
-    //#endregion dialog boxes
 
     copyLHSampleNums: function($divForCopy, $errorMsg){
         var table = this.getLHSampleNums();
@@ -2930,23 +2814,6 @@ $(document).ready(function () {
     copyNutellaEating: function($divForCopy, $errorMsg){
         var table = this.getNutellaEating();
         this.copyStringToClipboard(table, $divForCopy, $errorMsg);
-    },
-
-    copyStringToClipboard: function(textStr, $divForCopy, $errorMsg){
-        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
-
-        if(textStr){
-            errorStr = "Copy attempted";
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copy attempted</span>");
-        } else {
-            textStr = " ";
-            $errorMsg.html("<span style='color:red; font-size:24px;'>Nothing to copy</span>");
-        }
-        $temp.text(textStr);
-
-        $temp.appendTo($divForCopy).select();
-        document.execCommand("copy");
-        $temp.remove();
     },
 
     getLHSampleNums: function(){
@@ -3049,7 +2916,161 @@ $(document).ready(function () {
         }
         // console.log("array", arr);
         return arr;
-    }
+    },
+
+        //#region dialog boxes
+    // Need this because there is positioning for some elements within the form, and it gives the offset relative to that
+    // parent element with positioning, rather than to the top of the form
+    getOffsetTop: function(element){
+        var offsetTop = 0;
+        var lastElement = 0;
+        while(element && !lastElement){
+            // console.log("the element", element);
+            var formChild = $(element).children("#the_form");
+            if(formChild.length>0){
+                // console.log("found the child");
+                lastElement = 1;
+            }
+            offsetTop += element.offsetTop;
+            element = element.offsetParent;
+            // console.log("offsetTop", offsetTop)
+        }
+        return offsetTop
+    },
+
+    /**
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+            (optional)
+            , e.currentTarget
+        );
+    */
+    runIfConfirmed: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            // top = elForHeight.offsetTop + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
+            }
+        });
+        // console.log(top)
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.dialogConfirm(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
+            }
+        );
+        */
+    dialogConfirm: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.confirm({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     *  
+     * Example:
+     * this.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
+            }
+        );
+        */ 
+    runBasedOnInput: function(prompt, functionToCall, elForHeight = null){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+    //#endregion dialog boxes
 };
 
 //**************************************************************************
@@ -3128,7 +3149,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         width: 100%
     }
 
-    .forTextBox, .ifOther, .ifFemale, .ifOvulation {
+    .forTextBox, .ifOther, .ifFemale, .ifOvulation, .ifLH, .ifNutella, .ifSampling {
         display: none;
     }
 
@@ -3139,23 +3160,37 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     input[type="date"], input[type="time"] {
         min-height: 1rem;
     }
+
+    .make100 {
+        width: 100vw
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
+<div class="make100">
 <div class="container info">
-    <div class="row">
-        <h3 class="col">Experiment Info:</h3>
+    <div class="row ifView">
+        <h3 class="col">Quick copy:</h3>
+    </div>
+    <div class="row ifView">
+        <div class="col-12 errorMsg">&nbsp;</div>
     </div>
     <div class = "row mt-2 ifView">
-        <div class="col-12 col-sm-6 col-md-4">
-            <input id="copyDataButtonView" name="copydatabuttonview" type="button" value="Copy Mouse Data" class="fullWidth copyData" data-table="mouseTable2"/>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButtonView" name="copydatabuttonview" type="button" value="Mouse Data" class="fullWidth copyData" data-table="mouseTable2"/>
         </div>
-        <div class="col-12 col-sm-6 col-md-4"><input id="copyLHView" name="copylhview" type="button" value="Copy LH sample IDs"
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton4View" name="copydatabutton4view" type="button" value="Ovulation Data" class="fullWidth copyOvulation" data-table="mouseTable3"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3"><input id="copyLHView" name="copylhview" type="button" value="LH sample IDs"
                 class="fullWidth copyLH"/>
         </div>
-        <div class="col-12 col-sm-6 col-md-4"><input id="copyNutellaView" name="copynutellaview" type="button" value="Copy Nutella notes"
+        <div class="col-12 col-sm-6 col-md-3"><input id="copyNutellaView" name="copynutellaview" type="button" value="Nutella notes"
                 class="fullWidth copyNutella"/>
         </div>
+    </div>
+    <div class="row mt-3">
+        <h3 class="col">Experiment Info:</h3>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol">Date:</div>
@@ -3299,7 +3334,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2">
     <div id="forCopy">&nbsp;</div>
-    <div id="errorMsg">&nbsp;</div>
+    <div class="errorMsg">&nbsp;</div>
     <div class="row">
         <h3 class="col-12">Output Tables:</h3>
     </div>
@@ -3319,7 +3354,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         
         <div class="col-12 col-sm-6 col-md-4">
-            <input id="copyDataButton2" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable2"/>
+            <input id="copyDataButton3" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable2"/>
             <br />Copy Table Head? <input id="copyHead3" name="copyhead3" type="checkbox" class="copyHead" data-table="mouseTable2"/>
         </div>
     </div> 
@@ -3361,8 +3396,8 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </div>
         
         <div class="col-12 col-sm-6 col-md-4">
-            <input id="copyDataButton2" name="copydatabutton4" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable3"/>
-            <br />Copy Table Head? <input id="copyHead4" name="copyhead4" type="checkbox" class="copyHead" data-table="mouseTable2"/>
+            <input id="copyDataButton4" name="copydatabutton4" type="button" value="Copy Data" class="fullWidth copyOvulation" data-table="mouseTable3"/>
+            <br />Copy Table Head? <input id="copyHead4" name="copyhead4" type="checkbox" class="copyHead" data-table="mouseTable3"/>
         </div>
     </div> 
 </div>
@@ -3391,7 +3426,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2">
     <div class="row">
-        <h4 class="col">Sampling Info</h4>
+        <h4 class="col">Sampling Info:</h4>
     </div>
     <div class = "row mt-2">
         <div class="col-12 col-sm-6"><input id="copyLH" name="copylh" type="button" value="Copy LH sample IDs"
@@ -3475,6 +3510,9 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         </table>
         <p>&nbsp;</p>
     </div>
+</div>
+
+<textarea name="texttext" id="testtext" cols="30" rows="10"></textarea>
 </div>
 
 <!-- #endregion -->
