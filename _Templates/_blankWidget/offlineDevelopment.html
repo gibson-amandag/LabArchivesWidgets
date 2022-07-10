@@ -875,23 +875,11 @@ $(document).ready(function () {
      * @param {string} table the id of the table that will be exported
      */
     exportTableToCSV: function (filename, table) {
-        var csv = [];
-        var datatable = document.getElementById(table);
-        var rows = datatable.querySelectorAll("tr");
-
-        for (var i = 0; i < rows.length; i++) {
-            var row = [], cols = rows[i].querySelectorAll("td, th");
-
-            for (var j = 0; j < cols.length; j++) {
-                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
-                row.push(cellText);
-            };
-
-            csv.push(row.join(","));
-        }
+        var tableArray = this.getTableArray($("#"+ table), copyHead = true, transpose = false);
+        var tableString = this.convertRowArrayToString(tableArray, ",", "\n");
 
         // Download CSV file
-        this.downloadCSV(csv.join("\n"), filename);
+        this.downloadCSV(tableString, filename);
     },
 
     /**
@@ -923,7 +911,7 @@ $(document).ready(function () {
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             this.resize(); //resize
-            this.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
+            this.copyTable($tableToCopy, copyHead, $divForCopy, $errorMsg, transpose); //copy table
             $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
@@ -937,24 +925,34 @@ $(document).ready(function () {
      * the verbatim string "textarea" so this must be separated as "text" + "area"
      * to avoid errors.
      * 
-     * If copying a table that has form inputs, then need to refer to the children of 
-     * <td> tags, and get the values by using .val() instead of .text()
+     * If copying a table that has form inputs, you
      * 
      * If copying a table that could have multiple table rows (<tr>), the use the 
      * \n new line separator
      * 
-     * The temporary <textarea> is appended to the HTML form, focused on, and selected.
-     * Note that this moves the literal page focus, so having this append near the 
-     * button that calls this function is best. After the <textarea> is copied, it is
-     * then removed from the page.
      * @param {*} $table - jQuery object for the table that will be copied
      * @param {*} copyHead - true/false for whether or not the table head should be copied
      * @param {*} $divForCopy - where the temp textarea should be added
+     * @param {*} $errorMsg - where to update the user
      * @param {*} transpose - true if table should be transposed
      */
-     
-     copyTable: function ($table, copyHead, $divForCopy, transpose) {
-        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+     copyTable: function ($table, copyHead, $divForCopy, $errorMsg, transpose) {
+        var tableArray = this.getTableArray($table, copyHead, transpose);
+        var tableString = this.convertRowArrayToString(tableArray, "\t", "\n");
+        this.copyStringToClipboard(tableString, $divForCopy, $errorMsg);
+    },
+
+    /**
+     * Get the items from an HTML table into an array
+     * 
+     * If the table has form inputs, then you would need to adjust the $(e).text() to reflect .val() instead
+     * 
+     * @param {*} $table The table element that is to be read
+     * @param {*} copyHead Whether or not to include the head of the table
+     * @param {*} transpose Whether or not to tanspose the table
+     * @returns the table as an array, with the each row being and element, and each row as an array where each cell is an element
+     */
+    getTableArray: function ($table, copyHead, transpose) {
         var rows = [];
         var rowNum = 0;
         // If you copying the head of the table
@@ -993,23 +991,59 @@ $(document).ready(function () {
             // If table is not being transposed, add one to the row number for each row
             if(!transpose){rowNum++;}
         });
+        return(rows);
+    },
 
-        // For each row, join together all of the elements of the array with a \t to separate them (tab)
-        for(var i = 0; i < rows.length; i++){
-            rows[i] = rows[i].join("\t");
+    /**
+     * Take an array from a table and convert it to a string for export to clipboard or saving to csv
+     * @param {*} rowArray An array where each row is an element, and each row is also an array containing each cell as an element
+     * @param {*} cellSepString The string that should be used to separate each cell (column)
+     * @param {*} newRowString The string that should be used to separate each row
+     * @returns A single string of the table
+     */
+    convertRowArrayToString: function(rowArray, cellSepString = "\t", newRowString = "\n"){
+        var rowString = [];
+        rowArray.forEach((row)=>{
+            if(row.length){
+                rowString.push(row.join(cellSepString));
+            }
+        });
+        var tableString = rowString.join(newRowString);
+        return(tableString)
+    },
+
+    /**
+     * This function will copy a string to the clipboard. If the string is blank, changes it to a single space
+     * otherwise nothing is copied
+     * 
+     * The temporary <textarea> is appended to the HTML form and selected.
+     * After the <textarea> is copied, it is then removed from the page.
+     * 
+     * @param {*} textStr The string that is to be copied to the clipboard
+     * @param {*} $divForCopy The div on the page that should be used to create the temporary textarea
+     * @param {*} $errorMsg Where messages to the user should be printed regarding status of the copy
+     */
+    copyStringToClipboard: function(textStr, $divForCopy, $errorMsg){
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+
+        if(textStr){
+            errorStr = "Copy attempted";
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copy attempted</span>");
+        } else {
+            textStr = " ";
+            $errorMsg.html("<span style='color:red; font-size:24px;'>Nothing to copy</span>");
         }
+        $temp.text(textStr);
 
-        // Add each row to the temporary text area using \n (new line) to separate them
-        $temp.append(rows.join("\n"));
-        // Append the textarea to the div for copy, then select it
         $temp.appendTo($divForCopy).select();
-        // Copy the "selected" text
         document.execCommand("copy");
-        $temp.remove(); //remove temp
+        $temp.remove();
+        this.resize();
+        
         // Doesn't work within LA b/c of permissions, but would be easier way to copy w/o appending to page
         // navigator.clipboard.writeText(rows.join("\n")); 
     },
-    //#endregion copy tables
+    // #endregion copy tables
 
     //#region cards
     toggleCard: function ($cardHead) {
