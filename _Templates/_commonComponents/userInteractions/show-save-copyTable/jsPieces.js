@@ -11,7 +11,8 @@ my_widget_script =
         $(".toggleTable").on("click", (e)=> {
             var tableID = $(e.currentTarget).data("table");
             var $table = $("#"+tableID);
-            this.toggleTableFuncs($table);
+            var $errorMsg = $("#errorMsg");
+            this.toggleTableFuncs($table, $errorMsg);
         });
 
         $('.toCSV').on("click", (e)=> {
@@ -100,8 +101,8 @@ my_widget_script =
      * 
      * @param {*} $table - jQuery object for table
     **/
-     toggleTableFuncs: function ($table) {
-        this.data_valid_form();
+     toggleTableFuncs: function ($table, $errorMsg) {
+        this.data_valid_form($errorMsg);
         $table.toggle();
         this.resize();
     },
@@ -178,6 +179,10 @@ my_widget_script =
     exportTableToCSV: function (filename, table) {
         var tableArray = this.getTableArray($("#"+ table), copyHead = true, transpose = false);
         var tableString = this.convertRowArrayToString(tableArray, ",", "\n");
+
+        // One option that works with Excel, but may not be universal to protect against commas in the fields
+        // var tableString = this.convertRowArrayToString(tableArray, "\t", "\n");
+        // tableString = "sep=\t\n" + tableString;
 
         // Download CSV file
         this.downloadCSV(tableString, filename);
@@ -306,6 +311,11 @@ my_widget_script =
         var rowString = [];
         rowArray.forEach((row)=>{
             if(row.length){
+                row.forEach((cell, i)=>{
+                    if(cell.includes(cellSepString) || cell.includes(newRowString)){
+                        row[i] = '"' + cell + '"'; // protect if includes separator
+                    }
+                });
                 rowString.push(row.join(cellSepString));
             }
         });

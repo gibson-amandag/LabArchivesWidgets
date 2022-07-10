@@ -434,7 +434,8 @@ $(document).ready(function () {
         $(".toggleTable").on("click", (e)=> {
             var tableID = $(e.currentTarget).data("table");
             var $table = $("#"+tableID);
-            this.toggleTableFuncs($table);
+            var $errorMsg = $("#errorMsg");
+            this.toggleTableFuncs($table, $errorMsg);
         });
 
         $('.toCSV').on("click", (e)=> {
@@ -799,8 +800,8 @@ $(document).ready(function () {
      * 
      * @param {*} $table - jQuery object for table
     **/
-    toggleTableFuncs: function ($table) {
-        this.data_valid_form();
+    toggleTableFuncs: function ($table, $errorMsg) {
+        this.data_valid_form($errorMsg);
         $table.toggle();
         this.resize();
     },
@@ -1005,6 +1006,11 @@ $(document).ready(function () {
         var rowString = [];
         rowArray.forEach((row)=>{
             if(row.length){
+                row.forEach((cell, i)=>{
+                    if(cell.includes(cellSepString) || cell.includes(newRowString)){
+                        row[i] = '"' + cell + '"'; // protect if includes separator
+                    }
+                });
                 rowString.push(row.join(cellSepString));
             }
         });
