@@ -1838,11 +1838,11 @@ my_widget_script =
         this.updateChannels(3);
         for(var i = 0; i < 3; i++){
             var channelSearch = this.channelSearch(i);
-            var fluor = "", intensity, channelName
+            var fluor = "", intensity, channelName, exposure
             switch (i) {
                 case 0:
                     fluor = "488-GFP";
-                    intensity = 25;
+                    intensity = 20;
                     channelName = "AF488";
                     break;
 
@@ -1855,7 +1855,8 @@ my_widget_script =
                 case 2:
                     fluor = "DAPI";
                     intensity = 25;
-                    channelName = "DAPI"
+                    channelName = "DAPI";
+                    exposure = 100;
                     break;
             
                 default:
@@ -1864,6 +1865,9 @@ my_widget_script =
             $(".fluor"+channelSearch).val(fluor);
             $(".defIntensity"+channelSearch).val(intensity);
             $(".channelName"+channelSearch).val(channelName);
+            if(exposure){
+                $(".defExposure"+channelSearch).val(exposure);
+            }
         }
     }
 

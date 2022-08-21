@@ -1898,11 +1898,11 @@ $(document).ready(function () {
         this.updateChannels(3);
         for(var i = 0; i < 3; i++){
             var channelSearch = this.channelSearch(i);
-            var fluor = "", intensity, channelName
+            var fluor = "", intensity, channelName, exposure
             switch (i) {
                 case 0:
                     fluor = "488-GFP";
-                    intensity = 25;
+                    intensity = 20;
                     channelName = "AF488";
                     break;
 
@@ -1915,7 +1915,8 @@ $(document).ready(function () {
                 case 2:
                     fluor = "DAPI";
                     intensity = 25;
-                    channelName = "DAPI"
+                    channelName = "DAPI";
+                    exposure = 100;
                     break;
             
                 default:
@@ -1924,6 +1925,9 @@ $(document).ready(function () {
             $(".fluor"+channelSearch).val(fluor);
             $(".defIntensity"+channelSearch).val(intensity);
             $(".channelName"+channelSearch).val(channelName);
+            if(exposure){
+                $(".defExposure"+channelSearch).val(exposure);
+            }
         }
     }
 
@@ -2047,6 +2051,12 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <div class="myLeftCol">Microscope</div>
             <div class="col">
                 <input type="text" id="scope" name="scope" class="fullWidth"></input>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol">Section notes</div>
+            <div class="col">
+                <textarea name="sectionnotes" id="sectionNotes" class="fullWidth autoAdjust"></textarea>
             </div>
         </div>
         <div class="row mt-2">
