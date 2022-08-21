@@ -1,3 +1,4 @@
+<!-- #region HTML -->
 <!-- Luxon Date Handling -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script>
 <!-- Bootstrap CSS -->
@@ -10,6 +11,8 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
+<!-- Bootbox for dialogs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- Call no conflict to reassign this newer jQuery off of $ and jquery-->
 <script>
     var $jq351 = jQuery.noConflict(true);
@@ -43,18 +46,44 @@
         width: 100%
     }
 
-    .forTextBox, .ifOther, .ifFemale {
+    .forTextBox, .ifOther, .ifFemale, .ifOvulation, .ifLH, .ifSampling, .ifSacrifice {
         display: none;
     }
 
     button.card-header{
         border: none;
     }
+
+    input[type="date"], input[type="time"] {
+        min-height: 1rem;
+    }
+
+    .make100 {
+        width: 100vw
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
+<div class="make100">
 <div class="container info">
-    <div class="row">
+    <div class="row ifView">
+        <h3 class="col">Quick copy:</h3>
+    </div>
+    <div class="row ifView">
+        <div class="col-12 errorMsg">&nbsp;</div>
+    </div>
+    <div class = "row mt-2 ifView">
+        <div class="col-12 col-sm-6 col-md-4">
+            <input id="copyDataButtonView" name="copydatabuttonview" type="button" value="Mouse Data" class="fullWidth copyData" data-table="mouseTable2"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4">
+            <input id="copyDataButton4View" name="copydatabutton4view" type="button" value="Ovulation Data" class="fullWidth copyOvulation" data-table="mouseTable3"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4"><input id="copyLHView" name="copylhview" type="button" value="LH sample IDs"
+                class="fullWidth copyLH"/>
+        </div>
+    </div>
+    <div class="row mt-3">
         <h3 class="col">Experiment Info:</h3>
     </div>
     <div class="row mt-2">
@@ -136,26 +165,125 @@
 
 <div class="container mt-2">
     <div id="forCopy">&nbsp;</div>
-    <div id="errorMsg">&nbsp;</div>
+    <div class="errorMsg">&nbsp;</div>
     <div class="row">
         <h3 class="col-12">Output Tables:</h3>
     </div>
 </div>
+
 <div class="container mt-2">
     <div class="row">
-        <h4 class="col">Sampling Info</h4>
+        <h4 class="col">Mouse Info:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-4"><input id="toggleTable3" name="toggletable3" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable2"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-4"><input id="toCSV3" name="tocsv3" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="mouseTable2" />
+        </div>
+        
+        <div class="col-12 col-sm-6 col-md-4">
+            <input id="copyDataButton3" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable2"/>
+            <br />Copy Table Head? <input id="copyHead3" name="copyhead3" type="checkbox" class="copyHead" data-table="mouseTable2"/>
+        </div>
+    </div> 
+</div>
+
+<div class="container mt-2">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="mouseTable2">
+            <thead>
+                <tr>
+                    <th>Mouse</th>
+                    <th>Date</th>
+                    <th>CycleStage</th>
+                    <th>Treatment</th>
+                    <th>PreBodyMass</th>
+                    <th>ReproTractMass</th>
+                    <th>GonadMass</th>
+                    <th>AdrenalMass</th>
+                    <th>PostBodyMass</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h4 class="col">With Ovulation Info:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-4"><input id="toggleTable4" name="toggletable4" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable3"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-4"><input id="toCSV4" name="tocsv4" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="mouseTable2" />
+        </div>
+        
+        <div class="col-12 col-sm-6 col-md-4">
+            <input id="copyDataButton4" name="copydatabutton4" type="button" value="Copy Data" class="fullWidth copyOvulation" data-table="mouseTable3"/>
+            <br />Copy Table Head? <input id="copyHead4" name="copyhead4" type="checkbox" class="copyHead" data-table="mouseTable3"/>
+        </div>
+    </div> 
+</div>
+
+<div class="container mt-2">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="mouseTable3">
+            <thead>
+                <tr>
+                    <th>Mouse</th>
+                    <th>SamplingDate</th>
+                    <th>CycleStage</th>
+                    <th>Treatment</th>
+                    <th>PreBodyMass</th>
+                    <th>ReproTractMass</th>
+                    <th>GonadMass</th>
+                    <th>AdrenalMass</th>
+                    <th>PostBodyMass</th>
+                    <th>SacDate</th>
+                    <th>SacTime</th>
+                    <th>SacStage</th>
+                    <th>UterineDescription</th>
+                    <th>Oocytes1</th>
+                    <th>Oocytes2</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <h4 class="col">Sampling Info:</h4>
+    </div>
+    <div class = "row mt-2">
     </div>
     <div class="row mt-2">
         <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable1" name="toggletable1" type="button"
-                value="Show/Hide Table" class="fullWidth toggleTable" data-table="sampleTable"/>
+            value="Show/Hide Table" class="fullWidth toggleTable" data-table="sampleTable"/>
         </div>
-
+        
         <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
-                class="fullWidth toCSV" data-table="sampleTable" /></div>
-
+            class="fullWidth toCSV" data-table="sampleTable" /></div>
+            
         <div class="col-12 col-sm-6 col-md-3">
             <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="sampleTable"/>
             <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="sampleTable"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3"><input id="copyLH" name="copylh" type="button" value="Copy LH sample IDs"
+                class="fullWidth copyLH"/>
         </div>
     </div>
 </div>
@@ -181,17 +309,17 @@
 
 <div class="container mt-2">
     <div class="row">
-        <h4 class="col">Mouse Info:</h4>
+        <h4 class="col">Mouse Info (long) with sampling notes:</h4>
     </div>
     <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable2" name="toggletable2" type="button"
+        <div class="col-12 col-sm-6 col-md-4"><input id="toggleTable2" name="toggletable2" type="button"
                 value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable"/>
         </div>
 
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV2" name="tocsv2" type="button" value="Save CSV"
+        <div class="col-12 col-sm-6 col-md-4"><input id="toCSV2" name="tocsv2" type="button" value="Save CSV"
                 class="fullWidth toCSV" data-table="mouseTable" /></div>
 
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="col-12 col-sm-6 col-md-4">
             <input id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable"/>
             <br />Copy Table Head? <input id="copyHead2" name="copyhead2" type="checkbox" class="copyHead" data-table="mouseTable"/>
         </div>
@@ -208,9 +336,11 @@
                     <th>Sex</th>
                     <th>CycleStage</th>
                     <th>Treatment</th>
-                    <th>BodyMass</th>
+                    <th>PreBodyMass</th>
                     <th>ReproTractMass</th>
                     <th>GonadMass</th>
+                    <th>AdrenalMass</th>
+                    <th>PostBodyMass</th>
                 </tr>
             </thead>
             <tbody>
@@ -219,43 +349,6 @@
         <p>&nbsp;</p>
     </div>
 </div>
-
-<div class="container mt-2">
-    <div class="row">
-        <h4 class="col">Mouse Info:</h4>
-    </div>
-    <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable3" name="toggletable3" type="button"
-                value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable2"/>
-        </div>
-
-        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV3" name="tocsv3" type="button" value="Save CSV"
-                class="fullWidth toCSV" data-table="mouseTable2" /></div>
-
-        <div class="col-12 col-sm-6 col-md-3">
-            <input id="copyDataButton2" name="copydatabutton3" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseTable2"/>
-            <br />Copy Table Head? <input id="copyHead3" name="copyhead3" type="checkbox" class="copyHead" data-table="mouseTable2"/>
-        </div>
-    </div>
 </div>
 
-<div class="container mt-2">
-    <div class="table-responsive xsTableDiv">
-        <table class="table" id="mouseTable2">
-            <thead>
-                <tr>
-                    <th>Mouse</th>
-                    <th>Date</th>
-                    <th>CycleStage</th>
-                    <th>Treatment</th>
-                    <th>BodyMass</th>
-                    <th>ReproTractMass</th>
-                    <th>GonadMass</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <p>&nbsp;</p>
-    </div>
-</div>
+<!-- #endregion -->
