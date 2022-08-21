@@ -1,0 +1,479 @@
+parent_form_script =
+
+{
+  //the following functions are called externally by the system.
+  init:function (mode, json_data) {
+    //this method is called when the widget is being constructed
+    // parameters
+    // mode = if it equals 'view' than it should not be editable
+    //        if it equals 'edit' then it will be used for entry
+    //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
+    //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
+
+    // json_data will contain the data to populate the widget with, it will be in the form of the data
+    // returned from a call to to_json.
+    //json_data can also be a function that when called will return the json data, this is currently used for test_data
+    //this must be called after checking the widgets class
+    if (!this.a_special_widgets_class(mode, json_data)) {
+      //do the standard stuff
+      if (mode.indexOf('_dev') > -1)
+        this.dev_checks();
+      if (mode.indexOf('view') > -1) {
+        this.readonly();
+      }
+      else {
+        this.editable();
+      }
+      this.from_json((typeof(json_data) == 'function') ? json_data() : json_data);
+    }
+    this.reset_edited();
+  },
+
+  to_json:function () {
+    //returns a json string containing the data entered into the widget by the user
+    return JSON.stringify($('#the_form').serializeArray());
+  },
+
+  from_json:function (json_data) {
+    //populates the widget with the json data return from to_json
+    //no return value.  We use the populate plugin to accomplish this http://archive.plugins.jquery.com/project/Populate.
+    //The populate plugin will be accessible to you widget script
+    $('#the_form').populate(this.json_to_populate(json_data));
+  },
+  test_data:function () {
+    
+    function get_random_num(min, max) {
+      var div_num = '1000000000000000000000';
+      return Math.floor(((Math.random()*parseInt(div_num.substr(0,max.toString().length+1))) % (max-min+1)) + min);
+    }
+    
+    // during your widget development process, you may wish to place test data in your widget.
+    // This method gets called when your widget is in preview mode.
+
+    //return {}; uncomment this if you dont want test data
+    var items = [];
+    var radios = {}; // Log radio groups already processed (radios in the same group
+                     // have the same name so we don't need to process each one)
+    $("form :input").each(function (index, elm) {
+      if (elm.type.indexOf('text') > -1) {
+        var val = 'Lorem ipsum dolor sit amet, consectetur adipisic';
+        if (elm.name.indexOf('_number') > -1) {
+          val = Math.floor(Math.random() * 101);
+        }
+        else if (elm.name.indexOf('_calculator') > -1) {
+          val = 0;
+        }
+        else if (elm.name.indexOf('_formula') > -1) {
+          val = '';
+        }
+        else if (elm.name.indexOf('_date') > -1) {
+          var $ele = $('[name="'+elm.name+'"]');
+          var date = new Date();
+          var format = $ele.val();
+          // Check if they entered a pre-defined format
+          if ($.datepicker[format] !== undefined) {
+            format = $.datepicker[format];
+          }
+          // If this is already a datepicker object, then the format is in the object
+          if ($ele.is('.hasDatepicker')) {
+            format = $ele.datepicker('option', 'dateFormat');
+          }
+          val = $.datepicker.formatDate((format ? format : 'mm/dd/yy'), date);
+        }
+        items.push({name:elm.name, type:elm.type, value:val });
+      }
+      // Handle test data for radio buttons
+      else if ($(elm).is(':radio') && (!radios[elm.name])) {
+        radios[elm.name] = ''; // Log this radio group
+        var $e = $('form [name="'+elm.name+'"]');
+        var val = $e.eq(get_random_num(0, $e.length-1)).val();
+        items.push({name:elm.name, type:elm.type, value:val });
+      }
+      // Handle test data for check boxes
+      else if ($(elm).is(':checkbox')) {
+        var val = (get_random_num(0, 1) === 0 ? '' : $(elm).val());
+        items.push({name:elm.name, type:elm.type, value:val });
+      }
+      // Handle test data for select drop down
+      else if ($(elm).is('select')) {
+        var $ops = $(elm).find('option');
+        var val = $ops.eq(get_random_num(0, $ops.length-1)).val();
+        items.push({name:elm.name, type:elm.type, value:val });
+      }
+    });
+    return JSON.stringify(items);
+  },
+  is_valid:function (b_suppress_message, form_id) {
+    //called when the user hits the save button, to allow for widget data validation.
+    //returns an array of dom elements that are not valid - default is those elements marked as mandatory
+    // that have no data in them.
+    // Can also be used to display messages to the user
+    // by placing text divs in the widget etc...
+    // if b_suppress_message is true then will not display any message
+    var errors = [];
+    var form = (arguments.length > 1 ? $('#'+form_id) : $('body'));
+    $('input[name*="_mandatory"],textarea[name*="_mandatory"]', form).each(function (k, jele) {
+      if ($(jele).val().length == 0) {
+        errors.push(jele);
+      }
+    });
+    if (!b_suppress_message && errors.length > 0) {
+      this.alert('Not all required information was entered.');
+    }
+    return errors;
+  },
+  is_edited:function () {
+    //should return true if the widget data has been edited since it was loaded or the
+    return this.edited_check_value != this.get_edited_test_data();
+  },
+  reset_edited:function () {
+    //resets the is_edited return value to false.  Will be call when a user hits the save button
+    this.edited_check_value = this.get_edited_test_data();
+  },
+  //****************************************
+  //utility functions
+  //****************************************
+  to_clipboard:function (v) {
+    //calling this to allow users to place a result on the clipboard
+    this.prompt(
+      'Copy value to clipboard',
+      v,
+      (inputElement) => {
+        inputElement.select();
+        document.execCommand("copy");
+      }
+    );
+  },
+
+  include_js:function (url_urls, success_func) {
+    //includes javascript pointed by url_urls.
+    // can be either a single url string or an array of url strings
+    //this function ensures that  the scripts are loaded in the same order as they appear in the array
+    //success_func is called when all the scripts have been loaded
+    var num_loaded = 0;
+    //internal func
+    function get_it(url) {
+      $.getScript(url, function () {
+
+        //console.log('loaded' + url_urls[num_loaded]);
+        num_loaded += 1;
+        if (num_loaded == url_urls.length) {
+          success_func();
+        }
+        else {
+          get_it(url_urls[num_loaded]);
+        }
+      });
+    }
+
+    //end internal func
+
+    if (!$.isArray(url_urls)) // convert it to one
+      url_urls = [url_urls]
+    get_it(url_urls[0]);
+  },
+
+  include_css:function (url_urls) {
+    //includes css  file located at by url_urls.
+    // can be either a single url string or an array of url strings
+    if (!$.isArray(url_urls)) // convert it to one
+      url_urls = [url_urls]
+    $.each(url_urls, function (idx, url) {
+      $("head").append("<link>");
+      var css = $("head").children(":last");
+      css.attr({
+        rel:"stylesheet",
+        type:"text/css",
+        href:url
+      });
+    });
+  },
+
+  version_info:function () {
+    //returns version, author and other information regarding this widget
+    return this.wiget_version_info;
+  },
+
+  resize_container:function () {
+    // call this method to have the container of the widget resize based on the current dimensions of the widget.
+    // For Pop up widgets, height and width is adjusted
+    // For widgets that reside on notebook pages, only the height is adjusted. width is derived from the width of the notebook page,
+    var b_resize = true
+    try {
+      this.widget_resizer();
+    }
+    catch (e) {
+      b_resize = false;
+    }
+    return b_resize;
+  },
+
+  is_pop_up:function () {
+    try {
+      return this._is_pop_up();
+    }
+    catch (e) {
+    }
+    return false;
+
+  },
+
+  register_widget_type:function (new_widget_type) {
+    //call to declare new types of widgets like database widgets and freezer widgets
+    this.registered_widget_types.push(new_widget_type);
+  },
+
+  cancel_edit_session:function() {
+    var canceled=true;
+    try {
+
+    }
+    catch(e) {
+      canceled=false;
+    }
+    return canceled;
+  },
+
+  scroll_to_id: function(id) {
+    this.widget_scroll_to_id(id);
+  },
+
+  //*****************************
+  //The following functions are  called internally by this  script   */
+  //**************************************
+  readonly:function () {
+    //sets all the input fields to readonly and also binds to click so that checkboxes state is not changed
+    $('input,textarea').each(function (i, ele) {
+      $(this).attr('readonly', 'readonly').bind('click', function () {
+        return false
+      });
+    });
+    $('.ui-button').each(function (i, ele) { //handle jqueryui buttons
+      $(this).button({disabled:true}).bind('click', function () {
+        return false
+      });
+    });
+    $('select,option').each(function (i, ele) {
+          $(this).attr('disabled', 'disabled')
+        }
+    );
+  },
+
+  editable:function () {
+
+    //number restrictions - using the numeric plugin https://github.com/SamWM/jQuery-Plugins/tree/master/numeric/
+    $('input[name*="_number"]').numeric();
+    $('input[name*="_calculator"]').calculator({layout:$.calculator.scientificLayout,
+      showOn:'button', buttonImageOnly:true, buttonImage:'/javascripts/jquery.calculator.package-1.3.2/calculator.png'});
+    $('input[name*="_date"]').each(function (i, ele) {
+      // The value attr contains for the date format
+      // Format doc can be found at http://docs.jquery.com/UI/Datepicker/formatDate
+      var format = $(ele).val();
+      $(ele).val(''); // Clear the format from the value attr
+      // Check if they entered a pre-defined format
+      if ($.datepicker[format] !== undefined) {
+        format = $.datepicker[format];
+      }
+      $(ele).datepicker($.extend({}, $.datepicker.regional[window.datepicker_locale], {
+          showOn: "button",
+          buttonImage: "/javascripts/images/calendar.gif",
+          buttonImageOnly: true
+        }, (format ? {dateFormat: format} : {}))
+      );
+      if (parseInt($('#ui-datepicker-div').css('font-size')) > 11) {
+        $('#ui-datepicker-div').css('font-size','11px');
+      }
+      // Shows a small gray div so we hide it
+      $('#ui-datepicker-div').hide();
+    })
+    //set up any calculation fields
+    $('input[name*="_formula"]').each(function (i, ele) {
+      var code = "'" + $(ele).val().replace(/'/g, "\\'") + "'";
+      //for each formula field we create a timer function that monitors changes in associated fields and applies them
+      //To do this, we search for field name variables in the formula.  We take the brute force approach of looking for every field in the
+      //form inside the formula.  We then replace the vars with a jquery call to the fields value.
+      $('input,select,textarea').each(function (k, jele) {
+        var re = new RegExp('#{'+jele.name+'}', 'g');
+        var filter = '';
+        if ($(jele).attr('type') == 'radio')
+          filter = ':checked';
+        code = code.replace(re, "'+$('[name=\"" + jele.name + "\"]" + filter + "').val().replace(/(['\"])/g,'\\\\$1') +'")
+      });
+      //Cleanup - if the code ends with + remove it.
+      if (code.lastIndexOf('+') == code.length - 2) {
+        code = code.substring(0, code.length - 2);
+      }
+      //wrap the created code in a function
+      func_name = ele.name.replace(/\-/g, '_'); // remove any dashes in the function name
+      code = "function " + func_name + "timer (){try {$('input[name=\"" + ele.name + "\"]').val(eval(" +
+          code +
+          '));} catch(e) {$(\'input[name="' + ele.name + '"]\').val("")};window.setTimeout(' + func_name + 'timer,500);}';
+      //console.log(code);
+      //compile the function
+      eval(code);
+      //call the new function via a time
+      eval('window.setTimeout(' + func_name + 'timer,500)');
+      // also make the formula ele read only
+      $(ele).attr('readonly', 'readonly').bind('click', function () {
+      });
+
+    })
+  },
+  //internal method to convert into json format used by "populate"
+  json_to_populate:function (json) {
+    var obj = eval(json);
+    var result = [];
+    try {
+      for (var nCnt = 0; nCnt < obj.length; nCnt++) {
+        // Make sure the name attribute is not empty
+        if (obj[nCnt].name != "") {
+          result.push('"' + obj[nCnt].name + '" : ' + JSON.stringify(obj[nCnt].value));
+        }
+      }
+    }
+    catch (e) {
+    }
+    return eval('Object({' + result.join() + '})');
+  },
+
+  get_edited_test_data:function () {
+    var a = [];
+    $.each($('#the_form').serializeArray(), function (i, ele) {
+      if (ele.name.indexOf('_formula') == -1) {// skip formulas cause they get updated automatically
+        a.push(ele);
+      }
+    });
+    return JSON.stringify(a);
+  },
+
+  dev_checks:function () {
+    //check to see if all fields have name attributes
+    var em = '';
+    if ($('input[name],textarea[name],select[name]').length != $('input,textarea,select').length) {
+      em = "Some of the input elements in your widget do not have 'NAME' attributes, each of them needs a 'NAME'";
+    }
+    else {
+      $('input[name],textarea[name],select[name]').each(function (i, ele) {
+            if ((em.length == 0) && (ele.name.indexOf(' ') > -1)) {
+              result.push('"' + obj[nCnt].name + '" : ' + JSON.stringify(obj[nCnt].value));
+
+              em = "Some of the input elements in your widget contain 'NAME' attributes with spaces, please remove them";
+            }
+            else if ((em.length == 0) && (ele.name.match(/[A-Z]/) != null)) {
+              em = "Some of the input elements in your widget contain 'NAME' attributes with uppercase characters, please use only lowercase";
+            }
+          }
+      )
+    }
+    if (em.length > 0) {
+      throw em;
+    }
+  },
+
+  a_special_widgets_class:function (mode, json_data) {
+    //called from init to determine if we are an alternate widget class and if some attach to that new class
+    var found = false;
+    for (var nCnt = 0; (nCnt < this.registered_widget_types.length) && !found; nCnt++) {
+      if (this.registered_widget_types[nCnt].my_type_of_widget()) {
+        found = true;
+        this.attach(this.registered_widget_types[nCnt]);
+        this.registered_widget_types[nCnt].init(mode, (typeof(json_data) == 'function') ? json_data() : json_data);
+      }
+    }
+    return found
+  },
+
+  //attach, attaches the passed in class to the widget hierarchy
+  attach:function (widget) {
+    // First you need to set the  global instance of the formscript class to point to the new parent class of our widget
+    form_script.parent_class = widget;
+    //now have you class point to the parent class.
+    widget.parent_class = parent_form_script;
+  },
+
+  /**
+   * Displays an alert dialog.
+   * @param {string} message - The body text of the dialog.
+   */
+  alert: function (message) {
+    $(`<div>${message}</div>`).dialog({
+      title: "Alert",
+      modal: true,
+      close: function() {
+        $(this).dialog("destroy").remove();
+      },
+      buttons: {
+        OK: function () {
+          $(this).dialog("close");
+        },
+      }
+    })
+  },
+
+  /**
+   * Displays a confirmation dialog.
+   * @param {string} message - The body text of the dialog.
+   * @param {function} [OKCallback] - The function to be called when OK is clicked.
+   */
+  confirm: function (message, OKCallback) {
+    $(`<div>${message}</div>`).dialog({
+      title: "Confirm",
+      modal: true,
+      close: function() {
+        $(this).dialog("destroy").remove();
+      },
+      buttons: {
+        OK: function () {
+          $(this).dialog("close");
+          if (OKCallback) {
+            OKCallback();
+          }
+        },
+        Cancel: function () {
+          $(this).dialog("close");
+        },
+      }
+    })
+  },
+
+  /**
+   * Displays a prompt dialog.
+   * @param {string} message - The body text of the dialog.
+   * @param {string} [defaultValue] - The default value of the input field.
+   * @param {function} [OKCallback] - The function to be called when OK is clicked.
+   */
+  prompt: function (message, defaultValue = "", OKCallback = undefined) {
+    $(`<div><label>${message}<input type="text" value="${defaultValue}" /></label></div>`).dialog({
+      title: "Prompt",
+      modal: true,
+      close: function() {
+        $(this).dialog("destroy").remove();
+      },
+      open: function() {
+        const inputElement = this.querySelector("input");
+        setTimeout(() => {
+          inputElement.select();
+          inputElement.focus();
+        });
+      },
+      buttons: {
+        OK: function () {
+          if (OKCallback) {
+            OKCallback(this.querySelector("input"));
+          }
+          $(this).dialog("close");
+        },
+        Cancel: function () {
+          $(this).dialog("close");
+        },
+      }
+    })
+  },
+
+  //private
+  registered_widget_types:[], //contains array different base widget types
+  wiget_version_info:null,
+  widget_resizer:null,
+  widget_scroll_to_id:null,
+  widget_cancel_edit_session:null
+}

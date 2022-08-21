@@ -1,0 +1,309 @@
+/**
+ * Created with JetBrains RubyMine.
+ * User: kschneider
+ * Date: 10/4/12
+ * Time: 9:44 AM
+ * To change this template use File | Settings | File Templates.
+ */
+
+(function ($) {
+
+    $.widget_proxy = function () {
+    };
+    $.widget_proxy.main_app = {
+        register:function () {
+            //registers the main_app receivers
+            pm.bind("get_val_for_id", function (data) {
+                return {val:$(data.id).val()};
+            });
+
+            pm.bind("ep_get_form_json", function (data) {
+                return {json:ep_get_form_json(data.form_title, data.form_id, data.form_version)};
+            });
+
+            pm.bind("pass_along_dblclick", function (data) {
+                $(data.id).dblclick();
+            });
+            pm.bind("set_widget_height", function (data) {
+                $(data.id).height(data.height);
+                //if widget in a dialog, then adjust the position of the dialog
+                if (data.popup) {
+                    $(data.id).parents('.ui-dialog').position({my: "center", at: "center", of: window});
+                }
+            });
+            pm.bind("set_widget_width", function (data) {
+                $(data.id).width(data.width);
+            });
+
+            pm.bind("get_height", function (data) {
+                data.id = data.id=='window' ? window : data.id;
+                var h = $(data.id).height();
+                //adjust height if a popup and in a dialog, need to account for dialog contents
+                if (data.popup) {
+                    var $widget = $('[id^=popup_widget_]');
+                    var $widget_dlg = $widget.parents('.ui-dialog');
+                    if  ($('[id^=popup_widget_]').parents('.ui-dialog').length > 0) {
+                        h = $(window).height() - $widget_dlg.height() + $widget.height();
+                    }
+                }
+                return {height:h};
+            })
+            pm.bind("set_scroll_top", function (data) {
+              // Get top of the widget iframe which we will
+              // add to the data.top
+              const widget_top = $(data.id).offset().top;
+              const header_height = $("#header").height() + $("#page_header").height();
+              $('html, body').animate({scrollTop: widget_top + data.top - header_height});
+            });
+
+            pm.bind("preview_loaded", function (data) {
+                preview_loaded();
+            });
+
+            pm.bind("parent_error_handler", function (data) {
+                    form_handle_runtime_error(data.error);
+            });
+            pm.bind("cancel_edit_session", function (data) {
+              pendingCancel();
+            });
+            pm.bind('import_csv_file', function(data) {
+                var import_done = false;
+                if (typeof(import_csv_file) != 'undefined') {
+                  import_done = import_csv_file(data.widget_type);
+                }
+              return {do_callback: !import_done};
+            });
+
+            pm.bind('user_activity_detected', function(data) {
+              // Check that getComponent is undefined as is the
+              // case in the Widget Manager Preview
+              if (typeof(getComponent) == "undefined") {
+                return;
+              }
+              var component = getComponent();
+              if (component) component.signalEditActive();
+            });
+        },
+        call_script_to_json:function (target,callback) {
+            pm({
+                target:target,
+                type:"call_script_to_json",
+                data:{},
+                success:function (data) {
+                    callback(data.json);
+                }
+            });
+        },
+        call_script_from_json:function (json,target) {
+            pm({
+                target:target,
+                type:"call_script_from_json",
+                data:{json:json}
+            });
+        },
+
+        call_script_is_edited:function (target,callback) {
+            pm({
+                target:target,
+                type:"call_script_is_edited",
+                data:{},
+                success:function (data) {
+                    callback(data.is_edited);
+                }
+            });
+        },
+        call_script_reset_edited:function (target) {
+            pm({
+                target:target,
+                type:"call_script_reset_edited",
+                data:{}
+            });
+        },
+        call_script_is_valid:function (b_suppress_message,target,callback) {
+            pm({
+                target:target,
+                type:"call_script_is_valid",
+                data:{b_suppress_message:b_suppress_message},
+                success:function (data) {
+                    callback(data.is_valid);
+                }
+            });
+        },
+        call_script_to_import_csv_file: function(target, data, widget_type) {
+            pm({
+                target:target,
+                type:"call_script_to_import_csv_file",
+                data: {data: data,
+                       widget_type: widget_type}
+            });
+        }
+
+    }
+    ///////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    $.widget_proxy.widget_app = {
+
+        register:function () {
+            //registers callbacks to the widget, currently this is only called from the widget manager in preview mode
+            pm.bind("call_script_to_json", function (data) {
+                return {json:form_script.to_json()};
+            });
+            pm.bind("call_script_from_json", function (data) {
+                form_script.from_json(data.json);
+            });
+            pm.bind("call_script_is_edited", function (data) {
+                return {is_edited:form_script.is_edited()};
+            });
+            pm.bind("call_script_reset_edited", function (data) {
+                form_script.reset_edited();
+            });
+
+            pm.bind("call_script_is_valid", function (data) {
+                return {is_valid:form_script.is_valid(data.b_suppress_message).length==0};
+            });
+            pm.bind('call_script_to_import_csv_file', function(data) {
+                if (data.widget_type == 'is_database') {
+                    database_form_script.import_csv_file(data.data);
+                }
+                else {
+                    freezerbox_form_script.import_csv_file(data.data);
+                }
+            })
+
+            this.listen_for_user_activity();
+        },
+
+        pass_along_dblclick:function (id) {
+            pm({
+                target:parent,
+                type:"pass_along_dblclick",
+                data:{id:id}
+            });
+        },
+
+
+        get_val_for_id:function (id, callback) {
+            pm({
+                target:parent,
+                type:"get_val_for_id",
+                data:{id:id},
+                success:function (data) {
+                    callback(data.val);
+                }
+            });
+        },
+
+
+        ep_get_form_json:function (_form_title, _form_id, _form_version, callback) {
+            pm({
+                target:parent,
+                type:"ep_get_form_json",
+                data:{form_title:_form_title, form_id:_form_id, form_version:_form_version},
+                success:function (data) {
+                    callback(data.json);
+                }
+            });
+        },
+        set_widget_height:function (mode, a_popup, id, height) {
+            var _id = (a_popup) ? '[id^=popup_widget_]' : mode == 'view' ? '#form_frame_' + id : '#ep_wiget_iframe';
+            pm({
+                target:parent,
+                type:"set_widget_height",
+                data:{id:_id, height:height, popup: a_popup}
+            });
+        },
+        set_widget_width:function (mode, a_popup, id, width) {
+            var _id = (a_popup) ? '[id^=popup_widget_]' : mode == 'view' ? '#form_frame_' + id : '#ep_wiget_iframe';
+            pm({
+                target:parent,
+                type:"set_widget_width",
+                data:{id:_id, width:width}
+            });
+        },
+        get_height:function (mode, a_popup, id,callback) {
+            var _id = (a_popup) ? 'window' : mode == 'view' ? '#form_frame_' + id : '#ep_wiget_iframe';
+            pm({
+                target:parent,
+                type:"get_height",
+                data:{id:_id,
+                      popup: a_popup},
+                success:function (data) {
+                    callback(data.height);
+                }
+
+            });
+
+        },
+        set_scroll_top:function(mode, a_popup, id, top) {
+          const _id = (a_popup) ? '[id^=popup_widget_]' : mode == 'view' ? '#form_frame_' + id : '#ep_wiget_iframe';
+          pm({
+              target:parent,
+              type:"set_scroll_top",
+              data:{id: _id, top: top},
+          });
+        },
+
+        preview_loaded:function () {
+            pm({
+                target:parent,
+                type:"preview_loaded",
+                data:{}
+            });
+
+        },
+        parent_error_handler:function(error) {
+            pm({
+                target:parent,
+                type:"parent_error_handler",
+                data:{error:error}
+            });
+
+        },
+        cancel_edit:function () {
+          pm({
+            target:parent,
+            type:"cancel_edit_session",
+            data:{}
+          });
+
+        },
+        import_csv_file:function(widget_type) {
+            pm({
+                target:parent,
+                type:"import_csv_file",
+                data:{widget_type: widget_type},
+                success:function (data) {
+                  if (data.do_callback) {
+                    if (widget_type == 'is_database') {
+                      database_form_script.import_csv_file([]);
+                    }
+                    else {
+                      freezerbox_form_script.import_csv_file([])
+                    }
+                  }
+                }
+            });
+        },
+        user_activity_detected: function() {
+          pm({
+            target: parent,
+            type: 'user_activity_detected',
+            data: {}
+          });
+        },
+        listen_for_user_activity: function() {
+          // NOTE(zmd): if a custom widget control prevents default or
+          // propigation, there is little that can be done here and we won't
+          // register interaction with it as activity.
+          $('#the_form').on(
+            'click keydown focus',
+            '*',
+            function(event) { this.user_activity_detected() }.bind(this)
+          );
+        }
+    }
+
+})(jQuery);
+
+
+

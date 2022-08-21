@@ -1,0 +1,1020 @@
+//TODO
+// view button - select box (list box), highlight is all gray, can't see selection
+// col size not showing the saved sized in edit mode only
+var database_form_script =
+{
+  dt: null, // DataTable object
+  tt: null, // TableTool object
+  schema: [], // array of objects in the format {id:<number>, name:<column title>, field: <input name>, hidden:<boolean>}
+  new_dlg: [],  // array of objects to pass to populate func to init database_edit_form dialog for new entries
+  reSpecialFlds: /_mandatory|_number|_calculator|_formula|_color|_hidden|_date/g, // Used for normalizing the column title
+  reUnderscore: /_/g, // Used for normalizing the column title
+  readonly: false,
+  button_ids: {},
+  colvis_h: 0,
+
+  init:function (mode, json_data) {
+    //this method is called when the form is being constructed
+    // parameters
+    // mode = if it equals 'view' than it should not be editable
+    //        if it equals 'edit' then it will be used for entry
+    //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
+    //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
+
+    // json_data will contain the data to populate the form with, it will be in the form of the data
+    // returned from a call to to_json or empty if this is a new form.
+    //By default it calls the parent_class's init.
+
+    this.readonly = (mode.indexOf('view') > -1);
+    $('body').css({
+      'font-family': 'Arial, Helvetica, sans-serif',
+      'font-size': '9pt'
+    });
+    // Disable all the inputs in the form
+    if (this.readonly) {
+      this.parent_class.readonly();
+    }
+    $('#the_form')
+      .hide()
+      // TODO: Any scripts in the form will get run again, is there a way prevent this?
+      .wrapInner('<form id="database_edit_form"/>')
+      .append('<table id="data_table" border="1" cellpadding="0" cellspacing="0" style="border-color:#CCC" width="100%"/>') // Create table for dataTable object
+      .show();
+    // Move this hidden field back in the_form; it was moved to database_edit_form in the wrapInner call
+    $('input[name="is_database"]').prependTo('#the_form');
+    this.init_dialog();
+    this.init_schema(json_data, 'database_edit_form');
+    this.init_datatable();
+
+    $(window).bind('resize', function () {
+      $('#data_table_wrapper').css('width',$(window).width());
+      database_form_script.dt.fnAdjustColumnSizing();
+      database_form_script.parent_class.resize_container();
+    });
+
+    
+    // Before calling the parent class init, temporarily
+    // 1) Rename the is_database so that we are not in a circular loop
+    // 2) Set the parent class from_json func to this from_json
+    $('input[name="is_database"]').attr('name', 'disable_is_database');
+    var save_from_json = this.parent_class.from_json;  // save parent class from_json func
+    this.parent_class.from_json = this.from_json;
+    var save_readonly = this.parent_class.readonly;
+    this.parent_class.readonly = function () {};
+    
+    this.parent_class.init(mode, json_data);
+    
+    // Restore values
+    this.parent_class.readonly = save_readonly;
+    this.parent_class.from_json = save_from_json;
+    $('input[name="disable_is_database"]').attr('name', 'is_database');
+    
+    // If there are any "_date" fields in the form, the date picker
+    // seems to leave a little gray box on the screen so we'll just hide it
+    $('.ui-datepicker').hide();
+
+    // Check if we are importing from a csv
+    if (!this.readonly && this.is_empty()) {
+      $.widget_proxy.widget_app.import_csv_file('is_database');
+    }
+    else {
+      this.open_new_dlg_if_empty();
+    }
+  },
+
+  to_json:function () {
+    //should return a json string containing the data entered into the form by the user
+    //whatever is return from the method is persisted in LabArchives.  must not be binary data.
+    //called when the user hits the save button, when adding or editing an entry
+
+    var json_obj = [];
+    // Save which fields are hidden and column width
+    var settings = this.dt.fnSettings();
+    $.each(settings.aoColumns, function (idx, col) {
+      database_form_script.schema[idx].hidden = !col.bVisible;
+      database_form_script.schema[idx].col_width = (col.sWidth === null ? '' : col.sWidth);
+    });
+    json_obj.push(this.schema);
+    return JSON.stringify(json_obj.concat(this.dt.fnGetData()));
+    //return this.parent_class.to_json();
+  },
+
+  from_json:function (json_data) {
+    //populates the form with json_data
+    var data = $.parseJSON(json_data);
+    if (data && (data.length > 1)) {
+      // Remove and save the first item in the array which is the schema
+      var data_schema = data.splice(0,1)[0];
+      if (database_form_script.readonly) {
+        database_form_script.load_datatable(data);
+      }
+      else {
+        // Map the data's schema with the current database schema
+        var data_map = database_form_script.get_data_map(data_schema);
+        // Make sure each data has a corresponding field in the current database
+        database_form_script.validate_data_map(data_map, data_schema, data);
+      }
+    }
+    //this.parent_class.from_json(json_data);
+  },
+
+  test_data:function () {
+    //during development this method is called to populate your form while in preview mode
+    this.init_schema('', 'the_form');
+    var sample_data = [];
+    sample_data.push(this.schema);
+    for (var i = 0; i < 100; i++) {
+      var entry = [];
+      var test_data = $.parseJSON(this.parent_class.test_data());
+      var test_data_map = {};
+      $.each(test_data, function(idx, item) {
+        test_data_map[item.name] = item.value;
+      });
+      // Create a sample entry
+      $.each(this.schema, function (idx, fld) {
+        var data = test_data_map[fld.field];
+        entry.push(data ? data : '');
+      });
+      sample_data.push(entry);
+    }
+    return JSON.stringify(sample_data);
+    //return this.parent_class.test_data();
+  },
+
+  is_valid:function (b_suppress_message) {
+    //called when the user hits the save button, to allow for form validation.
+    //returns an array of dom elements that are not valid - default is those elements marked as mandatory
+    // that have no data in them.
+    //You can modify this method, to highlight bad form elements etc...
+    //LA calls this method with b_suppress_message and relies on your code to communicate issues to the user
+    //Returning an empty array [] or NULL equals no error
+
+    return [];
+    //return this.parent_class.is_valid(b_suppress_message);
+  },
+
+  is_edited:function () {
+    //should return true if the form has been edited since it was loaded or since reset_edited was called
+    return this.parent_class.is_edited();
+  },
+
+  reset_edited:function () {
+    //typically called have a save
+    return this.parent_class.reset_edited();
+  },
+  
+  resize_container:function () {
+    $(window).trigger('resize');
+  },
+  
+  my_type_of_widget: function() {
+    return ($('input[name="is_database"]').length > 0);
+  },
+
+  open_new_dlg_if_empty: function() {
+    // If this is a new data table, then pop up a New Entry dialog
+    //if ((json_data === '') || (json_data === '[]') || (json_data === '{}')) {
+    if (database_form_script.is_empty()) {
+      $('.DTTT_button:first').click();
+    }
+  },
+
+  import_csv_file: function(data) {
+    if (data.length > 0) {
+      var header = data.shift();
+      //check if the date needs to be re-formatted for the locale
+      var date_format = $.datepicker.regional[window.datepicker_locale].dateFormat;
+      if (date_format != 'mm/dd/yy') {
+        //check the header for any _date fields
+        $.each(header, function(h_idx, h) {
+          if (h['form_cmds'].indexOf('_date') > -1) {
+            $.each(data, function (i, row) {
+              if (row[h_idx] != '') {
+                var d = $.datepicker.parseDate('mm/dd/yy', row[h_idx], {});
+                row[h_idx] = $.datepicker.formatDate(date_format, d, {});
+              }
+            })
+          }
+        });
+      }
+      database_form_script.load_datatable(data);
+    }
+    database_form_script.open_new_dlg_if_empty();
+  },
+
+  // Cloned this code from freezerbox widget
+  escape_csv_data: function(data, is_header) {
+    if (typeof(data) == 'undefined') {
+      data = '';
+    }
+    // Remove any asterisk at end if a header
+    if (is_header) {
+      data = data.replace(/\*$/, '');
+    }
+    if (data.indexOf(',') > -1) {
+      return '"' + data.replace(/"/g, '\\"') + '"';
+    }
+    return data;
+  },
+
+  export_to_csv: function() {
+    // If there is any data to export, do nothing
+    if (database_form_script.is_empty()) {
+      return;
+    }
+    var csv = [];
+    var csv_row = [];
+    // Row header
+     $.each(database_form_script.schema, function (idx, fld) {
+       csv_row.push(database_form_script.escape_csv_data(fld.name, true));
+    });
+    csv.push(csv_row.join(','));
+    // Each row data
+    $.each(this.dt.fnGetData(), function(idx, row) {
+      csv_row = [];
+      $.each(row, function(jIdx, fld) {
+        csv_row.push(database_form_script.escape_csv_data(fld, false));
+      });
+      csv.push(csv_row.join(','));
+    });
+
+    // The rest of the code is cloned this code from UMass' FB widget
+    // This will display the save file dialog and then will download
+    // the file.
+    // Default file name is the name of the widget, if in Edit mode
+    var fileName = "CSV_Export";
+
+    //Initialize file format you want csv or xls
+    var uri = 'data:text/csv;charset=utf-8,' + escape(csv.join('\n'));
+
+    // Instead of using window.open(uri) which will not work in some browsers or will not get the correct file extension
+
+    //this will generate a temp <a ></a> tag
+    var link = document.createElement("a");
+    link.href = uri;
+
+    //set the visibility hidden so it will not effect on the web-layout
+    link.style = "visibility:hidden";
+    link.download = fileName.replace(/ /g, '_') + '.csv';
+
+    //Append the anchor tag and remove it after automatic click
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+
+  init_schema: function(json_data, form_id) {
+    // Init schema
+    this.schema = [];
+    var data = $.parseJSON(json_data);
+    if (this.readonly && data && (data.length > 0)) {
+      this.schema = data.slice(0,1)[0];
+    }
+    else {
+      var flds_added = {};
+      var id = 0;
+      $('#'+form_id+' :input:not([type="hidden"])').each(function(idx, input) {
+        var $input = $(input);
+        var name = $input.attr('name');
+        // Before adding a radio button, check if its radio button group has already been added
+        if ($input.is(':not(:radio)') || (flds_added[name] === undefined)) {
+          var title = database_form_script.get_title(name, $input);
+          // Add to schema
+          database_form_script.schema.push({"id":id++,"name":title,"field":name,"hidden":(name.indexOf('_hidden') > -1), "col_width": ""});
+          // Add to flds_added
+          flds_added[name] = '';
+        }
+      });
+    }
+  },
+
+  init_dialog: function() {
+    // Remove the values from select boxes.  The values are the text.
+    $('#database_edit_form select option').removeAttr('value');
+    // Add a formula attr to the "_formula" fields to compute the value
+    // Cloned the algorithm from parent_form_script.editable
+    $('#database_edit_form [name*="_formula"]').each(function(idx,ele) {
+      var $ele = $(ele);
+      $ele.attr('formula', '\''+$('[name="'+$ele.attr('name')+'"]').val().replace(/'/g, "\\'").replace(/#{.+?}/g, function($1) {
+          var ele_name = $1.substr(2,$1.length-3);
+          var filter = ($('[name="'+ele_name+'"]').is(':radio') ? ':checked' : '');
+          return '\'+$(\'#database_edit_form [name="'+ele_name+'"]'+filter+'\').val().replace(/([\'"])/g, \'\\\\$1\')+\'';
+        })+'\'');
+    });
+    
+    var form_w = $('#database_edit_form').width();
+    var dblclick_handlers = [];
+    $('#database_edit_form').dialog({
+      autoOpen: false,
+      minWidth: 200,
+      modal: true,
+      width: Math.min($(window).width()-40,form_w),
+      zIndex: 5,
+      buttons: (this.readonly ? {} : {
+        Save: function() {
+          $('.ui-state-error', this).removeClass('ui-state-error');
+          var err = database_form_script.parent_class.is_valid(false, 'database_edit_form');
+          $(err)
+            .addClass('ui-state-error')
+            .first().focus();
+          if (err.length === 0) {
+            var dlg_data = database_form_script.get_dlg_data();
+            // Make sure there is some data or else the data table shows a micro line in the table
+            if ($.trim(dlg_data.join('')) === '') {
+              parent_form_script.alert('Please enter a value in at least one of the fields.');
+            }
+            else {
+              var sTitle = $(this).dialog('option', 'title');
+              // If adding a new entry
+              if (sTitle.indexOf('New') > -1) {
+                database_form_script.dt.fnAddData(dlg_data);
+                database_form_script.resize_container();
+                // If there is no selection, set to the first row
+                if (database_form_script.$get_sel_row().length === 0) {
+                  database_form_script.tt.fnSelect(database_form_script.$get_rows()[0]);
+                }
+              }
+              // If editing an existing entry
+              else {
+                database_form_script.dt.fnUpdate(dlg_data, database_form_script.$get_sel_row()[0]);
+              }
+              $(this).dialog("close");
+            }
+          }
+        },
+        Cancel: function() {
+          $(this).dialog("close");
+        }
+      }),
+      open: function() {
+        $(this).dialog('option','width',form_w);
+        if ($(this).dialog('option','width') > $('#the_form').parent().width()) {
+          $(this).dialog('option','width',$('#the_form').parent().width()-40);
+        }
+        var title = $(this).dialog('option','title');
+        var data = [];
+        if (title.indexOf('New') === -1) {
+          data = database_form_script.tt.fnGetSelectedData()[0];
+        }
+        database_form_script.set_dlg_data(data);
+        // Set the height of the container element only when the entry form dialog is open
+        // We do this because the container height will not include the dialog height
+        // if the dialog has been resized since the position becomes absolute
+        // Store the height in an attribute in the form element
+        var $container = $('#the_form').parent();
+        if (typeof($(this).attr('container-height')) == 'undefined') {
+          $(this).attr('container-height', $container.height());
+        }
+        $container.height($(this).attr('container-height'));
+        database_form_script.resize_container();
+        // Save the dblclick handlers before unbinding when in View dialog
+        // This prevents going into edit mode while the View dlg is open
+        if (title.indexOf('View') > -1) {
+          var handlers = $(window).data('events').dblclick;
+          $.each(handlers, function(idx, h) {
+            dblclick_handlers.push(h.handler);
+          });
+          $(window).unbind('dblclick');
+        }
+      },
+      close: function() {
+        $('.ui-state-error', this).removeClass('ui-state-error');
+        // Clear the container height since the dialog is closed
+        $('#the_form').parent().css('height', '');
+        database_form_script.resize_container();
+        // Re-bind the double click handler when in View dialog
+        if ($(this).dialog('option','title').indexOf('View') > -1) {
+          $.each(dblclick_handlers, function(idx, h) {
+            $(window).bind('dblclick', h);  
+          });
+          dblclick_handlers = [];
+        }
+      }
+    });
+    
+    // Save the form contents of this empty dialog and use as the default for creating new database entries
+    var save_dlg = JSON.stringify($('#database_edit_form').serializeArray());
+    $('#database_edit_form [name*="_date"]').val(''); // Clear the date fields in case the format is in the value field
+    this.new_dlg = JSON.stringify($('#database_edit_form').serializeArray());
+    $('#database_edit_form').populate(this.parent_class.json_to_populate(save_dlg));
+  },
+
+  init_datatable: function() {
+    // Init the data table
+    this.dt = $('#data_table').dataTable({
+      'aoColumns': this.get_cols(),
+      'bJQueryUI': true,
+      'sPaginationType': 'full_numbers',
+      'sDom': 'RTC<"clear"><"H"lfr>t<"F"ip>',
+      'sScrollX': '100%',
+      'bScrollCollapse': true,      
+      'fnCreatedRow': function(nRow, aData, iDataIndex) {
+        $(nRow).find('td').css({'white-space':'nowrap','text-overflow':'ellipsis', 'overflow':'hidden','max-width':'125px'});
+        var $formula_ele = $('#database_edit_form [name*="_formula"]');
+        if (!database_form_script.readonly && ($formula_ele.length > 0)) {
+          database_form_script.set_dlg_data(aData);
+          // Update the formula fields
+          $formula_ele.each(function(idx,ele) {
+            var formula_str = eval($(ele).attr('formula'));
+            try {
+              $(ele).val(eval(formula_str));
+            }
+            catch(e) {
+              $(ele).val('');
+            }            
+          });
+          aData = database_form_script.get_dlg_data();
+          // Update the formula field in the table
+          database_form_script.dt.fnUpdate(aData, nRow);
+        }
+      },
+      'fnRowCallback': function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+        $(nRow).find('td').each(function (idx, ele) {
+          $(this).removeAttr('title');
+          var txt = $(this).text();
+          // Only add a tooltip for data that is longer than 20 characters
+          if (txt.length > 20) {
+            $(this).attr('title', (txt.length > 1000 ? txt.substr(0,997)+'...' : txt));
+          }
+        });
+      },
+      'oColReorder': {
+        'allowReorder': false
+      },
+      'oTableTools': {
+        'sRowSelect': 'single',
+        'sSwfPath': '/javascripts/DataTables-1.9.3/extras/TableTools/media/swf/copy_csv_xls_pdf.swf',
+        'aButtons': [
+          {
+            'sExtends': 'text',
+            'sButtonText': 'New',
+            'fnClick': function ($btn, btn_obj, flash) {
+              $('#database_edit_form')
+                .dialog('option', 'title', 'Create New Entry')
+                .dialog('open');
+            }
+          },
+          {
+            'sExtends': 'select_single',
+            'sButtonText': (this.readonly ? 'View' : 'Edit'),
+            'fnClick': function (btn, btn_obj, flash) {
+              var row_sel = database_form_script.$get_sel_row();
+              if (row_sel.length === 1) {
+                $('#database_edit_form')
+                  .dialog('option', 'title', (database_form_script.readonly ? 'View Entry' : 'Edit Entry'))
+                  .dialog('open');
+              }
+            }
+          },
+          {
+            'sExtends': 'select_single',
+            'sButtonText': 'Delete',
+            'fnClick': function (btn, btn_obj, flash) {
+              var row_sel = database_form_script.$get_sel_row();
+              if (row_sel.length === 1) {
+                var data = database_form_script.dt.fnGetData(row_sel[0]);
+                parent_form_script.confirm(
+                  'Are you sure you want to delete the row containing this data?<br /><br />'+data.join(',').replace(/,+/g, ','),
+                  () => {
+                    database_form_script.dt.fnDeleteRow(row_sel[0]);
+                    database_form_script.enable_buttons();
+                    database_form_script.resize_container();
+                  },
+                );
+              }
+            }
+          },
+          {
+            'sExtends': 'copy',
+            'sButtonText': 'Copy to Clipboard'
+          },
+          // {
+            // 'sExtends': 'print',
+            // 'sButtonText': 'Print View'
+            // //'sMessage': "(Press Escape when finished)"
+          // },
+          {
+            'sExtends': 'text',
+            'sButtonText': 'Export to CSV',
+            'fnClick': function ($btn, btn_obj, flash) {
+              database_form_script.export_to_csv();
+            }
+          },
+        ],
+        fnRowSelected: function(rows) {
+          database_form_script.enable_buttons();
+        },
+        fnRowDeselected: function(rows) {
+          database_form_script.enable_buttons();
+        }
+      }
+    });    
+    
+    this.tt = TableTools.fnGetInstance('data_table');
+    // Init the button_ids
+    $('.DTTT_container a.DTTT_button').each(function (idx, ele) {
+      database_form_script.button_ids[$(ele).text()] = $(ele).attr('id');
+    });
+    
+    // Add a "name" attribute to the filter input box otherwise the widget manager will give an error
+    // Also handle resizing of iframe if the list changes
+    $('#data_table_filter input')
+      .attr('name', 'data_table_filter_input')
+      .keyup(function(evt) {
+        database_form_script.enable_buttons();
+        database_form_script.resize_container();
+      });
+    $('#data_table_length select').change(function(evt) {
+      database_form_script.resize_container();
+    });
+    $('#data_table_paginage a').click(function(evt) {
+      database_form_script.resize_container();
+    });
+    
+    // Mix case the column titles
+    //$('#data_table_wrapper .dataTables_scrollHead thead th div').css('text-transform', 'capitalize');
+    
+    $('.DTTT_container').css('float','left');
+    
+    // If view mode, disable the New, Delete
+    if (this.readonly) {
+      $('#'+this.button_ids.New+', #'+this.button_ids.Delete).hide();
+    }
+    
+    // If an iPad, then hide the swf buttons, Copy and Export
+    if (navigator.userAgent.match(/iPad/i) !== null) {
+      $('#'+this.button_ids['Copy to Clipboard']+', #'+this.button_ids['Export to File']).hide();
+    }
+    
+    // Double clicking on row will bring up the edit dialog
+    if (!this.readonly) {
+      $('#data_table tbody').dblclick(function(evt) {
+        // Select the row then simulate clicking the Edit button
+        if (!$(evt.target).is('.dataTables_empty')) {
+          database_form_script.tt.fnSelect($(evt.target).parent());
+          $('#'+database_form_script.button_ids[(database_form_script.readonly ? 'View' : 'Edit')]).click();
+        }
+      });
+    }
+    
+    // Make the Show/Hide Col button look like the other buttons
+    $('.ColVis_Button')
+      .addClass('DTTT_button')
+      .click(function() {
+        if (database_form_script.colvis_h === 0) {
+          $('.ColVis_title').css('text-transform', 'capitalize');
+          $('.ColVis_Button').addClass('DTTT_button');
+          database_form_script.colvis_h = $('.ColVis_collection').height();
+          $('.ColVis_collection').css('overflow-y','auto');
+        }
+        else {
+          $('.ColVis_collection').height(database_form_script.colvis_h);
+        }
+        var win_h = $(window).height();
+        if ($('.ColVis_collection').height() > win_h) {
+          $('.ColVis_collection').height(win_h - $('.ColVis_MasterButton').height() - 20);
+        }
+      });
+
+    this.enable_buttons();
+  },
+
+  escape_html: function(data) {
+    return $('<div>').text(data).html();
+  },
+
+  get_cols: function () {
+    var cols = [];
+    $.each(database_form_script.schema, function(idx, fld) {
+      var item = {
+        'sTitle': database_form_script.escape_html(fld.name),
+        'bVisible': !fld.hidden,
+        'mRender': function (data, type, full) {
+          return database_form_script.escape_html(data);
+        }
+      };
+      if (item.bVisible && (fld.col_width !== '')) {
+        item.sWidth = fld.col_width;
+      }
+      // Add to cols
+      cols.push(item);
+    });
+    return cols;
+  },
+  
+  get_title: function (name, $input) {
+    // If the input has a label, use that as the title; otherwise default to the name
+    var title = name;
+    // If the input has a label, use that as the title
+    var $label = $('#database_edit_form label[for="' + $input.attr('id') + '"]');
+    if ($label.length > 0) {
+      title = $label.text();
+    }
+    else {
+      // Normalize the name by removing the special naming and underscores 
+      title = title.replace(this.reSpecialFlds, '');
+      title = title.replace(this.reUnderscore, ' ');
+    }
+    return title;
+  },
+
+  is_empty: function() {
+    return database_form_script.$get_rows().length <= 0;
+  },
+
+  $get_rows: function () {
+    return $('#data_table tbody tr').filter(':has(:not(.dataTables_empty))');
+  },
+  
+  $get_sel_row: function () {
+    return $('#data_table tbody tr.DTTT_selected');
+  },
+  
+  enable_buttons: function() {
+    var copy_disabled = $('#'+database_form_script.button_ids["Copy to Clipboard"]).hasClass('ui-state-disabled');
+    if (database_form_script.$get_rows().length > 0) {
+      if (copy_disabled) {
+        $('[id^="ToolTables_data_table_"]:not(#'+database_form_script.button_ids.New+')').removeClass('ui-state-disabled');
+      }
+    }
+    else if (!copy_disabled) {
+      $('[id^="ToolTables_data_table_"]:not(#'+database_form_script.button_ids.New+')').addClass('ui-state-disabled');
+    }
+    // Enable/disable the Edit and Delete buttons only if a row is selected
+    if (database_form_script.$get_sel_row().length === 1) {
+      $('#'+database_form_script.button_ids[(database_form_script.readonly ? 'View' : 'Edit')]+',#'+database_form_script.button_ids.Delete).removeClass('ui-state-disabled');
+    }
+    else {
+      $('#'+database_form_script.button_ids[(database_form_script.readonly ? 'View' : 'Edit')]+',#'+database_form_script.button_ids.Delete).addClass('ui-state-disabled');
+    }
+  },
+
+  load_datatable: function (data) {
+    database_form_script.dt.fnClearTable();
+    // Add the data to the table
+    database_form_script.dt.fnAddData(data);
+    database_form_script.resize_container();
+    // Select the first row, if there is one
+    var rows = database_form_script.$get_rows();
+    if (rows.length > 0) {
+      database_form_script.tt.fnSelect(rows[0]);
+    }
+    database_form_script.enable_buttons();
+  },
+  
+  get_dlg_data: function() {
+    var json_data = $.parseJSON(JSON.stringify($('#database_edit_form').serializeArray()));
+    // Extract just the data from the json_data object in a name : value map
+    var flds = {};
+    $.each(json_data, function(idx, item) {
+      flds[item.name] = item.value;
+    });
+    // Generate the array of data based on the schema
+    var data = [];
+    $.each(this.schema, function (idx, item) {
+      // TODO: Does not work with multiple selections
+      data.push(flds[item.field] ? flds[item.field] : '');
+    });
+    
+    return data;
+  },
+  
+  set_dlg_data: function(data) {
+    var json_str = '';
+    if (data.length === 0) {
+      json_str = this.new_dlg;
+    }
+    else {
+      // Create a json object in the format the same as the serializeArray returns so we
+      // can use the from_json to populate the form
+      var json_data = [];
+      var item = {};
+      $.each(this.schema, function (idx, fld) {
+        var item = {};
+        item.name = fld.field;
+        item.value = data[fld.id];
+        json_data.push(item);
+      });
+      json_str = JSON.stringify(json_data);
+    }
+    $('#database_edit_form').populate(this.parent_class.json_to_populate(json_str));
+  },
+  
+  // Returns in array of indexes which maps the fields in data_schema to
+  // the fields in the current schema
+  // If a field in data_schema is not in the current schema,
+  // a -1 is returned for that index
+  get_data_map: function (data_schema) {
+
+    // Iterate throught the current schema to see if we can find fld
+    // If not found, we return -1
+    function _find_idx(fld) {
+      var found_idx = -1;
+      $.each(database_form_script.schema, function(_idx, _fld) {
+        if (fld.field === _fld.field) {
+          found_idx = _idx;
+        }
+      });
+      return found_idx;
+    }
+    
+    var map = [];
+    $.each(data_schema, function(idx, fld) {
+      // Simplist case: The data in the same index as the current schema
+      if ((idx < database_form_script.schema.length) && (fld.field === database_form_script.schema[idx].field)) {
+        map.push(idx);
+      }
+      // If the data is in the current schema but a different index
+      else {
+        map.push(_find_idx(fld));
+      }
+    });
+    return map;  
+  },
+  
+  // Check map to see that each field maps to a field
+  // in the current schema
+  validate_data_map: function (map, data_schema, data) {
+    // If one of the indexes in map is -1, then that field
+    // could not be found in the schema
+    var valid = (map.join(',').indexOf('-1') === -1);
+    var remap = false;
+    // If all the fields are mapped, then check if any data
+    // was re-mapped
+    if (valid) {
+      $.each(map, function (idx, db_idx) {
+        remap = remap || (idx !== db_idx);
+      }); 
+      if (remap) {
+        database_form_script.remap_data(map, data_schema, data);
+      }
+      database_form_script.set_col_defs(map, data_schema);
+      database_form_script.load_datatable(data);
+    }
+    // If any of the fiels is un-mapped, then we ask the user 
+    // what to do with these fields
+    else {
+      database_form_script.opening_data_map_dlg(map, data_schema, data);
+    }
+  },
+  
+  remap_data: function (map, data_schema, data) {
+    // Create a map which an array of indexes which maps 
+    // each database field to the data
+    var db_map = [];
+    $.each(map, function(idx, db_idx) {
+      db_map[db_idx] = idx;
+    });
+    // Iterate thru the data so that it is in the correct index
+    // according to db_map
+    $.each(data, function(idx, d) {
+      var save_d = d.slice(0);  // Copy the array
+      $.each(database_form_script.schema, function (i, fld) {
+        var d_idx = db_map[i];
+        if (d_idx === undefined) {
+          d[i] = '';
+        }
+        else {
+          d[i] = save_d[d_idx];
+        }
+      });
+      d.slice(0, db_map.length);
+    });
+   },
+  
+  set_col_defs: function (map, data_schema) {
+    // Set if the column is visible
+    $.each(map, function(idx, db_idx) {
+      if (db_idx > -1) {
+        if (typeof data_schema[idx].hidden === 'string') {
+          data_schema[idx].hidden = data_schema[idx].hidden === 'true';
+        }
+        if (database_form_script.schema[db_idx].hidden !== data_schema[idx].hidden) {
+          database_form_script.dt.fnSetColumnVis(db_idx, !data_schema[idx].hidden);
+        }
+        if (data_schema[idx].col_width !== undefined) {
+          database_form_script.schema[db_idx].col_width = data_schema[idx].col_width;
+        }
+      }
+    });
+    //TODO - Here is where I try to set the col widths from the schema but
+    // it doesn't work
+    var aoColumns = database_form_script.dt.fnSettings().aoColumns;
+    $.each(aoColumns, function (idx, col) {
+      if (col.bVisible && (database_form_script.schema[idx].col_width !== '')) {
+        col.sWidth = database_form_script.schema[idx].col_width;
+      }
+    });
+    database_form_script.dt.fnAdjustColumnSizing();
+  },
+   
+  opening_data_map_dlg: function (map, data_schema, data) {
+    
+    // Returns at least the top 3 data for the field
+    function get_data_html (_idx) {
+      var data_html = [];
+      for (var i = 0; i < 3; i++) {
+        var d = '';
+        if (i < data.length) {
+          d = data[i][_idx];
+        }
+        data_html.push(d === '' ? '&nbsp;' : $('<span/>').text(d.length < 13 ? d : d.substr(0,10)+'...').html());
+      }
+      return data_html.join('<br/>');
+    }
+    
+    // Click handler for the delele icon
+    function delete_click () {
+      var $table = $(this).parents('table:first');
+      var $data= $table.find('.fld_data');
+      map[$table.attr('fld_idx')] = -2;
+      set_fld_data($data, '(deleted)');
+      if ($data.is('.ui-draggable')) {
+        $data.draggable('destroy');
+      }
+      set_fld_icon($(this), 'ui-icon-arrowrefresh-1-w', 'ui-icon-close', 'Undo delete');
+    }
+    
+    // Click handler for the undo icon
+    function undo_click () {
+      var $table = $(this).parents('table:first');
+      var $data = $table.find('.fld_data');
+      var fld_idx = $table.attr('fld_idx');
+      var db_idx = map[fld_idx];
+      // If undo-ing a delete
+      if (db_idx === -2) {
+        set_fld_data($data, 'data', get_data_html(fld_idx));
+      }
+      // If undo-ing a map
+      else {
+        var $db_data = $('#db_flds .fld_data:eq('+db_idx+')');
+        set_fld_data($data, 'data', $db_data.html());
+        set_fld_data($db_data, '(new field)');
+      }
+      map[fld_idx] = -1;
+      set_fld_icon($(this), 'ui-icon-close', 'ui-icon-arrowrefresh-1-w', 'Delete data');
+    }
+    
+    function set_fld_icon ($a, icon, old_icon, title) {
+      $a
+        .removeClass(old_icon)
+        .addClass(icon)
+        .attr('title', title)
+        .unbind('click')
+        .click(icon === 'ui-icon-close' ? delete_click : undo_click);
+    }
+    
+    // mode   values are 'data', '(new field)', '(mapped)', '(deleted)', '(formula)'
+    //        If 'data', pass in the html of the data
+    function set_fld_data($data, mode, html) {
+      var $table = $data.parents('table');
+      var is_db_fld = $table.eq(1).is('#db_flds');
+      var data_html = '';
+      if (mode === 'data') {
+        data_html = html;
+        $data.removeAttr('align');
+        $data.css('color', '');
+      }
+      else {
+        data_html = '<br/><i>' + mode + '</i><br/>&nbsp';
+        $data.attr('align','center');
+        $data.css('color', '#888888');
+      }
+      $data.html(data_html);
+      if (mode.indexOf('new') > -1) {
+        $table.eq(0).addClass('new_fld');
+        $data.droppable({
+          accept: '#unmapped_flds .fld_data',
+          hoverClass: 'ui-state-hover',
+          drop: function(evt, ui) {
+            var $drag_table = ui.draggable.parents('table:first');
+            var $drop_table = $(this).parents('table:first');
+            map[$drag_table.attr('fld_idx')] = $drop_table.attr('fld_idx');
+            set_fld_data($(this), 'data', ui.draggable.html());
+            set_fld_data(ui.draggable, '(mapped)');
+            set_fld_icon($drag_table.find('.fld_name a'), 'ui-icon-arrowrefresh-1-w', 'ui-icon-close', 'Undo mapping');
+            window.setTimeout(function () {
+              ui.draggable.draggable('destroy');
+            }, 1);
+          }
+        });
+      }
+      else {
+        $table.eq(0).removeClass('new_fld');
+        if ($data.is('.ui-droppable')) {
+          $data.droppable('destroy');
+        } 
+      }
+      if ((is_db_fld && (mode.indexOf('new') > -1)) ||
+          (!is_db_fld && (mode === 'data'))) {
+        $data.css('background-color','white')
+      }
+      else {
+        $data.css('background-color','')
+      }
+      if (is_db_fld && (mode.indexOf('new') < 0)) {
+        $table.eq(0).addClass('ui-state-disabled');
+      }
+      else {
+        $table.eq(0).removeClass('ui-state-disabled');
+      }
+      if (!is_db_fld && (mode === 'data')) {
+        $data.draggable({
+          cursor: 'move',
+          revert: true,
+          revertDuration: 0,
+          snap: '.new_fld',
+          snapMode: 'inner',
+          zIndex: 100
+        });
+      }
+    }
+    
+    var $form = $('<form id="schema_form">');
+    $form
+      .append('The following data is not mapped to any field in the database. <span class="info">To resolve this, you can either delete the data or drag the data to a new field in the database.</span>')
+      .append('<table id="unmapped_flds" style="margin-bottom: 10px"><tr/></table>')
+      .append('<h2>Database Fields</h2>')
+      .append('<table id="db_flds" border="0" cellpadding="0" cellspacing="0"><tr/></table>')
+      .appendTo('body');
+     
+    var td_html = '<td><table class="ui-widget-content fld_cell" style="width:100px"><tr><th class="ui-state-default fld_name"></th></tr><tr><td class="fld_data"></td></tr></table></td>';
+    // Add database fields
+    $.each(this.schema, function (idx, fld) {
+      var $td = $(td_html);
+      $('.fld_name', $td).text(fld.name);
+      $('.fld_cell', $td).attr('fld_idx',idx);   // add the index as an attr
+      $td.appendTo('#db_flds tr:first');
+      set_fld_data($('.fld_data', $td), (fld.field.indexOf('_formula') > -1 ? '(formula)' : '(new field)'));  // set the cells to new as the default
+    });
+    
+    // Add unmapped data fields & the data for all the cells that are mapped
+    $.each(map, function (idx, db_idx) {
+      // Set the data for the database fields that are mapped
+      if (db_idx > -1) {
+        set_fld_data($('#db_flds .fld_data:eq(' + db_idx + ')'), 'data', get_data_html(idx));
+      }
+      // Set the unmapped data fields
+      else {
+        var $td = $(td_html);
+        $('.fld_name', $td)
+          .text(data_schema[idx].name)
+          .append('<a href="#" class="ui-icon" style="float:right">');
+        set_fld_icon($('.fld_name a', $td), 'ui-icon-close', '', 'Delete data');
+        $('.fld_cell', $td).attr('fld_idx',idx);
+        $td.appendTo('#unmapped_flds tr:first');
+        set_fld_data($('.fld_data', $td), 'data', get_data_html(idx));
+      }
+    });
+    $('#schema_form th').css('text-transform', 'capitalize');
+    
+    // Change the info text if there are no new fields to map to
+    if ($('.new_fld').length === 0) {
+      $("#schema_form .info").text('To resolve this, you can delete the data.');
+      $('.ui-draggable').draggable('destroy');
+    }
+    
+    var dlg_saved = false;
+    $('#schema_form').dialog({
+      minWidth: 200,
+      width: Math.min($(window).width()-40, Math.max($('#unmapped_flds').width()+20,$('#db_flds').width()+20)),
+      modal: true,
+      title: "Resolve Unmapped Data",
+      zIndex: 5,
+      buttons: {
+        Save: function() {
+          if (map.join(',').indexOf('-1') > -1) {
+            parent_form_script.alert('Please resolve all unmapped data before saving.');
+          }
+          else {
+            database_form_script.remap_data(map, data_schema, data);
+            database_form_script.set_col_defs(map, data_schema);
+            database_form_script.load_datatable(data);
+            dlg_saved = true;
+            $(this).dialog("close");
+          }
+        },
+        Cancel: function() {
+          $(this).dialog("close");
+        }
+      },
+      open: function () {
+        database_form_script.resize_container();
+      },
+      close: function () {
+        database_form_script.resize_container();
+        try { 
+          if (!dlg_saved) {
+            database_form_script.parent_class.widget_cancel_edit_session();
+          } 
+        } 
+        catch (e) {}
+        $(this).dialog('destroy');
+        $(this).remove();
+      }
+    });
+  }
+};
+
+parent_form_script.register_widget_type(database_form_script);
+

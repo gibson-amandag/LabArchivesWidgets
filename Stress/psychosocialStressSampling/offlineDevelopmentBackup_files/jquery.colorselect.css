@@ -1,0 +1,22 @@
+.ui-colorselect-box {
+  float: left;
+  margin-top: 1px;
+  margin-right: 1px;
+  border-width: 1px;
+}
+.ui-colorselect-menu {
+  position: absolute;
+  z-index: 10;
+  overflow: auto;
+}
+.ui-colorselect-menuitem-box {
+  width: 14px;
+  height: 14px;
+  margin-right: 2px;
+  float: left;
+  border-width: 1px;
+}
+.ui-colorselect-border {
+  border-color: gray;
+  border-style: solid;
+}

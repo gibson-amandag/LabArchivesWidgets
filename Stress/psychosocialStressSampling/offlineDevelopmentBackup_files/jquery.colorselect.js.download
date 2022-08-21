@@ -1,0 +1,242 @@
+/*
+Author: Eileen Campbell
+*/
+(function($) {
+  
+  var colorselect_methods = {
+    
+    //////////////////////////////////////////////////
+    // Public methods
+
+    init: function (options) {
+      // If this input element is already a colorselect widget, destroy it and re-init it
+      $(this).filter('.ui-colorselect').colorselect('destroy');
+      
+      var settings = $.extend({
+        colors: ["","black","blue","green","orange","purple","red","white","yellow"], // array; list of colors
+        names: {"": '(None)'},  // map of names to display in the drop down; If you want to display a different 
+                                // name than the color, map the color to the name, e.g. "beige" : "natural"
+        default_colorname: "",  // string; sets selection to this color name
+        readonly: false         // boolean; true if colorselect is read only
+      }, options);
+
+      return this.each(function (i) {
+        var $this = $(this);
+        
+        // Create the menu of colors/names from settings
+        var uid = $this.colorselect('_get_uid');
+        var menu = $('<ul id="colorselect_menu_' + uid + '" class="ui-colorselect-menu"/>');
+        $.each(settings.colors, function(idx, color) {
+          var name = (settings.names[color] === undefined ? color : settings.names[color]);
+          $('<li/>')
+            .attr({color: color,display_name: name})  // additional attributes to get the color and name easier
+            .append($('<a href="#"/>')
+              .text(name)
+              .prepend($('<div class="ui-colorselect-menuitem-box"/>')
+                .attr('title',name)
+                .css('background-color',color)
+                .addClass(color === '' ? '' : 'ui-colorselect-border')
+              )
+            )
+            .appendTo(menu);
+        });
+ 
+        // Init the menu widget
+        menu
+          .menu({
+            select: function (evt, ui) {
+              //console.log('menu select');
+              $this.colorselect('_set_sel', ui.item.attr('color'), ui.item.attr('display_name'));
+              $(document).click();
+              return false;
+            }
+          })
+          .hide()
+          .appendTo($('body'));
+
+        // Put the colorselect all together: precede the input with a color box, after the input put the
+        // menu and bind any events
+        var h = $this.height();
+        $this
+          .addClass('ui-colorselect')
+          .attr({
+            readonly: 'readonly',
+            uid: uid,
+            color: '',
+            display_name: (settings.names[''] === undefined ? '' : settings.names[''])
+          })
+          .before($('<div class="ui-colorselect-box"/>').width(h).height(h));
+          
+        // If it is readonly, then we don't bind any events
+        if (!settings.readonly) {
+          var box_w = $this.prev().outerWidth(true);
+          $this
+            // Show the menu when the input gets the focus
+            .focus(function() {
+              //console.log('input focus');
+              menu
+                .height('') // Clear the menu height which will be re-calculated
+                .css('font',$this.css('font'))
+                .show()
+                .position({
+                  my: "left top",
+                  at: "left-"+box_w+" bottom",
+                  of: this,
+                  collision: "flipfit"                  //within: menu_parentwindow
+                })
+                .width(box_w + $this.width())
+                .height(Math.min(menu.height(), $(window).height()-6));
+              var $sel_item = $('.ui-menu-item', menu).filter(function(idx) {
+                return $(this).attr('display_name') === $this.val();
+              });
+              if ($sel_item.length > 0) {
+                // Set the selection of the colorselect to the value in the input element
+                menu.menu('focus', null, $sel_item.focus());
+              }
+              $(document).click();
+              $(document).one("click", function() {
+                //console.log('document click');
+                menu.hide();
+                return false;
+              });
+            })
+            .click(function() {
+              //console.log('input click');
+              // Invoke the focus event if the menu is not showing
+              if (menu.css('display') === 'none') {
+                $this.focus();
+              }
+              // All we do is return false so the document click is not invoked
+              return false;
+            });
+          // Hide the menu if it loses focus
+          menu.blur(function(evt) {
+            //console.log('menu blur');
+            $(document).click();
+          })
+        }
+          
+        // Set the value of input box if specified
+        if (settings.default_colorname !== '') {
+          $this.colorselect('set_selbyname', settings.default_colorname);
+        }
+        else {
+          $this.colorselect('set_selbycolor', settings.default_colorname);
+        }
+      });
+    },
+  
+    destroy: function () {
+      var $this = $(this);
+      var uid = $this.attr('uid');
+      $this
+        .removeClass('ui-colorselect')
+        .removeAttr('readonly color display_name uid')
+        .unbind();
+      $this.prev('.ui-colorselect-box').remove();
+      $('#colorselect_menu_'+uid).menu('destroy').remove();
+    },
+    
+    // Returns the currently selected color of the first matched element
+    get_selbycolor: function() {
+      return $(this).first().attr('color');
+    },
+    
+    // Returns the currently selected display name of the first matched element
+    get_selbyname: function() {
+      return $(this).first().attr('display_name');
+    },
+    
+    // Sets the selected color
+    set_selbycolor: function (color) {
+      return this.each(function (i) {
+        var $this = $(this);
+        $this.colorselect('_set_sel', color, $this.colorselect('get_name', color));
+      });
+    },
+    
+    // Sets the selected color to the name passed in
+    set_selbyname: function (name) {
+      return this.each(function (i) {
+        var $this = $(this);
+        $this.colorselect('_set_sel', $this.colorselect('get_color', name), name);
+      });
+    },
+    
+    // Returns the color from the specified name for the first matched element
+    get_color: function (name) {
+      var color = name;
+      var uid = $(this).attr('uid');
+      $('.ui-menu-item', $('#colorselect_menu_'+uid)).filter(function (idx) {
+          return $(this).attr('display_name') === name;
+        }).first().each(function(idx, ele) {
+          color = $(ele).attr('color');
+        });
+      return color;
+    },
+    
+    // Returns the name from the specified color for the first matched element
+    get_name: function (color) {
+      var name = color;
+      var uid = $(this).attr('uid');
+      $('.ui-menu-item', $('#colorselect_menu_'+uid)).filter(function (idx) {
+          return $(this).attr('color') === color;
+        }).first().each(function(idx, ele) {
+          name = $(ele).attr('display_name');
+        });
+      return name;
+    },
+    
+    resize_box: function(size) {
+      $(this).prev().width(size).height(size);
+    },
+    
+    //////////////////////////////////////////////////
+    // Private methods
+    
+    // Sets the selection to the color and name
+    _set_sel: function (color, name) {
+      //console.log('_set_sel: '+color+','+name);
+      return this.each(function (i) {
+        var $this = $(this);
+        $this
+          .attr({
+            color: color,
+            display_name: name
+          })
+          .val(name)
+          .prev()
+            .css('background-color',color)
+            .attr('title',name);
+        if (color === '') {
+          $this.prev().removeClass('ui-colorselect-border');
+        }
+        else {
+          $this.prev().addClass('ui-colorselect-border');
+        }
+        // Send a change event to input box
+        $this.change(); 
+      });
+    },
+    
+    _get_uid: function () {
+      var cnt = 1;
+      while ($('#colorselect_menu_'+cnt).length > 0)
+        cnt++;
+      return cnt;  
+    }
+    
+  };
+
+  $.fn.colorselect = function(method) {
+    // Method calling logic
+    if (colorselect_methods[method]) {
+      return colorselect_methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+    } else if ( typeof method === 'object' || !method) {
+      return colorselect_methods.init.apply(this, arguments);
+    } else {
+      $.error('Method ' + method + ' does not exist on jQuery.colorselect');
+    }
+  };
+
+})(jQuery);
