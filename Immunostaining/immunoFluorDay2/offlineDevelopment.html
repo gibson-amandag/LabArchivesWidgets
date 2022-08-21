@@ -96,16 +96,16 @@ $(document).ready(function () {
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
-        // Default to 3
-        var numWashes1 = 3
+        // Default to 5
+        var numWashes1 = 5
         if(parsedJson.numWashes1){
             numWashes1 = parsedJson.numWashes1;
         }
 
         $("#numWashes1").val(numWashes1);
 
-        // Default to 3
-        var numWashes2 = 3
+        // Default to 5
+        var numWashes2 = 5
         if(parsedJson.numWashes2){
             numWashes2 = parsedJson.numWashes2;
         }
@@ -301,16 +301,16 @@ $(document).ready(function () {
             }
         }
 
-        // Default to 3
-        var numWashes1 = 3
+        // Default to 5
+        var numWashes1 = 5
         if(parsedJson.numWashes1){
             numWashes1 = parsedJson.numWashes1;
         }
 
         this.updateWashTracking(numWashes1, 1);
 
-        // Default to 3
-        var numWashes2 = 3
+        // Default to 5
+        var numWashes2 = 5
         if(parsedJson.numWashes2){
             numWashes2 = parsedJson.numWashes2;
         }
@@ -1233,7 +1233,7 @@ $(document).ready(function () {
 
     makeWashRow: function(washIndex, whichWash){
         var myLeftCol4 = "col-6 col-md-4 col-lg-3 text-right"
-        var timeText = this.getTimeText($("#washDur").val());
+        var timeText = this.getTimeText($("#washDur"+whichWash).val());
         var printNum = washIndex + 1;
         $("#washTimeDiv"+whichWash).append(
             $("<div></div>", {
@@ -1693,7 +1693,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="myLeftCol3">2. <input type="checkbox" name="step2" id="step2"/></div>
         <div class="col">
             Wash sections <span class="blue">
-            <input type="number" id="numWashes1" name="numwashes1" value="3" step="1" style="width: 3em;" class="blue numWashes" data-whichwash="1"></input>
+            <input type="number" id="numWashes1" name="numwashes1" value="5" step="1" style="width: 3em;" class="blue numWashes" data-whichwash="1"></input>
             times for 
             <input type="number" id="washDur1" name="washdur1" value="10" step="1" style="width: 3em;" class="blue washDur" data-whichwash="1"></input>
             min</span> on shaker <em>(describe below)</em> with 
@@ -1740,7 +1740,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="myLeftCol3">4. <input type="checkbox" name="step4" id="step4"/></div>
         <div class="col">
             Wash sections <span class="blue">
-            <input type="number" id="numWashes2" name="numwashes2" value="3" step="1" style="width: 3em;" class="blue numWashes" data-whichwash="2"></input>
+            <input type="number" id="numWashes2" name="numwashes2" value="5" step="1" style="width: 3em;" class="blue numWashes" data-whichwash="2"></input>
             times for 
             <input type="number" id="washDur2" name="washdur2" value="10" step="1" style="width: 3em;" class="blue washDur" data-whichwash="2"></input>
             min</span> on shaker with 

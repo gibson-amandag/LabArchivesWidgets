@@ -96,8 +96,8 @@ $(document).ready(function () {
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
         // Set wash times equal to what was stored in to_json - should be the same, but just in case
-        // Default to 3
-        var numWashes = 3
+        // Default to 5
+        var numWashes = 5
         if(parsedJson.numWashes){
             numWashes = parsedJson.numWashes;
         }
@@ -291,8 +291,8 @@ $(document).ready(function () {
                 this.addAntibodies(abNum);
             }
         }
-        // Default to 3
-        var numWashes = 3;
+        // Default to 5
+        var numWashes = 5;
         if(parsedJson.numWashes){
             numWashes = parsedJson.numWashes;
         }
@@ -1800,7 +1800,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
         <div class="myLeftCol3">2. <input type="checkbox" name="step2" id="step2"/></div>
         <div class="col">
             Wash sections <span class="blue">
-            <input type="number" id="numWashes" name="numwashes" value="3" step="1" style="width: 3em;" class="blue"></input>
+            <input type="number" id="numWashes" name="numwashes" value="5" step="1" style="width: 3em;" class="blue"></input>
             times for 
             <input type="number" id="washDur" name="washdur" value="10" step="1" style="width: 3em;" class="blue"></input>
             min</span> on shaker <em>(describe below)</em> with 

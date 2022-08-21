@@ -36,16 +36,16 @@ my_widget_script =
         // Initialize the form with the stored widgetData using the parent_class.init() function
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
-        // Default to 3
-        var numWashes1 = 3
+        // Default to 5
+        var numWashes1 = 5
         if(parsedJson.numWashes1){
             numWashes1 = parsedJson.numWashes1;
         }
 
         $("#numWashes1").val(numWashes1);
 
-        // Default to 3
-        var numWashes2 = 3
+        // Default to 5
+        var numWashes2 = 5
         if(parsedJson.numWashes2){
             numWashes2 = parsedJson.numWashes2;
         }
@@ -241,16 +241,16 @@ my_widget_script =
             }
         }
 
-        // Default to 3
-        var numWashes1 = 3
+        // Default to 5
+        var numWashes1 = 5
         if(parsedJson.numWashes1){
             numWashes1 = parsedJson.numWashes1;
         }
 
         this.updateWashTracking(numWashes1, 1);
 
-        // Default to 3
-        var numWashes2 = 3
+        // Default to 5
+        var numWashes2 = 5
         if(parsedJson.numWashes2){
             numWashes2 = parsedJson.numWashes2;
         }
@@ -1173,7 +1173,7 @@ my_widget_script =
 
     makeWashRow: function(washIndex, whichWash){
         var myLeftCol4 = "col-6 col-md-4 col-lg-3 text-right"
-        var timeText = this.getTimeText($("#washDur").val());
+        var timeText = this.getTimeText($("#washDur"+whichWash).val());
         var printNum = washIndex + 1;
         $("#washTimeDiv"+whichWash).append(
             $("<div></div>", {

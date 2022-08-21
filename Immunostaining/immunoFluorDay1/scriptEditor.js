@@ -36,8 +36,8 @@ my_widget_script =
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
         // Set wash times equal to what was stored in to_json - should be the same, but just in case
-        // Default to 3
-        var numWashes = 3
+        // Default to 5
+        var numWashes = 5
         if(parsedJson.numWashes){
             numWashes = parsedJson.numWashes;
         }
@@ -231,8 +231,8 @@ my_widget_script =
                 this.addAntibodies(abNum);
             }
         }
-        // Default to 3
-        var numWashes = 3;
+        // Default to 5
+        var numWashes = 5;
         if(parsedJson.numWashes){
             numWashes = parsedJson.numWashes;
         }
