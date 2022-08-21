@@ -1,0 +1,303 @@
+<!-- Luxon Date Handling --><script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js" integrity="sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=" crossorigin="anonymous"></script><!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" /><!-- Load jQuery for Bootstrap --><script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script><!-- Load bootstrap java --><script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script><!-- Bootbox for dialogs --><script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js" integrity="sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Call no conflict to reassign this newer jQuery off of $ and jquery--><script>
+    var $jq351 = jQuery.noConflict(true);
+</script>
+<style type="text/css">/* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 100%
+    }
+
+    .forTextBox, .ifOther, .ifFemale {
+        display: none;
+    }
+
+    button.card-header{
+        border: none;
+    }
+</style>
+<!-- TO DO Begin typing your HTML code here -->
+<div class="container info">
+<div class="row">
+<h3 class="col">Experiment Info:</h3>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">Date:</div>
+
+<div class="col"><input class="fullWidth watch" data-watch="date" id="expDate" name="expdate" placeholder="YYYY-MM-DD" type="date" /></div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">EST/EDT:</div>
+
+<div class="col"><select class="fullWidth" id="timeZone" name="timezone"><option value="est">Standard (winter)</option><option value="edt">Daylight Savings (summer)</option> </select></div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">Start of Experiment:</div>
+
+<div class="col expStartTime">09:30</div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">Restraint:</div>
+
+<div class="col expRestraintTime">10:30</div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">2,3-TMT (scent):</div>
+
+<div class="col expScentTime">12:30</div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">End of Experiment:</div>
+
+<div class="col expEndTime">14:30</div>
+</div>
+
+<div class="row mt-2 purposeRow">
+<div class="myLeftCol">Purpose:</div>
+
+<div class="col"><textarea class="autoAdjust fullWidth" id="expPurpose" name="exppurpose" placeholder="Purpose of experiment"></textarea></div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">Starting LH sample ID:</div>
+
+<div class="col"><input class="fullWidth" id="lhstart" name="lhstart" type="number" /></div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">Amount Nutella per avg. mouse (mg):</div>
+
+<div class="col"><input class="fullWidth calcAllNutella" id="nutellaPerMouse" name="nutellapermouse" type="number" value="60" /></div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">Avg. mouse mass (g):</div>
+
+<div class="col"><input class="fullWidth calcAllNutella" id="avgMouseMass" name="avgmousemass" type="number" value="25" /></div>
+</div>
+</div>
+
+<div class="container">
+<div class="row mt-2 align-items-center">
+<h3 class="myLeftCol">Mouse Info:</h3>
+
+<div class="col hideView"><input class="fullWidth" id="addMouse" name="addmouse" type="button" value="Add new mouse" /></div>
+</div>
+
+<div class="row mouseInfo">&nbsp;</div>
+</div>
+
+<div class="container mt-3">
+<div class="row">
+<div class="myLeftCol">Select drug:</div>
+
+<div class="col"><select class="fullWidth" id="drugName" name="drugname"><option value="">[Select]</option><option value="CNO">CNO</option><option value="cort">corticosterone</option><option value="other">other</option> </select> <input class="fullWidth ifOther" id="otherDrug" name="otherdrug" type="text" /></div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">Stock concentration: (mg/mL)</div>
+
+<div class="col"><input class="fullWidth calcStock" id="stockConc" name="stockconc" type="number" /></div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">Stock prep date:</div>
+
+<div class="col"><input class="fullWidth" id="stockDate" name="stockdate" type="date" /></div>
+</div>
+
+<div class="row mt-2">
+<div class="myLeftCol">Vehicle:</div>
+
+<div class="col"><input class="fullWidth" id="vehicleName" name="vehiclename" type="text" /></div>
+</div>
+
+<div class="row mt-2">
+<h4 class="myLeftCol">Prepare Nutella</h4>
+
+<div class="col"><input class="fullWidth" id="addDose" name="adddose" type="button" value="Add Dose" /></div>
+<!-- <div class="col">
+            <input type="button" value="Add Vehicle" id="addVehicle" name="addvehicle" class="fullWidth">
+        </div> --></div>
+</div>
+
+<div class="container">
+<div class="row" id="vehCards">&nbsp;</div>
+</div>
+
+<div class="container">
+<div class="row" id="doseCards">&nbsp;</div>
+</div>
+
+<div class="container">
+<div class="row mt-2">
+<h3 class="col">Sampling Info:</h3>
+</div>
+
+<div class="row mt-2 align-items-center">
+<div class="myLeftCol">Total # Possible Sample Times:</div>
+
+<div class="col"><input class="fullWidth" id="numSamples" name="numsamples" type="number" /></div>
+</div>
+
+<div class="row sampleInfoDiv">&nbsp;</div>
+</div>
+
+<div class="container samplesDiv mt-2">
+<div class="accordion" id="samplesAccordion">&nbsp;</div>
+</div>
+
+<div class="forTextBox"><textarea id="forSizing" name="forsizing">&nbsp;</textarea></div>
+
+<div class="container mt-2">
+<div id="forCopy">&nbsp;</div>
+
+<div id="errorMsg">&nbsp;</div>
+
+<div class="row">
+<h3 class="col-12">Output Tables:</h3>
+</div>
+</div>
+
+<div class="container mt-2">
+<div class="row">
+<h4 class="col">Sampling Info</h4>
+</div>
+
+<div class="row mt-2">
+<div class="col-12 col-sm-6 col-md-3"><input class="fullWidth toggleTable" data-table="sampleTable" id="toggleTable1" name="toggletable1" type="button" value="Show/Hide Table" /></div>
+
+<div class="col-12 col-sm-6 col-md-3"><input class="fullWidth toCSV" data-table="sampleTable" id="toCSV1" name="tocsv1" type="button" value="Save CSV" /></div>
+
+<div class="col-12 col-sm-6 col-md-3"><input class="fullWidth copyData" data-table="sampleTable" id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" /><br />
+Copy Table Head? <input class="copyHead" data-table="sampleTable" id="copyHead1" name="copyhead1" type="checkbox" /></div>
+</div>
+</div>
+
+<div class="container mt-2">
+<div class="table-responsive xsTableDiv">
+<table class="table" id="sampleTable">
+	<thead>
+		<tr>
+			<th>Sample</th>
+			<th>Hour</th>
+			<th>Cort</th>
+			<th>LH</th>
+			<th>Other</th>
+		</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>
+
+<p>&nbsp;</p>
+</div>
+</div>
+
+<div class="container mt-2">
+<div class="row">
+<h4 class="col">Mouse Info:</h4>
+</div>
+
+<div class="row mt-2">
+<div class="col-12 col-sm-6 col-md-3"><input class="fullWidth toggleTable" data-table="mouseTable" id="toggleTable2" name="toggletable2" type="button" value="Show/Hide Table" /></div>
+
+<div class="col-12 col-sm-6 col-md-3"><input class="fullWidth toCSV" data-table="mouseTable" id="toCSV2" name="tocsv2" type="button" value="Save CSV" /></div>
+
+<div class="col-12 col-sm-6 col-md-3"><input class="fullWidth copyData" data-table="mouseTable" id="copyDataButton2" name="copydatabutton2" type="button" value="Copy Data" /><br />
+Copy Table Head? <input class="copyHead" data-table="mouseTable" id="copyHead2" name="copyhead2" type="checkbox" /></div>
+</div>
+</div>
+<!-- Example Table Container that is responsive to window width, including for xs -->
+
+<div class="container mt-2">
+<div class="table-responsive xsTableDiv">
+<table class="table" id="mouseTable">
+	<thead>
+		<tr>
+			<th>Mouse</th>
+			<th>Sex</th>
+			<th>CycleStage</th>
+			<th>Treatment</th>
+			<th>Dosage (mg/kg)</th>
+			<th>BodyMass</th>
+			<th>ReproTractMass</th>
+			<th>GonadMass</th>
+		</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>
+
+<p>&nbsp;</p>
+</div>
+</div>
+
+<div class="container mt-2">
+<div class="row">
+<h4 class="col">Mouse Info:</h4>
+</div>
+
+<div class="row mt-2">
+<div class="col-12 col-sm-6 col-md-3"><input class="fullWidth toggleTable" data-table="mouseTable2" id="toggleTable3" name="toggletable3" type="button" value="Show/Hide Table" /></div>
+
+<div class="col-12 col-sm-6 col-md-3"><input class="fullWidth toCSV" data-table="mouseTable2" id="toCSV3" name="tocsv3" type="button" value="Save CSV" /></div>
+
+<div class="col-12 col-sm-6 col-md-3"><input class="fullWidth copyData" data-table="mouseTable2" id="copyDataButton2" name="copydatabutton3" type="button" value="Copy Data" /><br />
+Copy Table Head? <input class="copyHead" data-table="mouseTable2" id="copyHead3" name="copyhead3" type="checkbox" /></div>
+</div>
+</div>
+
+<div class="container mt-2">
+<div class="table-responsive xsTableDiv">
+<table class="table" id="mouseTable2">
+	<thead>
+		<tr>
+			<th>Mouse</th>
+			<th>Date</th>
+			<th>CycleStage</th>
+			<th>Treatment</th>
+			<th>Dosage (mg/kg)</th>
+			<th>BodyMass</th>
+			<th>ReproTractMass</th>
+			<th>GonadMass</th>
+		</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>
+
+<p>&nbsp;</p>
+</div>
+</div>
