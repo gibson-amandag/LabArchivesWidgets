@@ -213,14 +213,15 @@ my_widget_script =
         $(".toggleTable").on("click", (e)=> {
             var tableID = $(e.currentTarget).data("table");
             var $table = $("#"+tableID);
-            this.toggleTableFuncs($table);
+            var $errorMsg = $(".errorMsg")
+            this.toggleTableFuncs($table, $errorMsg);
         });
 
         $('.toCSV').on("click", (e)=> {
             var tableID = $(e.currentTarget).data("table");
             var dateToday = luxon.DateTime.now().toISODate();
             var fileName = "stress_"+tableID+"_"+dateToday;
-            var $errorMsg = $("#errorMsg");
+            var $errorMsg = $(".errorMsg");
             
             this.toCSVFuncs(fileName, tableID, $errorMsg);
         });
@@ -369,6 +370,7 @@ my_widget_script =
     },
 
     setUpInitialState: function () {
+        // $("#sampleTime1").val(0);
         this.isDateSupported();
         this.isTimeSupported();
 
@@ -461,9 +463,24 @@ my_widget_script =
             this.makeSampleContent(totalNumSamples);
         });
 
-        $.each(my_widget_script.mouseNums, function () {
-            // console.log(this);
-            my_widget_script.watchMouseID(this);
+        this.mouseNums.forEach((mouseNum)=>{
+            this.watchMouseID(mouseNum);
+            this.changeViewForSex(mouseNum);
+            var mouseSearch = this.mouseSearch(mouseNum);
+            $(".checkSacrifice"+mouseSearch).each((i, e)=>{
+                if($(e).is(":checked")){
+                    $(".ifSacrifice"+mouseSearch).show();
+                } else {
+                    $(".ifSacrifice"+mouseSearch).hide();
+                }
+            });
+            $(".checkOvulation"+mouseSearch).each((i, e)=>{
+                if($(e).is(":checked")){
+                    $(".ifOvulation"+mouseSearch).show();
+                } else {
+                    $(".ifOvulation"+mouseSearch).hide();
+                }
+            });
         });
 
         $.each(my_widget_script.sampleNums, function () {
@@ -575,6 +592,7 @@ my_widget_script =
         } else {
             $(".ifSampling"+sampleSearch).hide();
         }
+        this.resize();
     },
 
     makeVehCard: function () {
@@ -1263,6 +1281,120 @@ my_widget_script =
         $(calcSearch).html(val);
     },
 
+    makeRow: function(label, $input, addRowClass = ""){
+        var myLeftCol = "col-12 col-lg-6";
+        if(addRowClass){
+            addRowClass = " " + addRowClass
+        }
+
+        var $label = $("<label></label>", {
+            "for": $input.attr("id")
+        }).append(label);
+
+        var $row = $("<div></div>", {
+            "class": "row mt-2" + addRowClass
+        }).append(
+            $("<div></div>", {
+                "class": myLeftCol
+            }).append(
+                $label
+            )
+        ).append(
+            $("<div></div>", {
+                "class": "col"
+            }).append(
+                $input
+            )
+        )
+        return $row
+    },
+
+    makeInput: function(inputType, className, mouseNum, optionsObj){
+        var lowerCaseName = className.toLowerCase();
+        if(inputType === "select"){
+            $input = $("<select></select>", {
+                "name": lowerCaseName+mouseNum,
+                "id": className+mouseNum,
+                "class": className + " fullWidth watch",
+                "data-watch": className,
+                "data-mouse": mouseNum
+            })
+            for(option of optionsObj){
+                $input.append(
+                    $("<option></option>", {
+                        "value": option.value
+                    }).append(
+                        option.text
+                    )
+                )
+            }
+        } else if(inputType === "textarea"){
+            $input = $("<tex" + "tarea></tex" +"tarea>", {
+                "name": lowerCaseName+mouseNum,
+                "id": className+mouseNum,
+                "class": className + " fullWidth watch autoAdjust",
+                "data-watch": className,
+                "data-mouse": mouseNum,
+            }).on("input", (e)=>{
+                this.updateTextarea(e.currentTarget);
+            })
+        } else {
+            var $input = $("<input></input>", {
+                type: inputType,
+                "name": lowerCaseName+mouseNum,
+                "id": className+mouseNum,
+                "class": className + " fullWidth watch",
+                "data-watch": className,
+                "data-mouse": mouseNum
+            })
+        }
+
+        if(inputType === "time"){
+            $input.each((i,e)=> {
+                this.checkTimeFormat($(e));
+            }).on("change", (e)=> {
+                this.checkTimeFormat($(e.currentTarget));
+            })
+        }
+        if(inputType === "date"){
+            $input.each((i,e)=> {
+                this.checkDateFormat($(e));
+            }).on("change", (e)=> {
+                this.checkDateFormat($(e.currentTarget));
+            })
+        }
+        return($input)
+    },
+
+    changeViewForSex: function(mouseNum){
+        var mouseSearch = this.mouseSearch(mouseNum);
+        var sex = $(".sex"+mouseSearch).val();
+        if(sex == "female"){
+            $(".ifFemale"+mouseSearch).show();
+            if($(".checkOvulation"+mouseSearch).is(":checked")){
+                $(".ifOvulation"+mouseSearch).show();
+            }
+        }else {
+            $(".ifFemale"+mouseSearch).hide().find(".stage").val("");
+            $(".ifFemale"+mouseSearch).find(".checkOvulation").prop("checked", false);
+            $(".ifOvulation"+mouseSearch).hide();
+        }
+    },
+
+    makeRowFromObj: function(obj, mouseNum){
+        var $row = this.makeRow(
+            obj.label,
+            this.makeInput(
+                obj.type,
+                obj.className,
+                mouseNum,
+                obj.optionsObj
+            ),
+            obj.addRowClass
+        );
+        return($row);
+    },
+
     makeMouseCard: function (mouseNum) {
         var inArray = this.checkInArray(mouseNum, this.mouseNums);
         if(! inArray){
@@ -1296,509 +1428,275 @@ my_widget_script =
                     ).append(
                         $("<div/>", {
                             "class": "card-body collapse"
-                        }).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("<h4>Mouse ID:</h4>")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<input/>", {
-                                        type: "text", 
-                                        "data-mouse": mouseNum,
-                                        id: "mouseID"+mouseNum,
-                                        name: "mouseid"+mouseNum,
-                                        "class": "mouseID fullWidth watch",
-                                        "data-watch": "mouseID"
-                                    }).on("input", (e)=> {
-                                        this.watchMouseID($(e.currentTarget).data("mouse"));
-                                    })
-                                )
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Short ID (for labels):")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<input/>", {
-                                        type: "text", 
-                                        "data-mouse": mouseNum,
-                                        id: "shortID"+mouseNum,
-                                        name: "shortid"+mouseNum,
-                                        "class": "shortID fullWidth watch",
-                                        "data-watch": "shortID"
-                                    }).on("input", (e)=> {
-                                        this.watchMouseID($(e.currentTarget).data("mouse"));
-                                    })
-                                )
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Stress Treatment:")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<select/>", {
-                                        "data-mouse": mouseNum,
-                                        id: "treatment"+mouseNum,
-                                        name: "treatment"+mouseNum,
-                                        "class": "treatment fullWidth watch",
-                                        "data-watch": "treatment"
-                                    }).append('<option value="CON">Control</option><option value="ALPS">Stress</option>')
-                                )
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Drug Treatment:")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<select/>", {
-                                        "data-mouse": mouseNum,
-                                        id: "mouseDose"+mouseNum,
-                                        name: "mousedose"+mouseNum,
-                                        "class": "mouseDose fullWidth watch",
-                                        "data-watch": "mouseDose"
-                                    }).append(
-                                        // '<option value="0">Vehicle</option><option value="3">3mg/kg</option>'
-                                    )
-                                )
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row + " hideView"
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Delete:")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<input/>", {
-                                        type: "button", 
-                                        value: "Delete Mouse",
-                                        "data-mouse": mouseNum,
-                                        id: "deleteMouse"+mouseNum,
-                                        name: "deletemouse"+mouseNum,
-                                        "class": "deleteMouse fullWidth",
-                                    }).on("click", (e)=> {
-                                        this.deleteMouseFuncs($(e.currentTarget).data("mouse"));
-                                    })
-                                )
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Sex:")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<select/>", {
-                                        "data-mouse": mouseNum,
-                                        id: "sex"+mouseNum,
-                                        name: "sex"+mouseNum,
-                                        "class": "sex fullWidth watch",
-                                        "data-watch": "sex"
-                                    }).append(
-                                        '<option value="">[Select]</option><option value="male">Male</option><option value="female">Female</option>'
-                                    ).on("input", (e)=> {
-                                        var sex = $(e.currentTarget).val();
-                                        var mouseSearch = this.mouseSearch(mouseNum);
-                                        if(sex == "female"){
-                                            $(".ifFemale"+mouseSearch).show();
-                                            if($(".checkOvulation"+mouseSearch).is(":checked")){
-                                                $(".ifOvulation"+mouseSearch).show();
-                                            }
-                                        }else {
-                                            $(".ifFemale"+mouseSearch).hide().find(".stage").val("");
-                                            $(".ifFemale"+mouseSearch).find(".checkOvulation").prop("checked", false);
-                                            $(".ifOvulation"+mouseSearch).hide();
-                                        }
-                                    }).each((i,e)=>{
-                                        var sex = $(e).val();
-                                        var mouseSearch = this.mouseSearch(mouseNum);
-                                        if(sex == "female"){
-                                            $(".ifFemale"+mouseSearch).show();
-                                            if($(".checkOvulation"+mouseSearch).is(":checked")){
-                                                $(".ifOvulation"+mouseSearch).show();
-                                            }
-                                        }else {
-                                            $(".ifFemale"+mouseSearch).hide().find(".stage").val("");
-                                            $(".ifFemale"+mouseSearch).find(".checkOvulation").prop("checked", false);
-                                            $(".ifOvulation"+mouseSearch).hide();
-                                        }
-                                    })
-                                )
-                            )
-                        ).append(
-                            $("<div></div>", {
-                                "class": "ifFemale",
-                                "data-mouse": mouseNum
-                            }).append(
-                                $("<div/>", {
-                                    "class": row
-                                }).append(
-                                    $("<div/>", {
-                                        "class": col
-                                    }).append("Estrous Stage:")
-                                ).append(
-                                    $("<div/>", {
-                                        "class": "col"
-                                    }).append(
-                                        $("<select/>", {
-                                            "data-mouse": mouseNum,
-                                            id: "stage"+mouseNum,
-                                            name: "stage"+mouseNum,
-                                            "class": "stage fullWidth watch",
-                                            "data-watch": "stage"
-                                        }).append('<option value="">Select</option><option value="diestrus">Diestrus</option><option value="proestrus">Proestrus</option><option value="estrus">Estrus</option>')
-                                    )
-                                )
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Start Body Mass (g):")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<input/>", {
-                                        type: "number", 
-                                        "data-mouse": mouseNum,
-                                        id: "mass"+mouseNum,
-                                        name: "mass"+mouseNum,
-                                        "class": "mass fullWidth watch calcNutella",
-                                        "data-watch": "mass"
-                                    }).on("input", (e)=>{
-                                        this.calcNutella(mouseNum);
-                                    })
-                                )
-                            )
-                        ).append(
-                            $("<div></div>", {
-                                "class": row
-                            }).append(
-                                $("<div></div>", {
-                                    "class": col
-                                }).append("Nutella for mouse:")
-                            ).append(
-                                $("<div></div>", {
-                                    "class": "col adjNutellaForMouse",
-                                    "data-mouse": mouseNum
-                                })
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Uterine/Seminal Vesicle Mass (mg):")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<input/>", {
-                                        type: "text", 
-                                        "data-mouse": mouseNum,
-                                        id: "reproMass"+mouseNum,
-                                        name: "repromass"+mouseNum,
-                                        "class": "reproMass fullWidth watch",
-                                        "data-watch": "reproMass"
-                                    })
-                                )
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Ovarian/Testicular Mass (mg):")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<input/>", {
-                                        type: "text", 
-                                        "data-mouse": mouseNum,
-                                        id: "gonadMass"+mouseNum,
-                                        name: "gonadmass"+mouseNum,
-                                        "class": "gonadMass fullWidth watch",
-                                        "data-watch": "gonadMass"
-                                    })
-                                )
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Adrenal Mass (mg):")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<input/>", {
-                                        type: "text", 
-                                        "data-mouse": mouseNum,
-                                        id: "adrenalMass"+mouseNum,
-                                        name: "adrenalmass"+mouseNum,
-                                        "class": "adrenalMass fullWidth watch",
-                                        "data-watch": "adrenalMass"
-                                    })
-                                )
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": row
-                            }).append(
-                                $("<div/>", {
-                                    "class": col
-                                }).append("Post body mass (g):")
-                            ).append(
-                                $("<div/>", {
-                                    "class": "col"
-                                }).append(
-                                    $("<input/>", {
-                                        type: "text", 
-                                        "data-mouse": mouseNum,
-                                        id: "postBodyMass"+mouseNum,
-                                        name: "postbodymass"+mouseNum,
-                                        "class": "postBodyMass fullWidth watch",
-                                        "data-watch": "postBodyMass"
-                                    })
-                                )
-                            )
-                        ).append(
-                            $("<div></div>", {
-                                "class": "ifFemale",
-                                "data-mouse": mouseNum
-                            }).append(
-                                $("<div/>", {
-                                    "class": row
-                                }).append(
-                                    $("<div/>", {
-                                        "class": col
-                                    }).append("Check for ovulation?")
-                                ).append(
-                                    $("<div/>", {
-                                        "class": "col"
-                                    }).append(
-                                        $("<input/>", {
-                                            type: "checkbox", 
-                                            "data-mouse": mouseNum,
-                                            id: "checkOvulation"+mouseNum,
-                                            name: "checkovulation"+mouseNum,
-                                            "class": "checkOvulation fullWidth watch",
-                                            "data-watch": "checkOvulation"
-                                        }).on("change", (e)=>{
-                                            var mouseSearch = this.mouseSearch(mouseNum);
-                                            if($(e.currentTarget).is(":checked")){
-                                                $(".ifOvulation"+mouseSearch).show();
-                                            } else {
-                                                $(".ifOvulation"+mouseSearch).hide();
-                                            }
-                                            })
-                                    )
-                                )
-                            )
-                        ).append(
-                            $("<div></div>", {
-                                "class": "ifOvulation",
-                                "data-mouse": mouseNum
-                            }).append(
-                                $("<div/>", {
-                                    "class": row
-                                }).append(
-                                    $("<div/>", {
-                                        "class": col
-                                    }).append("Sac date:")
-                                ).append(
-                                    $("<div/>", {
-                                        "class": "col"
-                                    }).append(
-                                        $("<input/>", {
-                                            type: "date", 
-                                            "data-mouse": mouseNum,
-                                            id: "sacDate"+mouseNum,
-                                            name: "sacdate"+mouseNum,
-                                            "class": "sacDate fullWidth watch",
-                                            "data-watch": "sacDate"
-                                        }).each((i,e)=> {
-                                            this.checkDateFormat($(e));
-                                        }).on("change", (e)=> {
-                                            this.checkDateFormat($(e.currentTarget));
-                                        })
-                                    )
-                                )
-                            ).append(
-                                $("<div/>", {
-                                    "class": row
-                                }).append(
-                                    $("<div/>", {
-                                        "class": col
-                                    }).append("Sac time:")
-                                ).append(
-                                    $("<div/>", {
-                                        "class": "col"
-                                    }).append(
-                                        $("<input/>", {
-                                            type: "time", 
-                                            "data-mouse": mouseNum,
-                                            id: "sacTime"+mouseNum,
-                                            name: "sactime"+mouseNum,
-                                            "class": "sacTime fullWidth watch",
-                                            "data-watch": "sacTime"
-                                        }).each((i,e)=> {
-                                            this.checkTimeFormat($(e));
-                                        }).on("change", (e)=> {
-                                            this.checkTimeFormat($(e.currentTarget));
-                                        })
-                                    )
-                                )
-                            ).append(
-                                $("<div/>", {
-                                    "class": row
-                                }).append(
-                                    $("<div/>", {
-                                        "class": col
-                                    }).append("Estrous Stage:")
-                                ).append(
-                                    $("<div/>", {
-                                        "class": "col"
-                                    }).append(
-                                        $("<input></input>", {
-                                            "type": "text",
-                                            "data-mouse": mouseNum,
-                                            id: "nextStage"+mouseNum,
-                                            name: "nextstage"+mouseNum,
-                                            "class": "nextStage fullWidth watch",
-                                            "data-watch": "nextStage"
-                                        })
-                                    )
-                                )
-                            ).append(
-                                $("<div/>", {
-                                    "class": row
-                                }).append(
-                                    $("<div/>", {
-                                        "class": "col-12"
-                                    }).append("Uterine Description:")
-                                ).append(
-                                    $("<div/>", {
-                                        "class": "col-12"
-                                    }).append(
-                                        $("<texta"+ "rea></tex" + "tarea>", {
-                                            "data-mouse": mouseNum,
-                                            id: "uterus"+mouseNum,
-                                            name: "uterus"+mouseNum,
-                                            "class": "uterus fullWidth watch autoAdjust",
-                                            "data-watch": "uterus"
-                                        }).on("input", (e)=>{
-                                            this.updateTextarea(e.currentTarget);
-                                        })
-                                    )
-                                )
-                            ).append(
-                                $("<div/>", {
-                                    "class": row
-                                }).append(
-                                    $("<div/>", {
-                                        "class": col
-                                    }).append("# Oocytes - oviduct 1:")
-                                ).append(
-                                    $("<div/>", {
-                                        "class": "col"
-                                    }).append(
-                                        $("<input></input>", {
-                                            "type": "number",
-                                            "data-mouse": mouseNum,
-                                            id: "oocytes1"+mouseNum,
-                                            name: "oocytes1"+mouseNum,
-                                            "class": "oocytes1 fullWidth watch",
-                                            "data-watch": "oocytes1"
-                                        })
-                                    )
-                                )
-                            ).append(
-                                $("<div/>", {
-                                    "class": row
-                                }).append(
-                                    $("<div/>", {
-                                        "class": col
-                                    }).append("# Oocytes - oviduct 2:")
-                                ).append(
-                                    $("<div/>", {
-                                        "class": "col"
-                                    }).append(
-                                        $("<input></input>", {
-                                            "type": "number",
-                                            "data-mouse": mouseNum,
-                                            id: "oocytes2"+mouseNum,
-                                            name: "oocytes2"+mouseNum,
-                                            "class": "oocytes2 fullWidth watch",
-                                            "data-watch": "oocytes2"
-                                        })
-                                    )
-                                )
-                            ).append(
-                                $("<div/>", {
-                                    "class": row
-                                }).append(
-                                    $("<div/>", {
-                                        "class": "col-12"
-                                    }).append("Notes:")
-                                ).append(
-                                    $("<div/>", {
-                                        "class": "col-12"
-                                    }).append(
-                                        $("<texta"+ "rea></tex" + "tarea>", {
-                                            "data-mouse": mouseNum,
-                                            id: "notes"+mouseNum,
-                                            name: "notes"+mouseNum,
-                                            "class": "notes fullWidth watch autoAdjust",
-                                            "data-watch": "notes"
-                                        }).on("input", (e)=>{
-                                            this.updateTextarea(e.currentTarget);
-                                        })
-                                    )
-                                )
-                            )
-                        )
+                        })
                     )
                 )
-            )
+            );
+
+            var $body = $div.find(".card-body").last();
+
+            var initialRows = [
+                {
+                    label: "<h4>Mouse ID:</h4>",
+                    type: "text",
+                    className: "mouseID"
+                },
+                {
+                    label: "Short ID (for labels):",
+                    type: "text",
+                    className: "shortID"
+                },
+                {
+                    label: "Stress Treatment:",
+                    type: "select",
+                    className: "treatment",
+                    optionsObj: [
+                        {
+                            value: "CON",
+                            text: "Control"
+                        },
+                        {
+                            value: "ALPS",
+                            text: "Stress"
+                        }
+                    ]
+                }, {
+                    label: "Drug Treatment",
+                    type: "select",
+                    className: "mouseDose",
+                    optionsObj: []
+
+                }, {
+                    label: "Delete:",
+                    type: "button",
+                    className: "deleteMouse",
+                    optionsObj: [],
+                    addRowClass: " hideView"
+                }, {
+                    label: "Sex:",
+                    type: "select",
+                    className: "sex",
+                    optionsObj: [
+                        {
+                            value: "",
+                            text: "[Select]"
+                        }, {
+                            value: "male",
+                            text: "Male"
+                        }, {
+                            value: "female",
+                            text: "Female"
+                        }
+                    ]
+                }
+            ]
+            
+            for(row of initialRows){
+                $body.append(
+                    this.makeRowFromObj(row, mouseNum)
+                )
+            }
+
+            $body.find(".mouseID").on("input", (e)=>{
+                this.watchMouseID(mouseNum);
+            });
+            $body.find(".shortID").on("input", (e)=>{
+                this.watchMouseID(mouseNum);
+            });
+            $body.find(".deleteMouse").on("click", (e)=>{
+                this.deleteMouseFuncs(mouseNum);
+            });
+            $body.find(".sex").on("click", (e)=>{
+                this.changeViewForSex(mouseNum);
+            }).each((i,e)=>{
+                this.changeViewForSex(mouseNum);
+            });
+
+            $body.find(".deleteMouse").prop("value", "Delete Mouse");
+
+            $body.append(
+                $("<div></div>", {
+                    "class": "ifFemale",
+                    "data-mouse": mouseNum
+                }).append(
+                    this.makeRowFromObj(
+                        {
+                            label: "Estrous Stage:",
+                            type: "select",
+                            className: "stage",
+                            optionsObj: [
+                                {
+                                    value: "",
+                                    text: "Select"
+                                }, {
+                                    value: "diestrus",
+                                    text: "Diestrus"
+                                }, {
+                                    value: "proestrus",
+                                    text: "Proestrus"
+                                }, {
+                                    value: "estrus",
+                                    text: "Estrus"
+                                }
+                            ]
+                        },
+                        mouseNum
+                    )
+                )
+            );
+
+            var secondSetRows = [
+                {
+                    label: "Start Body Mass (g):",
+                    type: "number",
+                    className: "mass"
+                }, {
+                    label: "Post Body Mass (g):",
+                    type: "number",
+                    className: "postBodyMass"
+                }, {
+                    label: "Was mouse sacrificed?",
+                    type: "checkbox",
+                    className: "checkSacrifice"
+                }
+            ]
+
+            for(row of secondSetRows){
+                $body.append(
+                    this.makeRowFromObj(row, mouseNum)
+                )
+            }
+
+            $body.find(".mass").on("input", (e)=>{
+                this.calcNutella(mouseNum);
+            }).closest(".row").after(
+                this.makeRow(
+                    "Nutella for mouse",
+                    $("<div></div>", {
+                        "class": "adjNutellaForMouse",
+                        "data-mouse": mouseNum
+                    })
+                )
+            );
+
+            $body.find(".checkSacrifice").on("change", (e)=>{
+                var mouseSearch = this.mouseSearch(mouseNum);
+                if($(e.currentTarget).is(":checked")){
+                    $(".ifSacrifice"+mouseSearch).show();
+                } else {
+                    $(".ifSacrifice"+mouseSearch).hide();
+                }
+                this.resize();
+            });
+                    
+            $body.append(
+                $("<div></div>", {
+                    "class": "ifSacrifice",
+                    "data-mouse": mouseNum
+                })
+            );
+
+            var $ifSacrifice = $body.find(".ifSacrifice");
+
+            var sacRows = [
+                {
+                    label: "Sac date:",
+                    type: "date",
+                    className: "sacDate",
+                }, {
+                    label: "Sac time:",
+                    type: "time",
+                    className: "sacTime",
+                }, {
+                    label: "Uterine/Seminal Vesicle Mass (mg):",
+                    type: "number",
+                    className: "reproMass",
+                }, {
+                    label: "Uterine/Seminal Vesicle Description",
+                    type: "textarea",
+                    className: "reproDescription",
+                }, {
+                    label: "Ovarian/Testicular Mass (mg):",
+                    type: "number",
+                    className: "gonadMass",
+                }, {
+                    label: "Adrenal Mass (mg):",
+                    type: "number",
+                    className: "adrenalMass"
+                }
+            ]
+
+            for(row of sacRows){
+                $ifSacrifice.append(
+                    this.makeRowFromObj(row, mouseNum)
+                );
+            }
+            
+            $ifSacrifice.append(
+                $("<div></div>", {
+                    "class": "ifFemale",
+                    "data-mouse": mouseNum
+                }).append(
+                    this.makeRowFromObj(
+                        {
+                            label:"Check for ovulation?",
+                            type: "checkbox",
+                            className: "checkOvulation"
+                        },
+                        mouseNum
+                    )
+                ).append(
+                    $("<div></div>", {
+                        "class": "ifOvulation",
+                        "data-mouse": mouseNum
+                    })
+                )
+            );
+
+            $ifSacrifice.find(".checkOvulation").on("change", (e)=>{
+                var mouseSearch = this.mouseSearch(mouseNum);
+                if($(e.currentTarget).is(":checked")){
+                    $(".ifOvulation"+mouseSearch).show();
+                } else {
+                    $(".ifOvulation"+mouseSearch).hide();
+                }
+                this.resize();
+            })
+
+            var $ifOvulation = $ifSacrifice.find(".ifOvulation");
+
+            var ifOvulationRows = [
+                {
+                    label: "Estrous Stage:",
+                    type: "text",
+                    className: "nextStage"
+                }, {
+                    label: "# Oocytes - oviduct 1:",
+                    type: "number",
+                    className: "oocytes1"
+                }, {
+                    label: "# Oocytes - oviduct 2:",
+                    type: "number",
+                    className: "oocytes2"
+                }
+            ]
+
+            for(row of ifOvulationRows){
+                $ifOvulation.append(
+                    this.makeRowFromObj(row, mouseNum)
+                );
+            }
+
+            $body.append(
+                this.makeRowFromObj(
+                    {
+                        label: "Notes:",
+                        type: "textarea",
+                        className: "notes"
+                    },
+                    mouseNum
+                )
+            )                    
             
             var $mouseTable = $("#mouseTable");
 
@@ -1821,9 +1719,9 @@ my_widget_script =
                 })
             );
 
-            var calcs = ["mouseID", "sex", "stage", "treatment", "mouseDose", "mass", "reproMass", "gonadMass"];
-            var calcs2 = ["mouseID", "date", "stage", "treatment", "mouseDose", "mass", "reproMass", "gonadMass"];
-            var calcs3 = ["mouseID", "sacDate", "sacTime", "nextStage", "uterus", "oocytes1", "oocytes2", "notes"];
+            var calcs = ["mouseID", "sex", "stage", "treatment", "mouseDose", "mass", "reproMass", "gonadMass", "adrenalMass", "postBodyMass"];
+            var calcs2 = ["mouseID", "date", "stage", "treatment", "mouseDose", "mass", "reproMass", "gonadMass", "adrenalMass", "postBodyMass"];
+            var calcs3 = ["mouseID", "date", "stage", "treatment", "mouseDose", "mass", "reproMass", "gonadMass", "adrenalMass", "postBodyMass", "sacDate", "sacTime", "nextStage", "reproDescription", "oocytes1", "oocytes2", "notes"];
 
             var mouseSearch = this.mouseSearch(mouseNum);
 
@@ -2075,7 +1973,9 @@ my_widget_script =
                     }).append(
                         $("<div/>", {
                             "class": labelClass
-                        }).append("Exp Hour:")
+                        }).append($("<label></label>", {
+                            "for": "sampleTime" + sampleNum
+                        }).append("Exp Hour:"))
                     ).append(
                         $("<div/>", {
                             "class": inputClass
@@ -2094,7 +1994,9 @@ my_widget_script =
                     ).append(
                         $("<div/>", {
                             "class": labelClass
-                        }).append("Sample Label:")
+                        }).append($("<label></label>", {
+                            "for": "sampleLabel" + sampleNum
+                        }).append("Sample Label:"))
                     ).append(
                         $("<div/>", {
                             "class": inputClass
@@ -2138,6 +2040,7 @@ my_widget_script =
                                 } else {
                                     $(".ifNutella"+sampleSearch).hide();
                                 }
+                                this.resize();
                             })
                         )
                     ).append(
@@ -2154,7 +2057,9 @@ my_widget_script =
                                 $("<div/>", {
                                     "class": "col"
                                 }).append(
-                                    "Cort: "
+                                    $("<label></label>", {
+                                        "for": "cort"+sampleNum
+                                    }).append("Cort: ")
                                 ).append(
                                     $("<input/>", {
                                         type: "checkbox",
@@ -2171,7 +2076,9 @@ my_widget_script =
                                 $("<div/>", {
                                     "class": "col"
                                 }).append(
-                                    "LH: "
+                                    $("<label></label>", {
+                                        "for": "LH"+sampleNum
+                                    }).append("LH: ")
                                 ).append(
                                     $("<input/>", {
                                         type: "checkbox",
@@ -2198,7 +2105,9 @@ my_widget_script =
                                 $("<div/>", {
                                     "class": "col"
                                 }).append(
-                                    "Other: "
+                                    $("<label></label>", {
+                                        "for": "otherSample"+sampleNum
+                                    }).append("Other: ")
                                 ).append(
                                     $("<input/>", {
                                         type: "checkbox",
@@ -2380,26 +2289,32 @@ my_widget_script =
                         )
                     ).append(
                         $("<div/>", {
-                            "class": "row mt-2 ifLH",
+                            "class": "ifLH",
                             "data-sample": sampleNum
                         }).append(
                             $("<div/>", {
-                                "class": "col-12 col-md-6"
+                                "class": "row mt-2"
                             }).append(
-                                "LH Sample ID"
-                            )
-                        ).append(
-                            $("<div/>", {
-                                "class": "col-12 col-md-6 mt-2 mt-md-0"
-                            }).append(
-                                $('<input></input>', {
-                                    "type": "number",
-                                    id: "lhnum"+sampMouseID,
-                                    name: "lhnum"+sampMouseID,
-                                    "class": "lhnum fullWidth",
-                                    "data-mouse": mouseNum,
-                                    "data-sample": sampleNum
-                                })
+                                $("<div/>", {
+                                    "class": "col-12 col-md-6"
+                                }).append(
+                                    $("<label></label>", {
+                                        "for": "lhnum"+sampMouseID
+                                    }).append("LH Sample ID")
+                                )
+                            ).append(
+                                $("<div/>", {
+                                    "class": "col-12 col-md-6 mt-2 mt-md-0"
+                                }).append(
+                                    $('<input></input>', {
+                                        "type": "number",
+                                        id: "lhnum"+sampMouseID,
+                                        name: "lhnum"+sampMouseID,
+                                        "class": "lhnum fullWidth",
+                                        "data-mouse": mouseNum,
+                                        "data-sample": sampleNum
+                                    })
+                                )
                             )
                         )
                     ).append(
@@ -2609,44 +2524,248 @@ my_widget_script =
         this.showWithCheck($chbx, $ifOther);
     },
 
+    //#region copy tables
+    /**
+     * This either shows or hides (toggles) the table provided as a parameter. 
+     * It checks if the data is valid, but this doesn't stop it from running.
+     * It resizes the widget in the process.
+     * 
+     * @param {*} $table - jQuery object for table
+    **/
+    toggleTableFuncs: function ($table, $errorMsg) {
+        this.data_valid_form($errorMsg);
+        $table.toggle();
+        this.resize();
+    },
+
+    /**
+     * Set of functions when toCSVButton clicked
+     * 
+     * Checked if data is valid, exports the table to a CSV
+     * Updates the error message accordingly
+     * 
+     * @param {string} fileName - fileName for the CSV that will be produced
+     * @param {string} tableID - tableID as a string for the table that will be copied
+     * @param $errorMsg - error message div as jQuery object
+    **/
+    toCSVFuncs: function (fileName, tableID, $errorMsg) {
+        var data_valid = this.data_valid_form($errorMsg); // update data_valid_form to print to specific error field
+
+        if (data_valid) {
+            this.exportTableToCSV(fileName, tableID);
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
+        }
+    },
+
+    /**
+     * This function takes a csv element and filename that are passed from the
+     * exportTableToCSV function.
+     * 
+     * This creates a csvFile and builds a download link that references this file.
+     * The download link is "clicked" by the function to prompt the browser to 
+     * download this file
+     * 
+     * source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+     * 
+     * @param {*} csv - This is the csv passed from the exportToCSV function
+     * @param {*} filename - This is the name of the file passed from exportToCSV function
+     */
     downloadCSV: function (csv, filename) {
         var csvFile;
         var downloadLink;
 
+        // CSV file
         csvFile = new Blob([csv], { type: "text/csv" });
 
+        // Download link
         downloadLink = document.createElement("a");
 
+        // File name
         downloadLink.download = filename;
 
+        // Create a link to the file
         downloadLink.href = window.URL.createObjectURL(csvFile);
 
+        // Hide download link
         downloadLink.style.display = "none";
 
+        // Add the link to DOM
         document.body.appendChild(downloadLink);
 
+        // Click download link
         downloadLink.click();
     },
     
+    /**
+     * This function takes a filename and table name (both strings) as input
+     * It then creates a csv element from the table
+     * This csv element is passed to the downloadCSV function along with the filename
+     * 
+     * source: https://www.codexworld.com/export-html-table-data-to-csv-using-javascript/
+     * @param {string} filename the name of the CSV file that will be downloaded
+     * @param {string} table the id of the table that will be exported
+     */
     exportTableToCSV: function (filename, table) {
-        var csv = [];
-        var datatable = document.getElementById(table);
-        var rows = datatable.querySelectorAll("tr");
+        var tableArray = this.getTableArray($("#"+ table), copyHead = true, transpose = false);
+        var tableString = this.convertRowArrayToString(tableArray, ",", "\n");
 
-        for (var i = 0; i < rows.length; i++) {
-            var row = [], cols = rows[i].querySelectorAll("td, th");
 
-            for (var j = 0; j < cols.length; j++) {
-                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
-                row.push(cellText);
-            };
+        // One option that works with Excel, but may not be universal to protect against commas in the fields
+        // var tableString = this.convertRowArrayToString(tableArray, "\t", "\n");
+        // tableString = "sep=\t\n" + tableString;
 
-            csv.push(row.join(","));
-        }
-
-        this.downloadCSV(csv.join("\n"), filename);
+        // Download CSV file
+        this.downloadCSV(tableString, filename);
     },
 
+    /**
+     * The steps that should be taken when the copy data button is pressed
+     * Checks if the $copyHead is checked, and then
+     * checks if the data is valid. If it is, it shows the table, resizes, and then
+     * copies the table (via a temporary textarea that is then removed). 
+     * 
+     * @param $copyHead - checkbox for whether or not to copy the table head as jQuery object
+     * @param $tableToCopy - table to copy as jQuery object
+     * @param $tableDiv - div containing table to copy
+     * @param $errorMsg - error message div as jQuery object
+     * @param $divForCopy - div where the output should copy to
+     * @param $transpose - checkbox for whether or not to transpose the table head as jQuery object
+     */
+     copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
+        var data_valid = this.data_valid_form($errorMsg); // update data_valid_form to print to specific error field
+        var copyHead = false, transpose = false;
+
+        //only copy the heading when the input box is checked
+        if ($copyHead.is(":checked")) {
+            copyHead = true;
+        }
+
+        // if ($transpose.is(":checked")) {
+        //     transpose = true;
+        // }
+
+        if (data_valid) { //if data is valid
+            $tableDiv.show(); //show the table
+            this.resize(); //resize
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            this.copyTable($tableToCopy, copyHead, $divForCopy, $errorMsg, transpose); //copy table
+        } else {
+            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
+        }
+    },
+
+    /**
+     * This function creates a temporary textarea and then appends the contents of the
+     * specified table body to this textarea, separating each cell with a tab (\t).
+     * Because the script editor in LA is within a <textarea> the script cannot contain
+     * the verbatim string "textarea" so this must be separated as "text" + "area"
+     * to avoid errors.
+     * 
+     * If copying a table that has form inputs, you
+     * 
+     * If copying a table that could have multiple table rows (<tr>), the use the 
+     * \n new line separator
+     * 
+     * @param {*} $table - jQuery object for the table that will be copied
+     * @param {*} copyHead - true/false for whether or not the table head should be copied
+     * @param {*} $divForCopy - where the temp textarea should be added
+     * @param {*} $errorMsg - where to update the user
+     * @param {*} transpose - true if table should be transposed
+     */
+     copyTable: function ($table, copyHead, $divForCopy, $errorMsg, transpose) {
+        var tableArray = this.getTableArray($table, copyHead, transpose);
+        var tableString = this.convertRowArrayToString(tableArray, "\t", "\n");
+        this.copyStringToClipboard(tableString, $divForCopy, $errorMsg);
+    },
+
+    /**
+     * Get the items from an HTML table into an array
+     * 
+     * If the table has form inputs, then you would need to adjust the $(e).text() to reflect .val() instead
+     * 
+     * @param {*} $table The table element that is to be read
+     * @param {*} copyHead Whether or not to include the head of the table
+     * @param {*} transpose Whether or not to tanspose the table
+     * @returns the table as an array, with the each row being and element, and each row as an array where each cell is an element
+     */
+    getTableArray: function ($table, copyHead, transpose) {
+        var rows = [];
+        var rowNum = 0;
+        // If you copying the head of the table
+        if (copyHead) {
+            // Find thead and then all children rows
+            $table.find("thead").children("tr").each((i,e)=> {
+                // If the table is being transposed, start the row number at 0 for each new row
+                if(transpose){rowNum = 0;}
+                // For each row, find each td or th element (table cell)
+                $(e).find("td, th").each((i,e)=> {
+                    // If there's not yet an array for this row, make an empty one
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    // Add the text of each cell to the row's array
+                    rows[rowNum].push($(e).text());
+                    // If table is being transposed, add one to the row number for each cell
+                    if(transpose){rowNum++;}
+                });
+                // If table is not being transposed, add one to the row number for each row
+                if(!transpose){rowNum++;}
+            });
+        }
+
+        // Find each row in the table body
+        $table.find("tbody").children("tr").each((i,e)=> {
+            // If transposing, start the row number at 0 for each new row
+            if(transpose){rowNum = 0;}
+            // Find each cell within the row
+            $(e).find("td, th").each((i,e)=> {
+                // If there's not yet an array for this row, make an empty one
+                if(rows[rowNum]===undefined){rows[rowNum] = []}
+                // Add the text of each cell to the row's array
+                rows[rowNum].push($(e).text());
+                // If the table is being transposed, add one to the row number for each cell
+                if(transpose){rowNum++;}
+            });
+            // If table is not being transposed, add one to the row number for each row
+            if(!transpose){rowNum++;}
+        });
+        return(rows);
+    },
+
+    /**
+     * Take an array from a table and convert it to a string for export to clipboard or saving to csv
+     * @param {*} rowArray An array where each row is an element, and each row is also an array containing each cell as an element
+     * @param {*} cellSepString The string that should be used to separate each cell (column)
+     * @param {*} newRowString The string that should be used to separate each row
+     * @returns A single string of the table
+     */
+    convertRowArrayToString: function(rowArray, cellSepString = "\t", newRowString = "\n"){
+        var rowString = [];
+        rowArray.forEach((row)=>{
+            if(row.length){
+                row.forEach((cell, i)=>{
+                    if(cell.includes(cellSepString) || cell.includes(newRowString)){
+                        row[i] = '"' + cell + '"'; // protect if includes separator
+                    }
+                });
+                rowString.push(row.join(cellSepString));
+            }
+        });
+        var tableString = rowString.join(newRowString);
+        return(tableString)
+    },
+
+    /**
+     * This function will copy a string to the clipboard. If the string is blank, changes it to a single space
+     * otherwise nothing is copied
+     * 
+     * The temporary <textarea> is appended to the HTML form and selected.
+     * After the <textarea> is copied, it is then removed from the page.
+     * 
+     * @param {*} textStr The string that is to be copied to the clipboard
+     * @param {*} $divForCopy The div on the page that should be used to create the temporary textarea
+     * @param {*} $errorMsg Where messages to the user should be printed regarding status of the copy
+     */
     copyStringToClipboard: function(textStr, $divForCopy, $errorMsg){
         var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
 
@@ -2663,88 +2782,11 @@ my_widget_script =
         document.execCommand("copy");
         $temp.remove();
         this.resize();
+        
+        // Doesn't work within LA b/c of permissions, but would be easier way to copy w/o appending to page
+        // navigator.clipboard.writeText(rows.join("\n")); 
     },
-
-    copyTable: function ($table, copyHead, $divForCopy, $errorMsg, ovulation = false) {
-        var textStr = "";
-        var addLine = "";
-        if (copyHead) {
-            $table.find("thead").children("tr").each((i,e)=> { //add each child of the row
-                var addTab = "";
-                $(e).children().each((i,e)=> {
-                    textStr += addTab + $(e).text();
-                    addTab = "\t";
-                });
-            });
-            addLine = "\n";
-        }
-
-        $table.find("tbody").children("tr").each((i,e)=> {
-            var doCopy = true;
-            if(ovulation){
-                var mouseNum = $(e).data("mouse");
-                var mouseSearch = this.mouseSearch(mouseNum);
-                if(!$(".checkOvulation"+mouseSearch).is(":checked")){
-                    doCopy = false;
-                }
-            }
-            if(doCopy){
-                textStr += addLine;
-                var addTab = "";
-                $(e).find("td").each((i,e)=> {
-                    if ($(e).text()) {
-                        var addText = $(e).text();
-                    } else {
-                        var addText = "NA"
-                    }
-                    textStr += addTab + addText;
-                    addTab = "\t";
-                    addLine = "\n";
-                });
-            }
-        });
-
-        this.copyStringToClipboard(textStr, $divForCopy, $errorMsg);
-    },
-
-    toggleTableFuncs: function ($table) {
-        this.resize();
-        this.data_valid_form();
-        $table.toggle();
-        this.parent_class.resize_container();
-    },
-
-    toCSVFuncs: function (fileName, tableID, $errorMsg) {
-        var data_valid = this.data_valid_form();
-
-        if (data_valid) {
-            this.exportTableToCSV(fileName, tableID);
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Saved successfully</span>");
-        } else {
-            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Did not export</span>");
-        }
-    },
-
-    copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, ovulation = false){
-        var data_valid = this.data_valid_form();
-        var copyHead
-
-        //only copy the heading when the input box is checked
-        if ($copyHead.is(":checked")) {
-            copyHead = true;
-        } else {
-            copyHead = false;
-        }
-
-        if (data_valid) {
-            $tableDiv.show(); 
-            this.resize();
-            // $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
-            this.copyTable($tableToCopy, copyHead, $divForCopy, $errorMsg, ovulation = ovulation);
-        } else {
-            $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
-        }
-    },
+    // #endregion copy tables
 
     copyLHSampleNums: function($divForCopy, $errorMsg){
         var table = this.getLHSampleNums();
@@ -2770,7 +2812,7 @@ my_widget_script =
                 var sampleSearch = this.sampleSearch(sampleNum);
                 var time = $(".sampleTime"+sampleSearch).val();
                 if(time){
-                    time = parseInt(time);
+                    time = parseFloat(time);
                 } else {
                     time = "";
                 }
@@ -2809,7 +2851,7 @@ my_widget_script =
                 var sampleSearch = this.sampleSearch(sampleNum);
                 var time = $(".sampleTime"+sampleSearch).val();
                 if(time){
-                    time = parseInt(time);
+                    time = parseFloat(time);
                 } else {
                     time = "";
                 }
@@ -3011,5 +3053,4 @@ my_widget_script =
         $(".modal-dialog").css("top", top);
     },
     //#endregion dialog boxes
-
 };
