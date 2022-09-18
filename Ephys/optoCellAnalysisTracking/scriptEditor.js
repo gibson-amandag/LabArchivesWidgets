@@ -2,50 +2,106 @@ my_widget_script =
 {
     
     init: function (mode, json_data) {
-        //this method is called when the form is being constructed
-        // parameters
-        // mode = if it equals 'view' than it should not be editable
-        //        if it equals 'edit' then it will be used for entry
-        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
-        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
 
-        // json_data will contain the data to populate the form with, it will be in the form of the data
-        // returned from a call to to_json or empty if this is a new form.
-        //By default it calls the parent_class's init.
+        // console.log("Before", $.fn.jquery);
+        
+       // Load jQuery for bootstrap
+        this.include(
+            "https://code.jquery.com/jquery-3.5.1.min.js",
+            "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=",
+            "anonymous",
+            ()=>{
+                $(document).ready(
+                    ()=>{
+                        // console.log("After load", $.fn.jquery);
+                        
+                        // Load bootstrap
+                        this.include(
+                            "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js",
+                            "sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl",
+                            "anonymous",
+                            ()=>{
+                                $(document).ready(
+                                    ()=>{
+                                        $jq351 = jQuery.noConflict(true);
+                                        // console.log("After no conflict", $.fn.jquery);
+                                        // console.log("bootstrap jquery", $jq351.fn.jquery);
 
-        //uncomment to inspect and view code while developing
-        //debugger;
+                                        //this method is called when the form is being constructed
+                                        // parameters
+                                        // mode = if it equals 'view' than it should not be editable
+                                        //        if it equals 'edit' then it will be used for entry
+                                        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
+                                        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
+                                
+                                        // json_data will contain the data to populate the form with, it will be in the form of the data
+                                        // returned from a call to to_json or empty if this is a new form.
+                                        //By default it calls the parent_class's init.
+                                
+                                        //uncomment to inspect and view code while developing
+                                        //debugger;
+                                
+                                        //Get the parsed JSON data
+                                        var parsedJson = this.parseInitJson(json_data);
+                                
+                                        //Uncomment to print parsedJson to consol
+                                        // console.log("init", parsedJson);
+                                
+                                        //check parsedJson for info not contained in form inputs and reinitialize
+                                        this.initDynamicContent(parsedJson);
+                                
+                                        //resize the content box when the window size changes
+                                        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
+                                
+                                        //Define behavior when buttons are clicked or checkboxes/selctions change
+                                        this.addEventListeners();
+                                
+                                        // Initialize the form with the stored widgetData using the parent_class.init() function
+                                        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
 
-        //Get the parsed JSON data
-        var parsedJson = this.parseInitJson(json_data);
-
-        //Uncomment to print parsedJson to consol
-        //console.log("init", parsedJson);
-
-        //check parsedJson for info not contained in form inputs and reinitialize
-        this.initDynamicContent(parsedJson);
-
-        //resize the content box when the window size changes
-        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
-
-        //Define behavior when buttons are clicked or checkboxes/selctions change
-        this.addEventListeners();
-
-        // Initialize the form with the stored widgetData using the parent_class.init() function
-        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
-
-        // Add * and # to mark required field indicators
-        this.addRequiredFieldIndicators();
-
-        // Set up the form based on previously entered form input
-        this.setUpInitialState();
-
-        //adjust form design and buttons based on mode
-        this.adjustForMode(mode);
-
-        this.resetFilter();
+                                        // Add * and # to mark required field indicators
+                                        this.addRequiredFieldIndicators();
+                                
+                                        // Set up the form based on previously entered form input
+                                        this.setUpInitialState();
+                                
+                                        //adjust form design and buttons based on mode
+                                        this.adjustForMode(mode);
+                                
+                                        this.resetFilter();
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
     },
     
+
+    //https://stackoverflow.com/questions/8139794/load-jquery-in-another-js-file
+    include: function(src, integrity, crossorigin, onload) {
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.setAttribute("integrity", integrity);
+        script.setAttribute("crossorigin", crossorigin);
+        script.src = src;
+        script.type = 'text/javascript';
+        script.onload = script.onreadystatechange = function() {
+            if (script.readyState) {
+                if (script.readyState === 'complete' || script.readyState === 'loaded') {
+                    script.onreadystatechange = null;                                                  
+                    onload();
+                }
+            } 
+            else {
+                onload();          
+            }
+        };
+        head.appendChild(script);
+    },
+
     to_json: function () {
         //should return a json string containing the data entered into the form by the user
         //whatever is return from the method is persisted in LabArchives.  must not be binary data.
@@ -104,13 +160,13 @@ my_widget_script =
             widgetData: testData,
             cellNums: [1, 2, 3, 4, 5, 6, 7],
             cells: {
-                1: {id: "20220227a"},
+                1: {id: "20220227a", recType: ["extracellular"]},
                 2: {id: "20220227b"},
                 3: {id: "20220227c"},
                 4: {id: "20220227d"},
                 5: {id: "20220227e"},
-                6: {id: "20220227f"},
-                7: {id: "20220227g"},
+                6: {id: "20220227f", recType: []},
+                7: {id: "20220227g", recType: ["currentClamp", "voltageClamp"]},
             }
         };
 
@@ -237,7 +293,7 @@ my_widget_script =
         // console.time("initDynamic");
         if(parsedJson.cellNums){
             for (var i = 0; i < parsedJson.cellNums.length; i++){
-                cell = parsedJson.cellNums[i];
+                var cell = parsedJson.cellNums[i];
                 this.cellNums.push(cell);
                 this.makeCellCard(cell);
             }
@@ -506,7 +562,8 @@ my_widget_script =
 
     // ********************** START CUSTOM TO_JSON METHODS **********************
     getDynamicContent: function () {
-        var dynamicContent = {};
+        var dynamicContent = {
+        };
         return dynamicContent;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
@@ -662,16 +719,13 @@ my_widget_script =
             if(!val){
                 val = "Cell " + cellNum;
             }
-        } else if(watch == "recordingType"){
-            if(val){
-                var newVal = "";
-                for(selection of val){
-                    if(newVal){
-                        newVal+=";"
-                    }
-                    newVal += selection
-                }
-                val = newVal;
+        } 
+
+        if($el.attr("type") === "checkbox"){
+            if($el.is(":checked")){
+                val = "Y";
+            } else {
+                val = "N";
             }
         }
         $(calcSearch).html(val);
@@ -764,27 +818,48 @@ my_widget_script =
         var evConfirmDateRow = this.makeDateRow(row, col, "Date of event confirmation:", "evConfirm", cellNum);
         var incCellRow = this.makeCheckRow(row, col, "Include Cell:", "incCell", cellNum);
         
-        var recTypeObj = {
-            label: "Recording type:",
-            type: "select",
-            className: "recordingType",
-            optionsObj: [
-                {
-                    value: "",
-                    text: "[Select]"
-                }, {
-                    value: "extracellular",
-                    text: "Extracellular"
-                }, {
-                    value: "currentClamp",
-                    text: "Current clamp"
-                }, {
-                    value: "voltageClamp",
-                    text: "Voltage Clamp"
-                }
-            ]
-        };
-        var recTypeRow = this.makeRowFromObj(recTypeObj, cellNum);
+        // var recTypeObj = {
+        //     label: "Recording type:",
+        //     type: "select",
+        //     className: "recordingType",
+        //     optionsObj: [
+        //         {
+        //             value: "",
+        //             text: "[Select]"
+        //         }, {
+        //             value: "extracellular",
+        //             text: "Extracellular"
+        //         }, {
+        //             value: "currentClamp",
+        //             text: "Current clamp"
+        //         }, {
+        //             value: "voltageClamp",
+        //             text: "Voltage Clamp"
+        //         }
+        //     ]
+        // };
+        // var recTypeRow = this.makeRowFromObj(recTypeObj, cellNum);
+
+        var extracellularRecObj = {
+            label: "Extracellular Recording:",
+            type: "checkbox",
+            className: "extracellRec"
+        }
+        var currentClampRecObj = {
+            label: "Current Clamp Recording:",
+            type: "checkbox",
+            className: "currentClampRec"
+        }
+        var voltageClampRecObj = {
+            label: "Voltage Clamp Recording:",
+            type: "checkbox",
+            className: "voltageClampRec"
+        }
+
+        var extracellularRow = this.makeRowFromObj(extracellularRecObj, cellNum);
+        var currentClampRow = this.makeRowFromObj(currentClampRecObj, cellNum);
+        var voltageClampRow = this.makeRowFromObj(voltageClampRecObj, cellNum);
+        
 
         var locationObj = {
             label: "Cell location:",
@@ -865,7 +940,11 @@ my_widget_script =
                     ).append(
                         locationRow
                     ).append(
-                        recTypeRow
+                        extracellularRow
+                    ).append(
+                        currentClampRow
+                    ).append(
+                        voltageClampRow
                     ).append(
                         passiveDateRow
                     ).append(
@@ -878,18 +957,6 @@ my_widget_script =
                         responseRow
                     ).append(
                         incCellRow
-                    // ).append(
-                    //     extractedTimeRow
-                    // ).append(
-                    //     changedSucroseTimeRow
-                    // ).append(
-                    //     sectionDateRow
-                    // ).append(
-                    //     immunoDateRow
-                    // ).append(
-                    //     imageDateRow
-                    // ).append(
-                    //     quantDateRow
                     ).append(
                         $("<div/>", {
                             "class": row
@@ -957,7 +1024,9 @@ my_widget_script =
             "cell", 
             "acqData",
             "cellLoc",
-            "recordingType", 
+            "extracellRec", 
+            "currentClampRec", 
+            "voltageClampRec", 
             "checkPassDate", 
             "passives", 
             "evDetectDate", 
@@ -988,10 +1057,6 @@ my_widget_script =
         }).on("input", (e)=> {
             this.checkTimeFormat($(e.currentTarget));
         });
-
-        $(".recordingType").each((i,e)=>{
-            $(e).attr("multiple", true);
-        })
 
         this.resize();
     },
