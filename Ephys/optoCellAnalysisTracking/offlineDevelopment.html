@@ -86,49 +86,10 @@ $(document).ready(function () {
                                         $jq351 = jQuery.noConflict(true);
                                         // console.log("After no conflict", $.fn.jquery);
                                         // console.log("bootstrap jquery", $jq351.fn.jquery);
+                                        
 
-                                        //this method is called when the form is being constructed
-                                        // parameters
-                                        // mode = if it equals 'view' than it should not be editable
-                                        //        if it equals 'edit' then it will be used for entry
-                                        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
-                                        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
-                                
-                                        // json_data will contain the data to populate the form with, it will be in the form of the data
-                                        // returned from a call to to_json or empty if this is a new form.
-                                        //By default it calls the parent_class's init.
-                                
-                                        //uncomment to inspect and view code while developing
-                                        //debugger;
-                                
-                                        //Get the parsed JSON data
-                                        var parsedJson = this.parseInitJson(json_data);
-                                
-                                        //Uncomment to print parsedJson to consol
-                                        // console.log("init", parsedJson);
-                                
-                                        //check parsedJson for info not contained in form inputs and reinitialize
-                                        this.initDynamicContent(parsedJson);
-                                
-                                        //resize the content box when the window size changes
-                                        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
-                                
-                                        //Define behavior when buttons are clicked or checkboxes/selctions change
-                                        this.addEventListeners();
-                                
-                                        // Initialize the form with the stored widgetData using the parent_class.init() function
-                                        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
-
-                                        // Add * and # to mark required field indicators
-                                        this.addRequiredFieldIndicators();
-                                
-                                        // Set up the form based on previously entered form input
-                                        this.setUpInitialState();
-                                
-                                        //adjust form design and buttons based on mode
-                                        this.adjustForMode(mode);
-                                
-                                        this.resetFilter();
+                                        this.myInit(mode, json_data);
+                                        
                                     }
                                 )
                             }
@@ -137,6 +98,51 @@ $(document).ready(function () {
                 )
             }
         )
+    },
+
+    myInit: function(mode, json_data){
+        //this method is called when the form is being constructed
+        // parameters
+        // mode = if it equals 'view' than it should not be editable
+        //        if it equals 'edit' then it will be used for entry
+        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
+        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
+
+        // json_data will contain the data to populate the form with, it will be in the form of the data
+        // returned from a call to to_json or empty if this is a new form.
+        //By default it calls the parent_class's init.
+
+        //uncomment to inspect and view code while developing
+        //debugger;
+
+        //Get the parsed JSON data
+        var parsedJson = this.parseInitJson(json_data);
+
+        //Uncomment to print parsedJson to consol
+        // console.log("init", parsedJson);
+
+        //check parsedJson for info not contained in form inputs and reinitialize
+        this.initDynamicContent(parsedJson);
+
+        //resize the content box when the window size changes
+        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
+
+        //Define behavior when buttons are clicked or checkboxes/selctions change
+        this.addEventListeners();
+
+        // Initialize the form with the stored widgetData using the parent_class.init() function
+        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
+
+        // Add * and # to mark required field indicators
+        this.addRequiredFieldIndicators();
+
+        // Set up the form based on previously entered form input
+        this.setUpInitialState();
+
+        //adjust form design and buttons based on mode
+        this.adjustForMode(mode);
+
+        this.resetFilter();
     },
     
 
