@@ -1,0 +1,229 @@
+<!-- #region HTML -->
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 100%
+    }
+
+    .make100{
+        width: 100vw;
+    }
+
+    .isDue{
+        background-color: lightcoral;
+    }
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="make100">
+<div class="container mt-2 hideView" id="addCareDiv">
+    <div class="row">
+        <h3 class="col">Add care:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
+            Select:
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="&Delta; bottoms" class="fullWidth" id="selBottom" name="selbottom"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Food" class="fullWidth" id="selFood" name="selfood"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Food/water" class="fullWidth" id="selFoodWater" name="selfoodwater"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="&Delta; tops" class="fullWidth" id="selTop" name="seltop"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Add care activity</div>
+        <div class="col">
+            <input type="button" value="Add care" id="addCare" name="addcare" class="addCare fullWidth"/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col" id="addCareNotes">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-lg">
+            <select name="cageselect" id="cageSelect" class="cageSelect fullWidth" multiple="true">
+                <!-- <option value="">[select]</option> -->
+                &nbsp;
+            </select>
+        </div>
+        <div class="col-12 col-sm-6 col-lg row mt-1 mt-sm-0">
+            <div class="col-12 col-sm"><label for="changeDate">Date</label></div>
+            <div class="col"><input type="date" id="changeDate" name="changedate" class="fullWidth"/></div>
+        </div>
+        <div class="col row mt-1 mt-lg-0">
+            <div class="col-12"><label for="changeFood">Food</label></div>
+            <div class="col"><input type="checkbox" id="changeFood" name="changefood"></div>
+        </div>
+        <div class="col row mt-1 mt-lg-0">
+            <div class="col-12"><label for="changeWater">Water</label></div>
+            <div class="col"><input type="checkbox" id="changeWater" name="changewater"></div>
+        </div>
+        <div class="col row mt-1 mt-lg-0">
+            <div class="col-12"><label for="changeBottom">Cage bottom</label></div>
+            <div class="col"><input type="checkbox" id="changeBottom" name="changebottom"></div>
+        </div>
+        <div class="col row mt-1 mt-lg-0">
+            <div class="col-12"><label for="changeTop">Cage top</label></div>
+            <div class="col"><input type="checkbox" id="changeTop" name="changetop"></div>
+        </div>
+    </div>
+</div>
+<div class="container mt-2" id="viewDueDiv">
+    <div class="row">
+        <h3 class="col">Care activities due:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Due Date:</div>
+        <div class="col">
+            <input type="date" name="duedate" id="dueDate" class="fullWidth editOnView">
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="col-12 col-sm-6 col-md-3">
+            <strong class="fullWidth">&Delta; cage bottoms</strong>
+            <div class="cageBottomsList">&nbsp;</div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <strong class="fullWidth">Check/&Delta; food</strong>
+            <div class="foodCageList">&nbsp;</div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <strong class="fullWidth">Check/&Delta; water</strong>
+            <div class="waterCageList">&nbsp;</div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <strong class="fullWidth">&Delta; cage tops</strong>
+            <div class="cageTopsList">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card" id="viewCagesDueDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Due Dates
+    </button>
+    <div class="table-responsive xsTableDiv dueDatesTable card-body collapse">
+        &nbsp;
+    </div>
+</div>
+
+<div class="container mt-2 card" id="caresOnDateDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Cares on date
+    </button>
+    <div class="card-body collapse container">
+        <div class="row mt-2">
+            <div class="myLeftCol">Care date:</div>
+            <div class="col"><input type="date" name="caredate" id="careDate" class="editOnView fullWidth"/></div>
+        </div>
+        <div class="table-responsive xsTableDiv caresOnDateTable mt-2">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card" id="cagesDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Cages
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a cage</div>
+            <div class="col">
+                <input type="button" value="Add a cage" id="addCage1" name="addcage2" class="addCage fullWidth"/>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol">Collapse all</div>
+            <div class="col">
+                <input type="button" value="Collapse all cages" name="collapsecages" id="collapseCages" class="fullWidth"/>
+            </div>
+        </div>
+
+        <div class="row mt-2" id="cageCardDiv">
+            &nbsp;
+        </div>
+
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a cage</div>
+            <div class="col">
+                <input type="button" value="Add a cage" id="addCage2" name="addcage2" class="addCage fullWidth"/>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <h3 class="col" id="tableInfo">
+                &nbsp;
+            </h3>
+        </div>
+
+        <div class="table-responsive xsTableDiv cageCaresTable">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2" id="holdingCageCardsDiv">
+</div>
+
+<div class="container mt-2" id="cageCareDiv">
+</div>
+
+<!-- <div class="container mt-2">
+    <div id="forCopy">&nbsp;</div>
+    <div id="errorMsg">&nbsp;</div>
+</div>
+
+<div class="container mt-2">
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable1" name="toggletable1" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="tableID"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="tableID" /></div>
+        
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="tableID"/>
+            <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="tableID"/>
+            <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="tableID" />
+        </div>
+    </div>
+</div> -->
+
+<!-- #endregion -->
