@@ -1,0 +1,267 @@
+<!-- #region HTML -->
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 100%
+    }
+
+    .ifOther {
+        display: none;
+    }
+    
+    /* myTooltip text */
+    .myTooltip .myTooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        padding: 5px 0;
+        border-radius: 6px;
+        
+        /* Position the myTooltip text - see examples below! */
+        position: absolute;
+        z-index: 1;
+        top: -5px;
+        left: 105%;
+    }
+
+    /* Show the myTooltip text when you mouse over the myTooltip container */
+    .myTooltip:hover .myTooltiptext {
+        visibility: visible;
+    }
+    
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="container">
+    <div class="row">
+        <h3 class="col">Whole-cell recording notes</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-md">
+            <div class="row">
+                <label for="mouseID" class="col-12 mb-0">
+                    Mouse ID:
+                </label>
+                <div class="col-12">
+                    <input type="text" name="mouseid" id="mouseID" class="fullWidth"/>
+                </div>
+                <label for="" class="col-12 mb-0">
+                    Cell ID:
+                </label>
+                <div class="col-12">
+                    <input type="text" name="cellid" id="cellID" class="fullWidth"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md">
+            <div class="row">
+                <label for="recordingBy" class="col-12 mb-0">
+                    Recording by:
+                </label>
+                <div class="col-12">
+                    <input type="text" name="recordingby" id="recordingBy" class="fullWidth"/>
+                </div>
+                <label for="rig" class="col-12 mb-0">
+                    Rig:
+                </label>
+                <div class="col-12">
+                    <input type="text" name="rig" id="rig" class="fullWidth"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md">
+            <div class="row">
+                <label for="internalSoln" class="col-12 mb-0">
+                    Internal Solution:
+                </label>
+                <div class="col-12">
+                    <select name="internalsoln" id="internalSoln" class="fullWidth">
+                        <option value="1Cl">1 mM Cl<sup>-</sup></option>
+                        <option value="10Cl">10 mM Cl<sup>-</sup></option>
+                        <option value="20Cl">20 mM Cl<sup>-</sup></option>
+                        <option value="140Cl">140 mM Cl<sup>-</sup></option>
+                        <option value="other">Other</option>
+                    </select>
+                    <input type="text" name="otherinternal" id="otherInternal" class="ifOther fullWidth">
+                </div>
+                <label for="LJP" class="col-12 mb-0">
+                    Liquid Junction Potential:
+                </label>
+                <div class="col-12">
+                    <input type="number" name="ljp" id="LJP" class="fullWidth"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md">
+            <div class="row">
+                <div class="col-12 myTooltip">
+                    <label for="cellLoc" class="mb-0">
+                        Cell location:
+                    </label>
+                    <span class="myTooltiptext">General description. Use cell location widget for more precise description</span>
+                </div>
+                <div class="col-12">
+                    <input type="text" name="cellloc" id="cellLoc" class="fullWidth"/>
+                </div>
+                <label for="imageName" class="col-12 mb-0">Cell image file</label>
+                <div class="col-12">
+                    <input type="text" name="imagename" id="imageName" class="fullWidth"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Pipette</h4>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <label for="pipetteProgram" class="myLeftCol mb-0">Pipette Program:</label>
+        <div class="col"><input type="number" name="pipprog" id="pipetteProgram" class="fullWidth"></div>
+    </div>
+    
+    <div class="row mt-2">
+        <label for="pipetteInBath" class="myLeftCol mb-0">Time Pipette In Bath:</label>
+        <div class="col">
+            <input type="time" name="pipetteinbath" id="pipetteInBath" class="fullWidth"/>
+        </div>
+    </div>
+    
+    <div class="row mt-2">
+        <label for="pipetteResisistance" class="mb-0 myLeftCol">Pipette Resistance (MΩ):</label>
+        <div class="col">
+            <input type="number" name="pipetteresistance" id="pipetteResisistance" class="fullWidth"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <label for="vOffset" class="mb-0 myLeftCol">Voffset after stabilizing:</label>
+        <div class="col">
+            <input type="number" name="voffset" id="vOffset" class="fullWidth"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <label for="postVOffset" class="mb-0 myLeftCol">Voffset after recording:</label>
+        <div class="col">
+            <input type="number" name="postvoffset" id="postVOffset" class="fullWidth"/>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>On-Cell</h4>
+        </div>
+    </div>
+
+    <div class="row mt-1 align-item-center">
+        <div class="myLeftCol"><label for="successoncell">Successful on-cell?</label> <input type="checkbox" name="successoncell" id="successOnCell" /></div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol"><label for="stableoncell">Stable on-cell?</label> <input type="checkbox" name="stableoncell" id="stableOnCell"/></div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Series # for last on-cell passive</div>
+        <div class="col">
+            <input type="number" name="lastoncellpass" id="lastOnCellPass" class="fullWidth">
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <h4 class="col">Breaking Into Cell</h4>
+    </div>
+
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            <label for="successwholecell">Successful whole-cell?</label> <input type="checkbox" name="successwholecell" id="successWholeCell" />
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="myLeftCol">
+            <label for="qualityseal">Quality Seal?</label> <input type="checkbox" name="qualityseal" id="qualitySeal" />
+        </div>
+    </div>
+
+    <div class="row mt-2 hideView">
+        <div class="myLeftCol">
+            <input type="button" value="Add series" name="addseries" id="addSeries" class="fullWidth"/>
+        </div>
+    </div>
+
+    <div class="row mt-2" id="seriesCardDiv">&nbsp;</div>
+
+    <div class="row mt-4">
+        <h4 class="col">Notes:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col"><textarea name="gennotes" id="genNotes" class="autoAdjust fullWidth"></textarea></div>
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div id="forCopy">&nbsp;</div>
+    <div id="errorMsg">&nbsp;</div>
+</div>
+
+<!-- <div class="container mt-2">
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable1" name="toggletable1" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="tableID"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="tableID" /></div>
+        
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="tableID"/>
+            <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="tableID"/>
+            <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="tableID" />
+        </div>
+    </div>
+</div> -->
+
+<!-- Example Table Container that is responsive to window width, including for xs -->
+<!-- <div class="container mt-2">
+    <div class="table-responsive xsTableDiv">
+        <table class="table">
+            <thead>
+                <tr>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div> -->
+
+
+<!-- #endregion -->
