@@ -1,0 +1,391 @@
+<!-- #region HTML -->
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.0/css/selectize.bootstrap4.css" 
+    integrity="sha512-Kg38XDtVQjgC6DXyItkoTuf7aZmlTdTsKgZL5M2toIStv7RnzFejNaOEYXHy9Cs0EDS+I/ewSil0LwOoVDwryA==" 
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 100%
+    }
+
+    .make100{
+        width: 100vw;
+    }
+
+    .isDue{
+        background-color: lightcoral;
+    }
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="make100">
+    <div class="container mt-2">
+        <select name="testsel" id="testSel">
+            <option value="">[select]</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+        </select>
+    </div>
+<div class="container mt-2 hideView" id="addCareDiv">
+    <div class="row">
+        <h3 class="col">Add care:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
+            Select:
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="&Delta; bottoms" class="fullWidth" id="selBottom" name="selbottom"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Food" class="fullWidth" id="selFood" name="selfood"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="Food/water" class="fullWidth" id="selFoodWater" name="selfoodwater"/>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <input type="button" value="&Delta; tops" class="fullWidth" id="selTop" name="seltop"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Add care activity</div>
+        <div class="col">
+            <input type="button" value="Add care" id="addCare" name="addcare" class="addCare fullWidth"/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col" id="addCareNotes">&nbsp;</div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-lg">
+            <select name="damselect" id="damSelect" class="damSelect fullWidth" multiple="true">
+                <!-- <option value="">[select]</option> -->
+                &nbsp;
+            </select>
+        </div>
+        <div class="col-12 col-sm-6 col-lg row mt-1 mt-sm-0">
+            <div class="col-12 col-sm"><label for="changeDate">Date</label></div>
+            <div class="col"><input type="date" id="changeDate" name="changedate" class="fullWidth"/></div>
+        </div>
+        <div class="col row mt-1 mt-lg-0">
+            <div class="col-12"><label for="changeFood">Food</label></div>
+            <div class="col"><input type="checkbox" id="changeFood" name="changefood"></div>
+        </div>
+        <div class="col row mt-1 mt-lg-0">
+            <div class="col-12"><label for="changeWater">Water</label></div>
+            <div class="col"><input type="checkbox" id="changeWater" name="changewater"></div>
+        </div>
+        <div class="col row mt-1 mt-lg-0">
+            <div class="col-12"><label for="changeBottom">Dam bottom</label></div>
+            <div class="col"><input type="checkbox" id="changeBottom" name="changebottom"></div>
+        </div>
+        <div class="col row mt-1 mt-lg-0">
+            <div class="col-12"><label for="changeTop">Dam top</label></div>
+            <div class="col"><input type="checkbox" id="changeTop" name="changetop"></div>
+        </div>
+    </div>
+</div>
+<div class="container mt-2" id="viewDueDiv">
+    <div class="row">
+        <h3 class="col">Care activities due:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">Due Date:</div>
+        <div class="col">
+            <input type="date" name="duedate" id="dueDate" class="fullWidth editOnView">
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="col-12 col-sm-6 col-md-3">
+            <strong class="fullWidth">&Delta; dam bottoms</strong>
+            <div class="damBottomsList">&nbsp;</div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <strong class="fullWidth">Check/&Delta; food</strong>
+            <div class="foodDamList">&nbsp;</div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <strong class="fullWidth">Check/&Delta; water</strong>
+            <div class="waterDamList">&nbsp;</div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <strong class="fullWidth">&Delta; dam tops</strong>
+            <div class="damTopsList">&nbsp;</div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card" id="viewDamsDueDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Due Dates
+    </button>
+    <div class="table-responsive xsTableDiv dueDatesTable card-body collapse">
+        &nbsp;
+    </div>
+</div>
+
+<div class="container mt-2 card" id="caresOnDateDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Cares on date
+    </button>
+    <div class="card-body collapse container">
+        <div class="row mt-2">
+            <div class="myLeftCol">Care date:</div>
+            <div class="col"><input type="date" name="caredate" id="careDate" class="editOnView fullWidth"/></div>
+        </div>
+        <div class="table-responsive xsTableDiv caresOnDateTable mt-2">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card" id="sireGensDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Sire generations
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a sire generation</div>
+            <div class="col"><input type="button" value="Add a sire generation" id="addSireGen1" name="addsiregen1" class="addSireGen fullWidth"></div>
+        </div>
+        <div class="row mt-2" id="sireGensCardDiv">
+            &nbsp;
+        </div>
+
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a sire generation</div>
+            <div class="col">
+                <input type="button" value="Add a sire generation" id="addSireGen2" name="addsire2gen" class="addSireGen fullWidth"/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card" id="siresDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Sires
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a sire</div>
+            <div class="col">
+                <input type="button" value="Add a sire" id="addSire1" name="addsire2" class="addSire fullWidth"/>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol">Collapse all</div>
+            <div class="col">
+                <input type="button" value="Collapse all sires" name="collapsesires" id="collapseSires" class="fullWidth"/>
+            </div>
+        </div>
+
+        <div class="row mt-2" id="sireCardDiv">
+            &nbsp;
+        </div>
+
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a sire</div>
+            <div class="col">
+                <input type="button" value="Add a sire" id="addSire2" name="addsire2" class="addSire fullWidth"/>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <h3 class="col" id="tableInfo">
+                &nbsp;
+            </h3>
+        </div>
+
+        <div class="table-responsive xsTableDiv sireTable">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card" id="damGensDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Dam generations
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a dam generation</div>
+            <div class="col"><input type="button" value="Add a dam generation" id="addDamGen1" name="adddamgen1" class="addDamGen fullWidth"></div>
+        </div>
+        <div class="row mt-2" id="damGensCardDiv">
+            &nbsp;
+        </div>
+
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a dam generation</div>
+            <div class="col">
+                <input type="button" value="Add a dam generation" id="addDamGen2" name="adddam2gen" class="addDamGen fullWidth"/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card" id="damsDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Dams
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a dam</div>
+            <div class="col">
+                <input type="button" value="Add a dam" id="addDam1" name="adddam2" class="addDam fullWidth"/>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol">Collapse all</div>
+            <div class="col">
+                <input type="button" value="Collapse all dams" name="collapsedams" id="collapseDams" class="fullWidth"/>
+            </div>
+        </div>
+
+        <div class="row mt-2" id="damCardDiv">
+            &nbsp;
+        </div>
+
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a dam</div>
+            <div class="col">
+                <input type="button" value="Add a dam" id="addDam2" name="adddam2" class="addDam fullWidth"/>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <h3 class="col" id="tableInfo">
+                &nbsp;
+            </h3>
+        </div>
+
+        <div class="table-responsive xsTableDiv damTable">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+<div class="container hideView">
+    <div class="row mt-2">
+        <h3 class="col">Add mice from other sources:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Options
+        </div>
+        <div class="col">
+            <label for="makeRowHead">Make first row header:</label> <input type="checkbox" name="makerowhead" id="makeRowHead"/><br/><label for="makeColHead">Make first column header:</label> <input type="checkbox" name="makecolhead" id="makeColHead"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Paste Excel table
+        </div>
+        <div class="col">
+            <textarea name="pastefield" id="pasteField" class="autoAdjust fullWidth"></textarea>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Make a table
+        </div>
+        <div class="col">
+            <input type="button" value="Convert to HTML table" id="convertToTable" name="converttotable" class="fullWidth"/>
+        </div>
+    </div>
+    <div class="row mt-2 align-items-center">
+        <h4 class="myLeftCol">Import CSV</h4>
+        <div class="col">Save as CSV in other widget, then select the CSV below</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Select CSV:
+        </div>
+        <div class="col">
+            <input type="file" id="fileUpload" name="fileupload" class="fullWidth"></input>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Preview Table:
+        </div>
+        <div class="col">
+            <input type="button" id="preview" name="preview" value="Preview" class="fullWidth"></input>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 hideView">
+    <div class="table-responsive xsTableDiv forTable">
+        &nbsp;
+    </div>
+</div>
+
+
+<div class="container mt-2 hideView">
+    
+    <div class="row mt-1">
+        <div class= "col table-responsive xsTableDiv" id="dvCSV">
+            &nbsp;
+        </div>
+    </div>
+    <hr />
+    <div class="row mt-2">
+        <div class="myLeftCol">Add to this widget:</div>
+        <div class="col"><input type="button" value="upload" id="upload" name="upload" class="fullWidth"></div>
+    </div>
+</div>
+
+</div>
+
+<!-- <div class="container mt-2">
+    <div id="forCopy">&nbsp;</div>
+    <div id="errorMsg">&nbsp;</div>
+</div>
+
+<div class="container mt-2">
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable1" name="toggletable1" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="tableID"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="tableID" /></div>
+        
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="tableID"/>
+            <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="tableID"/>
+            <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="tableID" />
+        </div>
+    </div>
+</div> -->
+
+<!-- #endregion -->
