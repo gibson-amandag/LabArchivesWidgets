@@ -295,11 +295,7 @@ $(document).ready(function () {
         var testData = JSON.parse(this.parent_class.test_data());
 
         var output = { 
-            widgetData: testData,
-            damGenerationNums: [1],
-            damGenerations: {1: {damGen: 123, damGenDOB: "2022-11-01", damGenStrain: "CBA"}},
-            sireGenerationNums: [2],
-            sireGenerations: {2: {sireGen: 234, sireGenDOB: "2022-11-02", sireGenStrain: "GFP2"}}
+            widgetData: testData
         };
 
         //return the stringified output for use by the init function
@@ -430,17 +426,6 @@ $(document).ready(function () {
             this.sireGenerationNums = parsedJson.sireGenerationNums;
         }
 
-
-        if(parsedJson.dams){
-            this.dams = parsedJson.dams
-        }
-        if(parsedJson.damNums){
-            for(damNum of parsedJson.damNums){
-                this.makeDamCard(damNum);
-            }
-            this.damNums = parsedJson.damNums
-        }
-
         if(parsedJson.sires){
             this.sires = parsedJson.sires
         }
@@ -450,6 +435,24 @@ $(document).ready(function () {
             }
             this.sireNums = parsedJson.sireNums
         }
+
+        if(parsedJson.dams){
+            this.dams = parsedJson.dams
+        }
+        if(parsedJson.damNums){
+            for(damNum of parsedJson.damNums){
+                this.makeDamCard(damNum);
+
+                var breedingNums = this.dams[damNum].breedingNums;
+                if(breedingNums){
+                    for(breedingNum of breedingNums){
+                        this.makeDamBreeding(damNum, breedingNum);
+                    }
+                }
+            }
+            this.damNums = parsedJson.damNums
+        }
+
     },
 
     /**
@@ -1121,6 +1124,11 @@ $(document).ready(function () {
         return sireGenSearch;
     },
 
+    breedingSearch: function (breedingNum) {
+        var breedingSearch = this.dataSearch("breed", breedingNum);
+        return breedingSearch;
+    },
+
     updateCalcFromEl: function (el) {
         // debugger;
         // Get the element id
@@ -1481,7 +1489,9 @@ $(document).ready(function () {
             this.damNums.push(damNum);
             this.dams[damNum] = {
                 damID: "",
-                damLoc: ""
+                damGeneration: "",
+                breedingNums: [],
+                breedings: {}
             };
 
             this.makeDamCard(damNum);
@@ -1573,19 +1583,12 @@ $(document).ready(function () {
                 )
             }
 
-            $body.append(
-                $("<div></div>", {
-                    "class": "container breedingDiv",
-                    "data-dam": damNum
-                })
-            )
-
             $body.find(".deleteDam").prop("value", "Delete Dam").on("click", (e)=>{
                 this.deleteDamFuncs(damNum);
             });
 
             $body.find(".addBreeding").prop("value", "Add Breeding").on("click", (e)=>{
-                this.makeDamBreeding(damNum);
+                this.addDamBreeding(damNum);
             });
 
             $body.find(".updateDamObj").on("change", (e)=>{
@@ -1657,6 +1660,76 @@ $(document).ready(function () {
             "size",
             Math.min(this.sireNums.length, 15)
         );
+
+        this.updateSireList(sireNum);
+    },
+
+    makeSireList: function(damNum, damBreedingNum){
+        // debugger;
+        var sires = this.sires;
+        
+        var sireNums = this.sireNums;
+        var damSearch = this.damSearch(damNum);
+        var breedingSearch = this.breedingSearch(damBreedingNum);
+        var damBreedingSearch = damSearch + breedingSearch;
+
+        for(sireNum of sireNums){
+
+            var sire = sires[sireNum];
+
+            var sireInfo = ""
+            var sireID = sire.sireID;
+            if(!sireID){
+                sireID = "Sire " + sireNum;
+            }
+
+            $("select.sireBreeding"+damBreedingSearch).append(
+                $("<option></option>", {
+                    "value": sireNum,
+                    "data-sire": sireNum
+                }).append(sireID)
+            );
+        }
+    },
+
+
+    updateSireList: function(sireNum){
+        var sires = this.sires;
+
+        var sire = sires[sireNum];
+
+        var sireInfo = ""
+        var sireID = sire.sireID;
+        if(!sireID){
+            sireID = "Sire " + sireNum;
+        }
+
+        var $option = $("select.sireBreeding").find("option[value='" + sireNum+"']")
+        
+        if($option.length == 0){
+            $("select.sireBreeding").append(
+                $("<option></option>", {
+                    "value": sireNum,
+                    "data-sire": sireNum
+                }).append(sireID)
+            );
+        } else {
+            $option.text(sireID);
+        }
+
+        if(this.mode === "edit"){
+            $jq351("select.sireBreeding").each((i,e)=>{
+                $(e)[0].selectize.addOption({
+                    value: sireNum,
+                    text: sireID
+                })
+            });
+        }
+    },
+
+    setSelectizeValue: function(elName, value){
+        $("elName").val(value);
+        $jq351("elName")[0].selectize.setValue(value);
     },
 
     makeSireCardBody: function(sireNum){
@@ -1687,10 +1760,6 @@ $(document).ready(function () {
                             text: "[Select]"
                         }
                     ]
-                }, {
-                    label: "Add breeding:",
-                    type: "button",
-                    className: "addBreeding"
                 }
             ]
             
@@ -1700,19 +1769,8 @@ $(document).ready(function () {
                 )
             }
 
-            $body.append(
-                $("<div></div>", {
-                    "class": "container breedingDiv",
-                    "data-sire": sireNum
-                })
-            )
-
             $body.find(".deleteSire").prop("value", "Delete Sire").on("click", (e)=>{
                 this.deleteSireFuncs(sireNum);
-            });
-
-            $body.find(".addBreeding").prop("value", "Add Breeding").on("click", (e)=>{
-                this.makeSireBreeding(sireNum);
             });
 
             $body.find(".updateSireObj").on("change", (e)=>{
@@ -1724,6 +1782,7 @@ $(document).ready(function () {
                 var thisProp = $el.data("watch");
                 this.sires[sireNum][thisProp] = valSafe;
                 this.makeDueDatesTable();
+                this.updateSireList(sireNum);
             });
 
         return $body
@@ -1817,10 +1876,6 @@ $(document).ready(function () {
 
         var damGens = this.damGenerations;
         var damSearch = this.damSearch(damNum);
-        console.log($(".damGeneration"+damSearch).length);
-
-        $(".damGenerations"+damSearch).html("");
-
 
         for(damGenNum of damGenNums){
             var damGen = damGens[damGenNum];
@@ -1993,10 +2048,6 @@ $(document).ready(function () {
 
         var sireGens = this.sireGenerations;
         var sireSearch = this.sireSearch(sireNum);
-        console.log($(".sireGeneration"+sireSearch).length);
-
-        $(".sireGenerations"+sireSearch).html("");
-
 
         for(sireGenNum of sireGenNums){
             var sireGen = sireGens[sireGenNum];
@@ -2116,17 +2167,25 @@ $(document).ready(function () {
         return $body
     },
 
-    makeInput: function(inputType, className, dataNum, optionsObj, dataName){
+    makeInput: function(inputType, className, dataNum, optionsObj, dataName, addSecondData = false, secondDataNum = NaN, secondDataName = null){
         var lowerCaseName = className.toLowerCase();
         dataString = "data-"+dataName.toLowerCase();
+        var idNum = dataNum;
+        if(addSecondData){
+            secondDataString = "data-" + secondDataName.toLowerCase();
+            idNum = "a" + dataNum + "b" + secondDataNum
+        }
         if(inputType === "select"){
             var selectObj = {
-                "name": lowerCaseName+dataNum,
-                "id": className+dataNum,
+                "name": lowerCaseName+idNum,
+                "id": className+idNum,
                 "class": className + " fullWidth watch",
                 "data-watch": className
             }
             selectObj[dataString] = dataNum;
+            if(addSecondData){
+                selectObj[secondDataString] = secondDataNum;
+            }
 
             $input = $("<select></select>", selectObj);
 
@@ -2141,24 +2200,30 @@ $(document).ready(function () {
             }
         } else if(inputType === "textarea"){
             var inputObj = {
-                "name": lowerCaseName+dataNum,
-                "id": className+dataNum,
+                "name": lowerCaseName+idNum,
+                "id": className+idNum,
                 "class": className + " fullWidth watch autoAdjust",
                 "data-watch": className,
             }
-            inputObj[dataString] = dataNum
+            inputObj[dataString] = dataNum;
+            if(addSecondData){
+                inputObj[secondDataString] = secondDataNum;
+            }
             $input = $("<tex" + "tarea></tex" +"tarea>", inputObj).on("input", (e)=>{
                 this.updateTextarea(e.currentTarget);
             })
         } else {
             var inputObj = {
                 type: inputType,
-                "name": lowerCaseName+dataNum,
-                "id": className+dataNum,
+                "name": lowerCaseName+idNum,
+                "id": className+idNum,
                 "class": className + " fullWidth watch",
                 "data-watch": className
             }
-            inputObj[dataString] = dataNum
+            inputObj[dataString] = dataNum;
+            if(addSecondData){
+                inputObj[secondDataString] = secondDataNum;
+            }
             var $input = $("<input></input>", inputObj);
         }
 
@@ -2179,7 +2244,7 @@ $(document).ready(function () {
         return($input)
     },
 
-    makeRowFromObj: function(obj, dataNum, dataName){
+    makeRowFromObj: function(obj, dataNum, dataName, addSecondData = false, secondDataNum = NaN, secondDataName = null){
         var $row = this.makeRow(
             obj.label,
             this.makeInput(
@@ -2187,7 +2252,10 @@ $(document).ready(function () {
                 obj.className,
                 dataNum,
                 obj.optionsObj,
-                dataName
+                dataName,
+                addSecondData,
+                secondDataNum,
+                secondDataName
             ),
             obj.addRowClass
         );
@@ -2220,6 +2288,34 @@ $(document).ready(function () {
         this.resize();
     },
 
+    deleteBreedingFuncs: function (damNum, damBreedingNum) {
+        this.runIfConfirmed(
+            "Are you sure that you wish to delete this dam breeding?", 
+            ()=>{
+                var thisDam = this.dams[damNum];
+                var damBreedingNums = thisDam.breedingNums;
+                var damBreedings = thisDam.breedings;
+                // Remove it from the damNums
+                var index = damBreedingNums.indexOf(damBreedingNum);
+                if(index > -1){
+                    damBreedingNums.splice(index, 1);
+                }
+        
+                // Remove it from the dams object
+                delete damBreedings[damBreedingNum];
+        
+                // console.log(this.damNums);
+        
+                var damSearch = this.damSearch(damNum);
+                var breedingSearch = this.breedingSearch(damBreedingNum);
+                
+                // remove everything with this data attribute
+                $(damSearch+breedingSearch).remove();
+            }
+        );
+        this.resize();
+    },
+
     deleteDamGenerationFuncs: function (damGenerationNum) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dam generation?", 
@@ -2246,50 +2342,189 @@ $(document).ready(function () {
         this.resize();
     },
 
-    deleteCareFuncs: function (damNum, careNum) {
-        this.runIfConfirmed(
-            "Are you sure that you wish to delete this care?", 
-            ()=>{
-                // Remove it from the careNums
-                var index = this.dams[damNum].damCareNums.indexOf(careNum);
-                if(index > -1){
-                    this.dams[damNum].damCareNums.splice(index, 1);
-                }
-        
-                // Remove it from the dams object
-                delete this.dams[damNum].damCares[careNum];
-                
-                this.makeDueDatesTable();
-                this.getDamsDue($("#dueDate").val());
-                this.makeDateCareTable($("#careDate").val());
-                this.makeDamCareTable(damNum);
-            }
-        );
-        this.resize();
-    },
+    addDamBreeding: function(damNum){
+        var damBreedingNums = this.dams[damNum].breedingNums;
+        var damBreedings = this.dams[damNum].breedings;
 
-    addCare: function(damNum, careNum, date, changeFood, changeWater, changeBottom, changeTop){
-        var inArray = this.checkInArray(careNum, this.dams[damNum].damCareNums);
+        if(damBreedingNums.length>0){
+            var lastDamBreeding = damBreedingNums[damBreedingNums.length - 1];
+            var damBreedingNum = lastDamBreeding + 1;
+        } else {
+            var damBreedingNum = 1;
+        }
+
+        var inArray = this.checkInArray(damBreedingNum, damBreedingNums);
         if(! inArray){
             // debugger;
-            this.dams[damNum].damCareNums.push(careNum);
-            this.dams[damNum].damCares[careNum] = {
-                date: date,
-                food: changeFood,
-                water: changeWater,
-                damBottom: changeBottom,
-                damTop: changeTop
+            damBreedingNums.push(damBreedingNum);
+            damBreedings[damBreedingNum] = {
+                sireBreeding: null, 
+                breedDate: NaN, 
+                breedCage: NaN,
+                breedCageLoc: null, 
+                initialMass: NaN, 
+                massNums: [], 
+                masses: {},
+                plugCheckNums: [],
+                plugChecks: {},
+                sepFromMaleDate: NaN,
+                sepDamCageNum: NaN
             };
+
+            this.makeDamBreeding(damNum, damBreedingNum);
         }
+
+    },
+    
+    makeDamBreeding: function(damNum, damBreedingNum){
+        var damSearch = this.damSearch(damNum);
+        var $cardBody = $(".damCard"+damSearch).find(".card-body");
+
+        var initialRows = [
+            {
+                label: "Delete:",
+                type: "button",
+                className: "deleteBreeding",
+                optionsObj: [],
+                addRowClass: "hideView"
+            },
+            {
+                label: "Sire:",
+                type: "select",
+                className: "sireBreeding",
+                addRowClass: "updateDamBreedObj",
+                optionsObj: [ // will need to populate with existing
+                    {
+                        value: "",
+                        text: "[Select]"
+                    }
+                ]
+            },
+            {
+                label: "Date:",
+                type: "date",
+                className: "breedDate",
+                addRowClass: "updateDamBreedObj"
+            }, 
+            {
+                label: "Cage Num:",
+                type: "number",
+                className: "breedCage",
+                addRowClass: "updateDamBreedObj"
+            }, 
+            {
+                label: "Cage location:",
+                type: "text",
+                className: "breedCageLoc",
+                addRowClass: "updateDamBreedObj"
+            }, 
+            {
+                label: "Initial mass:",
+                type: "number",
+                className: "initialMass",
+                addRowClass: "updateDamBreedObj"
+            }, 
+            {
+                label: "Add plug check:",
+                type: "button",
+                className: "addPlugCheck"
+            },
+            {
+                label: "Add mass:",
+                type: "button",
+                className: "addMass"
+            },
+            {
+                label: "Separated from male:",
+                type: "date",
+                className: "sepFromMaleDate",
+                addRowClass: "updateDamBreedObj"
+            },
+            {
+                label: "Sep cage #:",
+                type: "number",
+                className: "sepDamCageNum"
+            },
+            {
+                label: "Parturition Date:",
+                type: "date",
+                className: "litterDOB"
+            }
+        ]
+        
+        $cardBody.append(
+            $("<div></div>", {
+                "class": "breedDiv",
+                "data-breed": damBreedingNum,
+                "data-dam": damNum
+            }).append(
+                $("<hr></hr>")
+            )
+        );
+
+        var $body = $cardBody.find(".breedDiv").last();
+
+        for(row of initialRows){
+            $body.append(
+                this.makeRowFromObj(row, damNum, "dam", true, damBreedingNum, "breed")
+            )
+        }
+
+        $body.find(".addPlugCheck").prop("value", "Plug check").on("click", (e)=>{
+            this.addPlugCheck(damNum, damBreedingNum);
+        }).parents(".row").after(
+            $("<div></div>", {
+                "class": "plugsDiv",
+                "data-dam": damNum,
+                "data-breed": damBreedingNum
+            })
+        );
+
+        $body.find(".addMass").prop("value", "Add mass").on("click", (e)=>{
+            this.addMass(damNum, damBreedingNum);
+        }).parents(".row").after(
+            $("<div></div>", {
+                "class": "massesDiv",
+                "data-dam": damNum,
+                "data-breed": damBreedingNum
+            })
+        );
+
+        $body.find(".deleteBreeding").prop("value", "Delete Breeding").on("click", (e)=>{
+            this.deleteBreedingFuncs(damNum, damBreedingNum);
+        });
+
+        this.makeSireList(damNum, damBreedingNum);
+        var damBreeedingSearch = this.damSearch(damNum) + this.breedingSearch(damBreedingNum);
+        if(this.mode === "edit"){
+            $jq351(".sireBreeding"+damBreeedingSearch).selectize({});
+        }
+
+        // $body.find(".addBreeding").prop("value", "Add Breeding").on("click", (e)=>{
+        //     this.addDamBreeding(damNum);
+        // });
+
+        $body.find(".updateDamBreedObj").on("change", (e)=>{
+            // debugger;
+            var $el = $(e.target); // not currentTarget, because the .updateDamObj gets put on the row
+            var val = $el.val();
+            // Store only the text and no HTML elements.
+            valSafe = this.encodeHTML(val);
+            var thisProp = $el.data("watch");
+            this.dams[damNum].breedings[damBreedingNum][thisProp] = valSafe;
+        });
+
+
+
     },
 
-    careLabels: [
-        "date",
-        "food",
-        "water",
-        "damBottom",
-        "damTop"
-    ],
+    addPlugCheck: function(damNum, damBreedingNum){
+
+    },
+
+    addMass: function(damNum, damBreedingNum){
+
+    },
 
     makeDamCareTable: function(damNum){
         var damCareNums = this.dams[damNum].damCareNums;
@@ -3138,6 +3373,7 @@ $(document).ready(function () {
             }
             this.addSireGenFromTable(obj);
         }
+        this.updateSireList(sireNum);
     },
 
     upload: function() {
