@@ -1611,7 +1611,7 @@ $(document).ready(function () {
             this.sireNums.push(sireNum);
             this.sires[sireNum] = {
                 sireID: "",
-                sireLoc: ""
+                sireGeneration: ""
             };
 
             this.makeSireCard(sireNum);
@@ -1717,14 +1717,14 @@ $(document).ready(function () {
             $option.text(sireID);
         }
 
-        if(this.mode === "edit"){
-            $jq351("select.sireBreeding").each((i,e)=>{
-                $(e)[0].selectize.addOption({
-                    value: sireNum,
-                    text: sireID
-                })
-            });
-        }
+        // if(this.mode === "edit"){
+        //     $jq351("select.sireBreeding").each((i,e)=>{
+        //         $(e)[0].selectize.addOption({
+        //             value: sireNum,
+        //             text: sireID
+        //         })
+        //     });
+        // }
     },
 
     setSelectizeValue: function(elName, value){
@@ -1988,7 +1988,7 @@ $(document).ready(function () {
                 // Store only the text and no HTML elements.
                 valSafe = this.encodeHTML(val);
                 var thisProp = $el.data("watch");
-                console.log(thisProp, valSafe);
+                // console.log(thisProp, valSafe);
                 this.damGenerations[damGenerationNum][thisProp] = valSafe;
 
                 this.updateDamGenList(damGenerationNum);
@@ -2159,7 +2159,7 @@ $(document).ready(function () {
                 // Store only the text and no HTML elements.
                 valSafe = this.encodeHTML(val);
                 var thisProp = $el.data("watch");
-                console.log(thisProp, valSafe);
+                // console.log(thisProp, valSafe);
                 this.sireGenerations[sireGenerationNum][thisProp] = valSafe;
 
                 this.updateSireGenList(sireGenerationNum);
@@ -2359,6 +2359,7 @@ $(document).ready(function () {
             damBreedingNums.push(damBreedingNum);
             damBreedings[damBreedingNum] = {
                 sireBreeding: null, 
+                litterNum: NaN,
                 breedDate: NaN, 
                 breedCage: NaN,
                 breedCageLoc: null, 
@@ -2368,7 +2369,8 @@ $(document).ready(function () {
                 plugCheckNums: [],
                 plugChecks: {},
                 sepFromMaleDate: NaN,
-                sepDamCageNum: NaN
+                sepDamCageNum: NaN,
+                litterDOB: NaN
             };
 
             this.makeDamBreeding(damNum, damBreedingNum);
@@ -2404,6 +2406,12 @@ $(document).ready(function () {
                 label: "Date:",
                 type: "date",
                 className: "breedDate",
+                addRowClass: "updateDamBreedObj"
+            },
+            {
+                label: "Litter Number:",
+                type: "number",
+                className: "litterNum",
                 addRowClass: "updateDamBreedObj"
             }, 
             {
@@ -2448,7 +2456,8 @@ $(document).ready(function () {
             {
                 label: "Parturition Date:",
                 type: "date",
-                className: "litterDOB"
+                className: "litterDOB",
+                addRowClass: "updateDamBreedObj"
             }
         ]
         
@@ -2496,9 +2505,9 @@ $(document).ready(function () {
 
         this.makeSireList(damNum, damBreedingNum);
         var damBreeedingSearch = this.damSearch(damNum) + this.breedingSearch(damBreedingNum);
-        if(this.mode === "edit"){
-            $jq351(".sireBreeding"+damBreeedingSearch).selectize({});
-        }
+        // if(this.mode === "edit"){
+        //     $jq351(".sireBreeding"+damBreeedingSearch).selectize({});
+        // }
 
         // $body.find(".addBreeding").prop("value", "Add Breeding").on("click", (e)=>{
         //     this.addDamBreeding(damNum);
@@ -2525,6 +2534,105 @@ $(document).ready(function () {
     addMass: function(damNum, damBreedingNum){
 
     },
+
+    getDamBreedingInfo: function(damNum, damBreedingNum){
+        var dam = this.dams[damNum]
+        var breeding = this.dams[damNum].breedings[damBreedingNum];
+
+        var damID = dam.damID;
+        if(!damID){
+            damID = "d"+damNum;
+        }
+
+        var litterNum = breeding.litterNum;
+        if(!litterNum){
+            litterNum = damBreedingNum;
+        }
+        var specDamID = damID + "-" + (""+litterNum).padStart(2, "0");
+
+        var damGenNum = dam.damGeneration;
+        var damStrain, damGeneration, damDOB
+        if(damGenNum){
+            var damGenInfo = this.damGenerations[damGenNum];
+
+            damStrain = damGenInfo.damGenStrain;
+            damGeneration = damGenInfo.damGen;
+            damDOB = damGenInfo.damGenDOB;
+        }
+
+        var sireNum = breeding.sireBreeding;
+        var sireID, sireStrain, sireGeneration, sireDOB
+        if(sireNum){
+            var sireInfo = this.sires[sireNum];
+
+            sireID = sireInfo.sireID;
+            sireGenNum = sireInfo.sireGeneration;
+
+            if(sireGenNum){
+                var sireGenInfo = this.sireGenerations[sireGenNum];
+
+                sireStrain = sireGenInfo.sireGenStrain;
+                sireGeneration = sireGenInfo.sireGen;
+                sireDOB = sireGenInfo.sireGenDOB;
+            }
+
+        }
+
+        var plugDate // TODO calc from earliest possible
+
+        var damObj = {
+            damID: specDamID,
+            litterNum: breeding.litterNum,
+            dam: damID,
+            damStrain: damStrain,
+            damGeneration: damGeneration,
+            damDOB: damDOB,
+            sire: sireID,
+            sireStrain: sireStrain,
+            sireGeneration: sireGeneration,
+            sireDOB: sireDOB,
+            breedDate: breeding.breedDate,
+            plugDate: plugDate,
+            DOB: breeding.litterDOB
+        };
+
+        return damObj
+    },
+
+    damBreedingLabels: [
+        "damID",
+        "litterNum",
+        "dam",
+        "damStrain",
+        "damGeneration",
+        "damDOB",
+        "sire",
+        "sireStrain",
+        "sireGeneration",
+        "sireDOB",
+        "breedDate",
+        "plugDate",
+        "DOB"
+    ],
+
+    copyDamBreedingToClipboard: function(damNum, damBreedingNum, copyLabels = false){
+
+        var damObj = this.getDamBreedingInfo(damNum, damBreedingNum);
+
+        const tableArray = [];
+        const rowArray = [];
+        if(copyLabels){
+            tableArray.push(this.damBreedingLabels);
+        }
+        for(label of this.damBreedingLabels){
+            rowArray.push(""+damObj[label]);
+        }
+        tableArray.push(rowArray);
+        var tableString = this.convertRowArrayToString(tableArray, "\t", "\n");
+        var $divForCopy = $("#forCopy");
+        var $errorMsg = $("#errorMsg");
+        this.copyStringToClipboard(tableString, $divForCopy, $errorMsg);
+    },   
 
     makeDamCareTable: function(damNum){
         var damCareNums = this.dams[damNum].damCareNums;
@@ -3836,12 +3944,12 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 </div>
 
-<!-- <div class="container mt-2">
+<div class="container mt-2">
     <div id="forCopy">&nbsp;</div>
     <div id="errorMsg">&nbsp;</div>
 </div>
 
-<div class="container mt-2">
+<!-- <div class="container mt-2">
     <div class="row mt-2">
         <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable1" name="toggletable1" type="button"
                 value="Show/Hide Table" class="fullWidth toggleTable" data-table="tableID"/>
