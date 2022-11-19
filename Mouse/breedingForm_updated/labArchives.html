@@ -41,81 +41,21 @@
     .isDue{
         background-color: lightcoral;
     }
+
+    .isCertain{
+        background-color: lightblue;
+    }
+
+    .hide{
+        display: none;
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
 <div class="make100">
-    <div class="container mt-2">
-        <select name="testsel" id="testSel">
-            <option value="">[select]</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-        </select>
-    </div>
-<div class="container mt-2 hideView" id="addCareDiv">
-    <div class="row">
-        <h3 class="col">Add care:</h3>
-    </div>
-    <div class="row mt-2">
-        <div class="col">
-            Select:
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="&Delta; bottoms" class="fullWidth" id="selBottom" name="selbottom"/>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Food" class="fullWidth" id="selFood" name="selfood"/>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="Food/water" class="fullWidth" id="selFoodWater" name="selfoodwater"/>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <input type="button" value="&Delta; tops" class="fullWidth" id="selTop" name="seltop"/>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="myLeftCol">Add care activity</div>
-        <div class="col">
-            <input type="button" value="Add care" id="addCare" name="addcare" class="addCare fullWidth"/>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col" id="addCareNotes">&nbsp;</div>
-    </div>
-    <div class="row mt-2">
-        <div class="col-12 col-sm-6 col-lg">
-            <select name="damselect" id="damSelect" class="damSelect fullWidth" multiple="true">
-                <!-- <option value="">[select]</option> -->
-                &nbsp;
-            </select>
-        </div>
-        <div class="col-12 col-sm-6 col-lg row mt-1 mt-sm-0">
-            <div class="col-12 col-sm"><label for="changeDate">Date</label></div>
-            <div class="col"><input type="date" id="changeDate" name="changedate" class="fullWidth"/></div>
-        </div>
-        <div class="col row mt-1 mt-lg-0">
-            <div class="col-12"><label for="changeFood">Food</label></div>
-            <div class="col"><input type="checkbox" id="changeFood" name="changefood"></div>
-        </div>
-        <div class="col row mt-1 mt-lg-0">
-            <div class="col-12"><label for="changeWater">Water</label></div>
-            <div class="col"><input type="checkbox" id="changeWater" name="changewater"></div>
-        </div>
-        <div class="col row mt-1 mt-lg-0">
-            <div class="col-12"><label for="changeBottom">Dam bottom</label></div>
-            <div class="col"><input type="checkbox" id="changeBottom" name="changebottom"></div>
-        </div>
-        <div class="col row mt-1 mt-lg-0">
-            <div class="col-12"><label for="changeTop">Dam top</label></div>
-            <div class="col"><input type="checkbox" id="changeTop" name="changetop"></div>
-        </div>
-    </div>
-</div>
 <div class="container mt-2" id="viewDueDiv">
     <div class="row">
-        <h3 class="col">Care activities due:</h3>
+        <h3 class="col">Activities due:</h3>
     </div>
     <div class="row mt-2">
         <div class="myLeftCol">Due Date:</div>
@@ -124,44 +64,66 @@
         </div>
     </div>
     <div class="row mt-1">
-        <div class="col-12 col-sm-6 col-md-3">
-            <strong class="fullWidth">&Delta; dam bottoms</strong>
-            <div class="damBottomsList">&nbsp;</div>
+        <div class="col-12 col-sm-6 col-md-4">
+            <strong class="fullWidth">Plug Check</strong>
+            <div class="plugCheckList">&nbsp;</div>
         </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <strong class="fullWidth">Check/&Delta; food</strong>
-            <div class="foodDamList">&nbsp;</div>
+        <div class="col-12 col-sm-6 col-md-4">
+            <strong class="fullWidth">Separate from male</strong>
+            <div class="sepMaleList">&nbsp;</div>
         </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <strong class="fullWidth">Check/&Delta; water</strong>
-            <div class="waterDamList">&nbsp;</div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <strong class="fullWidth">&Delta; dam tops</strong>
-            <div class="damTopsList">&nbsp;</div>
+        <div class="col-12 col-sm-6 col-md-4">
+            <strong class="fullWidth">Check for births</strong>
+            <div class="checkBirthsList">&nbsp;</div>
         </div>
     </div>
 </div>
 
-<div class="container mt-2 card" id="viewDamsDueDiv">
+<div class="container mt-2 card" id="sepDueDatesDiv">
     <button type="button" class="row card-header htmlCardHeader">
-        Due Dates
+        Separations due dates
     </button>
-    <div class="table-responsive xsTableDiv dueDatesTable card-body collapse">
+    <div class="table-responsive xsTableDiv sepDueDatesTable card-body collapse">
         &nbsp;
     </div>
 </div>
 
-<div class="container mt-2 card" id="caresOnDateDiv">
+<div class="container mt-2 card" id="checkForBirthsDiv">
     <button type="button" class="row card-header htmlCardHeader">
-        Cares on date
+        Check for birth dates
     </button>
-    <div class="card-body collapse container">
-        <div class="row mt-2">
-            <div class="myLeftCol">Care date:</div>
-            <div class="col"><input type="date" name="caredate" id="careDate" class="editOnView fullWidth"/></div>
+    <div class="table-responsive xsTableDiv checkForBirthsTable card-body collapse">
+        &nbsp;
+    </div>
+</div>
+
+<div class="container mt-2 card" id="estExpDatesDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Estimated experiment dates
+    </button>
+    <div class="table-responsive xsTableDiv estExpDatesTable card-body collapse">
+        &nbsp;
+    </div>
+</div>
+
+<div class="container mt-2 card" id="damsBreedingsInfoDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        All breedings info
+    </button>
+    <div class="card-body collapse">
+        <div class="container mt-2">
+            <div class="row mt-2">
+                <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                        class="fullWidth toCSV" data-table="damsBreedingsInfoTable" /></div>
+                
+                <div class="col-12 col-sm-6 col-md-3">
+                    <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="damsBreedingsInfoTable"/>
+                    <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="damsBreedingsInfoTable"/>
+                    <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="damsBreedingsInfoTable" />
+                </div>
+            </div>
         </div>
-        <div class="table-responsive xsTableDiv caresOnDateTable mt-2">
+        <div class="table-responsive xsTableDiv damsBreedingsInfoTable">
             &nbsp;
         </div>
     </div>
@@ -366,12 +328,12 @@
 
 </div>
 
-<!-- <div class="container mt-2">
+<div class="container mt-2">
     <div id="forCopy">&nbsp;</div>
     <div id="errorMsg">&nbsp;</div>
 </div>
 
-<div class="container mt-2">
+<!-- <div class="container mt-2">
     <div class="row mt-2">
         <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable1" name="toggletable1" type="button"
                 value="Show/Hide Table" class="fullWidth toggleTable" data-table="tableID"/>

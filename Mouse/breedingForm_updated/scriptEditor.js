@@ -235,9 +235,7 @@ my_widget_script =
         var testData = JSON.parse(this.parent_class.test_data());
 
         var output = { 
-            widgetData: testData,
-            dams: {1: {}},
-            damNums: [1]
+            widgetData: testData
         };
 
         //return the stringified output for use by the init function
@@ -389,6 +387,20 @@ my_widget_script =
                 if(breedingNums){
                     for(breedingNum of breedingNums){
                         this.makeDamBreeding(damNum, breedingNum);
+
+                        var plugCheckNums = this.dams[damNum].breedings[breedingNum].plugCheckNums;
+                        if(plugCheckNums){
+                            for(plugCheckNum of plugCheckNums){
+                                this.makePlugEntry(damNum, breedingNums, plugCheckNum);
+                            }
+                        }
+
+                        var massNums = this.dams[damNum].breedings[breedingNum].massNums;
+                        if(massNums){
+                            for(massNum of massNums){
+                                this.makeMassEntry(damNum, breedingNums, massNum);
+                            }
+                        }
                     }
                 }
             }
@@ -534,22 +546,6 @@ my_widget_script =
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
-        $jq351("#testSel").selectize({}); // the method 
-
-        // Doesn't  add
-        $("#testSel").append(
-            "<option value='3'>3</option>"
-        );
-
-        // Does add
-        $jq351("#testSel")[0].selectize.addOption({
-            value: 3,
-            text: "3"
-        })
-
-        // $("#testSel").selectize({
-        //     sortField: "text"
-        // });
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
         
@@ -575,7 +571,7 @@ my_widget_script =
 
         $(".toggleTable").on("click", (e)=> {
             var tableID = $(e.currentTarget).data("table");
-            var $table = $("#"+tableID);
+            var $table = $("."+tableID).find("table"); // note the change! div of a class, find the table within
             var $errorMsg = $("#errorMsg");
             this.toggleTableFuncs($table, $errorMsg);
         });
@@ -596,7 +592,7 @@ my_widget_script =
             // Find the element that tells whether or not to copy the table
             var $copyHead = $(".copyHead"+tableSearch);
             var $transpose = $(".transpose"+tableSearch);
-            var $tableToCopy = $("#"+tableID);
+            var $tableToCopy = $("."+tableID).find("table"); // note the change! div of a class, find the table within
             var $tableDiv = $tableToCopy.parent();
             var $errorMsg = $("#errorMsg");
             var $divForCopy = $("#forCopy");
@@ -648,38 +644,6 @@ my_widget_script =
             this.collapseAllDamCards();
         })
 
-        // $("#addCare").on("click", (e)=>{
-        //     var damNums = $("#damSelect").val();
-        //     // Text of selected dams
-        //     var damDisplayNames = $("#damSelect option:selected").toArray().map(item => item.text).join(", ");
-
-        //     if(damNums && damNums.length>0){
-        //         for(damNum of damNums){
-        //             if(damNum){
-        //                 var date = $("#changeDate").val();
-        //                 var changeFood = this.getCheckState($("#changeFood"));
-        //                 var changeWater = this.getCheckState($("#changeWater"));
-        //                 var changeBottom = this.getCheckState($("#changeBottom"));
-        //                 var changeTop = this.getCheckState($("#changeTop"));
-        //                 if(this.dams[damNum].damCareNums.length >0){
-        //                     var lastCare = this.dams[damNum].damCareNums[this.dams[damNum].damCareNums.length - 1];
-        //                     var careNum = lastCare + 1;
-        //                 } else {
-        //                     var careNum = 1;
-        //                 }
-        //                 this.addCare(damNum, careNum, date, changeFood, changeWater, changeBottom, changeTop);
-        //             }
-        //         }
-        //         this.getDamsDue($("#dueDate").val());
-        //         this.makeDateCareTable($("#damDate").val());
-        //         this.makeDueDatesTable();
-        //         $(".damCaresTable").html("");
-        //         $("#addCareNotes").text("Added care for " + damDisplayNames + " on " + luxon.DateTime.fromISO(date).toLocaleString(luxon.DateTime.DATE_HUGE));
-        //     } else {
-        //         $("#addCareNotes").text("Select at least one dam")
-        //     }
-        // });
-
         // Generic update when any part of the form has user input
         $("#the_form").on("input", (e)=>{
             // Add a watch attribute to elements if need to be more specific, such as
@@ -692,6 +656,8 @@ my_widget_script =
                 // matches the id of the target element
                 this.updateCalcFromEl(e.target);
             }
+        }).on("change", (e)=>{
+            this.getDamsDue($("#dueDate").val());
         });
         
         // Run this first incase calcValues needs to overrule
@@ -708,40 +674,8 @@ my_widget_script =
         });
 
         var dateToday = luxon.DateTime.now().toISODate()
-        // $("#changeDate").val(dateToday);
-        // $("#dueDate").val(dateToday).on("change", (e)=>{
-        //     this.getDamsDue($(e.currentTarget).val());
-        // }).each((i,e)=>{
-        //     this.getDamsDue($(e).val());
-        // });
-
-        // $("#careDate").val(dateToday).on("change", (e)=>{
-        //     this.makeDateCareTable($(e.currentTarget).val());
-        // }).each((i,e)=>{
-        //     this.makeDateCareTable($(e).val());
-        // });
-
-        // this.makeDueDatesTable();
-
-        $("#damSelect").attr(
-            "size",
-            Math.min(this.damNums.length, 15)
-        );
-
-        $("#selFood").on("click", (e)=>{
-            this.selectFood($("#changeDate").val());
-        });
-
-        $("#selFoodWater").on("click", (e)=>{
-            this.selectFoodWater($("#changeDate").val());
-        });
-
-        $("#selBottom").on("click", (e)=>{
-            this.selectDamBottom($("#changeDate").val());
-        });
-
-        $("#selTop").on("click", (e)=>{
-            this.selectDamTop($("#changeDate").val());
+        $("#dueDate").val(dateToday).each((i,e)=>{
+            this.getDamsDue($(e).val());
         });
 
         $(".htmlCardHeader").on("click", (e)=> {
@@ -1071,6 +1005,16 @@ my_widget_script =
         return breedingSearch;
     },
 
+    plugSearch: function (plugNum) {
+        var plugSearch = this.dataSearch("plug", plugNum);
+        return plugSearch;
+    },
+
+    massSearch: function (massNum) {
+        var massSearch = this.dataSearch("mass", massNum);
+        return massSearch;
+    },
+
     updateCalcFromEl: function (el) {
         // debugger;
         // Get the element id
@@ -1205,7 +1149,7 @@ my_widget_script =
      * @param {string} table the id of the table that will be exported
      */
     exportTableToCSV: function (filename, table) {
-        var tableArray = this.getTableArray($("#"+ table), copyHead = true, transpose = false);
+        var tableArray = this.getTableArray($("."+ table).find("table"), copyHead = true, transpose = false);
         var tableString = this.convertRowArrayToString(tableArray, ",", "\n");
 
         // Download CSV file
@@ -1452,7 +1396,7 @@ my_widget_script =
 
         $div.append(
             $("<div/>", {
-                "class": "col col-md-6 mt-2 damCard",
+                "class": "col-12 col-lg-6 mt-2 damCard",
                 "data-dam": damNum
             })
         )
@@ -1541,11 +1485,11 @@ my_widget_script =
                 valSafe = this.encodeHTML(val);
                 var thisProp = $el.data("watch");
                 this.dams[damNum][thisProp] = valSafe;
-                this.makeDueDatesTable();
             });
 
         return $body
     },
+
     addSire: function(sireNum){
         var inArray = this.checkInArray(sireNum, this.sireNums);
         if(! inArray){
@@ -1553,7 +1497,7 @@ my_widget_script =
             this.sireNums.push(sireNum);
             this.sires[sireNum] = {
                 sireID: "",
-                sireLoc: ""
+                sireGeneration: ""
             };
 
             this.makeSireCard(sireNum);
@@ -1659,14 +1603,14 @@ my_widget_script =
             $option.text(sireID);
         }
 
-        if(this.mode === "edit"){
-            $jq351("select.sireBreeding").each((i,e)=>{
-                $(e)[0].selectize.addOption({
-                    value: sireNum,
-                    text: sireID
-                })
-            });
-        }
+        // if(this.mode === "edit"){
+        //     $jq351("select.sireBreeding").each((i,e)=>{
+        //         $(e)[0].selectize.addOption({
+        //             value: sireNum,
+        //             text: sireID
+        //         })
+        //     });
+        // }
     },
 
     setSelectizeValue: function(elName, value){
@@ -1930,7 +1874,7 @@ my_widget_script =
                 // Store only the text and no HTML elements.
                 valSafe = this.encodeHTML(val);
                 var thisProp = $el.data("watch");
-                console.log(thisProp, valSafe);
+                // console.log(thisProp, valSafe);
                 this.damGenerations[damGenerationNum][thisProp] = valSafe;
 
                 this.updateDamGenList(damGenerationNum);
@@ -2101,7 +2045,7 @@ my_widget_script =
                 // Store only the text and no HTML elements.
                 valSafe = this.encodeHTML(val);
                 var thisProp = $el.data("watch");
-                console.log(thisProp, valSafe);
+                // console.log(thisProp, valSafe);
                 this.sireGenerations[sireGenerationNum][thisProp] = valSafe;
 
                 this.updateSireGenList(sireGenerationNum);
@@ -2109,13 +2053,17 @@ my_widget_script =
         return $body
     },
 
-    makeInput: function(inputType, className, dataNum, optionsObj, dataName, addSecondData = false, secondDataNum = NaN, secondDataName = null){
+    makeInput: function(inputType, className, dataNum, optionsObj, dataName, addSecondData = false, secondDataNum = NaN, secondDataName = null, addThirdData = false, thirdDataNum = NaN, thirdDataName = null){
         var lowerCaseName = className.toLowerCase();
         dataString = "data-"+dataName.toLowerCase();
         var idNum = dataNum;
         if(addSecondData){
             secondDataString = "data-" + secondDataName.toLowerCase();
             idNum = "a" + dataNum + "b" + secondDataNum
+        }
+        if(addThirdData){
+            thirdDataString = "data-" + thirdDataName.toLowerCase();
+            idNum += ("c" + thirdDataNum);
         }
         if(inputType === "select"){
             var selectObj = {
@@ -2127,6 +2075,9 @@ my_widget_script =
             selectObj[dataString] = dataNum;
             if(addSecondData){
                 selectObj[secondDataString] = secondDataNum;
+            }
+            if(addThirdData){
+                selectObj[thirdDataString] = thirdDataNum;
             }
 
             $input = $("<select></select>", selectObj);
@@ -2151,6 +2102,9 @@ my_widget_script =
             if(addSecondData){
                 inputObj[secondDataString] = secondDataNum;
             }
+            if(addThirdData){
+                inputObj[thirdDataString] = thirdDataNum;
+            }
             $input = $("<tex" + "tarea></tex" +"tarea>", inputObj).on("input", (e)=>{
                 this.updateTextarea(e.currentTarget);
             })
@@ -2165,6 +2119,9 @@ my_widget_script =
             inputObj[dataString] = dataNum;
             if(addSecondData){
                 inputObj[secondDataString] = secondDataNum;
+            }
+            if(addThirdData){
+                inputObj[thirdDataString] = thirdDataNum;
             }
             var $input = $("<input></input>", inputObj);
         }
@@ -2225,6 +2182,7 @@ my_widget_script =
 
                 // remove everything with this data attribute
                 $(damSearch).remove();
+                this.getDamsDue($("#dueDate").val());
             }
         );
         this.resize();
@@ -2253,6 +2211,71 @@ my_widget_script =
                 
                 // remove everything with this data attribute
                 $(damSearch+breedingSearch).remove();
+                this.getDamsDue($("#dueDate").val());
+            }
+        );
+        this.resize();
+    },
+
+    deletePlugFuncs: function (damNum, damBreedingNum, plugCheckNum) {
+        this.runIfConfirmed(
+            "Are you sure that you wish to delete this dam breeding?", 
+            ()=>{
+                var thisDam = this.dams[damNum];
+                var damBreeding = thisDam.breedings[damBreedingNum];
+                var plugCheckNums = damBreeding.plugCheckNums;
+                var plugChecks = damBreeding.plugChecks;
+
+                // Remove it from the plugCheckNums
+                var index = plugCheckNums.indexOf(plugCheckNum);
+                if(index > -1){
+                    plugCheckNums.splice(index, 1);
+                }
+        
+                // Remove it from the dams object
+                delete plugChecks[plugCheckNum];
+        
+                // console.log(this.damNums);
+        
+                var damSearch = this.damSearch(damNum);
+                var breedingSearch = this.breedingSearch(damBreedingNum);
+                var plugSearch = this.plugSearch(plugCheckNum);
+                
+                // remove everything with this data attribute
+                $(damSearch+breedingSearch+plugSearch).remove();
+                this.getDamsDue($("#dueDate").val());
+            }
+        );
+        this.resize();
+    },
+
+    deleteMassFuncs: function (damNum, damBreedingNum, massNum) {
+        this.runIfConfirmed(
+            "Are you sure that you wish to delete this dam breeding?", 
+            ()=>{
+                var thisDam = this.dams[damNum];
+                var damBreeding = thisDam.breedings[damBreedingNum];
+                var massNums = damBreeding.massNums;
+                var masses = damBreeding.masses;
+
+                // Remove it from the massNums
+                var index = massNums.indexOf(massNum);
+                if(index > -1){
+                    massNums.splice(index, 1);
+                }
+        
+                // Remove it from the dams object
+                delete masses[massNum];
+        
+                // console.log(this.damNums);
+        
+                var damSearch = this.damSearch(damNum);
+                var breedingSearch = this.breedingSearch(damBreedingNum);
+                var massSearch = this.massSearch(massNum);
+                
+                // remove everything with this data attribute
+                $(damSearch+breedingSearch+massSearch).remove();
+                this.getDamsDue($("#dueDate").val());
             }
         );
         this.resize();
@@ -2279,6 +2302,7 @@ my_widget_script =
 
                 // remove everything with this data attribute
                 $(damGenSearch).remove();
+                this.getDamsDue($("#dueDate").val());
             }
         );
         this.resize();
@@ -2301,6 +2325,7 @@ my_widget_script =
             damBreedingNums.push(damBreedingNum);
             damBreedings[damBreedingNum] = {
                 sireBreeding: null, 
+                litterNum: NaN,
                 breedDate: NaN, 
                 breedCage: NaN,
                 breedCageLoc: null, 
@@ -2310,10 +2335,13 @@ my_widget_script =
                 plugCheckNums: [],
                 plugChecks: {},
                 sepFromMaleDate: NaN,
-                sepDamCageNum: NaN
+                sepDamCageNum: NaN,
+                litterDOB: NaN,
+                stopTrackingDate: NaN
             };
 
             this.makeDamBreeding(damNum, damBreedingNum);
+            this.getDamsDue($("#dueDate").val());
         }
 
     },
@@ -2323,6 +2351,11 @@ my_widget_script =
         var $cardBody = $(".damCard"+damSearch).find(".card-body");
 
         var initialRows = [
+            {
+                label: "Copy info:",
+                type: "button",
+                className: "copyBreeding"
+            },
             {
                 label: "Delete:",
                 type: "button",
@@ -2347,6 +2380,12 @@ my_widget_script =
                 type: "date",
                 className: "breedDate",
                 addRowClass: "updateDamBreedObj"
+            },
+            {
+                label: "Litter Number:",
+                type: "number",
+                className: "litterNum",
+                addRowClass: "updateDamBreedObj"
             }, 
             {
                 label: "Cage Num:",
@@ -2369,12 +2408,14 @@ my_widget_script =
             {
                 label: "Add plug check:",
                 type: "button",
-                className: "addPlugCheck"
+                className: "addPlugCheck",
+                addRowClass: "hideView"
             },
             {
                 label: "Add mass:",
                 type: "button",
-                className: "addMass"
+                className: "addMass",
+                addRowClass: "hideView"
             },
             {
                 label: "Separated from male:",
@@ -2388,9 +2429,21 @@ my_widget_script =
                 className: "sepDamCageNum"
             },
             {
-                label: "Parturition Date:",
+                label: "Parturition date:",
                 type: "date",
-                className: "litterDOB"
+                className: "litterDOB",
+                addRowClass: "updateDamBreedObj"
+            },
+            {
+                label: "Stop tracking:",
+                type: "date",
+                className: "stopTrackingDate",
+                addRowClass: "updateDamBreedObj"
+            },
+            {
+                label: "Copy info:",
+                type: "button",
+                className: "copyBreeding"
             }
         ]
         
@@ -2414,33 +2467,41 @@ my_widget_script =
 
         $body.find(".addPlugCheck").prop("value", "Plug check").on("click", (e)=>{
             this.addPlugCheck(damNum, damBreedingNum);
-        }).parents(".row").after(
+        }).closest(".row").after(
             $("<div></div>", {
                 "class": "plugsDiv",
                 "data-dam": damNum,
                 "data-breed": damBreedingNum
-            })
+            }).append(
+                this.makeTopLabelRow(this.plugLabels)
+            )
         );
 
         $body.find(".addMass").prop("value", "Add mass").on("click", (e)=>{
             this.addMass(damNum, damBreedingNum);
-        }).parents(".row").after(
+        }).closest(".row").after(
             $("<div></div>", {
                 "class": "massesDiv",
                 "data-dam": damNum,
                 "data-breed": damBreedingNum
-            })
+            }).append(
+                this.makeTopLabelRow(this.massLabels)
+            )
         );
 
         $body.find(".deleteBreeding").prop("value", "Delete Breeding").on("click", (e)=>{
             this.deleteBreedingFuncs(damNum, damBreedingNum);
         });
 
+        $body.find(".copyBreeding").prop("value", "Copy Breeding").on("click", (e)=>{
+            this.copyDamBreedingToClipboard(damNum, damBreedingNum);
+        });
+
         this.makeSireList(damNum, damBreedingNum);
         var damBreeedingSearch = this.damSearch(damNum) + this.breedingSearch(damBreedingNum);
-        if(this.mode === "edit"){
-            $jq351(".sireBreeding"+damBreeedingSearch).selectize({});
-        }
+        // if(this.mode === "edit"){
+        //     $jq351(".sireBreeding"+damBreeedingSearch).selectize({});
+        // }
 
         // $body.find(".addBreeding").prop("value", "Add Breeding").on("click", (e)=>{
         //     this.addDamBreeding(damNum);
@@ -2454,541 +2515,736 @@ my_widget_script =
             valSafe = this.encodeHTML(val);
             var thisProp = $el.data("watch");
             this.dams[damNum].breedings[damBreedingNum][thisProp] = valSafe;
+
+            if(thisProp === "initialMass"){
+                this.calcMassChange(damNum, damBreedingNum);
+            }
+            if(thisProp === "breedDate"){
+                this.updateBreedingWatchDates(damNum, damBreedingNum);
+            }
         });
 
-
-
-    },
-
-    addPlugCheck: function(damNum, damBreedingNum){
-
-    },
-
-    addMass: function(damNum, damBreedingNum){
-
-    },
-
-    makeDamCareTable: function(damNum){
-        var damCareNums = this.dams[damNum].damCareNums;
-        var damCares = this.dams[damNum].damCares;
-
-        var labels = this.careLabels;
-
-        const tableData = [];
-        const damCareAddedNums = [];
-
-        for(damCareNum of damCareNums){
-            var damCare = damCares[damCareNum]
-
-            var row = [];
-            for(label of labels){
-                row.push(damCare[label]);
-            }
-
-            tableData.unshift(row);
-            damCareAddedNums.unshift(damCareNum);
-        }
-
-        tableData.unshift(labels);
-        damCareAddedNums.unshift(NaN);
-        
-        var damID = this.dams[damNum].damID;
-        if(!damID){
-            damID = "Dam " + damNum;
-        }
-
-        $("#tableInfo").text(damID);
-        $tableDiv = $(".damCaresTable");
-
-        this.createTable(tableData, true, false, $tableDiv);
-
-        // console.log(damCareAddedNums);
-
-        if(this.mode !== "view" && this.mode !== "view_dev"){
-            $tableDiv.find("tr").each((i,e)=>{
-                if(i == 0){
-                    $(e).append(
-                        $("<th></th>").append(
-                            "Delete"
-                        )
-                    )
-                } else{
-                    damCareNum = damCareAddedNums[i];
-                    console.log("damCareNum", damCareNum);
-                    $(e).append(
-                        $("<td></td>").append(
-                            $("<input></input>", {
-                                "data-dam": damNum,
-                                "data-care": damCareNum,
-                                value: "Delete care",
-                                id: "deleteCare"+damNum+damCareNum,
-                                class: "deleteCare",
-                                "type": "button"
-                            }).on("click", (e)=>{
-                                var damNum = $(e.currentTarget).data("dam");
-                                var careNum = $(e.currentTarget).data("care");
-                                this.deleteCareFuncs(damNum, careNum);
-                            })
-                        )
-                    )
-                }
-            });
-        }
-    },
-
-    makeDateCareTable: function(matchDate){
-        var damNums = this.damNums;
-        var dams = this.dams;
-
-        var labels = this.careLabels;
-
-        const tableData = [["damID"].concat(labels)];
-
-        for(damNum of damNums){
-            var damCareNums = dams[damNum].damCareNums;
-            var damCares = dams[damNum].damCares;
-
-            for(damCareNum of damCareNums){
-                var damCare = damCares[damCareNum]
-                if(damCare.date == matchDate){
-                    var row = [];
-                    row.push(dams[damNum].damID);
-                    for(label of labels){
-                        row.push(damCare[label]);
-                    }
-                    tableData.push(row)
-                }
-
-            }
-        }
-
-        $tableDiv = $(".caresOnDateTable");
-
-        this.createTable(tableData, true, false, $tableDiv);
-    },
-
-    getWaterDueDate: function(damNum){
-        var dueDate;
-        var dateToday = luxon.DateTime.now().toISODate();
-        var dams = this.dams;
-
-        var dam = dams[damNum];
-        var damCareNums = dam.damCareNums;
-        var damCares = dam.damCares;
-        var startDate = dam.startDam;
-        var endDate = dam.endDam;
-        var damType = dam.damType;
-        if(
-            startDate &&
-            !endDate && 
-            (damType === "static" || damType === "lbn")
-        ){
-            var latestDate = undefined;
-            for(damCareNum of damCareNums){
-                var damCare = damCares[damCareNum]
-                if(damCare.water && 
-                    (latestDate === undefined || damCare.date > latestDate)
-                ){
-                    latestDate = damCare.date
-                }
-            }
-            
-            if(latestDate === undefined){
-                dueDate = dateToday;
-            } else if(damType === "lbn"){
-                dueDate = this.addDays(latestDate, 1);
-            } else {
-                dueDate = this.addDays(latestDate, 7);
-            }
-        }
-        return dueDate;
-    },
-
-    isDueForWater: function(damNum, dueDate = luxon.DateTime.now().toISODate()){
-        var isDue = false;
-        var dams = this.dams;
-
-        var dam = dams[damNum];
-        var damCareNums = dam.damCareNums;
-        var damCares = dam.damCares;
-        var startDate = dam.startDam;
-        var endDate = dam.endDam;
-        var damType = dam.damType;
-        if(
-            startDate &&
-            startDate < dueDate && 
-            (!endDate || endDate > dueDate) && 
-            (damType === "static" || damType === "lbn")
-        ){
-            var latestDate = undefined;
-            for(damCareNum of damCareNums){
-                var damCare = damCares[damCareNum]
-                if(damCare.water && 
-                    (latestDate === undefined || damCare.date > latestDate) &&
-                    damCare.date <= dueDate
-                ){
-                    latestDate = damCare.date
-                }
-            }
-            
-            if(latestDate === undefined || 
-                (damType == "lbn" && latestDate < dueDate) || 
-                this.addDays(latestDate, 7) <= dueDate
-            ){
-                isDue = true;
-            }
-        }
-        return isDue;
-    },
-
-    getDamsDueForWater: function(dueDate = luxon.DateTime.now().toISODate()){
-        var damNums = this.damNums;
-        
-        const damsDue = [];
-
-        for(damNum of damNums){
-            var isDue = this.isDueForWater(damNum, dueDate);
-            if(isDue){
-                damsDue.push(damNum);
-            }
-        }
-        return damsDue;
-    },
-
-    getFoodDueDate: function(damNum){
-        var dueDate;
-        var dateToday = luxon.DateTime.now().toISODate();
-        var dams = this.dams;
-
-        var dam = dams[damNum];
-        var damCareNums = dam.damCareNums;
-        var damCares = dam.damCares;
-        var startDate = dam.startDam;
-        var endDate = dam.endDam;
-        var damType = dam.damType;
-        if(
-            startDate &&
-            !endDate
-        ){
-            var latestDate = undefined;
-            for(damCareNum of damCareNums){
-                var damCare = damCares[damCareNum]
-                if(
-                    damCare.food && 
-                    (latestDate === undefined || damCare.date > latestDate)
-                ){
-                    latestDate = damCare.date
-                }
-            }
-            
-            if(latestDate === undefined){
-                dueDate = dateToday;
-            } else if(damType === "lbn"){
-                dueDate = this.addDays(latestDate, 1);
-            } else if(damType == "static"){
-                dueDate = this.addDays(latestDate, 7);
-            } else {
-                dueDate = this.addDays(latestDate, 14);
-            }
-        }
-        return dueDate;
-    },
-
-    isDueForFood: function(damNum, dueDate = luxon.DateTime.now().toISODate()){
-        var isDue = false;
-        var dams = this.dams;
-
-        var dam = dams[damNum];
-        var damCareNums = dam.damCareNums;
-        var damCares = dam.damCares;
-        var startDate = dam.startDam;
-        var endDate = dam.endDam;
-        var damType = dam.damType;
-        if(
-            startDate &&
-            startDate < dueDate && 
-            (!endDate || endDate > dueDate)
-        ){
-            var latestDate = undefined;
-            for(damCareNum of damCareNums){
-                var damCare = damCares[damCareNum]
-                if(
-                    damCare.food && 
-                    (latestDate === undefined || damCare.date > latestDate) &&
-                    damCare.date <= dueDate
-                ){
-                    latestDate = damCare.date
-                }
-            }
-            
-            if(latestDate === undefined || 
-                (damType === "lbn" && latestDate < dueDate) || 
-                (damType === "static" && this.addDays(latestDate, 7) <= dueDate) ||
-                this.addDays(latestDate, 14) <= dueDate // default to 14 days
-            ){
-                isDue = true;
-            }
-        }
-        return isDue;
-    },
-
-    getDamsDueForFood: function(dueDate = luxon.DateTime.now().toISODate()){
-        // debugger;
-        var damNums = this.damNums;
-        
-        const damsDue = [];
-
-        for(damNum of damNums){
-            var isDue = this.isDueForFood(damNum, dueDate);
-            if(isDue){
-                damsDue.push(damNum);
-            }
-        }
-        return damsDue;
-    },
-
-    getBottomDueDate: function(damNum){
-        var dueDate;
-        var dateToday = luxon.DateTime.now().toISODate();
-        var dams = this.dams;
-
-        var dam = dams[damNum];
-        var damCareNums = dam.damCareNums;
-        var damCares = dam.damCares;
-        var startDate = dam.startDam;
-        var endDate = dam.endDam;
-        var damType = dam.damType;
-        if(
-            startDate &&
-            !endDate
-        ){
-            var latestDate = undefined;
-            for(damCareNum of damCareNums){
-                var damCare = damCares[damCareNum]
-                if(
-                    damCare.damBottom && 
-                    (latestDate === undefined || damCare.date > latestDate)
-                ){
-                    latestDate = damCare.date
-                }
-            }
-
-            if(latestDate === undefined){
-                dueDate = dateToday;
-            } else if(damType === "lbn" || damType === "static"){
-                dueDate = this.addDays(latestDate, 7);
-            } else {
-                dueDate = this.addDays(latestDate, 14);
-            }
-        }
-
-        return dueDate;
-    },
-
-    isDueForBottom: function(damNum, dueDate = luxon.DateTime.now().toISODate()){
-        var isDue = false;
-        var dams = this.dams;
-
-        var dam = dams[damNum];
-        var damCareNums = dam.damCareNums;
-        var damCares = dam.damCares;
-        var startDate = dam.startDam;
-        var endDate = dam.endDam;
-        var damType = dam.damType;
-        if(
-            startDate &&
-            startDate < dueDate && 
-            (!endDate || endDate > dueDate)
-        ){
-            var latestDate = undefined;
-            for(damCareNum of damCareNums){
-                var damCare = damCares[damCareNum]
-                if(
-                    damCare.damBottom && 
-                    (latestDate === undefined || damCare.date > latestDate) &&
-                    damCare.date <= dueDate
-                ){
-                    latestDate = damCare.date
-                }
-            }
-            
-            if(latestDate === undefined || 
-                ((damType === "static" || damType === "lbn") && this.addDays(latestDate, 7) <= dueDate) ||
-                this.addDays(latestDate, 14) <= dueDate // default to 14 days
-            ){
-                isDue = true;
-            }
-        }
-
-        return isDue;
-    },
-
-    getDamsDueForBottom: function(dueDate = luxon.DateTime.now().toISODate()){
-        // debugger;
-        var damNums = this.damNums;
-        
-        const damsDue = [];
-
-        for(damNum of damNums){
-            var isDue = this.isDueForBottom(damNum, dueDate);
-            if(isDue){
-                damsDue.push(damNum);
-            }
-        }
-        return damsDue;
-    },
-
-    getTopDueDate: function(damNum){
-        var dueDate;
-        var dateToday = luxon.DateTime.now().toISODate();
-        var dams = this.dams;
-
-        var dam = dams[damNum];
-        var damCareNums = dam.damCareNums;
-        var damCares = dam.damCares;
-        var startDate = dam.startDam;
-        var endDate = dam.endDam;
-        if(
-            startDate &&
-            !endDate
-        ){
-            var latestDate = undefined;
-            for(damCareNum of damCareNums){
-                var damCare = damCares[damCareNum]
-                if(
-                    damCare.damTop && 
-                    (latestDate === undefined || damCare.date > latestDate)
-                ){
-                    latestDate = damCare.date
-                }
-            }
-
-            if(latestDate === undefined){
-                dueDate = dateToday;
-            } else {
-                dueDate = this.addDays(latestDate, 90);
-            }
-        }
-
-        return dueDate;
-    },
-
-    isDueForTop: function(damNum, dueDate = luxon.DateTime.now().toISODate()){
-        var isDue = false;
-        var dams = this.dams;
-
-        var dam = dams[damNum];
-        var damCareNums = dam.damCareNums;
-        var damCares = dam.damCares;
-        var startDate = dam.startDam;
-        var endDate = dam.endDam;
-        if(
-            startDate &&
-            startDate < dueDate && 
-            (!endDate || endDate > dueDate)
-        ){
-            var latestDate = undefined;
-            for(damCareNum of damCareNums){
-                var damCare = damCares[damCareNum]
-                if(
-                    damCare.damTop && 
-                    (latestDate === undefined || damCare.date > latestDate) &&
-                    damCare.date <= dueDate
-                ){
-                    latestDate = damCare.date
-                }
-            }
-            
-            if(latestDate === undefined || 
-                this.addDays(latestDate, 90) <= dueDate
-            ){
-                isDue = true;
-            }
-        }
-
-        return isDue;
-    },
-
-    getDamsDueForTop: function(dueDate = luxon.DateTime.now().toISODate()){
-        // debugger;
-        var damNums = this.damNums;
-        var dams = this.dams;
-
-        const damsDue = [];
-
-        for(damNum of damNums){
-            var isDue = this.isDueForTop(damNum, dueDate);
-            if(isDue){
-                damsDue.push(damNum);
-            }
-        }
-        return damsDue;
-    },
-
-    getDamsDue: function(dueDate = luxon.DateTime.now().toISODate()){
-        var damBottomsToChange = this.getDamsDueForBottom(dueDate);
-        var damTopsToChange = this.getDamsDueForTop(dueDate);
-        var foodToChange = this.getDamsDueForFood(dueDate);
-        var waterToChange = this.getDamsDueForWater(dueDate);
-
-        var namesBottoms = this.getDamNamesArray(damBottomsToChange);
-        var namesTops = this.getDamNamesArray(damTopsToChange);
-        var namesFood = this.getDamNamesArray(foodToChange);
-        var namesWater = this.getDamNamesArray(waterToChange);
-
-        // console.log(namesBottoms, namesTops, namesFood, namesWater);
-
-        this.printDams(namesBottoms, $(".damBottomsList"));
-        this.printDams(namesTops, $(".damTopsList"));
-        this.printDams(namesFood, $(".foodDamList"));
-        this.printDams(namesWater, $(".waterDamList"));
         this.resize();
     },
 
-    selectFood: function(dueDate = luxon.DateTime.now().toISODate()){
-        var foodToChange = this.getDamsDueForFood(dueDate);
+    plugLabels: ["Date", "Plug", "Comments", "Delete"],
+    massLabels: ["Date", "Mass", "% initial mass", "Delete"],
+
+    makeTopLabelRow: function(labels){
+
+        var $cardDiv = $("<div></div>", {
+            "class": "card d-none d-md-flex topLabelRow"
+        }).append( // need the extra rows to make this align with the rows
+            $("<div></div>", {
+                "class": "row"
+            }).append(
+                $("<div></div>", {
+                    "class": "col-12 row labelRow"
+                })
+            )
+        )
+
+        var numLabels = labels.length;
+        var colText = "col-" + Math.floor(12/numLabels);
         
-        $("#damSelect").val(foodToChange);
+        for(label of labels){
+            $cardDiv.find(".labelRow").append(
+                $("<div></div>", {
+                    "class": "font-weight-bold " + colText
+                }).append(
+                    label
+                )
+            );
+        }
 
-        $("#changeWater").prop("checked", false);
-        $("#changeFood").prop("checked", true);
-        $("#changeBottom").prop("checked", false);
-        $("#changeTop").prop("checked", false);
+        return $cardDiv
     },
 
-    selectFoodWater: function(dueDate = luxon.DateTime.now().toISODate()){
-        var foodToChange = this.getDamsDueForFood(dueDate);
-        var waterToChange = this.getDamsDueForWater(dueDate);
+    addPlugCheck: function(damNum, damBreedingNum){
+        var damInfo = this.dams[damNum];
+        var breedingInfo = damInfo.breedings[damBreedingNum];
 
-        var comboDams = Array.from(new Set(foodToChange.concat(waterToChange)));
-        $("#damSelect").val(comboDams);
+        var plugCheckNums = breedingInfo.plugCheckNums;
+        var plugChecks = breedingInfo.plugChecks;
 
-        $("#changeWater").prop("checked", true);
-        $("#changeFood").prop("checked", true);
-        $("#changeBottom").prop("checked", false);
-        $("#changeTop").prop("checked", false);
+        if(plugCheckNums.length>0){
+            var lastPlugCheckNum = plugCheckNums[plugCheckNums.length - 1];
+            var plugCheckNum = lastPlugCheckNum + 1;
+        } else {
+            var plugCheckNum = 1;
+        }
 
+        var inArray = this.checkInArray(plugCheckNum, plugCheckNums);
+        if(! inArray){
+            // debugger;
+            plugCheckNums.push(plugCheckNum);
+            plugChecks[plugCheckNum] = {
+                plugDate: NaN,
+                plugCheck: null,
+                plugComments: null
+            };
+
+            this.makePlugEntry(damNum, damBreedingNum, plugCheckNum);
+        }
     },
 
-    selectDamBottom: function(dueDate = luxon.DateTime.now().toISODate()){
-        var damBottomsToChange = this.getDamsDueForBottom(dueDate);
-        $("#damSelect").val(damBottomsToChange);
+    makePlugEntry: function(damNum, damBreedingNum, plugNum){
+        var $card = $("<div></div>", {
+            "class": "card plugCard",
+            "data-dam": damNum,
+            "data-breed": damBreedingNum,
+            "data-plug": plugNum
+        }).append(
+            $("<div></div>", {
+                "class": "row"
+            }).append(
+                $("<div></div>", {
+                    "class": "col-6 d-md-none row labelRow"
+                })
+            ).append(
+                $("<div></div>", {
+                    "class": "col-6 col-md-12 row plugRow"
+                })
+            )
+        );
 
-        $("#changeWater").prop("checked", false);
-        $("#changeFood").prop("checked", true);
-        $("#changeBottom").prop("checked", true);
-        $("#changeTop").prop("checked", false);
+        for(label of this.plugLabels){
+            $card.find(".labelRow").append(
+                $("<div></div>", {
+                    "class": "col-12 font-weight-bold"
+                }).append(label)
+            );
+        }
+
+        var inputCols = [
+            {
+                "type": "date",
+                "className": "plugDate"
+            },
+            {
+                "type": "select",
+                "className": "plugCheck",
+                "optionsObj": [
+                    {
+                        value: "neg",
+                        text: "-/-"
+                    },
+                    {
+                        value: "1",
+                        text: "?"
+                    },
+                    {
+                        value: "2",
+                        text: "+/-"
+                    },
+                    {
+                        value: "3",
+                        text: "+/+"
+                    },
+                    {
+                        value: "red",
+                        text: "Red"
+                    },
+                    {
+                        value: "closed",
+                        text: "Closed VO"
+                    },
+                ]
+            }, {
+                "type": "textarea",
+                "className": "plugComments"
+            }, {
+                "type": "button",
+                "className": "deletePlug"
+            }
+        ]
+
+        for(colObj of inputCols){
+            $card.find(".plugRow").append(
+                $("<div></div>", {
+                    "class": "col-12 col-md-" + Math.floor(12/inputCols.length)
+                }).append(
+                    this.makeInput(
+                        colObj.type,
+                        colObj.className,
+                        damNum,
+                        colObj.optionsObj,
+                        "dam",
+                        true,
+                        damBreedingNum,
+                        "breed",
+                        true,
+                        plugNum,
+                        "plug"
+                    )
+                )
+            )
+        }
+
+        $card.find(".deletePlug").prop("value", "Delete").on("click", (e)=>{
+            this.deletePlugFuncs(damNum, damBreedingNum, plugNum);
+        });
+
+        $card.find(".plugRow").on("change", (e)=>{
+            var $el = $(e.target);
+            var val = $el.val();
+            // Store only the text and no HTML elements.
+            valSafe = this.encodeHTML(val);
+            var thisProp = $el.data("watch");
+            this.dams[damNum].breedings[damBreedingNum].plugChecks[plugNum][thisProp] = valSafe;
+
+            this.updateBreedingWatchDates(damNum, damBreedingNum);
+        });
+
+        $(".plugsDiv"+this.damSearch(damNum)+this.breedingSearch(damBreedingNum)).append($card);
+        this.resize();
     },
 
-    selectDamTop: function(dueDate = luxon.DateTime.now().toISODate()){
-        var damTopsToChange = this.getDamsDueForTop(dueDate);
-        $("#damSelect").val(damTopsToChange);
+    addMass: function(damNum, damBreedingNum){
+        var damInfo = this.dams[damNum];
+        var breedingInfo = damInfo.breedings[damBreedingNum];
 
-        $("#changeWater").prop("checked", false);
-        $("#changeFood").prop("checked", true);
-        $("#changeBottom").prop("checked", true);
-        $("#changeTop").prop("checked", true);
+        var massNums = breedingInfo.massNums;
+        var masses = breedingInfo.masses;
+
+        if(massNums.length>0){
+            var lastMassNum = massNums[massNums.length - 1];
+            var massNum = lastMassNum + 1;
+        } else {
+            var massNum = 1;
+        }
+
+        var inArray = this.checkInArray(massNum, massNums);
+        if(! inArray){
+            // debugger;
+            massNums.push(massNum);
+            masses[massNum] = {
+                massDate: NaN,
+                mass: null
+            };
+
+            this.makeMassEntry(damNum, damBreedingNum, massNum);
+        }
     },
+
+    makeMassEntry: function(damNum, damBreedingNum, massNum){
+        // debugger;
+        var $card = $("<div></div>", {
+            "class": "card massCard",
+            "data-dam": damNum,
+            "data-breed": damBreedingNum,
+            "data-mass": massNum
+        }).append(
+            $("<div></div>", {
+                "class": "row"
+            }).append(
+                $("<div></div>", {
+                    "class": "col-6 d-md-none row labelRow"
+                })
+            ).append(
+                $("<div></div>", {
+                    "class": "col-6 col-md-12 row massRow"
+                })
+            )
+        );
+
+        for(label of this.massLabels){
+            $card.find(".labelRow").append(
+                $("<div></div>", {
+                    "class": "col-12 font-weight-bold"
+                }).append(label)
+            );
+        }
+
+        var inputCols = [
+            {
+                "type": "date",
+                "className": "massDate"
+            },
+            {
+                "type": "number",
+                "className": "mass"
+            }, 
+            {
+                "type": "noEntry",
+            },
+            {
+                "type": "button",
+                "className": "deleteMass"
+            }
+        ]
+
+        for(colObj of inputCols){
+            if(colObj.type === "noEntry"){
+                $card.find(".massRow").append(
+                    $("<div></div>", {
+                        "class": "change col-12 col-md-" + Math.floor(12/inputCols.length),
+                        "data-dam": damNum,
+                        "data-breed": damBreedingNum,
+                        "data-mass": massNum
+                    }).append(
+                        "Enter new mass"
+                    )
+                )
+            } else {
+                $card.find(".massRow").append(
+                    $("<div></div>", {
+                        "class": "col-12 col-md-" + Math.floor(12/inputCols.length)
+                    }).append(
+                        this.makeInput(
+                            colObj.type,
+                            colObj.className,
+                            damNum,
+                            colObj.optionsObj,
+                            "dam",
+                            true,
+                            damBreedingNum,
+                            "breed",
+                            true,
+                            massNum,
+                            "mass"
+                        )
+                    )
+                )
+            }
+            
+        }
+
+        $card.find(".deleteMass").prop("value", "Delete").on("click", (e)=>{
+            this.deleteMassFuncs(damNum, damBreedingNum, massNum);
+        });
+
+        $card.find(".massRow").on("change", (e)=>{
+            var $el = $(e.target);
+            var val = $el.val();
+            // Store only the text and no HTML elements.
+            valSafe = this.encodeHTML(val);
+            var thisProp = $el.data("watch");
+            this.dams[damNum].breedings[damBreedingNum].masses[massNum][thisProp] = valSafe;
+        });
+
+        var damSearch = this.damSearch(damNum);
+        var breedingSearch = this.breedingSearch(damBreedingNum);
+        var massSearch = this.massSearch(massNum);
+        var searchString = damSearch + breedingSearch + massSearch;
+
+        $card.find(".mass").on("input", (e)=>{
+            var $el = $(e.currentTarget);
+            var newMass = $el.val();
+
+            var initialMass = this.dams[damNum].breedings[damBreedingNum].initialMass;
+            var massText = this.calcPercMass(newMass, initialMass);
+
+            $(".change"+searchString).text(massText);
+        })
+
+
+        $(".massesDiv"+ damSearch + breedingSearch).append($card);
+        this.resize();
+    },
+
+    calcMassChange: function(damNum, damBreedingNum){
+        // debugger;
+        var breedingInfo = this.dams[damNum].breedings[damBreedingNum];
+        console.log(breedingInfo);
+        var initialMass = breedingInfo.initialMass;
+        var damSearch = this.damSearch(damNum);
+        var breedingSearch = this.breedingSearch(damBreedingNum);
+
+        for(massNum of breedingInfo.massNums){
+            var massSearch = this.massSearch(massNum);
+            var newMass = breedingInfo.masses[massNum].mass;
+
+            var massText = this.calcPercMass(newMass, initialMass);
+            $(".change"+damSearch+breedingSearch+massSearch).text(massText);
+        }
+    },
+
+    calcPercMass: function (newMass, initMass) {
+        var newMassVal = parseFloat(newMass);
+        var initMassVal = parseFloat(initMass);
+
+        var text;
+        if(newMassVal > 0 && initMassVal > 0) {        
+            var percChange = (newMassVal)/(initMassVal) * 100;
+            text = percChange.toFixed(1)
+        } else if(! newMassVal > 0){
+            text = "Enter new mass";
+        } else {
+            text = "Enter initial mass";
+        };
+        return(text);
+    },
+
+    makeEstDatesTable: function(){
+        var damObjs = this.getDamsForImpDates();
+
+        var labels = this.damDatesLabels;
+
+        const tableData = [labels];
+
+        for(damObj of damObjs){
+            var damNum = damObj.damNum;
+            var damBreedingNum = damObj.damBreedingNum;
+
+            var datesInfo = this.getDamDates(damNum, damBreedingNum);
+    
+            var row = [], val;
+            for (label of labels){
+                val =datesInfo[label];
+                if(!val){val = ""}
+                row.push(val);
+            }
+    
+            tableData.push(row);
+        }
+
+        $tableDiv = $(".estExpDatesTable");
+
+        this.createTable(tableData, true, false, $tableDiv);
+
+        $tableDiv.find("tr").each((i,e)=>{
+            $(e).find("td, th").each((i,e)=>{
+                if(i===2){
+                    var DOBcertain = $(e).text();
+                    $(e).addClass("hide");
+                    if(DOBcertain === "true"){
+                        $(e).parent().addClass("isCertain");
+                    } else{
+                        $(e).parent().removeClass("isCertain");
+                    }
+                }
+                var text = $(e).text();
+                if(this.isValidDate(text)){
+                    // debugger;
+                    if(text <= luxon.DateTime.now().toISODate()){
+                        $(e).addClass("isDue");
+                    }
+                    $(e).text(luxon.DateTime.fromISO(text).toLocaleString({weekday: "short", month: "short", day: "2-digit"}));
+                }
+            })
+        });
+    },
+
+    makeDamsBreedingTable: function(){
+        var dams = this.dams;
+        var damNums = this.damNums;
+
+        var labels = this.damBreedingLabels;
+
+        const tableData = [labels];
+
+        for(damNum of damNums){
+            var damInfo = dams[damNum];
+            var damBreedingNums = damInfo.breedingNums;
+            for(damBreedingNum of damBreedingNums){
+                var breedingInfo = this.getDamBreedingInfo(damNum, damBreedingNum);
+    
+                var row = [], val;
+                for (label of labels){
+                    val =breedingInfo[label];
+                    if(!val){val = ""}
+                    row.push(val);
+                }
+    
+                tableData.push(row);
+            }
+        }
+
+        $tableDiv = $(".damsBreedingsInfoTable");
+
+        this.createTable(tableData, true, false, $tableDiv);
+    },
+
+    getDamDates: function(damNum, damBreedingNum){
+        var dam = this.dams[damNum]
+        var breeding = this.dams[damNum].breedings[damBreedingNum];
+
+        var damID = dam.damID;
+        if(!damID){
+            damID = "d"+damNum;
+        }
+
+        var litterNum = breeding.litterNum;
+        if(!litterNum){
+            litterNum = damBreedingNum;
+        }
+        var specDamID = damID + "-" + (""+litterNum).padStart(2, "0");
+
+        var DOB, DOBcertain = false;
+        if(! breeding.litterDOB){
+            if(!breeding.goodPlugDate){
+                if(!breeding.likelyPlugDate){
+                    if(!breeding.potentialPlugDate){
+                        DOB = this.addDays(breeding.breedDate, 21);
+                    } else{
+                        DOB = this.addDays(breeding.potentialPlugDate, 20);
+                    }
+                } else {
+                    DOB = this.addDays(breeding.likelyPlugDate, 20);
+                }
+            } else {
+                DOB = this.addDays(breeding.goodPlugDate, 20);
+            }
+        } else {
+            DOB = breeding.litterDOB;
+            DOBcertain = true;
+        }
+
+        var P4 = this.addDays(DOB, 4);
+        var P11 = this.addDays(DOB, 11);
+        var P21 = this.addDays(DOB, 21);
+        var P70 = this.addDays(DOB, 70);
+        var P91 = this.addDays(DOB, 91);
+        
+
+        var damObj = {
+            damID: specDamID,
+            DOB: DOB,
+            DOBcertain: DOBcertain,
+            P4: P4,
+            P11: P11,
+            P21: P21,
+            P70: P70,
+            P91: P91
+        };
+
+        return damObj;
+    },
+
+    damDatesLabels: [
+        "damID",
+        "DOB",
+        "DOBcertain",
+        "P4",
+        "P11",
+        "P21",
+        "P70",
+        "P91"
+    ],
+
+    getDamBreedingInfo: function(damNum, damBreedingNum){
+        var dam = this.dams[damNum]
+        var breeding = this.dams[damNum].breedings[damBreedingNum];
+
+        var damID = dam.damID;
+        if(!damID){
+            damID = "d"+damNum;
+        }
+
+        var litterNum = breeding.litterNum;
+        if(!litterNum){
+            litterNum = damBreedingNum;
+        }
+        var specDamID = damID + "-" + (""+litterNum).padStart(2, "0");
+
+        var damGenNum = dam.damGeneration;
+        var damStrain, damGeneration, damDOB
+        if(damGenNum){
+            var damGenInfo = this.damGenerations[damGenNum];
+
+            damStrain = damGenInfo.damGenStrain;
+            damGeneration = damGenInfo.damGen;
+            damDOB = damGenInfo.damGenDOB;
+        }
+
+        var sireNum = breeding.sireBreeding;
+        var sireID, sireStrain, sireGeneration, sireDOB
+        if(sireNum){
+            var sireInfo = this.sires[sireNum];
+
+            sireID = sireInfo.sireID;
+            sireGenNum = sireInfo.sireGeneration;
+
+            if(sireGenNum){
+                var sireGenInfo = this.sireGenerations[sireGenNum];
+
+                sireStrain = sireGenInfo.sireGenStrain;
+                sireGeneration = sireGenInfo.sireGen;
+                sireDOB = sireGenInfo.sireGenDOB;
+            }
+
+        }
+
+        var plugDate = breeding.earliestPotentialPlug // TODO calc from earliest possible
+
+        var damObj = {
+            damID: specDamID,
+            litterNum: breeding.litterNum,
+            dam: damID,
+            damStrain: damStrain,
+            damGeneration: damGeneration,
+            damDOB: damDOB,
+            sire: sireID,
+            sireStrain: sireStrain,
+            sireGeneration: sireGeneration,
+            sireDOB: sireDOB,
+            breedDate: breeding.breedDate,
+            plugDate: plugDate,
+            DOB: breeding.litterDOB
+        };
+
+        return damObj
+    },
+
+    damBreedingLabels: [
+        "damID",
+        "litterNum",
+        "dam",
+        "damStrain",
+        "damGeneration",
+        "damDOB",
+        "sire",
+        "sireStrain",
+        "sireGeneration",
+        "sireDOB",
+        "breedDate",
+        "plugDate",
+        "DOB"
+    ],
+
+    copyDamBreedingToClipboard: function(damNum, damBreedingNum, copyLabels = false){
+        var damObj = this.getDamBreedingInfo(damNum, damBreedingNum);
+
+        const tableArray = [];
+        const rowArray = [];
+        if(copyLabels){
+            tableArray.push(this.damBreedingLabels);
+        }
+        for(label of this.damBreedingLabels){
+            var val = damObj[label]
+            if(!val){
+                val = ""
+            }
+            rowArray.push(""+val);
+        }
+        tableArray.push(rowArray);
+        var tableString = this.convertRowArrayToString(tableArray, "\t", "\n");
+        var $divForCopy = $("#forCopy");
+        var $errorMsg = $("#errorMsg");
+        this.copyStringToClipboard(tableString, $divForCopy, $errorMsg);
+    },  
+
+    getDamsDue: function(dueDate = luxon.DateTime.now().toISODate()){
+        // debugger;
+        var damsForPlugChecksObj = this.getDamsForPlugChecks(dueDate);
+        var damsForPlugChecks = damsForPlugChecksObj.remaining;
+        var damsForSeparationObj = this.getDamsForSeparation(dueDate);
+        var damsForSeparation = damsForSeparationObj.due;
+        var damsForBirthObj = this.getDamsForBirth(dueDate);
+        var damsForBirth = damsForBirthObj.due;
+
+        var namesPlugChecks = this.getDamNamesArray(damsForPlugChecks);
+        var namesSeparation = this.getDamNamesArray(damsForSeparation);
+        var namesBirth = this.getDamNamesArray(damsForBirth);
+
+        this.printDams(namesPlugChecks, $(".plugCheckList"));
+        this.printDams(namesSeparation, $(".sepMaleList"));
+        this.printDams(namesBirth, $(".checkBirthsList"));
+
+        this.makeSeparationTable(damsForSeparationObj.remaining);
+        this.makeCheckForBirthsTable(damsForBirthObj.remaining);
+        this.makeEstDatesTable();
+        this.makeDamsBreedingTable();
+        this.resize();
+    },
+
+    sepTableLabels: ["damID", "sepBreedingDate", "sepPotentialPlugDate", "sepLikelyPlugDate", "sepGoodPlugDate"],
+    sepTableHeaders: ["Dam", "Breed Date + 12", "Potential Plug + 11", "Likely Plug + 11", "Good Plug + 11"],
+
+    makeSeparationTable: function(toBeSeparated){
+        var dams = this.dams;
+
+        var labels = this.sepTableLabels;
+
+        const tableData = [this.sepTableHeaders];
+
+        for(damBreedingObj of toBeSeparated){
+            var damNum = damBreedingObj.damNum;
+            var damBreedingNum = damBreedingObj.damBreedingNum;
+
+            var damInfo = dams[damNum];
+            var breedingInfo = damInfo.breedings[damBreedingNum];
+
+            var row = [], val;
+            for (label of labels){
+                if(label == "damID"){
+                    val = damInfo[label];
+                    if(!val){val = "Dam " + damNum}
+                } else {
+                    val =breedingInfo[label];
+                    if(!val){val = ""}
+                }
+                row.push(val);
+            }
+
+            tableData.push(row);
+        }
+
+        $tableDiv = $(".sepDueDatesTable");
+
+        this.createTable(tableData, true, false, $tableDiv);
+
+        $tableDiv.find("td").each((i,e)=>{
+            var text = $(e).text();
+            if(this.isValidDate(text)){
+                // debugger;
+                if(text <= luxon.DateTime.fromISO($("#dueDate").val()).toISODate()){
+                    $(e).addClass("isDue");
+                }
+                $(e).text(luxon.DateTime.fromISO(text).toLocaleString({weekday: "short", month: "short", day: "2-digit"}));
+            }
+        });
+    },
+
+    birthTableLabels: ["damID", "birthBreedingDate", "birthPotentialPlugDate", "birthLikelyPlugDate", "birthGoodPlugDate"],
+    birthTableHeaders: ["Dam", "Breed Date + 19", "Potential Plug + 18", "Likely Plug + 18", "Good Plug + 18"],
+
+    makeCheckForBirthsTable: function(toBeSeparated){
+        var dams = this.dams;
+
+        var labels = this.birthTableLabels;
+
+        const tableData = [this.birthTableHeaders];
+
+        for(damBreedingObj of toBeSeparated){
+            var damNum = damBreedingObj.damNum;
+            var damBreedingNum = damBreedingObj.damBreedingNum;
+
+            var damInfo = dams[damNum];
+            var breedingInfo = damInfo.breedings[damBreedingNum];
+
+            var row = [], val;
+            for (label of labels){
+                if(label == "damID"){
+                    val = damInfo[label];
+                    if(!val){val = "Dam " + damNum}
+                } else {
+                    val =breedingInfo[label];
+                    if(!val){val = ""}
+                }
+                row.push(val);
+            }
+
+            tableData.push(row);
+        }
+
+        $tableDiv = $(".checkForBirthsTable");
+
+        this.createTable(tableData, true, false, $tableDiv);
+
+        $tableDiv.find("td").each((i,e)=>{
+            var text = $(e).text();
+            if(this.isValidDate(text)){
+                // debugger;
+                if(text <= luxon.DateTime.fromISO($("#dueDate").val()).toISODate()){
+                    $(e).addClass("isDue");
+                }
+                $(e).text(luxon.DateTime.fromISO(text).toLocaleString({weekday: "short", month: "short", day: "2-digit"}));
+            }
+        });
+    },
+
 
     getDamNamesArray: function(damNumArray){
         var names = [];
@@ -3379,6 +3635,223 @@ my_widget_script =
             noMatches: noMatches
         };
         // return matchingObj;
+    },
+
+
+    // Plug dates
+
+    updateBreedingWatchDates: function(damNum, damBreedingNum){
+        // debugger;
+        var damInfo = this.dams[damNum];
+        var breedingInfo = damInfo.breedings[damBreedingNum];
+        var plugCheckNums = breedingInfo.plugCheckNums;
+
+        var breedDate = breedingInfo.breedDate;
+
+        var earliestPotentialPlug, earliestLikelyPlug, earliestGoodPlug;
+        var sepBreeding, sepPotentialPlug, sepLikelyPlug, sepGoodPlug;
+        var birthBreeding, birthPotentialPlug, birthLikelyPlug, birthGoodPlug;
+
+        if(breedDate){
+            for(plugCheckNum of plugCheckNums){
+                var plugCheckInfo = breedingInfo.plugChecks[plugCheckNum];
+                
+                // 1 = potential (?) // 2 = likely (+/-) // 3 = good (+/+)
+                var plugState = plugCheckInfo.plugCheck;
+                var plugDate = plugCheckInfo.plugDate;
+                
+                if(plugState > 0){
+                    if(! earliestPotentialPlug || plugDate < earliestPotentialPlug){
+                        earliestPotentialPlug = plugDate;
+                    }
+                    if(plugState > 1){
+                        if(! earliestLikelyPlug || plugDate < earliestLikelyPlug){
+                            earliestLikelyPlug = plugDate;
+                        }
+                        if(plugState > 2){
+                            if(! earliestGoodPlug || plugDate < earliestGoodPlug){
+                                earliestGoodPlug = plugDate;
+                            }
+                        }
+                    }
+                }
+            }
+
+            sepBreeding = this.addDays(breedDate, 12);
+            birthBreeding = this.addDays(breedDate, 19);
+
+            if(earliestPotentialPlug){
+                sepPotentialPlug = this.addDays(earliestPotentialPlug, 11);
+                birthPotentialPlug = this.addDays(earliestPotentialPlug, 18)
+            }
+            if(earliestLikelyPlug){
+                sepLikelyPlug = this.addDays(earliestLikelyPlug, 11);
+                birthLikelyPlug = this.addDays(earliestLikelyPlug, 18)
+            }
+            if(earliestGoodPlug){
+                sepGoodPlug = this.addDays(earliestGoodPlug, 11);
+                birthGoodPlug = this.addDays(earliestGoodPlug, 18)
+            }
+        }
+
+        breedingInfo["potentialPlugDate"] = earliestPotentialPlug;
+        breedingInfo["likelyPlugDate"] = earliestLikelyPlug;
+        breedingInfo["goodPlugDate"] = earliestGoodPlug;
+
+        breedingInfo["sepBreedingDate"] = sepBreeding;
+        breedingInfo["sepPotentialPlugDate"] = sepPotentialPlug;
+        breedingInfo["sepLikelyPlugDate"] = sepLikelyPlug;
+        breedingInfo["sepGoodPlugDate"] = sepGoodPlug;
+
+        breedingInfo["birthBreedingDate"] = birthBreeding;
+        breedingInfo["birthPotentialPlugDate"] = birthPotentialPlug;
+        breedingInfo["birthLikelyPlugDate"] = birthLikelyPlug;
+        breedingInfo["birthGoodPlugDate"] = birthGoodPlug;
+    },
+
+    getDamsForPlugChecks: function(dueDate = luxon.DateTime.now().toISODate()){
+        var damNums = this.damNums;
+
+        const damsToCheck = [];
+        const damsForLikely = [];
+
+        for(damNum of damNums){
+            var damInfo = this.dams[damNum];
+
+            var damBreedingNum = this.getDamLatestBreeding(damInfo, dueDate);
+            
+            if(damBreedingNum){
+                var breedingInfo = damInfo.breedings[damBreedingNum];
+
+                if(
+                    (! breedingInfo.sepFromMaleDate || breedingInfo.sepFromMaleDate > dueDate) &&
+                    (! breedingInfo.litterDOB || breedingInfo.litterDOB > dueDate) &&
+                    (! breedingInfo.stopTrackingDate || breedingInfo.stopTrackingDate > dueDate) &&
+                    (! breedingInfo.potentialPlugDate || breedingInfo.potentialPlugDate > dueDate)
+                ){
+                    damsToCheck.push(damNum);
+                    if(! breedingInfo.likelyPlugDate || breedingInfo.likelyPlugDate > dueDate){
+                        damsForLikely.push(damNum);
+                    }
+                }
+            }
+        }
+        return({
+            remaining: damsToCheck,
+            forLikely: damsForLikely
+        });
+    },
+
+    getDamsForSeparation: function(dueDate = luxon.DateTime.now().toISODate()){
+        var damNums = this.damNums;
+
+        const damsToCheck = [];
+        const damsDueToCheck = [];
+
+        for(damNum of damNums){
+            var damInfo = this.dams[damNum];
+
+            var damBreedingNum = this.getDamLatestBreeding(damInfo, dueDate);
+            
+            if(damBreedingNum){
+                var breedingInfo = damInfo.breedings[damBreedingNum];
+
+                if(
+                    (! breedingInfo.sepFromMaleDate || breedingInfo.sepFromMaleDate > dueDate) &&
+                    (! breedingInfo.litterDOB || breedingInfo.litterDOB > dueDate) &&
+                    (! breedingInfo.stopTrackingDate || breedingInfo.stopTrackingDate > dueDate)
+                ){
+                    damsToCheck.push({
+                        damNum: damNum,
+                        damBreedingNum: damBreedingNum
+                    });
+
+                    if(breedingInfo.sepBreedingDate <= dueDate){
+                        damsDueToCheck.push(damNum);
+                    }
+                }
+            }
+        }
+        return({
+            remaining: damsToCheck,
+            due: damsDueToCheck
+        });
+    },
+
+    getDamsForBirth: function(dueDate = luxon.DateTime.now().toISODate()){
+        var damNums = this.damNums;
+
+        const damsToCheck = [];
+        const damsDueToCheck = [];
+
+        for(damNum of damNums){
+            var damInfo = this.dams[damNum];
+
+            var damBreedingNum = this.getDamLatestBreeding(damInfo, dueDate);
+            
+            if(damBreedingNum){
+                var breedingInfo = damInfo.breedings[damBreedingNum];
+
+                if(
+                    (! breedingInfo.litterDOB || breedingInfo.litterDOB > dueDate) &&
+                    (! breedingInfo.stopTrackingDate || breedingInfo.stopTrackingDate > dueDate)
+                ){
+                    damsToCheck.push({
+                        damNum: damNum,
+                        damBreedingNum: damBreedingNum
+                    });
+
+                    if(breedingInfo.birthBreedingDate <= dueDate){
+                        damsDueToCheck.push(damNum);
+                    }
+                }
+            }
+        }
+        return({
+            remaining: damsToCheck,
+            due: damsDueToCheck
+        });
+    },
+
+    getDamsForImpDates: function(dueDate = luxon.DateTime.now().toISODate()){
+        var damNums = this.damNums;
+
+        const damsForTable = [];
+
+        for(damNum of damNums){
+            var damInfo = this.dams[damNum];
+
+            var damBreedingNum = this.getDamLatestBreeding(damInfo);
+            
+            if(damBreedingNum){
+                var breedingInfo = damInfo.breedings[damBreedingNum];
+                if(
+                    (! breedingInfo.stopTrackingDate || breedingInfo.stopTrackingDate > dueDate)
+                ){
+                    damsForTable.push({
+                        damNum: damNum,
+                        damBreedingNum: damBreedingNum
+                    });
+                }
+            }
+        }
+        return(damsForTable);
+    },
+
+    getDamLatestBreeding: function(damInfo, dueDate = luxon.DateTime.now().toISODate()){
+        var damBreedingNums = damInfo.breedingNums;
+        var latestBreeding, latestBreedingNum;
+
+        for(damBreedingNum of damBreedingNums){
+            var breedingInfo = damInfo.breedings[damBreedingNum];
+
+            var breedDate = breedingInfo.breedDate;
+            if((!latestBreeding || breedDate > latestBreeding) && breedDate < dueDate){
+                latestBreeding = breedDate;
+                latestBreedingNum = damBreedingNum;
+            }
+        }
+        return(latestBreedingNum)
     }
 
 };
