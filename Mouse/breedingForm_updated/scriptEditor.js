@@ -350,8 +350,8 @@ my_widget_script =
             this.damGenerations = parsedJson.damGenerations;
         }
         if(parsedJson.damGenerationNums){
-            for(damGenerationNum of parsedJson.damGenerationNums){
-                this.makeDamGenerationCard(damGenerationNum);
+            for(genNum of parsedJson.damGenerationNums){
+                this.makeDamGenCard(genNum);
             }
             this.damGenerationNums = parsedJson.damGenerationNums;
         }
@@ -360,8 +360,8 @@ my_widget_script =
             this.sireGenerations = parsedJson.sireGenerations
         }
         if(parsedJson.sireGenerationNums){
-            for(sireGenerationNum of parsedJson.sireGenerationNums){
-                this.makeSireGenerationCard(sireGenerationNum);
+            for(genNum of parsedJson.sireGenerationNums){
+                this.makeSireGenCard(genNum);
             }
             this.sireGenerationNums = parsedJson.sireGenerationNums;
         }
@@ -391,14 +391,14 @@ my_widget_script =
                         var plugCheckNums = this.dams[damNum].breedings[breedingNum].plugCheckNums;
                         if(plugCheckNums){
                             for(plugCheckNum of plugCheckNums){
-                                this.makePlugEntry(damNum, breedingNums, plugCheckNum);
+                                this.makePlugEntry(damNum, breedingNum, plugCheckNum);
                             }
                         }
 
                         var massNums = this.dams[damNum].breedings[breedingNum].massNums;
                         if(massNums){
                             for(massNum of massNums){
-                                this.makeMassEntry(damNum, breedingNums, massNum);
+                                this.makeMassEntry(damNum, breedingNum, massNum);
                             }
                         }
                     }
@@ -601,43 +601,47 @@ my_widget_script =
         });
 
         $(".addDam").on("click", (e)=> {
-            if(this.damNums.length > 0){
-                var lastDam = this.damNums[this.damNums.length - 1];
-                var damNum = lastDam + 1;
-            } else {
-                var damNum = 1;
-            }
+            var damNum = this.getNextNum(this.damNums);
+            // if(this.damNums.length > 0){
+            //     var lastDam = this.damNums[this.damNums.length - 1];
+            //     var damNum = lastDam + 1;
+            // } else {
+            //     var damNum = 1;
+            // }
             this.addDam(damNum);
         });
         
         $(".addSire").on("click", (e)=> {
-            if(this.sireNums.length > 0){
-                var lastSire = this.sireNums[this.sireNums.length - 1];
-                var sireNum = lastSire + 1;
-            } else {
-                var sireNum = 1;
-            }
+            var sireNum = this.getNextNum(this.sireNum);
+            // if(this.sireNums.length > 0){
+            //     var lastSire = this.sireNums[this.sireNums.length - 1];
+            //     var sireNum = lastSire + 1;
+            // } else {
+            //     var sireNum = 1;
+            // }
             this.addSire(sireNum);
         });
 
         $(".addDamGen").on("click", (e)=> {
-            if(this.damGenerationNums.length > 0){
-                var lastDamGeneration = this.damGenerationNums[this.damGenerationNums.length - 1];
-                var damGeneration = lastDamGeneration + 1;
-            } else {
-                var damGeneration = 1;
-            }
-            this.addDamGeneration(damGeneration);
+            var genNum = this.getNextNum(this.damGenerationNums);
+            // if(this.damGenerationNums.length > 0){
+            //     var lastDamGeneration = this.damGenerationNums[this.damGenerationNums.length - 1];
+            //     var damGeneration = lastDamGeneration + 1;
+            // } else {
+            //     var damGeneration = 1;
+            // }
+            this.addDamGeneration(genNum);
         });
         
         $(".addSireGen").on("click", (e)=> {
-            if(this.sireGenerationNums.length > 0){
-                var lastSireGeneration = this.sireGenerationNums[this.sireGenerationNums.length - 1];
-                var sireGeneration = lastSireGeneration + 1;
-            } else {
-                var sireGeneration = 1;
-            }
-            this.addSireGeneration(sireGeneration);
+            var genNum = this.getNextNum(this.sireGenerationNums);
+            // if(this.sireGenerationNums.length > 0){
+            //     var lastSireGeneration = this.sireGenerationNums[this.sireGenerationNums.length - 1];
+            //     var sireGeneration = lastSireGeneration + 1;
+            // } else {
+            //     var sireGeneration = 1;
+            // }
+            this.addSireGeneration(genNum);
         });
 
         $("#collapseDams").on("click", (e)=>{
@@ -702,6 +706,33 @@ my_widget_script =
         $("#preview").on("click", (e)=>{
             this.preview();
         });
+
+        $(".initialMass").each((i,e)=>{
+            var damNum = $(e).data("dam");
+            var breedNum = $(e).data("breed");
+            this.calcMassChange(damNum, breedNum);
+        });
+
+        // This should be addressed now when adding from table, but if need to fix, this is the way to do it
+        // $(".updateDamObj").find("input, select").each((i,e)=>{
+        //     var damNum = $(e).data("dam");
+        //     this.updateObjFromVal($(e), this.dams[damNum]);
+        // });
+
+        // $(".updateSireObj").find("input, select").each((i,e)=>{
+        //     var sireNum = $(e).data("sire");
+        //     this.updateObjFromVal($(e), this.sires[sireNum]);
+        // });
+
+        // $(".updateDamGenerationObj").find("input, select").each((i,e)=>{
+        //     var genNum = $(e).data("damgen");
+        //     this.updateObjFromVal($(e), this.damGenerations[genNum]);
+        // });
+
+        // $(".updateSireGenerationObj").find("input, select").each((i,e)=>{
+        //     var genNum = $(e).data("siregen");
+        //     this.updateObjFromVal($(e), this.sireGenerations[genNum]);
+        // });
 
         this.resize();
     },
@@ -961,58 +992,58 @@ my_widget_script =
      * @returns 
     **/
     tableSearch: function (table){
-        var tableSearch = this.dataSearch("table", table);
-        return tableSearch;
+        var str = this.dataSearch("table", table);
+        return str;
     },
 
     calcSearch: function (calc) {
-        var calcSearch = this.dataSearch("calc", calc);
-        return calcSearch;
+        var str = this.dataSearch("calc", calc);
+        return str;
     },
 
     daySearch: function (day) {
-        var daySearch = this.dataSearch("day", day);
-        return daySearch;
+        var str = this.dataSearch("day", day);
+        return str;
     },
 
     mouseSearch: function (mouse) {
-        var mouseSearch = this.dataSearch("mouse", mouse);
-        return mouseSearch;
+        var str = this.dataSearch("mouse", mouse);
+        return str;
     },
 
     damSearch: function (dam) {
-        var damSearch = this.dataSearch("dam", dam);
-        return damSearch;
+        var str = this.dataSearch("dam", dam);
+        return str;
     },
 
     sireSearch: function (sire) {
-        var sireSearch = this.dataSearch("sire", sire);
-        return sireSearch;
+        var str = this.dataSearch("sire", sire);
+        return str;
     },
 
     damGenSearch: function (damGen) {
-        var damGenSearch = this.dataSearch("damgen", damGen);
-        return damGenSearch;
+        var str = this.dataSearch("damgen", damGen);
+        return str;
     },
 
     sireGenSearch: function (sireGen) {
-        var sireGenSearch = this.dataSearch("siregen", sireGen);
-        return sireGenSearch;
+        var str = this.dataSearch("siregen", sireGen);
+        return str;
     },
 
     breedingSearch: function (breedingNum) {
-        var breedingSearch = this.dataSearch("breed", breedingNum);
-        return breedingSearch;
+        var str = this.dataSearch("breed", breedingNum);
+        return str;
     },
 
     plugSearch: function (plugNum) {
-        var plugSearch = this.dataSearch("plug", plugNum);
-        return plugSearch;
+        var str = this.dataSearch("plug", plugNum);
+        return str;
     },
 
     massSearch: function (massNum) {
-        var massSearch = this.dataSearch("mass", massNum);
-        return massSearch;
+        var str = this.dataSearch("mass", massNum);
+        return str;
     },
 
     updateCalcFromEl: function (el) {
@@ -1115,28 +1146,28 @@ my_widget_script =
      */
     downloadCSV: function (csv, filename) {
         var csvFile;
-        var downloadLink;
+        var dLink;
 
         // CSV file
         csvFile = new Blob([csv], { type: "text/csv" });
 
         // Download link
-        downloadLink = document.createElement("a");
+        dLink = document.createElement("a");
 
         // File name
-        downloadLink.download = filename;
+        dLink.download = filename;
 
         // Create a link to the file
-        downloadLink.href = window.URL.createObjectURL(csvFile);
+        dLink.href = window.URL.createObjectURL(csvFile);
 
         // Hide download link
-        downloadLink.style.display = "none";
+        dLink.style.display = "none";
 
         // Add the link to DOM
-        document.body.appendChild(downloadLink);
+        document.body.appendChild(dLink);
 
         // Click download link
-        downloadLink.click();
+        dLink.click();
     },
     
     /**
@@ -1436,20 +1467,19 @@ my_widget_script =
                     label: "<h4>Dam ID:</h4>",
                     type: "text",
                     className: "damID",
-                    addRowClass: " updateDamObj"
+                    addRowClass: "updateDamObj"
                 },
                 {
                     label: "Delete:",
                     type: "button",
                     className: "deleteDam",
-                    optionsObj: [],
-                    addRowClass: " hideView"
+                    addRowClass: "hideView"
                 },
                 {
                     label: "Generation:",
                     type: "select",
                     className: "damGeneration",
-                    addRowClass: " updateDamObj",
+                    addRowClass: "updateDamObj",
                     optionsObj: [
                         {
                             value: "",
@@ -1459,7 +1489,8 @@ my_widget_script =
                 }, {
                     label: "Add breeding:",
                     type: "button",
-                    className: "addBreeding"
+                    className: "addBreeding",
+                    addRowClass: "hideView"
                 }
             ]
             
@@ -1470,7 +1501,7 @@ my_widget_script =
             }
 
             $body.find(".deleteDam").prop("value", "Delete Dam").on("click", (e)=>{
-                this.deleteDamFuncs(damNum);
+                this.deleteDam(damNum);
             });
 
             $body.find(".addBreeding").prop("value", "Add Breeding").on("click", (e)=>{
@@ -1478,16 +1509,27 @@ my_widget_script =
             });
 
             $body.find(".updateDamObj").on("change", (e)=>{
-                // debugger;
                 var $el = $(e.target); // not currentTarget, because the .updateDamObj gets put on the row
-                var val = $el.val();
-                // Store only the text and no HTML elements.
-                valSafe = this.encodeHTML(val);
-                var thisProp = $el.data("watch");
-                this.dams[damNum][thisProp] = valSafe;
+                this.updateObjFromVal($el, this.dams[damNum]);
+                // // debugger;
+                // var val = $el.val();
+                // // Store only the text and no HTML elements.
+                // valSafe = this.encodeHTML(val);
+                // var thisProp = $el.data("watch");
+                // this.dams[damNum][thisProp] = valSafe;
             });
 
         return $body
+    },
+
+    updateObjFromVal: function($el, obj){
+        var val = $el.val();
+        // Store only the text and no HTML elements.
+        valSafe = this.encodeHTML(val);
+        var thisProp = $el.data("watch");
+        if(thisProp){
+            obj[thisProp] = valSafe;
+        }
     },
 
     addSire: function(sireNum){
@@ -1550,13 +1592,13 @@ my_widget_script =
         this.updateSireList(sireNum);
     },
 
-    makeSireList: function(damNum, damBreedingNum){
+    makeSireList: function(damNum, breedingNum){
         // debugger;
         var sires = this.sires;
         
         var sireNums = this.sireNums;
         var damSearch = this.damSearch(damNum);
-        var breedingSearch = this.breedingSearch(damBreedingNum);
+        var breedingSearch = this.breedingSearch(breedingNum);
         var damBreedingSearch = damSearch + breedingSearch;
 
         for(sireNum of sireNums){
@@ -1613,11 +1655,6 @@ my_widget_script =
         // }
     },
 
-    setSelectizeValue: function(elName, value){
-        $("elName").val(value);
-        $jq351("elName")[0].selectize.setValue(value);
-    },
-
     makeSireCardBody: function(sireNum){
         var $body = $("<div></div>");
 
@@ -1656,18 +1693,19 @@ my_widget_script =
             }
 
             $body.find(".deleteSire").prop("value", "Delete Sire").on("click", (e)=>{
-                this.deleteSireFuncs(sireNum);
+                this.deleteSire(sireNum);
             });
 
             $body.find(".updateSireObj").on("change", (e)=>{
-                // debugger;
                 var $el = $(e.target); // not currentTarget, because the .updateSireObj gets put on the row
-                var val = $el.val();
-                // Store only the text and no HTML elements.
-                valSafe = this.encodeHTML(val);
-                var thisProp = $el.data("watch");
-                this.sires[sireNum][thisProp] = valSafe;
-                this.makeDueDatesTable();
+                this.updateObjFromVal($el, this.sires[sireNum]);
+                // // debugger;
+                // var val = $el.val();
+                // // Store only the text and no HTML elements.
+                // valSafe = this.encodeHTML(val);
+                // var thisProp = $el.data("watch");
+                // this.sires[sireNum][thisProp] = valSafe;
+                // this.makeDueDatesTable();
                 this.updateSireList(sireNum);
             });
 
@@ -1721,11 +1759,11 @@ my_widget_script =
                 damGenStrain: null
             };
 
-            this.makeDamGenerationCard(damGenerationNum);
+            this.makeDamGenCard(damGenerationNum);
         }
     },
 
-    makeDamGenerationCard: function(damGenerationNum){
+    makeDamGenCard: function(damGenerationNum){
         var $div = $("#damGensCardDiv");
 
         if(! $div.find(".card").length){
@@ -1749,7 +1787,7 @@ my_widget_script =
             "data-calc": "damGen",
             "data-damgen": damGenerationNum
         }).append("Dam Generation " + damGenerationNum);
-        var $body = this.makeDamGenerationCardBody(damGenerationNum);
+        var $body = this.makeDamGenCardBody(damGenerationNum);
         // console.log($damDiv, header, $body);
         this.makeCard($damDiv, header, $body);
 
@@ -1825,7 +1863,7 @@ my_widget_script =
         }
     },
 
-    makeDamGenerationCardBody: function(damGenerationNum){
+    makeDamGenCardBody: function(damGenerationNum){
         console.log("genNum:", damGenerationNum);
         // debugger;
         var $body = $("<div></div>");
@@ -1864,18 +1902,19 @@ my_widget_script =
             }
 
             $body.find(".deleteDamGeneration").prop("value", "Delete Dam Gen").on("click", (e)=>{
-                this.deleteDamGenerationFuncs(damGenerationNum);
+                this.deleteDamGen(damGenerationNum);
             });
 
             $body.find(".updateDamGenerationObj").on("change", (e)=>{
-                // debugger;
                 var $el = $(e.target); // not currentTarget, because the .updateDamGenerationObj gets put on the row
-                var val = $el.val();
-                // Store only the text and no HTML elements.
-                valSafe = this.encodeHTML(val);
-                var thisProp = $el.data("watch");
-                // console.log(thisProp, valSafe);
-                this.damGenerations[damGenerationNum][thisProp] = valSafe;
+                this.updateObjFromVal($el, this.damGenerations[damGenerationNum]);
+                // // debugger;
+                // var val = $el.val();
+                // // Store only the text and no HTML elements.
+                // valSafe = this.encodeHTML(val);
+                // var thisProp = $el.data("watch");
+                // // console.log(thisProp, valSafe);
+                // this.damGenerations[damGenerationNum][thisProp] = valSafe;
 
                 this.updateDamGenList(damGenerationNum);
             });
@@ -1893,11 +1932,11 @@ my_widget_script =
                 sireGenStrain: null
             };
 
-            this.makeSireGenerationCard(sireGenerationNum);
+            this.makeSireGenCard(sireGenerationNum);
         }
     },
 
-    makeSireGenerationCard: function(sireGenerationNum){
+    makeSireGenCard: function(sireGenerationNum){
         var $div = $("#sireGensCardDiv");
 
         if(! $div.find(".card").length){
@@ -1921,7 +1960,7 @@ my_widget_script =
             "data-calc": "sireGen",
             "data-siregen": sireGenerationNum
         }).append("Sire Generation " + sireGenerationNum);
-        var $body = this.makeSireGenerationCardBody(sireGenerationNum);
+        var $body = this.makeSireGenCardBody(sireGenerationNum);
         // console.log($sireDiv, header, $body);
         this.makeCard($sireDiv, header, $body);
 
@@ -1996,8 +2035,8 @@ my_widget_script =
         }
     },
 
-    makeSireGenerationCardBody: function(sireGenerationNum){
-        console.log("genNum:", sireGenerationNum);
+    makeSireGenCardBody: function(sireGenerationNum){
+        // console.log("genNum:", sireGenerationNum);
         // debugger;
         var $body = $("<div></div>");
 
@@ -2035,18 +2074,19 @@ my_widget_script =
             }
 
             $body.find(".deleteSireGeneration").prop("value", "Delete Sire Gen").on("click", (e)=>{
-                this.deleteSireGenerationFuncs(sireGenerationNum);
+                this.deleteSireGen(sireGenerationNum);
             });
 
             $body.find(".updateSireGenerationObj").on("change", (e)=>{
-                // debugger;
                 var $el = $(e.target); // not currentTarget, because the .updateSireGenerationObj gets put on the row
-                var val = $el.val();
-                // Store only the text and no HTML elements.
-                valSafe = this.encodeHTML(val);
-                var thisProp = $el.data("watch");
-                // console.log(thisProp, valSafe);
-                this.sireGenerations[sireGenerationNum][thisProp] = valSafe;
+                this.updateObjFromVal($el, this.sireGenerations[sireGenerationNum]);
+                // // debugger;
+                // var val = $el.val();
+                // // Store only the text and no HTML elements.
+                // valSafe = this.encodeHTML(val);
+                // var thisProp = $el.data("watch");
+                // // console.log(thisProp, valSafe);
+                // this.sireGenerations[sireGenerationNum][thisProp] = valSafe;
 
                 this.updateSireGenList(sireGenerationNum);
             });
@@ -2161,7 +2201,7 @@ my_widget_script =
         return($row);
     },
 
-    deleteDamFuncs: function (damNum) {
+    deleteDam: function (damNum) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dam?", 
             ()=>{
@@ -2177,9 +2217,7 @@ my_widget_script =
                 // console.log(this.damNums);
         
                 var damSearch = this.damSearch(damNum);
-                $(".damCard"+damSearch).remove();
-                // $("tr"+damSearch).remove();
-
+                
                 // remove everything with this data attribute
                 $(damSearch).remove();
                 this.getDamsDue($("#dueDate").val());
@@ -2188,26 +2226,51 @@ my_widget_script =
         this.resize();
     },
 
-    deleteBreedingFuncs: function (damNum, damBreedingNum) {
+    deleteSire: function (sireNum) {
+        this.runIfConfirmed(
+            "Are you sure that you wish to delete this sire?", 
+            ()=>{
+                // Remove it from the sireNums
+                var index = this.sireNums.indexOf(sireNum);
+                if(index > -1){
+                    this.sireNums.splice(index, 1);
+                }
+        
+                // Remove it from the sires object
+                delete this.sires[sireNum];
+        
+                // console.log(this.sireNums);
+        
+                var sireSearch = this.sireSearch(sireNum);
+                
+                // remove everything with this data attribute
+                $(sireSearch).remove();
+                this.getDamsDue($("#dueDate").val());
+            }
+        );
+        this.resize();
+    },
+
+    deleteBreedingFuncs: function (damNum, breedingNum) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dam breeding?", 
             ()=>{
                 var thisDam = this.dams[damNum];
-                var damBreedingNums = thisDam.breedingNums;
+                var breedingNums = thisDam.breedingNums;
                 var damBreedings = thisDam.breedings;
                 // Remove it from the damNums
-                var index = damBreedingNums.indexOf(damBreedingNum);
+                var index = breedingNums.indexOf(breedingNum);
                 if(index > -1){
-                    damBreedingNums.splice(index, 1);
+                    breedingNums.splice(index, 1);
                 }
         
                 // Remove it from the dams object
-                delete damBreedings[damBreedingNum];
+                delete damBreedings[breedingNum];
         
                 // console.log(this.damNums);
         
                 var damSearch = this.damSearch(damNum);
-                var breedingSearch = this.breedingSearch(damBreedingNum);
+                var breedingSearch = this.breedingSearch(breedingNum);
                 
                 // remove everything with this data attribute
                 $(damSearch+breedingSearch).remove();
@@ -2217,12 +2280,12 @@ my_widget_script =
         this.resize();
     },
 
-    deletePlugFuncs: function (damNum, damBreedingNum, plugCheckNum) {
+    deletePlugFuncs: function (damNum, breedingNum, plugCheckNum) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dam breeding?", 
             ()=>{
                 var thisDam = this.dams[damNum];
-                var damBreeding = thisDam.breedings[damBreedingNum];
+                var damBreeding = thisDam.breedings[breedingNum];
                 var plugCheckNums = damBreeding.plugCheckNums;
                 var plugChecks = damBreeding.plugChecks;
 
@@ -2238,7 +2301,7 @@ my_widget_script =
                 // console.log(this.damNums);
         
                 var damSearch = this.damSearch(damNum);
-                var breedingSearch = this.breedingSearch(damBreedingNum);
+                var breedingSearch = this.breedingSearch(breedingNum);
                 var plugSearch = this.plugSearch(plugCheckNum);
                 
                 // remove everything with this data attribute
@@ -2249,12 +2312,12 @@ my_widget_script =
         this.resize();
     },
 
-    deleteMassFuncs: function (damNum, damBreedingNum, massNum) {
+    deleteMassFuncs: function (damNum, breedingNum, massNum) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dam breeding?", 
             ()=>{
                 var thisDam = this.dams[damNum];
-                var damBreeding = thisDam.breedings[damBreedingNum];
+                var damBreeding = thisDam.breedings[breedingNum];
                 var massNums = damBreeding.massNums;
                 var masses = damBreeding.masses;
 
@@ -2270,7 +2333,7 @@ my_widget_script =
                 // console.log(this.damNums);
         
                 var damSearch = this.damSearch(damNum);
-                var breedingSearch = this.breedingSearch(damBreedingNum);
+                var breedingSearch = this.breedingSearch(breedingNum);
                 var massSearch = this.massSearch(massNum);
                 
                 // remove everything with this data attribute
@@ -2281,22 +2344,22 @@ my_widget_script =
         this.resize();
     },
 
-    deleteDamGenerationFuncs: function (damGenerationNum) {
+    deleteDamGen: function (genNum) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dam generation?", 
             ()=>{
                 // Remove it from the damGenerationNums
-                var index = this.damGenerationNums.indexOf(damGenerationNum);
+                var index = this.damGenerationNums.indexOf(genNum);
                 if(index > -1){
                     this.damGenerationNums.splice(index, 1);
                 }
         
                 // Remove it from the damGenerations object
-                delete this.damGenerations[damGenerationNum];
+                delete this.damGenerations[genNum];
         
                 // console.log(this.damGenerationNums);
         
-                var damGenSearch = this.damGenSearch(damGenerationNum);
+                var damGenSearch = this.damGenSearch(genNum);
                 $(".damGenCard"+damGenSearch).remove();
                 // $("tr"+damGenerationSearch).remove();
 
@@ -2308,22 +2371,61 @@ my_widget_script =
         this.resize();
     },
 
+    deleteSireGen: function (genNum) {
+        this.runIfConfirmed(
+            "Are you sure that you wish to delete this sire generation?", 
+            ()=>{
+                // Remove it from the sireGenerationNums
+                var index = this.sireGenerationNums.indexOf(genNum);
+                if(index > -1){
+                    this.sireGenerationNums.splice(index, 1);
+                }
+        
+                // Remove it from the sireGenerations object
+                delete this.sireGenerations[genNum];
+        
+                // console.log(this.sireGenerationNums);
+        
+                var sireGenSearch = this.sireGenSearch(genNum);
+                $(".sireGenCard"+sireGenSearch).remove();
+                // $("tr"+sireGenerationSearch).remove();
+
+                // remove everything with this data attribute
+                $(sireGenSearch).remove();
+                this.getDamsDue($("#dueDate").val());
+            }
+        );
+        this.resize();
+    },
+
+    getNextNum: function(nums){
+        if(nums.length>0){
+            var lastNum = nums[nums.length - 1];
+            var num = lastNum + 1;
+        } else {
+            var num = 1;
+        }
+        return num;
+    },
+
     addDamBreeding: function(damNum){
-        var damBreedingNums = this.dams[damNum].breedingNums;
+        var breedingNums = this.dams[damNum].breedingNums;
         var damBreedings = this.dams[damNum].breedings;
 
-        if(damBreedingNums.length>0){
-            var lastDamBreeding = damBreedingNums[damBreedingNums.length - 1];
-            var damBreedingNum = lastDamBreeding + 1;
-        } else {
-            var damBreedingNum = 1;
-        }
+        var breedingNum = this.getNextNum(breedingNums);
 
-        var inArray = this.checkInArray(damBreedingNum, damBreedingNums);
+        // if(breedingNums.length>0){
+        //     var lastDamBreeding = breedingNums[breedingNums.length - 1];
+        //     var breedingNum = lastDamBreeding + 1;
+        // } else {
+        //     var breedingNum = 1;
+        // }
+
+        var inArray = this.checkInArray(breedingNum, breedingNums);
         if(! inArray){
             // debugger;
-            damBreedingNums.push(damBreedingNum);
-            damBreedings[damBreedingNum] = {
+            breedingNums.push(breedingNum);
+            damBreedings[breedingNum] = {
                 sireBreeding: null, 
                 litterNum: NaN,
                 breedDate: NaN, 
@@ -2340,13 +2442,13 @@ my_widget_script =
                 stopTrackingDate: NaN
             };
 
-            this.makeDamBreeding(damNum, damBreedingNum);
+            this.makeDamBreeding(damNum, breedingNum);
             this.getDamsDue($("#dueDate").val());
         }
 
     },
     
-    makeDamBreeding: function(damNum, damBreedingNum){
+    makeDamBreeding: function(damNum, breedingNum){
         var damSearch = this.damSearch(damNum);
         var $cardBody = $(".damCard"+damSearch).find(".card-body");
 
@@ -2450,7 +2552,7 @@ my_widget_script =
         $cardBody.append(
             $("<div></div>", {
                 "class": "breedDiv",
-                "data-breed": damBreedingNum,
+                "data-breed": breedingNum,
                 "data-dam": damNum
             }).append(
                 $("<hr></hr>")
@@ -2461,44 +2563,44 @@ my_widget_script =
 
         for(row of initialRows){
             $body.append(
-                this.makeRowFromObj(row, damNum, "dam", true, damBreedingNum, "breed")
+                this.makeRowFromObj(row, damNum, "dam", true, breedingNum, "breed")
             )
         }
 
         $body.find(".addPlugCheck").prop("value", "Plug check").on("click", (e)=>{
-            this.addPlugCheck(damNum, damBreedingNum);
+            this.addPlugCheck(damNum, breedingNum);
         }).closest(".row").after(
             $("<div></div>", {
                 "class": "plugsDiv",
                 "data-dam": damNum,
-                "data-breed": damBreedingNum
+                "data-breed": breedingNum
             }).append(
                 this.makeTopLabelRow(this.plugLabels)
             )
         );
 
         $body.find(".addMass").prop("value", "Add mass").on("click", (e)=>{
-            this.addMass(damNum, damBreedingNum);
+            this.addMass(damNum, breedingNum);
         }).closest(".row").after(
             $("<div></div>", {
                 "class": "massesDiv",
                 "data-dam": damNum,
-                "data-breed": damBreedingNum
+                "data-breed": breedingNum
             }).append(
                 this.makeTopLabelRow(this.massLabels)
             )
         );
 
         $body.find(".deleteBreeding").prop("value", "Delete Breeding").on("click", (e)=>{
-            this.deleteBreedingFuncs(damNum, damBreedingNum);
+            this.deleteBreedingFuncs(damNum, breedingNum);
         });
 
         $body.find(".copyBreeding").prop("value", "Copy Breeding").on("click", (e)=>{
-            this.copyDamBreedingToClipboard(damNum, damBreedingNum);
+            this.copyDamBreedingToClipboard(damNum, breedingNum);
         });
 
-        this.makeSireList(damNum, damBreedingNum);
-        var damBreeedingSearch = this.damSearch(damNum) + this.breedingSearch(damBreedingNum);
+        this.makeSireList(damNum, breedingNum);
+        var damBreeedingSearch = this.damSearch(damNum) + this.breedingSearch(breedingNum);
         // if(this.mode === "edit"){
         //     $jq351(".sireBreeding"+damBreeedingSearch).selectize({});
         // }
@@ -2514,13 +2616,13 @@ my_widget_script =
             // Store only the text and no HTML elements.
             valSafe = this.encodeHTML(val);
             var thisProp = $el.data("watch");
-            this.dams[damNum].breedings[damBreedingNum][thisProp] = valSafe;
+            this.dams[damNum].breedings[breedingNum][thisProp] = valSafe;
 
             if(thisProp === "initialMass"){
-                this.calcMassChange(damNum, damBreedingNum);
+                this.calcMassChange(damNum, breedingNum);
             }
             if(thisProp === "breedDate"){
-                this.updateBreedingWatchDates(damNum, damBreedingNum);
+                this.updateBreedingWatchDates(damNum, breedingNum);
             }
         });
 
@@ -2560,19 +2662,21 @@ my_widget_script =
         return $cardDiv
     },
 
-    addPlugCheck: function(damNum, damBreedingNum){
+    addPlugCheck: function(damNum, breedingNum){
         var damInfo = this.dams[damNum];
-        var breedingInfo = damInfo.breedings[damBreedingNum];
+        var bInfo = damInfo.breedings[breedingNum];
 
-        var plugCheckNums = breedingInfo.plugCheckNums;
-        var plugChecks = breedingInfo.plugChecks;
+        var plugCheckNums = bInfo.plugCheckNums;
+        var plugChecks = bInfo.plugChecks;
 
-        if(plugCheckNums.length>0){
-            var lastPlugCheckNum = plugCheckNums[plugCheckNums.length - 1];
-            var plugCheckNum = lastPlugCheckNum + 1;
-        } else {
-            var plugCheckNum = 1;
-        }
+        var plugCheckNum = this.getNextNum(plugCheckNums);
+
+        // if(plugCheckNums.length>0){
+        //     var lastPlugCheckNum = plugCheckNums[plugCheckNums.length - 1];
+        //     var plugCheckNum = lastPlugCheckNum + 1;
+        // } else {
+        //     var plugCheckNum = 1;
+        // }
 
         var inArray = this.checkInArray(plugCheckNum, plugCheckNums);
         if(! inArray){
@@ -2584,15 +2688,15 @@ my_widget_script =
                 plugComments: null
             };
 
-            this.makePlugEntry(damNum, damBreedingNum, plugCheckNum);
+            this.makePlugEntry(damNum, breedingNum, plugCheckNum);
         }
     },
 
-    makePlugEntry: function(damNum, damBreedingNum, plugNum){
+    makePlugEntry: function(damNum, breedingNum, plugNum){
         var $card = $("<div></div>", {
             "class": "card plugCard",
             "data-dam": damNum,
-            "data-breed": damBreedingNum,
+            "data-breed": breedingNum,
             "data-plug": plugNum
         }).append(
             $("<div></div>", {
@@ -2671,7 +2775,7 @@ my_widget_script =
                         colObj.optionsObj,
                         "dam",
                         true,
-                        damBreedingNum,
+                        breedingNum,
                         "breed",
                         true,
                         plugNum,
@@ -2682,7 +2786,7 @@ my_widget_script =
         }
 
         $card.find(".deletePlug").prop("value", "Delete").on("click", (e)=>{
-            this.deletePlugFuncs(damNum, damBreedingNum, plugNum);
+            this.deletePlugFuncs(damNum, breedingNum, plugNum);
         });
 
         $card.find(".plugRow").on("change", (e)=>{
@@ -2691,28 +2795,30 @@ my_widget_script =
             // Store only the text and no HTML elements.
             valSafe = this.encodeHTML(val);
             var thisProp = $el.data("watch");
-            this.dams[damNum].breedings[damBreedingNum].plugChecks[plugNum][thisProp] = valSafe;
+            this.dams[damNum].breedings[breedingNum].plugChecks[plugNum][thisProp] = valSafe;
 
-            this.updateBreedingWatchDates(damNum, damBreedingNum);
+            this.updateBreedingWatchDates(damNum, breedingNum);
         });
 
-        $(".plugsDiv"+this.damSearch(damNum)+this.breedingSearch(damBreedingNum)).append($card);
+        $(".plugsDiv"+this.damSearch(damNum)+this.breedingSearch(breedingNum)).append($card);
         this.resize();
     },
 
-    addMass: function(damNum, damBreedingNum){
+    addMass: function(damNum, breedingNum){
         var damInfo = this.dams[damNum];
-        var breedingInfo = damInfo.breedings[damBreedingNum];
+        var bInfo = damInfo.breedings[breedingNum];
 
-        var massNums = breedingInfo.massNums;
-        var masses = breedingInfo.masses;
+        var massNums = bInfo.massNums;
+        var masses = bInfo.masses;
 
-        if(massNums.length>0){
-            var lastMassNum = massNums[massNums.length - 1];
-            var massNum = lastMassNum + 1;
-        } else {
-            var massNum = 1;
-        }
+        var massNum = this.getNextNum(massNums);
+
+        // if(massNums.length>0){
+        //     var lastMassNum = massNums[massNums.length - 1];
+        //     var massNum = lastMassNum + 1;
+        // } else {
+        //     var massNum = 1;
+        // }
 
         var inArray = this.checkInArray(massNum, massNums);
         if(! inArray){
@@ -2723,16 +2829,16 @@ my_widget_script =
                 mass: null
             };
 
-            this.makeMassEntry(damNum, damBreedingNum, massNum);
+            this.makeMassEntry(damNum, breedingNum, massNum);
         }
     },
 
-    makeMassEntry: function(damNum, damBreedingNum, massNum){
+    makeMassEntry: function(damNum, breedingNum, massNum){
         // debugger;
         var $card = $("<div></div>", {
             "class": "card massCard",
             "data-dam": damNum,
-            "data-breed": damBreedingNum,
+            "data-breed": breedingNum,
             "data-mass": massNum
         }).append(
             $("<div></div>", {
@@ -2780,7 +2886,7 @@ my_widget_script =
                     $("<div></div>", {
                         "class": "change col-12 col-md-" + Math.floor(12/inputCols.length),
                         "data-dam": damNum,
-                        "data-breed": damBreedingNum,
+                        "data-breed": breedingNum,
                         "data-mass": massNum
                     }).append(
                         "Enter new mass"
@@ -2798,7 +2904,7 @@ my_widget_script =
                             colObj.optionsObj,
                             "dam",
                             true,
-                            damBreedingNum,
+                            breedingNum,
                             "breed",
                             true,
                             massNum,
@@ -2811,7 +2917,7 @@ my_widget_script =
         }
 
         $card.find(".deleteMass").prop("value", "Delete").on("click", (e)=>{
-            this.deleteMassFuncs(damNum, damBreedingNum, massNum);
+            this.deleteMassFuncs(damNum, breedingNum, massNum);
         });
 
         $card.find(".massRow").on("change", (e)=>{
@@ -2820,11 +2926,11 @@ my_widget_script =
             // Store only the text and no HTML elements.
             valSafe = this.encodeHTML(val);
             var thisProp = $el.data("watch");
-            this.dams[damNum].breedings[damBreedingNum].masses[massNum][thisProp] = valSafe;
+            this.dams[damNum].breedings[breedingNum].masses[massNum][thisProp] = valSafe;
         });
 
         var damSearch = this.damSearch(damNum);
-        var breedingSearch = this.breedingSearch(damBreedingNum);
+        var breedingSearch = this.breedingSearch(breedingNum);
         var massSearch = this.massSearch(massNum);
         var searchString = damSearch + breedingSearch + massSearch;
 
@@ -2832,7 +2938,7 @@ my_widget_script =
             var $el = $(e.currentTarget);
             var newMass = $el.val();
 
-            var initialMass = this.dams[damNum].breedings[damBreedingNum].initialMass;
+            var initialMass = this.dams[damNum].breedings[breedingNum].initialMass;
             var massText = this.calcPercMass(newMass, initialMass);
 
             $(".change"+searchString).text(massText);
@@ -2843,17 +2949,17 @@ my_widget_script =
         this.resize();
     },
 
-    calcMassChange: function(damNum, damBreedingNum){
+    calcMassChange: function(damNum, breedingNum){
         // debugger;
-        var breedingInfo = this.dams[damNum].breedings[damBreedingNum];
-        console.log(breedingInfo);
-        var initialMass = breedingInfo.initialMass;
+        var bInfo = this.dams[damNum].breedings[breedingNum];
+        // console.log(bInfo);
+        var initialMass = bInfo.initialMass;
         var damSearch = this.damSearch(damNum);
-        var breedingSearch = this.breedingSearch(damBreedingNum);
+        var breedingSearch = this.breedingSearch(breedingNum);
 
-        for(massNum of breedingInfo.massNums){
+        for(massNum of bInfo.massNums){
             var massSearch = this.massSearch(massNum);
-            var newMass = breedingInfo.masses[massNum].mass;
+            var newMass = bInfo.masses[massNum].mass;
 
             var massText = this.calcPercMass(newMass, initialMass);
             $(".change"+damSearch+breedingSearch+massSearch).text(massText);
@@ -2885,9 +2991,9 @@ my_widget_script =
 
         for(damObj of damObjs){
             var damNum = damObj.damNum;
-            var damBreedingNum = damObj.damBreedingNum;
+            var breedingNum = damObj.breedingNum;
 
-            var datesInfo = this.getDamDates(damNum, damBreedingNum);
+            var datesInfo = this.getDamDates(damNum, breedingNum);
     
             var row = [], val;
             for (label of labels){
@@ -2916,10 +3022,6 @@ my_widget_script =
                 }
                 var text = $(e).text();
                 if(this.isValidDate(text)){
-                    // debugger;
-                    if(text <= luxon.DateTime.now().toISODate()){
-                        $(e).addClass("isDue");
-                    }
                     $(e).text(luxon.DateTime.fromISO(text).toLocaleString({weekday: "short", month: "short", day: "2-digit"}));
                 }
             })
@@ -2936,13 +3038,13 @@ my_widget_script =
 
         for(damNum of damNums){
             var damInfo = dams[damNum];
-            var damBreedingNums = damInfo.breedingNums;
-            for(damBreedingNum of damBreedingNums){
-                var breedingInfo = this.getDamBreedingInfo(damNum, damBreedingNum);
+            var breedingNums = damInfo.breedingNums;
+            for(breedingNum of breedingNums){
+                var bInfo = this.getDamBreedingInfo(damNum, breedingNum);
     
                 var row = [], val;
                 for (label of labels){
-                    val =breedingInfo[label];
+                    val =bInfo[label];
                     if(!val){val = ""}
                     row.push(val);
                 }
@@ -2956,9 +3058,9 @@ my_widget_script =
         this.createTable(tableData, true, false, $tableDiv);
     },
 
-    getDamDates: function(damNum, damBreedingNum){
+    getDamDates: function(damNum, breedingNum){
         var dam = this.dams[damNum]
-        var breeding = this.dams[damNum].breedings[damBreedingNum];
+        var breeding = this.dams[damNum].breedings[breedingNum];
 
         var damID = dam.damID;
         if(!damID){
@@ -2967,7 +3069,7 @@ my_widget_script =
 
         var litterNum = breeding.litterNum;
         if(!litterNum){
-            litterNum = damBreedingNum;
+            litterNum = breedingNum;
         }
         var specDamID = damID + "-" + (""+litterNum).padStart(2, "0");
 
@@ -3023,9 +3125,9 @@ my_widget_script =
         "P91"
     ],
 
-    getDamBreedingInfo: function(damNum, damBreedingNum){
+    getDamBreedingInfo: function(damNum, breedingNum){
         var dam = this.dams[damNum]
-        var breeding = this.dams[damNum].breedings[damBreedingNum];
+        var breeding = this.dams[damNum].breedings[breedingNum];
 
         var damID = dam.damID;
         if(!damID){
@@ -3034,7 +3136,7 @@ my_widget_script =
 
         var litterNum = breeding.litterNum;
         if(!litterNum){
-            litterNum = damBreedingNum;
+            litterNum = breedingNum;
         }
         var specDamID = damID + "-" + (""+litterNum).padStart(2, "0");
 
@@ -3066,7 +3168,7 @@ my_widget_script =
 
         }
 
-        var plugDate = breeding.earliestPotentialPlug // TODO calc from earliest possible
+        var plugDate = breeding.potentialPlugDate // TODO calc from earliest possible
 
         var damObj = {
             damID: specDamID,
@@ -3081,7 +3183,8 @@ my_widget_script =
             sireDOB: sireDOB,
             breedDate: breeding.breedDate,
             plugDate: plugDate,
-            DOB: breeding.litterDOB
+            DOB: breeding.litterDOB,
+            Sac_or_stop: breeding.stopTrackingDate
         };
 
         return damObj
@@ -3100,11 +3203,12 @@ my_widget_script =
         "sireDOB",
         "breedDate",
         "plugDate",
-        "DOB"
+        "DOB",
+        "Sac_or_stop"
     ],
 
-    copyDamBreedingToClipboard: function(damNum, damBreedingNum, copyLabels = false){
-        var damObj = this.getDamBreedingInfo(damNum, damBreedingNum);
+    copyDamBreedingToClipboard: function(damNum, breedingNum, copyLabels = false){
+        var damObj = this.getDamBreedingInfo(damNum, breedingNum);
 
         const tableArray = [];
         const rowArray = [];
@@ -3161,10 +3265,10 @@ my_widget_script =
 
         for(damBreedingObj of toBeSeparated){
             var damNum = damBreedingObj.damNum;
-            var damBreedingNum = damBreedingObj.damBreedingNum;
+            var breedingNum = damBreedingObj.breedingNum;
 
             var damInfo = dams[damNum];
-            var breedingInfo = damInfo.breedings[damBreedingNum];
+            var bInfo = damInfo.breedings[breedingNum];
 
             var row = [], val;
             for (label of labels){
@@ -3172,7 +3276,7 @@ my_widget_script =
                     val = damInfo[label];
                     if(!val){val = "Dam " + damNum}
                 } else {
-                    val =breedingInfo[label];
+                    val =bInfo[label];
                     if(!val){val = ""}
                 }
                 row.push(val);
@@ -3209,10 +3313,10 @@ my_widget_script =
 
         for(damBreedingObj of toBeSeparated){
             var damNum = damBreedingObj.damNum;
-            var damBreedingNum = damBreedingObj.damBreedingNum;
+            var breedingNum = damBreedingObj.breedingNum;
 
             var damInfo = dams[damNum];
-            var breedingInfo = damInfo.breedings[damBreedingNum];
+            var bInfo = damInfo.breedings[breedingNum];
 
             var row = [], val;
             for (label of labels){
@@ -3220,7 +3324,7 @@ my_widget_script =
                     val = damInfo[label];
                     if(!val){val = "Dam " + damNum}
                 } else {
-                    val =breedingInfo[label];
+                    val =bInfo[label];
                     if(!val){val = ""}
                 }
                 row.push(val);
@@ -3446,48 +3550,53 @@ my_widget_script =
     sireGenLabels: ["sireGen", "sireGenDOB", "sireGenStrain"],
 
     addDamGenFromTable: function(obj){
-        if(this.damGenerationNums.length>0){
-            var lastDamGeneration = this.damGenerationNums[this.damGenerationNums.length - 1];
-            var damGenerationNum = lastDamGeneration + 1;
-        } else {
-            var damGenerationNum = 1;
-        }
-        this.addDamGeneration(damGenerationNum);
-        var damGenerationSearch = this.damGenSearch(damGenerationNum);
+        var genNum = this.getNextNum(this.damGenerationNums);
+        // if(this.damGenerationNums.length>0){
+        //     var lastDamGeneration = this.damGenerationNums[this.damGenerationNums.length - 1];
+        //     var genNum = lastDamGeneration + 1;
+        // } else {
+        //     var genNum = 1;
+        // }
+        this.addDamGeneration(genNum);
+        var damGenerationSearch = this.damGenSearch(genNum);
 
         var headers = this.damGenLabels;
         for(header of headers){
             $("." + header + damGenerationSearch).val(obj[header]);
-            this.damGenerations[damGenerationNum][header] = obj[header];
+            this.damGenerations[genNum][header] = obj[header];
         }
-        this.updateDamGenList(damGenerationNum);
+        this.updateDamGenList(genNum);
+        return(genNum);
     },
 
     addSireGenFromTable: function(obj){
-        if(this.sireGenerationNums.length>0){
-            var lastSireGeneration = this.sireGenerationNums[this.sireGenerationNums.length - 1];
-            var sireGenerationNum = lastSireGeneration + 1;
-        } else {
-            var sireGenerationNum = 1;
-        }
-        this.addSireGeneration(sireGenerationNum);
-        var sireGenerationSearch = this.sireGenSearch(sireGenerationNum);
+        var genNum = this.getNextNum(this.sireGenerationNums);
+        // if(this.sireGenerationNums.length>0){
+        //     var lastSireGeneration = this.sireGenerationNums[this.sireGenerationNums.length - 1];
+        //     var sireGenerationNum = lastSireGeneration + 1;
+        // } else {
+        //     var sireGenerationNum = 1;
+        // }
+        this.addSireGeneration(genNum);
+        var sireGenerationSearch = this.sireGenSearch(genNum);
 
         var headers = this.sireGenLabels;
         for(header of headers){
             $("." + header + sireGenerationSearch).val(obj[header]);
-            this.sireGenerations[sireGenerationNum][header] = obj[header];
+            this.sireGenerations[genNum][header] = obj[header];
         }
-        this.updateSireGenList(sireGenerationNum);
+        this.updateSireGenList(genNum);
+        return genNum;
     },
 
     addDamFromTable: function(obj, headers){
-        if(this.damNums.length>0){
-            var lastDam = this.damNums[this.damNums.length - 1];
-            var damNum = lastDam + 1;
-        } else {
-            var damNum = 1;
-        }
+        var damNum = this.getNextNum(this.damNums);
+        // if(this.damNums.length>0){
+        //     var lastDam = this.damNums[this.damNums.length - 1];
+        //     var damNum = lastDam + 1;
+        // } else {
+        //     var damNum = 1;
+        // }
         this.addDam(damNum);
         var damSearch = this.damSearch(damNum);
 
@@ -3497,7 +3606,7 @@ my_widget_script =
                 $("." + header + damSearch).val(obj[header]);
                 this.dams[damNum][header] = obj[header];
             } else {
-                if(header === "damGen" || header.toLowerCase().includes("gen")){
+                if(header === "damGen" || header.toLowerCase().includes("generation")){
                     damGen = obj[header];
                 } else if(header === "damGenDOB" || header.toLowerCase().includes("DOB")){
                     damGenDOB = obj[header];
@@ -3515,6 +3624,8 @@ my_widget_script =
             "damGenStrain", 
             damGenStrain
         )
+
+        var dInfo = this.dams[damNum]
         if(matchInfo.matchingObj.length>0){
             $(".damGeneration"+damSearch).val(matchInfo.matchingObj[0])
         } else if(matchInfo.noMatches && damGen){ // means no matches for gen - add it
@@ -3523,17 +3634,21 @@ my_widget_script =
                 damGenDOB: damGenDOB,
                 damGenStrain: damGenStrain
             }
-            this.addDamGenFromTable(obj);
+            var genNum = this.addDamGenFromTable(obj);
+            $(".damGeneration"+damSearch).val(genNum);
         }
+        this.updateObjFromVal($(".damGeneration"+damSearch), this.dams[damNum]);
+        
     },
 
     addSireFromTable: function(obj, headers){
-        if(this.sireNums.length>0){
-            var lastSire = this.sireNums[this.sireNums.length - 1];
-            var sireNum = lastSire + 1;
-        } else {
-            var sireNum = 1;
-        }
+        var sireNum = this.getNextNum(this.sireNums);
+        // if(this.sireNums.length>0){
+        //     var lastSire = this.sireNums[this.sireNums.length - 1];
+        //     var sireNum = lastSire + 1;
+        // } else {
+        //     var sireNum = 1;
+        // }
         this.addSire(sireNum);
         var sireSearch = this.sireSearch(sireNum);
 
@@ -3543,7 +3658,7 @@ my_widget_script =
                 $("." + header + sireSearch).val(obj[header]);
                 this.sires[sireNum][header] = obj[header];
             } else {
-                if(header === "sireGen" || header.toLowerCase().includes("gen")){
+                if(header === "sireGen" || header.toLowerCase().includes("generation")){
                     sireGen = obj[header];
                 } else if(header === "sireGenDOB" || header.toLowerCase().includes("DOB")){
                     sireGenDOB = obj[header];
@@ -3569,9 +3684,12 @@ my_widget_script =
                 sireGenDOB: sireGenDOB,
                 sireGenStrain: sireGenStrain
             }
-            this.addSireGenFromTable(obj);
+            var genNum = this.addSireGenFromTable(obj);
+            $(".sireGeneration"+sireSearch).val(genNum);
+
         }
         this.updateSireList(sireNum);
+        this.updateObjFromVal($(".sireGeneration"+sireSearch), this.sires[sireNum]);
     },
 
     upload: function() {
@@ -3640,13 +3758,13 @@ my_widget_script =
 
     // Plug dates
 
-    updateBreedingWatchDates: function(damNum, damBreedingNum){
+    updateBreedingWatchDates: function(damNum, breedingNum){
         // debugger;
         var damInfo = this.dams[damNum];
-        var breedingInfo = damInfo.breedings[damBreedingNum];
-        var plugCheckNums = breedingInfo.plugCheckNums;
+        var bInfo = damInfo.breedings[breedingNum];
+        var plugCheckNums = bInfo.plugCheckNums;
 
-        var breedDate = breedingInfo.breedDate;
+        var breedDate = bInfo.breedDate;
 
         var earliestPotentialPlug, earliestLikelyPlug, earliestGoodPlug;
         var sepBreeding, sepPotentialPlug, sepLikelyPlug, sepGoodPlug;
@@ -3654,7 +3772,7 @@ my_widget_script =
 
         if(breedDate){
             for(plugCheckNum of plugCheckNums){
-                var plugCheckInfo = breedingInfo.plugChecks[plugCheckNum];
+                var plugCheckInfo = bInfo.plugChecks[plugCheckNum];
                 
                 // 1 = potential (?) // 2 = likely (+/-) // 3 = good (+/+)
                 var plugState = plugCheckInfo.plugCheck;
@@ -3694,19 +3812,19 @@ my_widget_script =
             }
         }
 
-        breedingInfo["potentialPlugDate"] = earliestPotentialPlug;
-        breedingInfo["likelyPlugDate"] = earliestLikelyPlug;
-        breedingInfo["goodPlugDate"] = earliestGoodPlug;
+        bInfo["potentialPlugDate"] = earliestPotentialPlug;
+        bInfo["likelyPlugDate"] = earliestLikelyPlug;
+        bInfo["goodPlugDate"] = earliestGoodPlug;
 
-        breedingInfo["sepBreedingDate"] = sepBreeding;
-        breedingInfo["sepPotentialPlugDate"] = sepPotentialPlug;
-        breedingInfo["sepLikelyPlugDate"] = sepLikelyPlug;
-        breedingInfo["sepGoodPlugDate"] = sepGoodPlug;
+        bInfo["sepBreedingDate"] = sepBreeding;
+        bInfo["sepPotentialPlugDate"] = sepPotentialPlug;
+        bInfo["sepLikelyPlugDate"] = sepLikelyPlug;
+        bInfo["sepGoodPlugDate"] = sepGoodPlug;
 
-        breedingInfo["birthBreedingDate"] = birthBreeding;
-        breedingInfo["birthPotentialPlugDate"] = birthPotentialPlug;
-        breedingInfo["birthLikelyPlugDate"] = birthLikelyPlug;
-        breedingInfo["birthGoodPlugDate"] = birthGoodPlug;
+        bInfo["birthBreedingDate"] = birthBreeding;
+        bInfo["birthPotentialPlugDate"] = birthPotentialPlug;
+        bInfo["birthLikelyPlugDate"] = birthLikelyPlug;
+        bInfo["birthGoodPlugDate"] = birthGoodPlug;
     },
 
     getDamsForPlugChecks: function(dueDate = luxon.DateTime.now().toISODate()){
@@ -3718,19 +3836,19 @@ my_widget_script =
         for(damNum of damNums){
             var damInfo = this.dams[damNum];
 
-            var damBreedingNum = this.getDamLatestBreeding(damInfo, dueDate);
+            var breedingNum = this.getDamLatestBreeding(damInfo, dueDate);
             
-            if(damBreedingNum){
-                var breedingInfo = damInfo.breedings[damBreedingNum];
+            if(breedingNum){
+                var bInfo = damInfo.breedings[breedingNum];
 
                 if(
-                    (! breedingInfo.sepFromMaleDate || breedingInfo.sepFromMaleDate > dueDate) &&
-                    (! breedingInfo.litterDOB || breedingInfo.litterDOB > dueDate) &&
-                    (! breedingInfo.stopTrackingDate || breedingInfo.stopTrackingDate > dueDate) &&
-                    (! breedingInfo.potentialPlugDate || breedingInfo.potentialPlugDate > dueDate)
+                    (! bInfo.sepFromMaleDate || bInfo.sepFromMaleDate > dueDate) &&
+                    (! bInfo.litterDOB || bInfo.litterDOB > dueDate) &&
+                    (! bInfo.stopTrackingDate || bInfo.stopTrackingDate > dueDate) &&
+                    (! bInfo.potentialPlugDate || bInfo.potentialPlugDate > dueDate)
                 ){
                     damsToCheck.push(damNum);
-                    if(! breedingInfo.likelyPlugDate || breedingInfo.likelyPlugDate > dueDate){
+                    if(! bInfo.likelyPlugDate || bInfo.likelyPlugDate > dueDate){
                         damsForLikely.push(damNum);
                     }
                 }
@@ -3751,22 +3869,22 @@ my_widget_script =
         for(damNum of damNums){
             var damInfo = this.dams[damNum];
 
-            var damBreedingNum = this.getDamLatestBreeding(damInfo, dueDate);
+            var breedingNum = this.getDamLatestBreeding(damInfo, dueDate);
             
-            if(damBreedingNum){
-                var breedingInfo = damInfo.breedings[damBreedingNum];
+            if(breedingNum){
+                var bInfo = damInfo.breedings[breedingNum];
 
                 if(
-                    (! breedingInfo.sepFromMaleDate || breedingInfo.sepFromMaleDate > dueDate) &&
-                    (! breedingInfo.litterDOB || breedingInfo.litterDOB > dueDate) &&
-                    (! breedingInfo.stopTrackingDate || breedingInfo.stopTrackingDate > dueDate)
+                    (! bInfo.sepFromMaleDate || bInfo.sepFromMaleDate > dueDate) &&
+                    (! bInfo.litterDOB || bInfo.litterDOB > dueDate) &&
+                    (! bInfo.stopTrackingDate || bInfo.stopTrackingDate > dueDate)
                 ){
                     damsToCheck.push({
                         damNum: damNum,
-                        damBreedingNum: damBreedingNum
+                        breedingNum: breedingNum
                     });
 
-                    if(breedingInfo.sepBreedingDate <= dueDate){
+                    if(bInfo.sepBreedingDate <= dueDate){
                         damsDueToCheck.push(damNum);
                     }
                 }
@@ -3787,21 +3905,21 @@ my_widget_script =
         for(damNum of damNums){
             var damInfo = this.dams[damNum];
 
-            var damBreedingNum = this.getDamLatestBreeding(damInfo, dueDate);
+            var breedingNum = this.getDamLatestBreeding(damInfo, dueDate);
             
-            if(damBreedingNum){
-                var breedingInfo = damInfo.breedings[damBreedingNum];
+            if(breedingNum){
+                var bInfo = damInfo.breedings[breedingNum];
 
                 if(
-                    (! breedingInfo.litterDOB || breedingInfo.litterDOB > dueDate) &&
-                    (! breedingInfo.stopTrackingDate || breedingInfo.stopTrackingDate > dueDate)
+                    (! bInfo.litterDOB || bInfo.litterDOB > dueDate) &&
+                    (! bInfo.stopTrackingDate || bInfo.stopTrackingDate > dueDate)
                 ){
                     damsToCheck.push({
                         damNum: damNum,
-                        damBreedingNum: damBreedingNum
+                        breedingNum: breedingNum
                     });
 
-                    if(breedingInfo.birthBreedingDate <= dueDate){
+                    if(bInfo.birthBreedingDate <= dueDate){
                         damsDueToCheck.push(damNum);
                     }
                 }
@@ -3821,16 +3939,16 @@ my_widget_script =
         for(damNum of damNums){
             var damInfo = this.dams[damNum];
 
-            var damBreedingNum = this.getDamLatestBreeding(damInfo);
+            var breedingNum = this.getDamLatestBreeding(damInfo);
             
-            if(damBreedingNum){
-                var breedingInfo = damInfo.breedings[damBreedingNum];
+            if(breedingNum){
+                var bInfo = damInfo.breedings[breedingNum];
                 if(
-                    (! breedingInfo.stopTrackingDate || breedingInfo.stopTrackingDate > dueDate)
+                    (! bInfo.stopTrackingDate || bInfo.stopTrackingDate > dueDate)
                 ){
                     damsForTable.push({
                         damNum: damNum,
-                        damBreedingNum: damBreedingNum
+                        breedingNum: breedingNum
                     });
                 }
             }
@@ -3839,19 +3957,19 @@ my_widget_script =
     },
 
     getDamLatestBreeding: function(damInfo, dueDate = luxon.DateTime.now().toISODate()){
-        var damBreedingNums = damInfo.breedingNums;
-        var latestBreeding, latestBreedingNum;
+        var breedingNums = damInfo.breedingNums;
+        var lastBreeding, lastBreedingNum;
 
-        for(damBreedingNum of damBreedingNums){
-            var breedingInfo = damInfo.breedings[damBreedingNum];
+        for(breedingNum of breedingNums){
+            var bInfo = damInfo.breedings[breedingNum];
 
-            var breedDate = breedingInfo.breedDate;
-            if((!latestBreeding || breedDate > latestBreeding) && breedDate < dueDate){
-                latestBreeding = breedDate;
-                latestBreedingNum = damBreedingNum;
+            var breedDate = bInfo.breedDate;
+            if((!lastBreeding || breedDate > lastBreeding) && breedDate < dueDate){
+                lastBreeding = breedDate;
+                lastBreedingNum = breedingNum;
             }
         }
-        return(latestBreedingNum)
+        return(lastBreedingNum)
     }
 
 };
