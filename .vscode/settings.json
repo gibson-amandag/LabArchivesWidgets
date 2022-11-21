@@ -1,5 +1,6 @@
 {
 "minify.js": {
+
 	"mangle": false,
 	"compress": {
 		"sequences": true,
@@ -33,7 +34,7 @@
 	"output": {
 		"ascii_only": false,
 		"inline_script": false,
-		"max_line_len": 50, // Set to 50 for initial debugging in LabArchives, 32000 for final deploy, if want on one line
+		"max_line_len": 100, // Set to 50 for initial debugging in LabArchives, 32000 for final deploy, if want on one line
 		"braces": false,
 		"semicolons": true,
 		"comments": false,
