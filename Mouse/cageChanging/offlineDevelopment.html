@@ -1668,7 +1668,13 @@ $(document).ready(function () {
 
             var row = [];
             for(label of labels){
-                row.push(cageCare[label]);
+                var careVal = cageCare[label]
+                if(careVal === true){
+                    careVal = "T"
+                } else if(!careVal) {
+                    careVal = ""
+                }
+                row.push(careVal);
             }
 
             tableData.unshift(row);
@@ -1688,6 +1694,14 @@ $(document).ready(function () {
 
         this.createTable(tableData, true, false, $tableDiv);
 
+        $tableDiv.find("td").each((i,e)=>{
+            var val = $(e).text();
+            console.log(val);
+            if(val === "T"){
+                $(e).addClass("careDone");
+            }
+        });
+
         // console.log(cageCareAddedNums);
 
         if(this.mode !== "view" && this.mode !== "view_dev"){
@@ -1700,7 +1714,7 @@ $(document).ready(function () {
                     )
                 } else{
                     cageCareNum = cageCareAddedNums[i];
-                    console.log("cageCareNum", cageCareNum);
+                    // console.log("cageCareNum", cageCareNum);
                     $(e).append(
                         $("<td></td>").append(
                             $("<input></input>", {
@@ -1740,7 +1754,13 @@ $(document).ready(function () {
                     var row = [];
                     row.push(cages[cageNum].cageID);
                     for(label of labels){
-                        row.push(cageCare[label]);
+                        var val = cageCare[label];
+                        if(val === true){
+                            val = "T"
+                        } else if(!val){
+                            val = ""
+                        }
+                        row.push(val);
                     }
                     tableData.push(row)
                 }
@@ -1751,6 +1771,14 @@ $(document).ready(function () {
         $tableDiv = $(".caresOnDateTable");
 
         this.createTable(tableData, true, false, $tableDiv);
+
+        $tableDiv.find("td").each((i,e)=>{
+            var val = $(e).text();
+            console.log(val);
+            if(val === "T"){
+                $(e).addClass("careDone");
+            }
+        });
     },
 
     getWaterDueDate: function(cageNum){
@@ -2377,6 +2405,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
     .isDue{
         background-color: lightcoral;
+    }
+
+    .careDone{
+        background-color: lightgreen;
     }
 </style>
 

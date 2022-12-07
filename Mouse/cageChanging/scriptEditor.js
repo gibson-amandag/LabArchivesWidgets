@@ -1608,7 +1608,13 @@ my_widget_script =
 
             var row = [];
             for(label of labels){
-                row.push(cageCare[label]);
+                var careVal = cageCare[label]
+                if(careVal === true){
+                    careVal = "T"
+                } else if(!careVal) {
+                    careVal = ""
+                }
+                row.push(careVal);
             }
 
             tableData.unshift(row);
@@ -1628,6 +1634,14 @@ my_widget_script =
 
         this.createTable(tableData, true, false, $tableDiv);
 
+        $tableDiv.find("td").each((i,e)=>{
+            var val = $(e).text();
+            console.log(val);
+            if(val === "T"){
+                $(e).addClass("careDone");
+            }
+        });
+
         // console.log(cageCareAddedNums);
 
         if(this.mode !== "view" && this.mode !== "view_dev"){
@@ -1640,7 +1654,7 @@ my_widget_script =
                     )
                 } else{
                     cageCareNum = cageCareAddedNums[i];
-                    console.log("cageCareNum", cageCareNum);
+                    // console.log("cageCareNum", cageCareNum);
                     $(e).append(
                         $("<td></td>").append(
                             $("<input></input>", {
@@ -1680,7 +1694,13 @@ my_widget_script =
                     var row = [];
                     row.push(cages[cageNum].cageID);
                     for(label of labels){
-                        row.push(cageCare[label]);
+                        var val = cageCare[label];
+                        if(val === true){
+                            val = "T"
+                        } else if(!val){
+                            val = ""
+                        }
+                        row.push(val);
                     }
                     tableData.push(row)
                 }
@@ -1691,6 +1711,14 @@ my_widget_script =
         $tableDiv = $(".caresOnDateTable");
 
         this.createTable(tableData, true, false, $tableDiv);
+
+        $tableDiv.find("td").each((i,e)=>{
+            var val = $(e).text();
+            console.log(val);
+            if(val === "T"){
+                $(e).addClass("careDone");
+            }
+        });
     },
 
     getWaterDueDate: function(cageNum){
