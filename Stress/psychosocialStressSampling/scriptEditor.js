@@ -5,6 +5,105 @@ my_widget_script =
     startTime: "",
 
     init: function (mode, json_data) {
+        // jQuery for bootstrap
+        this.include(
+            "https://code.jquery.com/jquery-3.5.1.min.js",
+            "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=",
+            "anonymous",
+            ()=>{
+                $(document).ready(
+                    ()=>{
+                        // console.log("After load", $.fn.jquery);
+                        
+                        // Load bootstrap
+                        this.include(
+                            "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js",
+                            "sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl",
+                            "anonymous",
+                            ()=>{
+                                $(document).ready(
+                                    ()=>{
+                                        // Load Luxon
+                                        this.include(
+                                            "https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js",
+                                            "sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=",
+                                            "anonymous",
+                                            ()=>{
+                                                $(document).ready(
+                                                    ()=>{
+                                                        // Load bootbox - need the bootstrap JS to be here first, with appropriate jQuery
+                                                        this.include(
+                                                            "https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js",
+                                                            "sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==",
+                                                            "anonymous",
+                                                            // referrerpolicy="no-referrer"
+                                                            ()=>{
+                                                                $(document).ready(
+                                                                    ()=>{
+                                                                        // selectize
+                                                                        this.include(
+                                                                            "https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.0/js/selectize.js", 
+                                                                            "sha512-1HjnkKhHSDunRgIHRK4gXORl/T0WxhVkiQ5gjwvrH4yQK9RqPqYnPPwJfh+6gYTc/U9Cg8n4MGRZV1CzsP0UIA==",
+                                                                            "anonymous",
+                                                                            // "https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.0/js/selectize.min.js",
+                                                                            // "sha512-yPolz8xdNko3x+XY5yvuS5Inib7HXh7xD269BZOgyfv2GrNPisWLelUblxN5CdOoBAO0Siwfg4+QsAOVfUryCg==",
+                                                                            // "anonymous",
+                                                                            () =>{
+                                                                                this.include(
+                                                                                    // Papa Parse for CSVs
+                                                                                    "https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js",
+                                                                                    "sha512-SGWgwwRA8xZgEoKiex3UubkSkV1zSE1BS6O4pXcaxcNtUlQsOmOmhVnDwIvqGRfEmuz83tIGL13cXMZn6upPyg==",
+                                                                                    "anonymous",
+                                                                                    ()=>{
+                                                                                        $jq351 = jQuery.noConflict(true);
+                                                                                        // console.log("After no conflict", $.fn.jquery);
+                                                                                        // console.log("bootstrap jquery", $jq351.fn.jquery);
+                                                                                        this.myInit(mode, json_data);
+                                                                                    }
+                                                                                )
+                                                                            }
+                                                                        )
+                                                                    }
+                                                                )
+                                                            }
+                                                        );
+                                                    }
+                                                )
+                                            }
+                                        );
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+    },
+
+    //https://stackoverflow.com/questions/8139794/load-jquery-in-another-js-file
+    include: function(src, integrity, crossorigin, onload) {
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.setAttribute("integrity", integrity);
+        script.setAttribute("crossorigin", crossorigin);
+        script.src = src;
+        script.type = 'text/javascript';
+        script.onload = script.onreadystatechange = function() {
+            if (script.readyState) {
+                if (script.readyState === 'complete' || script.readyState === 'loaded') {
+                    script.onreadystatechange = null;                                                  
+                    onload();
+                }
+            } 
+            else {
+                onload();          
+            }
+        };
+        head.appendChild(script);
+    },
+
+    myInit: function (mode, json_data) {
         var parsedJson = this.parseInitJson(json_data);
         this.initDynamicContent(parsedJson);
         
@@ -172,7 +271,7 @@ my_widget_script =
 
             $(".table").hide();
 
-            if($("#expDate").val() && $("#numSamples").val()>1){
+            if($("#expDate").val() && $("#numSamples").val()>0){
                 $(".samplesDiv").insertBefore(".info");
             }
         }
@@ -2001,7 +2100,7 @@ my_widget_script =
                 var sampleSearch = this.sampleSearch(sampleNum);
                 var time = $(".sampleTime"+sampleSearch).val();
                 if(time){
-                    time = parseInt(time);
+                    time = parseFloat(time);
                 } else {
                     time = "";
                 }
