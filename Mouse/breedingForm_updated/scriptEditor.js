@@ -1201,6 +1201,7 @@ my_widget_script =
      * @param $transpose - checkbox for whether or not to transpose the table head as jQuery object
      */
      copyDataFuncs: function ($copyHead, $tableToCopy, $tableDiv, $errorMsg, $divForCopy, $transpose){
+        // debugger;
         var data_valid = this.data_valid_form($errorMsg); // update data_valid_form to print to specific error field
         var copyHead = false, transpose = false;
 
@@ -1864,7 +1865,6 @@ my_widget_script =
     },
 
     makeDamGenCardBody: function(damGenerationNum){
-        console.log("genNum:", damGenerationNum);
         // debugger;
         var $body = $("<div></div>");
 
@@ -3379,6 +3379,10 @@ my_widget_script =
         table.classList.add("table");
         var tableBody = document.createElement('tbody');
 
+        if(makeFirstRowHead){
+            var thead = document.createElement('thead');
+        }
+
         tableData.forEach((rowData, rowNum)=> {
             var row = document.createElement('tr');
 
@@ -3395,7 +3399,12 @@ my_widget_script =
                 row.appendChild(cell);
             });
 
-            tableBody.appendChild(row);
+            if(makeFirstRowHead && rowNum == 0){
+                thead.appendChild(row);
+                table.appendChild(thead);
+            } else {
+                tableBody.appendChild(row);
+            }
         });
 
         table.appendChild(tableBody);
