@@ -384,25 +384,34 @@ $(document).ready(function () {
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
-        if(parsedJson.mice){
-            this.mice = parsedJson.mice;
-        }
-        if(parsedJson.mouseNums){
-            for(genNum of parsedJson.mouseNums){
-                this.makeMouseCard(genNum);
-            }
-            this.mouseNums = parsedJson.mouseNums;
-        }
-
         if(parsedJson.trtGroups){
             this.trtGroups = parsedJson.trtGroups
         }
         if(parsedJson.trtGroupNums){
-            for(genNum of parsedJson.trtGroupNums){
-                this.makeTrtGroupCard(genNum);
+            for(trtGroupNum of parsedJson.trtGroupNums){
+                this.makeTrtGroupCard(trtGroupNum);
             }
             this.trtGroupNums = parsedJson.trtGroupNums;
         }
+
+        if(parsedJson.mice){
+            this.mice = parsedJson.mice;
+        }
+        if(parsedJson.mouseNums){
+            for(mouseNum of parsedJson.mouseNums){
+                this.makeMouseCard(mouseNum);
+
+                var regNums = this.mice[mouseNum].regNums;
+                if(regNums){
+                    for(regNum of regNums){
+                        this.makeRegionSeries(mouseNum, regNum);
+                    }
+                }
+            }
+            this.mouseNums = parsedJson.mouseNums;
+        }
+
+        
 
     },
 
@@ -692,16 +701,67 @@ $(document).ready(function () {
 
         $(".filter").on("input", (e)=>{
             // console.log("changed a filter")
-            this.makeRegionsTable();
+            var type = $(e.currentTarget).data("filter");
+            if(type == "region"){
+                this.makeRegionsTable();
+            } else {
+                this.makeMouseTable();
+            }
         });
 
         $("#resetFilter").on("click", (e)=>{
             this.resetFilter();
-        })
+        });
         this.resetFilter();
+
+        $("#resetMouseFilter").on("click", (e)=>{
+            this.resetMouseFilter();
+        });
+        this.resetMouseFilter();
+
+        $("#showPerfusion").on("click", (e)=>{
+            $(".perfusionInfo").show().find("textarea.autoAdjust").each((i,e)=> {
+                if(! $(e).is(":hidden")) {
+                    e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+                } 
+            });
+            this.resize();
+        });
+
+        $("#hidePerfusion").on("click", (e)=>{
+            $(".perfusionInfo").hide();
+            this.resize();
+        });
+
+        $(".perfusionInfo").hide();
+
+        $("#showRegions").on("click", (e)=>{
+            $(".regDiv").show().find("textarea.autoAdjust").each((i,e)=> {
+                if(! $(e).is(":hidden")) {
+                    e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+                } 
+            });
+            this.resize();
+        });
+
+        $("#hideRegions").on("click", (e)=>{
+            $(".regDiv").hide();
+            this.resize();
+        });
+
+        $(".clearRegionEdit").on("click", (e)=>{
+            $(".whichRegion").text("");
+            $(".regionNotes").text("");
+        })
+        
+        $(".whichRegion").text("");
+        $(".regionNotes").text("");
+        $(".regDiv").hide();
 
         this.resize();
     },
+
+    regDivOn: false,
 
     updateTextarea: function(textarea) {
         if(! $(textarea).is(":hidden")) {
@@ -1214,10 +1274,13 @@ $(document).ready(function () {
                 $(e).find("td, th").each((i,e)=> {
                     // If there's not yet an array for this row, make an empty one
                     if(rows[rowNum]===undefined){rows[rowNum] = []}
-                    // Add the text of each cell to the row's array
-                    rows[rowNum].push($(e).text());
-                    // If table is being transposed, add one to the row number for each cell
-                    if(transpose){rowNum++;}
+                    var dontCopy = $(e).hasClass("noCopy");
+                    if(!dontCopy){
+                        // Add the text of each cell to the row's array
+                        rows[rowNum].push($(e).text());
+                        // If table is being transposed, add one to the row number for each cell
+                        if(transpose){rowNum++;}
+                    }
                 });
                 // If table is not being transposed, add one to the row number for each row
                 if(!transpose){rowNum++;}
@@ -1230,12 +1293,15 @@ $(document).ready(function () {
             if(transpose){rowNum = 0;}
             // Find each cell within the row
             $(e).find("td, th").each((i,e)=> {
-                // If there's not yet an array for this row, make an empty one
-                if(rows[rowNum]===undefined){rows[rowNum] = []}
-                // Add the text of each cell to the row's array
-                rows[rowNum].push($(e).text());
-                // If the table is being transposed, add one to the row number for each cell
-                if(transpose){rowNum++;}
+                var dontCopy = $(e).hasClass("noCopy");
+                if(!dontCopy){
+                    // If there's not yet an array for this row, make an empty one
+                    if(rows[rowNum]===undefined){rows[rowNum] = []}
+                    // Add the text of each cell to the row's array
+                    rows[rowNum].push($(e).text());
+                    // If the table is being transposed, add one to the row number for each cell
+                    if(transpose){rowNum++;}
+                }
             });
             // If table is not being transposed, add one to the row number for each row
             if(!transpose){rowNum++;}
@@ -1354,6 +1420,7 @@ $(document).ready(function () {
             };
 
             this.makeMouseCard(mouseNum);
+            this.makeMouseTable();
         }
     },
 
@@ -1445,56 +1512,56 @@ $(document).ready(function () {
                     label: "Time of transport:",
                     type: "time",
                     className: "transportTime",
-                    addRowClass: "updateMouseObj"
+                    addRowClass: "updateMouseObj perfusionInfo"
                 },
                 {
                     label: "Time of sacrifice:",
                     type: "time",
                     className: "sacTime",
-                    addRowClass: "updateMouseObj"
+                    addRowClass: "updateMouseObj perfusionInfo"
                 },
                 {
                     label: "Uterine description:",
                     type: "textarea",
                     className: "uterineDesc",
-                    addRowClass: "updateMouseObj"
+                    addRowClass: "updateMouseObj perfusionInfo"
                 },
                 {
                     label: "Time of saline:",
                     type: "time",
                     className: "salineTime",
-                    addRowClass: "updateMouseObj"
+                    addRowClass: "updateMouseObj perfusionInfo"
                 },
                 {
                     label: "Time of perfusion:",
                     type: "time",
                     className: "perfusionTime",
-                    addRowClass: "updateMouseObj"
+                    addRowClass: "updateMouseObj perfusionInfo"
                 },
                 {
                     label: "Liver cleared?",
                     type: "checkbox",
                     className: "liverCleared",
-                    addRowClass: "updateMouseObj"
+                    addRowClass: "updateMouseObj perfusionInfo"
                 },
                 {
                     label: "Movement with formalin?",
                     type: "checkbox",
-                    className: "movementWFormalin",
-                    addRowClass: "updateMouseObj"
+                    className: "formalinMovement",
+                    addRowClass: "updateMouseObj perfusionInfo"
                 },
                 {
                     label: "Time of brain extraction:",
                     type: "time",
                     className: "extractionTime",
-                    addRowClass: "updateMouseObj"
+                    addRowClass: "updateMouseObj perfusionInfo"
                 },
                 // add change sucrose time message
                 {
                     label: "Time vial changed to sucrose:",
                     type: "time",
                     className: "sucroseTime",
-                    addRowClass: "updateMouseObj"
+                    addRowClass: "updateMouseObj perfusionInfo"
                 },
                 {
                     label: "Date sectioned:",
@@ -1537,6 +1604,16 @@ $(document).ready(function () {
                 this.addRegionSeries(mouseNum);
             });
 
+            $body.find(".extractionTime").parent().append(
+                "Change to sucrose at <span class='fillTime purple' data-time='01:30'>{Enter Time}</span>"
+            );
+
+            $body.find(".extractionTime").on("input", (e)=>{
+                this.watchTimeNextEl($(e.currentTarget));
+            }).each((i,e)=> {
+                this.watchTimeNextEl($(e));
+            });
+
             $body.find(".deleteMouse").prop("value", "Delete Mouse").on("click", (e)=>{
                 this.deleteMouse(mouseNum);
             });
@@ -1547,15 +1624,62 @@ $(document).ready(function () {
 
                 this.updateMouseList(mouseNum);
                 this.makeRegionsTable();
+                this.makeMouseTable();
             });
 
         return $body
     },
 
+    watchTimeNextEl: function ($elToWatch){
+       var $elToFill = $elToWatch.next($(".fillTime"));
+        // console.log($elToFill);
+
+        this.watchTime($elToWatch, $elToFill);
+    },
+
+    watchTime: function ($elToWatch, $elToFill) {
+        var addTime = $elToFill.data("time");
+        // console.log(length);
+
+        var startTime = $elToWatch.val();
+        if(startTime){
+            var time = new Date();
+            startTimeSplit = this.getHoursMin(startTime);
+            addTimeSplit = this.getHoursMin(addTime);
+            // set start time
+            time.setHours(startTimeSplit.hours, startTimeSplit.mins, 00, 000);
+            time.setHours(time.getHours() + addTimeSplit.hours);
+            time.setMinutes(time.getMinutes() + addTimeSplit.mins);
+            // console.log(time);
+            $elToFill.text(time.toLocaleTimeString());
+        } else{
+            $elToFill.text("{Enter Start Time}")
+        }
+
+        this.resize();
+    },
+
+    getHoursMin: function (timeString) {
+        timeString = timeString.split(":");
+        var hours = parseInt(timeString[0], 10), mins = parseInt(timeString[1], 10);
+        return( 
+            split = {
+                hours: hours,
+                mins: mins
+            }
+        )
+    },
+
     updateObjFromVal: function($el, obj){
         var val = $el.val();
-        // Store only the text and no HTML elements.
-        valSafe = this.encodeHTML(val);
+        var elType = $el.attr("type");
+        var valSafe;
+        if(elType == "checkbox"){
+            valSafe = $el.is(":checked");
+        } else{
+            // Store only the text and no HTML elements.
+            valSafe = this.encodeHTML(val);
+        }
         var thisProp = $el.data("watch");
         if(thisProp){
             obj[thisProp] = valSafe;
@@ -1786,6 +1910,8 @@ $(document).ready(function () {
         } else {
             $option.text(trtInfo);
         }
+
+        $(".trtGroupCalc"+this.trtGroupSearch(trtGroupNum)).text(trtInfo);
     },
 
     makeTrtGroupCardBody: function(trtGroupNum){
@@ -1992,11 +2118,9 @@ $(document).ready(function () {
         
                 var mouseSearch = this.mouseSearch(genNum);
                 $(".mouseCard"+mouseSearch).remove();
-                // $("tr"+miceearch).remove();
 
                 // remove everything with this data attribute
                 $(mouseSearch).remove();
-                // this.getDamsDue($("#dueDate").val());
             }
         );
         this.resize();
@@ -2057,6 +2181,7 @@ $(document).ready(function () {
 
             this.makeRegionSeries(mouseNum, regNum);
             // this.getDamsDue($("#dueDate").val());
+            this.makeRegionsTable();
         }
 
     },
@@ -2107,7 +2232,7 @@ $(document).ready(function () {
             )
         );
 
-        var $body = $cardBody.find(".regDiv").last();
+        var $body = $cardBody.find(".regDiv").show().last();
 
         for(row of initialRows){
             $body.append(
@@ -2169,400 +2294,38 @@ $(document).ready(function () {
         return $cardDiv
     },
 
-    addPlugCheck: function(damNum, breedingNum){
-        var damInfo = this.dams[damNum];
-        var bInfo = damInfo.breedings[breedingNum];
+    makeMouseTable: function(){
+        var mice = this.mice;
+        var mouseNums = this.mouseNums;
 
-        var plugCheckNums = bInfo.plugCheckNums;
-        var plugChecks = bInfo.plugChecks;
-
-        var plugCheckNum = this.getNextNum(plugCheckNums);
-
-        // if(plugCheckNums.length>0){
-        //     var lastPlugCheckNum = plugCheckNums[plugCheckNums.length - 1];
-        //     var plugCheckNum = lastPlugCheckNum + 1;
-        // } else {
-        //     var plugCheckNum = 1;
-        // }
-
-        var inArray = this.checkInArray(plugCheckNum, plugCheckNums);
-        if(! inArray){
-            // debugger;
-            plugCheckNums.push(plugCheckNum);
-            plugChecks[plugCheckNum] = {
-                plugDate: NaN,
-                plugCheck: null,
-                plugComments: null
-            };
-
-            this.makePlugEntry(damNum, breedingNum, plugCheckNum);
-        }
-    },
-
-    makePlugEntry: function(damNum, breedingNum, plugNum){
-        var $card = $("<div></div>", {
-            "class": "card plugCard",
-            "data-dam": damNum,
-            "data-breed": breedingNum,
-            "data-plug": plugNum
-        }).append(
-            $("<div></div>", {
-                "class": "row"
-            }).append(
-                $("<div></div>", {
-                    "class": "col-6 d-md-none row labelRow"
-                })
-            ).append(
-                $("<div></div>", {
-                    "class": "col-6 col-md-12 row plugRow"
-                })
-            )
-        );
-
-        for(label of this.plugLabels){
-            $card.find(".labelRow").append(
-                $("<div></div>", {
-                    "class": "col-12 font-weight-bold"
-                }).append(label)
-            );
-        }
-
-        var inputCols = [
-            {
-                "type": "date",
-                "className": "plugDate"
-            },
-            {
-                "type": "select",
-                "className": "plugCheck",
-                "optionsObj": [
-                    {
-                        value: "neg",
-                        text: "-/-"
-                    },
-                    {
-                        value: "1",
-                        text: "?"
-                    },
-                    {
-                        value: "2",
-                        text: "+/-"
-                    },
-                    {
-                        value: "3",
-                        text: "+/+"
-                    },
-                    {
-                        value: "red",
-                        text: "Red"
-                    },
-                    {
-                        value: "closed",
-                        text: "Closed VO"
-                    },
-                ]
-            }, {
-                "type": "textarea",
-                "className": "plugComments"
-            }, {
-                "type": "button",
-                "className": "deletePlug"
-            }
-        ]
-
-        for(colObj of inputCols){
-            $card.find(".plugRow").append(
-                $("<div></div>", {
-                    "class": "col-12 col-md-" + Math.floor(12/inputCols.length)
-                }).append(
-                    this.makeInput(
-                        colObj.type,
-                        colObj.className,
-                        damNum,
-                        colObj.optionsObj,
-                        "dam",
-                        true,
-                        breedingNum,
-                        "breed",
-                        true,
-                        plugNum,
-                        "plug"
-                    )
-                )
-            )
-        }
-
-        $card.find(".deletePlug").prop("value", "Delete").on("click", (e)=>{
-            this.deletePlugFuncs(damNum, breedingNum, plugNum);
-        });
-
-        $card.find(".plugRow").on("change", (e)=>{
-            var $el = $(e.target);
-            var val = $el.val();
-            // Store only the text and no HTML elements.
-            valSafe = this.encodeHTML(val);
-            var thisProp = $el.data("watch");
-            this.dams[damNum].breedings[breedingNum].plugChecks[plugNum][thisProp] = valSafe;
-
-            this.updateBreedingWatchDates(damNum, breedingNum);
-        });
-
-        $(".plugsDiv"+this.damSearch(damNum)+this.breedingSearch(breedingNum)).append($card);
-        this.resize();
-    },
-
-    addMass: function(damNum, breedingNum){
-        var damInfo = this.dams[damNum];
-        var bInfo = damInfo.breedings[breedingNum];
-
-        var massNums = bInfo.massNums;
-        var masses = bInfo.masses;
-
-        var massNum = this.getNextNum(massNums);
-
-        // if(massNums.length>0){
-        //     var lastMassNum = massNums[massNums.length - 1];
-        //     var massNum = lastMassNum + 1;
-        // } else {
-        //     var massNum = 1;
-        // }
-
-        var inArray = this.checkInArray(massNum, massNums);
-        if(! inArray){
-            // debugger;
-            massNums.push(massNum);
-            masses[massNum] = {
-                massDate: NaN,
-                mass: null
-            };
-
-            this.makeMassEntry(damNum, breedingNum, massNum);
-        }
-    },
-
-    makeMassEntry: function(damNum, breedingNum, massNum){
-        // debugger;
-        var $card = $("<div></div>", {
-            "class": "card massCard",
-            "data-dam": damNum,
-            "data-breed": breedingNum,
-            "data-mass": massNum
-        }).append(
-            $("<div></div>", {
-                "class": "row"
-            }).append(
-                $("<div></div>", {
-                    "class": "col-6 d-md-none row labelRow"
-                })
-            ).append(
-                $("<div></div>", {
-                    "class": "col-6 col-md-12 row massRow"
-                })
-            )
-        );
-
-        for(label of this.massLabels){
-            $card.find(".labelRow").append(
-                $("<div></div>", {
-                    "class": "col-12 font-weight-bold"
-                }).append(label)
-            );
-        }
-
-        var inputCols = [
-            {
-                "type": "date",
-                "className": "massDate"
-            },
-            {
-                "type": "number",
-                "className": "mass"
-            }, 
-            {
-                "type": "noEntry",
-            },
-            {
-                "type": "button",
-                "className": "deleteMass"
-            }
-        ]
-
-        for(colObj of inputCols){
-            if(colObj.type === "noEntry"){
-                $card.find(".massRow").append(
-                    $("<div></div>", {
-                        "class": "change col-12 col-md-" + Math.floor(12/inputCols.length),
-                        "data-dam": damNum,
-                        "data-breed": breedingNum,
-                        "data-mass": massNum
-                    }).append(
-                        "Enter new mass"
-                    )
-                )
-            } else {
-                $card.find(".massRow").append(
-                    $("<div></div>", {
-                        "class": "col-12 col-md-" + Math.floor(12/inputCols.length)
-                    }).append(
-                        this.makeInput(
-                            colObj.type,
-                            colObj.className,
-                            damNum,
-                            colObj.optionsObj,
-                            "dam",
-                            true,
-                            breedingNum,
-                            "breed",
-                            true,
-                            massNum,
-                            "mass"
-                        )
-                    )
-                )
-            }
-            
-        }
-
-        $card.find(".deleteMass").prop("value", "Delete").on("click", (e)=>{
-            this.deleteMassFuncs(damNum, breedingNum, massNum);
-        });
-
-        $card.find(".massRow").on("change", (e)=>{
-            var $el = $(e.target);
-            var val = $el.val();
-            // Store only the text and no HTML elements.
-            valSafe = this.encodeHTML(val);
-            var thisProp = $el.data("watch");
-            this.dams[damNum].breedings[breedingNum].masses[massNum][thisProp] = valSafe;
-        });
-
-        var damSearch = this.damSearch(damNum);
-        var breedingSearch = this.breedingSearch(breedingNum);
-        var massSearch = this.massSearch(massNum);
-        var searchString = damSearch + breedingSearch + massSearch;
-
-        $card.find(".mass").on("input", (e)=>{
-            var $el = $(e.currentTarget);
-            var newMass = $el.val();
-
-            var initialMass = this.dams[damNum].breedings[breedingNum].initialMass;
-            var massText = this.calcPercMass(newMass, initialMass);
-
-            $(".change"+searchString).text(massText);
-        })
-
-
-        $(".massesDiv"+ damSearch + breedingSearch).append($card);
-        this.resize();
-    },
-
-    calcMassChange: function(damNum, breedingNum){
-        // debugger;
-        var bInfo = this.dams[damNum].breedings[breedingNum];
-        // console.log(bInfo);
-        var initialMass = bInfo.initialMass;
-        var damSearch = this.damSearch(damNum);
-        var breedingSearch = this.breedingSearch(breedingNum);
-
-        for(massNum of bInfo.massNums){
-            var massSearch = this.massSearch(massNum);
-            var newMass = bInfo.masses[massNum].mass;
-
-            var massText = this.calcPercMass(newMass, initialMass);
-            $(".change"+damSearch+breedingSearch+massSearch).text(massText);
-        }
-    },
-
-    calcPercMass: function (newMass, initMass) {
-        var newMassVal = parseFloat(newMass);
-        var initMassVal = parseFloat(initMass);
-
-        var text;
-        if(newMassVal > 0 && initMassVal > 0) {        
-            var percChange = (newMassVal)/(initMassVal) * 100;
-            text = percChange.toFixed(1)
-        } else if(! newMassVal > 0){
-            text = "Enter new mass";
-        } else {
-            text = "Enter initial mass";
-        };
-        return(text);
-    },
-
-    makeEstDatesTable: function(){
-        var damObjs = this.getDamsForImpDates();
-
-        var labels = this.damDatesLabels;
+        var labels = this.mouseLabels;
 
         const tableData = [labels];
 
-        for(damObj of damObjs){
-            var damNum = damObj.damNum;
-            var breedingNum = damObj.breedingNum;
+        for(mouseNum of mouseNums){
+            var mouseInfo = mice[mouseNum];
+            var info = this.getMouseInfo(mouseNum);
 
-            var datesInfo = this.getDamDates(damNum, breedingNum);
-    
-            var row = [], val;
-            for (label of labels){
-                val =datesInfo[label];
-                if(!val){val = ""}
-                row.push(val);
-            }
-    
-            tableData.push(row);
-        }
+            var proceed = this.filterMouseData(info, mouseInfo.trtGroup);
 
-        $tableDiv = $(".estExpDatesTable");
-
-        this.createTable(tableData, true, false, $tableDiv);
-
-        $tableDiv.find("tr").each((i,e)=>{
-            $(e).find("td, th").each((i,e)=>{
-                if(i===2){
-                    var DOBcertain = $(e).text();
-                    $(e).addClass("hide");
-                    if(DOBcertain === "true"){
-                        $(e).parent().addClass("isCertain");
-                    } else{
-                        $(e).parent().removeClass("isCertain");
-                    }
-                }
-                var text = $(e).text();
-                if(this.isValidDate(text)){
-                    $(e).text(luxon.DateTime.fromISO(text).toLocaleString({weekday: "short", month: "short", day: "2-digit"}));
-                }
-            })
-        });
-    },
-
-    makeDamsBreedingTable: function(){
-        var dams = this.dams;
-        var damNums = this.damNums;
-
-        var labels = this.damBreedingLabels;
-
-        const tableData = [labels];
-
-        for(damNum of damNums){
-            var damInfo = dams[damNum];
-            var breedingNums = damInfo.breedingNums;
-            for(breedingNum of breedingNums){
-                var bInfo = this.getDamBreedingInfo(damNum, breedingNum);
-    
+            if(proceed){
                 var row = [], val;
                 for (label of labels){
-                    val =bInfo[label];
+                    val =info[label];
                     if(!val){val = ""}
                     row.push(val);
                 }
-    
                 tableData.push(row);
             }
         }
 
-        $tableDiv = $(".damsBreedingsInfoTable");
+        console.log(tableData);
+
+        $tableDiv = $(".mouseFilterTable");
 
         this.createTable(tableData, true, false, $tableDiv);
+
+        this.resize();
     },
 
     makeRegionsTable: function(){
@@ -2603,7 +2366,7 @@ $(document).ready(function () {
             $tableDiv.find("tr").each((i,e)=>{
                 if(i == 0){
                     $(e).append(
-                        $("<th></th>").append(
+                        $("<th></th>", {"class": "noCopy"}).append(
                             "Edit"
                         )
                     )
@@ -2613,7 +2376,7 @@ $(document).ready(function () {
                     var regNum = added.regNum;
                     // console.log("cageCareNum", cageCareNum);
                     $(e).append(
-                        $("<td></td>").append(
+                        $("<td></td>", {"class": "noCopy"}).append(
                             $("<input></input>", {
                                 "data-mouse": mouseNum,
                                 "data-reg": regNum,
@@ -2760,7 +2523,6 @@ $(document).ready(function () {
         "quantifiedDate",
         "regNotes"
     ],
-    
 
     getRegInfo: function(mouseNum, regNum){
         var mouse = this.mice[mouseNum]
@@ -2812,6 +2574,105 @@ $(document).ready(function () {
         $("#quantifiedFilter").val("either");
     },
 
+    trtGroupLabels: ["trt", "time"],
+
+    mouseLabels: [
+        "mouseID",
+        "cycleID",
+        "trt",
+        "time",
+        "sacDate",
+        "transportTime",
+        "sacTime",
+        "uterineDescription",
+        "salineTime",
+        "perfusionTime",
+        "liverCleared",
+        "formalinMovement",
+        "extractionTime",
+        "sucroseTime",
+        "sectionDate",
+        "sectionSize"
+    ],
+
+    resetMouseFilter: function(){
+        // console.log("reset filter");
+        this.resetMouseFilterSelections();
+        this.makeMouseTable();
+    },
+
+    resetMouseFilterSelections: function(){
+        $("#mouseFilter2").val("");
+        // $("#acqDataFilter").find("option").prop("selected", false);
+        $("#trtGroupFilter2").find("option").prop("selected", false);
+        $("#sectionedFilter").val("either");
+    },
+    
+
+    getMouseInfo: function(mouseNum){
+        var mouse = this.mice[mouseNum];
+
+        var mouseID = mouse.mouseID;
+        if(!mouseID){
+            mouseID = "M"+mouseNum;
+        }
+
+        var trtGroup = mouse.trtGroup;
+        var trt = "", time = "";
+        if(trtGroup){
+            trt = this.trtGroups[trtGroup].trt;
+            time = this.trtGroups[trtGroup].time;
+        }
+
+        var labels = this.mouseLabels;
+
+        var mouseObj = {
+            mouseID: mouseID,
+            cycleID: mouse.cycleID, // doing this for slice simplicity
+            trt: trt,
+            time: time
+        };
+
+        for(label of labels.slice(4)){
+            val = mouse[label];
+            if(!val){val = null}
+            mouseObj[label] = val
+        }
+
+        return mouseObj
+    },
+
+    filterMouseData: function(info, trtGroup){
+
+        // console.log(info, trtGroup);
+
+        var mouseFilter = $("#mouseFilter2").val();
+        var trtGroupFilter = $("#trtGroupFilter2").val();
+        var sectionedFilter = $("#sectionedFilter").val();
+
+        // console.log(mouseFilter, trtGroupFilter, sectionedFilter);
+        var keepMouse = false;
+
+        // console.log(
+        //     "mouse",
+        //     this.matchesName(info.mouseID, mouseFilter),
+        //     "group",
+        //     this.matchesFilter(trtGroup, trtGroupFilter),
+        //     "sectioned",
+        //     this.matchesDate(info.sectionDate, sectionedFilter)
+        // );
+        
+        if(
+            this.matchesName(info.mouseID, mouseFilter) &&
+            this.matchesFilter(trtGroup, trtGroupFilter) &&
+            this.matchesDate(info.sectionDate, sectionedFilter)
+        ){
+            keepMouse = true;
+        }
+
+        return(keepMouse)
+    },
+
     filterData: function(info, trtGroup){
         var mouseFilter = $("#mouseFilter").val();
         var trtGroupFilter = $("#trtGroupFilter").val();
@@ -2824,22 +2685,22 @@ $(document).ready(function () {
         // console.log(acqDataFilter);
         var keepReg = false;
 
-        console.log(
-            "mouse",
-            this.matchesName(info.mouseID, mouseFilter),
-            "trt",
-            this.matchesFilter(trtGroup, trtGroupFilter),
-            "region",
-            this.matchesName(info.region, regionFilter),
-            "series",
-            this.matchesName(info.series, seriesFilter),
-            "IHC",
-            this.matchesDate(info.IHCDate, IHCFilter),
-            "image",
-            this.matchesDate(info.imageDate, imageFilter),
-            "quantified",
-            this.matchesDate(info.quantifiedDate, quantifiedFilter)
-        )
+        // console.log(
+        //     "mouse",
+        //     this.matchesName(info.mouseID, mouseFilter),
+        //     "trt",
+        //     this.matchesFilter(trtGroup, trtGroupFilter),
+        //     "region",
+        //     this.matchesName(info.region, regionFilter),
+        //     "series",
+        //     this.matchesName(info.series, seriesFilter),
+        //     "IHC",
+        //     this.matchesDate(info.IHCDate, IHCFilter),
+        //     "image",
+        //     this.matchesDate(info.imageDate, imageFilter),
+        //     "quantified",
+        //     this.matchesDate(info.quantifiedDate, quantifiedFilter)
+        // )
         
         if(
             this.matchesName(info.mouseID, mouseFilter) &&
@@ -2933,127 +2794,6 @@ $(document).ready(function () {
         this.copyStringToClipboard(tableString, $divForCopy, $errorMsg);
     },  
 
-    getDamsDue: function(dueDate = luxon.DateTime.now().toISODate()){
-        // debugger;
-        var damsForPlugChecksObj = this.getDamsForPlugChecks(dueDate);
-        var damsForPlugChecks = damsForPlugChecksObj.remaining;
-        var damsForSeparationObj = this.getDamsForSeparation(dueDate);
-        var damsForSeparation = damsForSeparationObj.due;
-        var damsForBirthObj = this.getDamsForBirth(dueDate);
-        var damsForBirth = damsForBirthObj.due;
-
-        var namesPlugChecks = this.getDamNamesArray(damsForPlugChecks);
-        var namesSeparation = this.getDamNamesArray(damsForSeparation);
-        var namesBirth = this.getDamNamesArray(damsForBirth);
-
-        this.printDams(namesPlugChecks, $(".plugCheckList"));
-        this.printDams(namesSeparation, $(".sepMaleList"));
-        this.printDams(namesBirth, $(".checkBirthsList"));
-
-        this.makeSeparationTable(damsForSeparationObj.remaining);
-        this.makeCheckForBirthsTable(damsForBirthObj.remaining);
-        this.makeEstDatesTable();
-        this.makeDamsBreedingTable();
-        this.resize();
-    },
-
-    sepTableLabels: ["damID", "sepBreedingDate", "sepPotentialPlugDate", "sepLikelyPlugDate", "sepGoodPlugDate"],
-    sepTableHeaders: ["Dam", "Breed Date + 12", "Potential Plug + 11", "Likely Plug + 11", "Good Plug + 11"],
-
-    makeSeparationTable: function(toBeSeparated){
-        var dams = this.dams;
-
-        var labels = this.sepTableLabels;
-
-        const tableData = [this.sepTableHeaders];
-
-        for(damBreedingObj of toBeSeparated){
-            var damNum = damBreedingObj.damNum;
-            var breedingNum = damBreedingObj.breedingNum;
-
-            var damInfo = dams[damNum];
-            var bInfo = damInfo.breedings[breedingNum];
-
-            var row = [], val;
-            for (label of labels){
-                if(label == "damID"){
-                    val = damInfo[label];
-                    if(!val){val = "Dam " + damNum}
-                } else {
-                    val =bInfo[label];
-                    if(!val){val = ""}
-                }
-                row.push(val);
-            }
-
-            tableData.push(row);
-        }
-
-        $tableDiv = $(".sepDueDatesTable");
-
-        this.createTable(tableData, true, false, $tableDiv);
-
-        $tableDiv.find("td").each((i,e)=>{
-            var text = $(e).text();
-            if(this.isValidDate(text)){
-                // debugger;
-                if(text <= luxon.DateTime.fromISO($("#dueDate").val()).toISODate()){
-                    $(e).addClass("isDue");
-                }
-                $(e).text(luxon.DateTime.fromISO(text).toLocaleString({weekday: "short", month: "short", day: "2-digit"}));
-            }
-        });
-    },
-
-    birthTableLabels: ["damID", "birthBreedingDate", "birthPotentialPlugDate", "birthLikelyPlugDate", "birthGoodPlugDate"],
-    birthTableHeaders: ["Dam", "Breed Date + 19", "Potential Plug + 18", "Likely Plug + 18", "Good Plug + 18"],
-
-    makeCheckForBirthsTable: function(toBeSeparated){
-        var dams = this.dams;
-
-        var labels = this.birthTableLabels;
-
-        const tableData = [this.birthTableHeaders];
-
-        for(damBreedingObj of toBeSeparated){
-            var damNum = damBreedingObj.damNum;
-            var breedingNum = damBreedingObj.breedingNum;
-
-            var damInfo = dams[damNum];
-            var bInfo = damInfo.breedings[breedingNum];
-
-            var row = [], val;
-            for (label of labels){
-                if(label == "damID"){
-                    val = damInfo[label];
-                    if(!val){val = "Dam " + damNum}
-                } else {
-                    val =bInfo[label];
-                    if(!val){val = ""}
-                }
-                row.push(val);
-            }
-
-            tableData.push(row);
-        }
-
-        $tableDiv = $(".checkForBirthsTable");
-
-        this.createTable(tableData, true, false, $tableDiv);
-
-        $tableDiv.find("td").each((i,e)=>{
-            var text = $(e).text();
-            if(this.isValidDate(text)){
-                // debugger;
-                if(text <= luxon.DateTime.fromISO($("#dueDate").val()).toISODate()){
-                    $(e).addClass("isDue");
-                }
-                $(e).text(luxon.DateTime.fromISO(text).toLocaleString({weekday: "short", month: "short", day: "2-digit"}));
-            }
-        });
-    },
-
-
     getDamNamesArray: function(damNumArray){
         var names = [];
         for(damNum of damNumArray){
@@ -3123,76 +2863,6 @@ $(document).ready(function () {
         this.resize();
     },
 
-    getDueDatesForDam: function(damNum){
-        var waterDate = this.getWaterDueDate(damNum);
-        var foodDate = this.getFoodDueDate(damNum);
-        var bottomDate = this.getBottomDueDate(damNum);
-        var topDate = this.getTopDueDate(damNum);
-
-        this.dams[damNum].water = waterDate;
-        this.dams[damNum].food = foodDate;
-        this.dams[damNum].bottom = bottomDate;
-        this.dams[damNum].top = topDate;
-        
-        return {
-            water: waterDate,
-            food: foodDate,
-            bottom: bottomDate,
-            top: topDate
-        }
-    },
-
-    allDamTableLabels: [
-        "damID",
-        "damLoc",
-        "damType",
-        "food",
-        "water",
-        "bottom",
-        "top",
-        "barcode"
-    ],
-
-    makeDueDatesTable: function(){
-        var damNums = this.damNums;
-        var dams = this.dams;
-
-        var labels = this.allDamTableLabels;
-
-        const tableData = [labels];
-
-        for(damNum of damNums){
-            this.getDueDatesForDam(damNum);
-            var dam = dams[damNum]
-            var endDate = dam.endDam;
-
-            if(!endDate){
-                var row = [];
-                for (label of labels){
-                    var val =dam[label];
-                    if(!val){val = ""}
-                    row.push(val);
-                }
-                tableData.push(row)
-            }
-        }
-
-        $tableDiv = $(".dueDatesTable");
-
-        this.createTable(tableData, true, false, $tableDiv);
-
-        $tableDiv.find("td").each((i,e)=>{
-            var text = $(e).text();
-            if(this.isValidDate(text)){
-                // debugger;
-                if(text <= luxon.DateTime.now().toISODate()){
-                    $(e).addClass("isDue");
-                }
-                $(e).text(luxon.DateTime.fromISO(text).toLocaleString({weekday: "short", month: "short", day: "2-digit"}))
-            }
-        })
-    },
-
     rebuildTableFromStr: function(textStr, makeFirstRowHead, makeFirstColHead, $tableDiv){
         var rowArray = this.makeArrayFromStr(textStr);
         this.addedTable = textStr;
@@ -3258,48 +2928,33 @@ $(document).ready(function () {
         }
     },
 
-
-    mouseLabels: ["mouse", "mouseDOB", "mouseStrain"],
-    trtGroupLabels: ["trtGroup", "trtGroupDOB", "trtGroupStrain"],
-
     addMouseFromTable: function(obj){
-        var genNum = this.getNextNum(this.mouseNums);
-        // if(this.mouseNums.length>0){
-        //     var lastMouse = this.mouseNums[this.mouseNums.length - 1];
-        //     var genNum = lastMouse + 1;
-        // } else {
-        //     var genNum = 1;
-        // }
-        this.addMouse(genNum);
-        var miceearch = this.mouseSearch(genNum);
+        var mouseNum = this.getNextNum(this.mouseNums);
+
+        this.addMouse(mouseNum);
+        var mouseSearch = this.mouseSearch(mouseNum);
 
         var headers = this.mouseLabels;
         for(header of headers){
-            $("." + header + miceearch).val(obj[header]);
-            this.mice[genNum][header] = obj[header];
+            $("." + header + mouseSearch).val(obj[header]);
+            this.mice[mouseNum][header] = obj[header];
         }
-        this.updateMouseList(genNum);
-        return(genNum);
+        this.updateMouseList(mouseNum);
+        return(mouseNum);
     },
 
     addTrtGroupFromTable: function(obj){
-        var genNum = this.getNextNum(this.trtGroupNums);
-        // if(this.trtGroupNums.length>0){
-        //     var lastTrtGroup = this.trtGroupNums[this.trtGroupNums.length - 1];
-        //     var trtGroupNum = lastTrtGroup + 1;
-        // } else {
-        //     var trtGroupNum = 1;
-        // }
-        this.addTrtGroup(genNum);
-        var trtGroupSearch = this.trtGroupSearch(genNum);
+        var trtGroupNum = this.getNextNum(this.trtGroupNums);
+        this.addTrtGroup(trtGroupNum);
+        var trtGroupSearch = this.trtGroupSearch(trtGroupNum);
 
         var headers = this.trtGroupLabels;
         for(header of headers){
             $("." + header + trtGroupSearch).val(obj[header]);
-            this.trtGroups[genNum][header] = obj[header];
+            this.trtGroups[trtGroupNum][header] = obj[header];
         }
-        this.updateTrtGroupList(genNum);
-        return genNum;
+        this.updateTrtGroupList(trtGroupNum);
+        return trtGroupNum;
     },
 
     addDamFromTable: function(obj, headers){
@@ -3354,57 +3009,6 @@ $(document).ready(function () {
         
     },
 
-    addSireFromTable: function(obj, headers){
-        var sireNum = this.getNextNum(this.sireNums);
-        // if(this.sireNums.length>0){
-        //     var lastSire = this.sireNums[this.sireNums.length - 1];
-        //     var sireNum = lastSire + 1;
-        // } else {
-        //     var sireNum = 1;
-        // }
-        this.addSire(sireNum);
-        var sireSearch = this.sireSearch(sireNum);
-
-        for(header of headers){
-            var trtGroup, trtGroupDOB, trtGroupStrain;
-            if(header === "sireID"){
-                $("." + header + sireSearch).val(obj[header]);
-                this.sires[sireNum][header] = obj[header];
-            } else {
-                if(header === "trtGroup" || header.toLowerCase().includes("generation")){
-                    trtGroup = obj[header];
-                } else if(header === "trtGroupDOB" || header.toLowerCase().includes("DOB")){
-                    trtGroupDOB = obj[header];
-                } else if(header === "trtGroupStrain" || header.toLowerCase().includes("strain")){
-                    trtGroupStrain = obj[header];
-                }
-            }
-        }
-        var matchInfo = this.getMatchingObjSubset(
-            this.trtGroups, 
-            "trtGroup", 
-            trtGroup, 
-            "trtGroupDOB", 
-            trtGroupDOB, 
-            "trtGroupStrain", 
-            trtGroupStrain
-        )
-        if(matchInfo.matchingObj.length>0){
-            $(".trtGroup"+sireSearch).val(matchInfo.matchingObj[0])
-        } else if(matchInfo.noMatches && trtGroup){ // means no matches for gen - add it
-            var obj = {
-                trtGroup: trtGroup,
-                trtGroupDOB: trtGroupDOB,
-                trtGroupStrain: trtGroupStrain
-            }
-            var genNum = this.addTrtGroupFromTable(obj);
-            $(".trtGroup"+sireSearch).val(genNum);
-
-        }
-        this.updateSireList(sireNum);
-        this.updateObjFromVal($(".trtGroup"+sireSearch), this.sires[sireNum]);
-    },
-
     upload: function() {
         var tableStr = this.addedTable;
         if(tableStr){
@@ -3422,16 +3026,12 @@ $(document).ready(function () {
                 for(obj of dataByHeader){
                     this.addTrtGroupFromTable(obj);
                 }
-            } else if(headers[0] === "damID") {
+            } else if(headers[0] === "mouseID") {
                 for(obj of dataByHeader){
-                    this.addDamFromTable(obj, headers);
-                }
-            } else if(headers[0] === "sireID") {
-                for(obj of dataByHeader){
-                    this.addSireFromTable(obj, headers);
+                    this.addMouseFromTable(obj, headers);
                 }
             } else {
-                bootbox.alert("Please use a table that has appropriate headers so that we know what to do with it. [mouse, mouseDOB, mouseStrain], [trtGroup, trtGroupDOB, trtGroupStrain], [damID], or [sireID]")
+                bootbox.alert("Please use a table that has appropriate headers so that we know what to do with it")
             }
         } else {
             bootbox.alert("Please either make an HTML table after pasting from Excel or preview a CSV file first")
@@ -3467,224 +3067,6 @@ $(document).ready(function () {
         };
         // return matchingObj;
     },
-
-
-    // Plug dates
-
-    updateBreedingWatchDates: function(damNum, breedingNum){
-        // debugger;
-        var damInfo = this.dams[damNum];
-        var bInfo = damInfo.breedings[breedingNum];
-        var plugCheckNums = bInfo.plugCheckNums;
-
-        var breedDate = bInfo.breedDate;
-
-        var earliestPotentialPlug, earliestLikelyPlug, earliestGoodPlug;
-        var sepBreeding, sepPotentialPlug, sepLikelyPlug, sepGoodPlug;
-        var birthBreeding, birthPotentialPlug, birthLikelyPlug, birthGoodPlug;
-
-        if(breedDate){
-            for(plugCheckNum of plugCheckNums){
-                var plugCheckInfo = bInfo.plugChecks[plugCheckNum];
-                
-                // 1 = potential (?) // 2 = likely (+/-) // 3 = good (+/+)
-                var plugState = plugCheckInfo.plugCheck;
-                var plugDate = plugCheckInfo.plugDate;
-                
-                if(plugState > 0){
-                    if(! earliestPotentialPlug || plugDate < earliestPotentialPlug){
-                        earliestPotentialPlug = plugDate;
-                    }
-                    if(plugState > 1){
-                        if(! earliestLikelyPlug || plugDate < earliestLikelyPlug){
-                            earliestLikelyPlug = plugDate;
-                        }
-                        if(plugState > 2){
-                            if(! earliestGoodPlug || plugDate < earliestGoodPlug){
-                                earliestGoodPlug = plugDate;
-                            }
-                        }
-                    }
-                }
-            }
-
-            sepBreeding = this.addDays(breedDate, 12);
-            birthBreeding = this.addDays(breedDate, 19);
-
-            if(earliestPotentialPlug){
-                sepPotentialPlug = this.addDays(earliestPotentialPlug, 11);
-                birthPotentialPlug = this.addDays(earliestPotentialPlug, 18)
-            }
-            if(earliestLikelyPlug){
-                sepLikelyPlug = this.addDays(earliestLikelyPlug, 11);
-                birthLikelyPlug = this.addDays(earliestLikelyPlug, 18)
-            }
-            if(earliestGoodPlug){
-                sepGoodPlug = this.addDays(earliestGoodPlug, 11);
-                birthGoodPlug = this.addDays(earliestGoodPlug, 18)
-            }
-        }
-
-        bInfo["potentialPlugDate"] = earliestPotentialPlug;
-        bInfo["likelyPlugDate"] = earliestLikelyPlug;
-        bInfo["goodPlugDate"] = earliestGoodPlug;
-
-        bInfo["sepBreedingDate"] = sepBreeding;
-        bInfo["sepPotentialPlugDate"] = sepPotentialPlug;
-        bInfo["sepLikelyPlugDate"] = sepLikelyPlug;
-        bInfo["sepGoodPlugDate"] = sepGoodPlug;
-
-        bInfo["birthBreedingDate"] = birthBreeding;
-        bInfo["birthPotentialPlugDate"] = birthPotentialPlug;
-        bInfo["birthLikelyPlugDate"] = birthLikelyPlug;
-        bInfo["birthGoodPlugDate"] = birthGoodPlug;
-    },
-
-    getDamsForPlugChecks: function(dueDate = luxon.DateTime.now().toISODate()){
-        var damNums = this.damNums;
-
-        const damsToCheck = [];
-        const damsForLikely = [];
-
-        for(damNum of damNums){
-            var damInfo = this.dams[damNum];
-
-            var breedingNum = this.getDamLatestBreeding(damInfo, dueDate);
-            
-            if(breedingNum){
-                var bInfo = damInfo.breedings[breedingNum];
-
-                if(
-                    (! bInfo.sepFromMaleDate || bInfo.sepFromMaleDate > dueDate) &&
-                    (! bInfo.litterDOB || bInfo.litterDOB > dueDate) &&
-                    (! bInfo.stopTrackingDate || bInfo.stopTrackingDate > dueDate) &&
-                    (! bInfo.potentialPlugDate || bInfo.potentialPlugDate > dueDate)
-                ){
-                    damsToCheck.push(damNum);
-                    if(! bInfo.likelyPlugDate || bInfo.likelyPlugDate > dueDate){
-                        damsForLikely.push(damNum);
-                    }
-                }
-            }
-        }
-        return({
-            remaining: damsToCheck,
-            forLikely: damsForLikely
-        });
-    },
-
-    getDamsForSeparation: function(dueDate = luxon.DateTime.now().toISODate()){
-        var damNums = this.damNums;
-
-        const damsToCheck = [];
-        const damsDueToCheck = [];
-
-        for(damNum of damNums){
-            var damInfo = this.dams[damNum];
-
-            var breedingNum = this.getDamLatestBreeding(damInfo, dueDate);
-            
-            if(breedingNum){
-                var bInfo = damInfo.breedings[breedingNum];
-
-                if(
-                    (! bInfo.sepFromMaleDate || bInfo.sepFromMaleDate > dueDate) &&
-                    (! bInfo.litterDOB || bInfo.litterDOB > dueDate) &&
-                    (! bInfo.stopTrackingDate || bInfo.stopTrackingDate > dueDate)
-                ){
-                    damsToCheck.push({
-                        damNum: damNum,
-                        breedingNum: breedingNum
-                    });
-
-                    if(bInfo.sepBreedingDate <= dueDate){
-                        damsDueToCheck.push(damNum);
-                    }
-                }
-            }
-        }
-        return({
-            remaining: damsToCheck,
-            due: damsDueToCheck
-        });
-    },
-
-    getDamsForBirth: function(dueDate = luxon.DateTime.now().toISODate()){
-        var damNums = this.damNums;
-
-        const damsToCheck = [];
-        const damsDueToCheck = [];
-
-        for(damNum of damNums){
-            var damInfo = this.dams[damNum];
-
-            var breedingNum = this.getDamLatestBreeding(damInfo, dueDate);
-            
-            if(breedingNum){
-                var bInfo = damInfo.breedings[breedingNum];
-
-                if(
-                    (! bInfo.litterDOB || bInfo.litterDOB > dueDate) &&
-                    (! bInfo.stopTrackingDate || bInfo.stopTrackingDate > dueDate)
-                ){
-                    damsToCheck.push({
-                        damNum: damNum,
-                        breedingNum: breedingNum
-                    });
-
-                    if(bInfo.birthBreedingDate <= dueDate){
-                        damsDueToCheck.push(damNum);
-                    }
-                }
-            }
-        }
-        return({
-            remaining: damsToCheck,
-            due: damsDueToCheck
-        });
-    },
-
-    getDamsForImpDates: function(dueDate = luxon.DateTime.now().toISODate()){
-        var damNums = this.damNums;
-
-        const damsForTable = [];
-
-        for(damNum of damNums){
-            var damInfo = this.dams[damNum];
-
-            var breedingNum = this.getDamLatestBreeding(damInfo);
-            
-            if(breedingNum){
-                var bInfo = damInfo.breedings[breedingNum];
-                if(
-                    (! bInfo.stopTrackingDate || bInfo.stopTrackingDate > dueDate)
-                ){
-                    damsForTable.push({
-                        damNum: damNum,
-                        breedingNum: breedingNum
-                    });
-                }
-            }
-        }
-        return(damsForTable);
-    },
-
-    getDamLatestBreeding: function(damInfo, dueDate = luxon.DateTime.now().toISODate()){
-        var breedingNums = damInfo.breedingNums;
-        var lastBreeding, lastBreedingNum;
-
-        for(breedingNum of breedingNums){
-            var bInfo = damInfo.breedings[breedingNum];
-
-            var breedDate = bInfo.breedDate;
-            if((!lastBreeding || breedDate > lastBreeding) && breedDate < dueDate){
-                lastBreeding = breedDate;
-                lastBreedingNum = breedingNum;
-            }
-        }
-        return(lastBreedingNum)
-    }
-
 };
 
 //**************************************************************************
@@ -3765,6 +3147,10 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     .hide{
         display: none;
     }
+
+    .purple{
+        color: purple;
+    }
 </style>
 
 <!-- TO DO Begin typing your HTML code here -->
@@ -3810,6 +3196,20 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <input type="button" value="Collapse all mice" name="collapsemice" id="collapseMice" class="fullWidth"/>
             </div>
         </div>
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show perfusion" name="showperfusion" id="showPerfusion" class="fullWidth"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Hide perfusion" name="hideperfusion" id="hidePerfusion" class="fullWidth"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show regions" name="showregions" id="showRegions" class="fullWidth"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Hide regions" name="hideregions" id="hideRegions" class="fullWidth"/>
+            </div>
+        </div>
         <div class="row mt-2" id="mouseCardDiv">
             &nbsp;
         </div>
@@ -3833,109 +3233,189 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
-<div class="container mt-2">
-    <div class="row">
-        <h4 class="col">Filter Regions/Series</h4>
-    </div>
-    <div class="row">
-        <div class="col"><input type="button" value="Reset Filter" id="resetFilter" class="fullWidth" name="resetfilter"/></div>
-    </div>
+<div class="container mt-2 card">
+    <button type="button" class="row card-header htmlCardHeader">
+        Filter Mice
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                    class="fullWidth toCSV" data-table="mouseFilterTable" /></div>
+            
+            <div class="col-12 col-sm-6 col-md-3">
+                <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseFilterTable"/>
+                <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="mouseFilterTable"/>
+                <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="mouseFilterTable" />
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col"><input type="button" value="Reset Filter" id="resetMouseFilter" class="fullWidth" name="resetmousefilter"/></div>
+        </div>
 
-    <div class="row mt-2 filterRow">
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="row">
-                <div class="col-12">
-                    MouseID:
+        <div class="row mt-2 filterRow">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        MouseID:
+                    </div>
+                    <div class="col">
+                        <input type="text" id="mouseFilter2" class="filter fullWidth" name="mousefilter2" data-filter="mouse"/>
+                    </div>
                 </div>
-                <div class="col">
-                    <input type="text" id="mouseFilter" class="filter fullWidth" name="mousefilter" data-filter="mouse"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Treatment group:
+                    </div>
+                    <div class="col">
+                        <select name="trtgroupfilter2" id="trtGroupFilter2" class="filter fullWidth trtGroup" multiple="true" data-filter="mouse">
+                            &nbsp;
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Sectioned:
+                    </div>
+                    <div class="col">
+                        <select id="sectionedFilter" class="filter fullWidth" name="sectionedfilter" data-filter="mouse">
+                            <option value="either">Either</option>
+                            <option value="invalid">Not done</option>
+                            <option value="valid">Done</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="row">
-                <div class="col-12">
-                    Treatment group:
-                </div>
-                <div class="col">
-                    <select name="trtgroupfilter" id="trtGroupFilter" class="filter fullWidth trtGroup" multiple="true" data-filter="trtGroup">
-                        &nbsp;
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="row">
-                <div class="col-12">
-                    Region:
-                </div>
-                <div class="col">
-                    <input type="text" id="regionFilter" class="filter fullWidth" name="regionfilter" data-filter="region"/>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="row">
-                <div class="col-12">
-                    Series:
-                </div>
-                <div class="col">
-                    <input type="text" id="seriesFilter" class="filter fullWidth" name="seriesfilter" data-filter="series"/>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="row">
-                <div class="col-12">
-                    IHC:
-                </div>
-                <div class="col">
-                    <select id="IHCFilter" class="filter fullWidth" name="ihcfilter" data-filter="IHC">
-                        <option value="either">Either</option>
-                        <option value="invalid">Not done</option>
-                        <option value="valid">Done</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="row">
-                <div class="col-12">
-                    Imaged:
-                </div>
-                <div class="col">
-                    <select id="imageFilter" class="filter fullWidth" name="imagefilter" data-filter="image">
-                        <option value="either">Either</option>
-                        <option value="invalid">Not done</option>
-                        <option value="valid">Done</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="row">
-                <div class="col-12">
-                    Quantified:
-                </div>
-                <div class="col">
-                    <select id="quantifiedFilter" class="filter fullWidth" name="quantifiedfilter" data-filter="quantified">
-                        <option value="either">Either</option>
-                        <option value="invalid">Not done</option>
-                        <option value="valid">Done</option>
-                    </select>
-                </div>
-            </div>
+
+        <div class="table-responsive xsTableDiv mouseFilterTable mt-3">
+            &nbsp;
         </div>
     </div>
+</div>
 
-    <div class="table-responsive xsTableDiv filterTable mt-3">
-        &nbsp;
+<div class="container mt-2 card">
+    <button type="button" class="row card-header htmlCardHeader">
+        Filter Regions/Series
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                    class="fullWidth toCSV" data-table="filterTable" /></div>
+            
+            <div class="col-12 col-sm-6 col-md-3">
+                <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="filterTable"/>
+                <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="filterTable"/>
+                <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="filterTable" />
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col"><input type="button" value="Reset Filter" id="resetFilter" class="fullWidth" name="mouse"/></div>
+        </div>
+
+        <div class="row mt-2 filterRow">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        MouseID:
+                    </div>
+                    <div class="col">
+                        <input type="text" id="mouseFilter" class="filter fullWidth" name="mousefilter" data-filter="region"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Treatment group:
+                    </div>
+                    <div class="col">
+                        <select name="trtgroupfilter" id="trtGroupFilter" class="filter fullWidth trtGroup" multiple="true" data-filter="region">
+                            &nbsp;
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Region:
+                    </div>
+                    <div class="col">
+                        <input type="text" id="regionFilter" class="filter fullWidth" name="regionfilter" data-filter="region"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Series:
+                    </div>
+                    <div class="col">
+                        <input type="text" id="seriesFilter" class="filter fullWidth" name="seriesfilter" data-filter="region"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        IHC:
+                    </div>
+                    <div class="col">
+                        <select id="IHCFilter" class="filter fullWidth" name="ihcfilter" data-filter="region">
+                            <option value="either">Either</option>
+                            <option value="invalid">Not done</option>
+                            <option value="valid">Done</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Imaged:
+                    </div>
+                    <div class="col">
+                        <select id="imageFilter" class="filter fullWidth" name="imagefilter" data-filter="region">
+                            <option value="either">Either</option>
+                            <option value="invalid">Not done</option>
+                            <option value="valid">Done</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Quantified:
+                    </div>
+                    <div class="col">
+                        <select id="quantifiedFilter" class="filter fullWidth" name="quantifiedfilter" data-filter="region">
+                            <option value="either">Either</option>
+                            <option value="invalid">Not done</option>
+                            <option value="valid">Done</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive xsTableDiv filterTable mt-3">
+            &nbsp;
+        </div>
     </div>
 </div>
 
 <div class="container hideView">
     <div class="row mt-2">
-        <h3 class="col">Edit region notes:</h3>
+        <h3 class="col-6">Edit region notes:</h3>
+        <div class="col-6">
+            <input type="button" value="Stop editing" id="clearRegionEdit" name="clearregionedit" class="clearRegionEdit fullWidth">
+        </div>
     </div>
 
     <div class="whichRegion">

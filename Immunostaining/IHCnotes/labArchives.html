@@ -1,0 +1,427 @@
+<!-- #region HTML -->
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.0/css/selectize.bootstrap4.css" 
+    integrity="sha512-Kg38XDtVQjgC6DXyItkoTuf7aZmlTdTsKgZL5M2toIStv7RnzFejNaOEYXHy9Cs0EDS+I/ewSil0LwOoVDwryA==" 
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 100%
+    }
+
+    .make100{
+        width: 100vw;
+    }
+
+    .isDue{
+        background-color: lightcoral;
+    }
+
+    .isCertain{
+        background-color: lightblue;
+    }
+
+    .hide{
+        display: none;
+    }
+
+    .purple{
+        color: purple;
+    }
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="make100">
+<div class="container mt-2 card" id="trtGroupsDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Treatment groups
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a treatment group</div>
+            <div class="col"><input type="button" value="Add a treatment group" id="addTrtGroup1" name="addtrtgroup1" class="addTrtGroup fullWidth"></div>
+        </div>
+        <div class="row mt-2" id="trtGroupsCardDiv">
+            &nbsp;
+        </div>
+
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a treatment group</div>
+            <div class="col">
+                <input type="button" value="Add a treatment group" id="addTrtGroup2" name="addsire2gen" class="addTrtGroup fullWidth"/>
+            </div>
+        </div>
+
+        <div class="table-responsive xsTableDiv trtGroupTable">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card" id="miceDiv">
+    <button type="button" class="row card-header htmlCardHeader">
+        Mice
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a mouse</div>
+            <div class="col"><input type="button" value="Add a mouse" id="addMouse1" name="addmouse1" class="addMouse fullWidth"></div>
+        </div>
+        <div class="row mt-2">
+            <div class="myLeftCol">Collapse all</div>
+            <div class="col">
+                <input type="button" value="Collapse all mice" name="collapsemice" id="collapseMice" class="fullWidth"/>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show perfusion" name="showperfusion" id="showPerfusion" class="fullWidth"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Hide perfusion" name="hideperfusion" id="hidePerfusion" class="fullWidth"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show regions" name="showregions" id="showRegions" class="fullWidth"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Hide regions" name="hideregions" id="hideRegions" class="fullWidth"/>
+            </div>
+        </div>
+        <div class="row mt-2" id="mouseCardDiv">
+            &nbsp;
+        </div>
+
+        <div class="row mt-2 hideView">
+            <div class="myLeftCol">Add a mouse</div>
+            <div class="col">
+                <input type="button" value="Add a mouse" id="addMouse2" name="adddam2gen" class="addMouse fullWidth"/>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <h3 class="col" id="tableInfo">
+                &nbsp;
+            </h3>
+        </div>
+
+        <div class="table-responsive xsTableDiv mouseTable">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card">
+    <button type="button" class="row card-header htmlCardHeader">
+        Filter Mice
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                    class="fullWidth toCSV" data-table="mouseFilterTable" /></div>
+            
+            <div class="col-12 col-sm-6 col-md-3">
+                <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="mouseFilterTable"/>
+                <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="mouseFilterTable"/>
+                <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="mouseFilterTable" />
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col"><input type="button" value="Reset Filter" id="resetMouseFilter" class="fullWidth" name="resetmousefilter"/></div>
+        </div>
+
+        <div class="row mt-2 filterRow">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        MouseID:
+                    </div>
+                    <div class="col">
+                        <input type="text" id="mouseFilter2" class="filter fullWidth" name="mousefilter2" data-filter="mouse"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Treatment group:
+                    </div>
+                    <div class="col">
+                        <select name="trtgroupfilter2" id="trtGroupFilter2" class="filter fullWidth trtGroup" multiple="true" data-filter="mouse">
+                            &nbsp;
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Sectioned:
+                    </div>
+                    <div class="col">
+                        <select id="sectionedFilter" class="filter fullWidth" name="sectionedfilter" data-filter="mouse">
+                            <option value="either">Either</option>
+                            <option value="invalid">Not done</option>
+                            <option value="valid">Done</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive xsTableDiv mouseFilterTable mt-3">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 card">
+    <button type="button" class="row card-header htmlCardHeader">
+        Filter Regions/Series
+    </button>
+    <div class="card-body container collapse">
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                    class="fullWidth toCSV" data-table="filterTable" /></div>
+            
+            <div class="col-12 col-sm-6 col-md-3">
+                <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="filterTable"/>
+                <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="filterTable"/>
+                <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="filterTable" />
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col"><input type="button" value="Reset Filter" id="resetFilter" class="fullWidth" name="mouse"/></div>
+        </div>
+
+        <div class="row mt-2 filterRow">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        MouseID:
+                    </div>
+                    <div class="col">
+                        <input type="text" id="mouseFilter" class="filter fullWidth" name="mousefilter" data-filter="region"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Treatment group:
+                    </div>
+                    <div class="col">
+                        <select name="trtgroupfilter" id="trtGroupFilter" class="filter fullWidth trtGroup" multiple="true" data-filter="region">
+                            &nbsp;
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Region:
+                    </div>
+                    <div class="col">
+                        <input type="text" id="regionFilter" class="filter fullWidth" name="regionfilter" data-filter="region"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Series:
+                    </div>
+                    <div class="col">
+                        <input type="text" id="seriesFilter" class="filter fullWidth" name="seriesfilter" data-filter="region"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        IHC:
+                    </div>
+                    <div class="col">
+                        <select id="IHCFilter" class="filter fullWidth" name="ihcfilter" data-filter="region">
+                            <option value="either">Either</option>
+                            <option value="invalid">Not done</option>
+                            <option value="valid">Done</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Imaged:
+                    </div>
+                    <div class="col">
+                        <select id="imageFilter" class="filter fullWidth" name="imagefilter" data-filter="region">
+                            <option value="either">Either</option>
+                            <option value="invalid">Not done</option>
+                            <option value="valid">Done</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="row">
+                    <div class="col-12">
+                        Quantified:
+                    </div>
+                    <div class="col">
+                        <select id="quantifiedFilter" class="filter fullWidth" name="quantifiedfilter" data-filter="region">
+                            <option value="either">Either</option>
+                            <option value="invalid">Not done</option>
+                            <option value="valid">Done</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive xsTableDiv filterTable mt-3">
+            &nbsp;
+        </div>
+    </div>
+</div>
+
+<div class="container hideView">
+    <div class="row mt-2">
+        <h3 class="col-6">Edit region notes:</h3>
+        <div class="col-6">
+            <input type="button" value="Stop editing" id="clearRegionEdit" name="clearregionedit" class="clearRegionEdit fullWidth">
+        </div>
+    </div>
+
+    <div class="whichRegion">
+        &nbsp;
+    </div>
+
+    <div class="regionNotes">
+        &nbsp;
+    </div>
+</div>
+
+<div class="container hideView">
+    <div class="row mt-2">
+        <h3 class="col">Add mice from other sources:</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Options
+        </div>
+        <div class="col">
+            <label for="makeRowHead">Make first row header:</label> <input type="checkbox" name="makerowhead" id="makeRowHead"/><br/><label for="makeColHead">Make first column header:</label> <input type="checkbox" name="makecolhead" id="makeColHead"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Paste Excel table
+        </div>
+        <div class="col">
+            <textarea name="pastefield" id="pasteField" class="autoAdjust fullWidth"></textarea>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Make a table
+        </div>
+        <div class="col">
+            <input type="button" value="Convert to HTML table" id="convertToTable" name="converttotable" class="fullWidth"/>
+        </div>
+    </div>
+    <div class="row mt-2 align-items-center">
+        <h4 class="myLeftCol">Import CSV</h4>
+        <div class="col">Save as CSV in other widget, then select the CSV below</div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Select CSV:
+        </div>
+        <div class="col">
+            <input type="file" id="fileUpload" name="fileupload" class="fullWidth"></input>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol">
+            Preview Table:
+        </div>
+        <div class="col">
+            <input type="button" id="preview" name="preview" value="Preview" class="fullWidth"></input>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-2 hideView">
+    <div class="table-responsive xsTableDiv forTable">
+        &nbsp;
+    </div>
+</div>
+
+
+<div class="container mt-2 hideView">
+    
+    <div class="row mt-1">
+        <div class= "col table-responsive xsTableDiv" id="dvCSV">
+            &nbsp;
+        </div>
+    </div>
+    <hr />
+    <div class="row mt-2">
+        <div class="myLeftCol">Add to this widget:</div>
+        <div class="col"><input type="button" value="upload" id="upload" name="upload" class="fullWidth"></div>
+    </div>
+</div>
+
+</div>
+
+<div class="container mt-2">
+    <div id="forCopy">&nbsp;</div>
+    <div id="errorMsg">&nbsp;</div>
+</div>
+
+<!-- <div class="container mt-2">
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6 col-md-3"><input id="toggleTable1" name="toggletable1" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="tableID"/>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3"><input id="toCSV1" name="tocsv1" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="tableID" /></div>
+        
+        <div class="col-12 col-sm-6 col-md-3">
+            <input id="copyDataButton1" name="copydatabutton1" type="button" value="Copy Data" class="fullWidth copyData" data-table="tableID"/>
+            <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="tableID"/>
+            <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="tableID" />
+        </div>
+    </div>
+</div> -->
+
+<!-- #endregion -->
