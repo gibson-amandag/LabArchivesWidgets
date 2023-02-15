@@ -698,6 +698,15 @@ my_widget_script =
         $(".regionNotes").text("");
         $(".regDiv").hide();
 
+        $(".updateThickness").on("click", (e)=>{
+            this.runIfConfirmed(
+                "Are you sure you want to update all?"
+                , ()=>{
+                    $(".sectionSize").val($("#defThickness").val());
+                }
+            )
+        })
+
         this.resize();
     },
 
@@ -1431,6 +1440,18 @@ my_widget_script =
                     addRowClass: "hideView"
                 },
                 {
+                    label: "Date of birth:",
+                    type: "date",
+                    className: "DOB",
+                    addRowClass: "updateMouseObj"
+                },
+                {
+                    label: "Age in Days:",
+                    type: "number",
+                    className: "ageInDays",
+                    addRowClass: "updateMouseObj"
+                },
+                {
                     label: "Trt group:",
                     type: "select",
                     className: "trtGroup",
@@ -1552,10 +1573,6 @@ my_widget_script =
                 this.watchTimeNextEl($(e.currentTarget));
             }).each((i,e)=> {
                 this.watchTimeNextEl($(e));
-            });
-
-            $body.find(".deleteMouse").prop("value", "Delete Mouse").on("click", (e)=>{
-                this.deleteMouse(mouseNum);
             });
 
             $body.find(".updateMouseObj").on("change", (e)=>{
@@ -2521,6 +2538,8 @@ my_widget_script =
         "cycleID",
         "trt",
         "time",
+        "DOB",
+        "ageInDays",
         "sacDate",
         "transportTime",
         "sacTime",
@@ -2546,6 +2565,8 @@ my_widget_script =
         // $("#acqDataFilter").find("option").prop("selected", false);
         $("#trtGroupFilter2").find("option").prop("selected", false);
         $("#sectionedFilter").val("either");
+        $("#minAgeFilter").val("70");
+        $("#maxAgeFilter").val("180");
     },
     
 
@@ -2583,12 +2604,16 @@ my_widget_script =
     },
 
     filterMouseData: function(info, trtGroup){
-
+        // debugger;
         // console.log(info, trtGroup);
 
         var mouseFilter = $("#mouseFilter2").val();
         var trtGroupFilter = $("#trtGroupFilter2").val();
         var sectionedFilter = $("#sectionedFilter").val();
+        var minAgeFilterText = $("#minAgeFilter").val();
+        var minAgeFilter = parseFloat(minAgeFilterText);
+        var maxAgeFilterText = $("#maxAgeFilter").val();
+        var maxAgeFilter = parseFloat(maxAgeFilterText);
 
         // console.log(mouseFilter, trtGroupFilter, sectionedFilter);
         var keepMouse = false;
@@ -2605,7 +2630,8 @@ my_widget_script =
         if(
             this.matchesName(info.mouseID, mouseFilter) &&
             this.matchesFilter(trtGroup, trtGroupFilter) &&
-            this.matchesDate(info.sectionDate, sectionedFilter)
+            this.matchesDate(info.sectionDate, sectionedFilter) &&
+            (!info.ageInDays || (parseFloat(info.ageInDays) <= maxAgeFilter && parseFloat(info.ageInDays) >= minAgeFilter))
         ){
             keepMouse = true;
         }
@@ -2868,16 +2894,43 @@ my_widget_script =
         }
     },
 
-    addMouseFromTable: function(obj){
-        var mouseNum = this.getNextNum(this.mouseNums);
+    addMouseFromTable: function(obj, uploadHeaders){
+        debugger;
+        var thisID = obj.mouseID;
+        var mouseNum, updatingMouse = false;
+        if(thisID){
+            var matchInfo = this.getMatchingObjSubset(
+                this.mice,
+                "mouseID",
+                thisID
+            );
 
-        this.addMouse(mouseNum);
+            if(matchInfo.matchingObj.length>0){ // mouseID already added
+                mouseNum = matchInfo.matchingObj[0];
+                updatingMouse = true;
+            } else {
+                // mouseID not added
+                mouseNum = this.getNextNum(this.mouseNums);
+                this.addMouse(mouseNum);
+            }
+        } else {
+            mouseNum = this.getNextNum(this.mouseNums);
+            this.addMouse(mouseNum);
+        }
+
         var mouseSearch = this.mouseSearch(mouseNum);
 
         var headers = this.mouseLabels;
         for(header of headers){
-            $("." + header + mouseSearch).val(obj[header]);
-            this.mice[mouseNum][header] = obj[header];
+            var thisVal = obj[header];
+            var updateVal = true;
+            if(updatingMouse && ! this.checkInArray(header, uploadHeaders)){
+                updateVal = false;
+            }
+            if(updateVal){
+                $("." + header + mouseSearch).val(obj[header]);
+                this.mice[mouseNum][header] = obj[header];
+            }
         }
         this.updateMouseList(mouseNum);
         return(mouseNum);
@@ -2897,58 +2950,6 @@ my_widget_script =
         return trtGroupNum;
     },
 
-    addDamFromTable: function(obj, headers){
-        var damNum = this.getNextNum(this.damNums);
-        // if(this.damNums.length>0){
-        //     var lastDam = this.damNums[this.damNums.length - 1];
-        //     var damNum = lastDam + 1;
-        // } else {
-        //     var damNum = 1;
-        // }
-        this.addDam(damNum);
-        var damSearch = this.damSearch(damNum);
-
-        for(header of headers){
-            var mouse, mouseDOB, mouseStrain;
-            if(header === "damID"){
-                $("." + header + damSearch).val(obj[header]);
-                this.dams[damNum][header] = obj[header];
-            } else {
-                if(header === "mouse" || header.toLowerCase().includes("generation")){
-                    mouse = obj[header];
-                } else if(header === "mouseDOB" || header.toLowerCase().includes("DOB")){
-                    mouseDOB = obj[header];
-                } else if(header === "mouseStrain" || header.toLowerCase().includes("strain")){
-                    mouseStrain = obj[header];
-                }
-            }
-        }
-        var matchInfo = this.getMatchingObjSubset(
-            this.mice, 
-            "mouse", 
-            mouse, 
-            "mouseDOB", 
-            mouseDOB, 
-            "mouseStrain", 
-            mouseStrain
-        )
-
-        var dInfo = this.dams[damNum]
-        if(matchInfo.matchingObj.length>0){
-            $(".mouse"+damSearch).val(matchInfo.matchingObj[0])
-        } else if(matchInfo.noMatches && mouse){ // means no matches for gen - add it
-            var obj = {
-                mouse: mouse,
-                mouseDOB: mouseDOB,
-                mouseStrain: mouseStrain
-            }
-            var genNum = this.addMouseFromTable(obj);
-            $(".mouse"+damSearch).val(genNum);
-        }
-        this.updateObjFromVal($(".mouse"+damSearch), this.dams[damNum]);
-        
-    },
-
     upload: function() {
         var tableStr = this.addedTable;
         if(tableStr){
@@ -2960,7 +2961,7 @@ my_widget_script =
             var headers = byHeader.meta.fields;
             if(headers.join("") === this.mouseLabels.join("")){
                 for(obj of dataByHeader){
-                    this.addMouseFromTable(obj);
+                    this.addMouseFromTable(obj, headers);
                 }
             } else if(headers.join("") === this.trtGroupLabels.join("")){
                 for(obj of dataByHeader){
