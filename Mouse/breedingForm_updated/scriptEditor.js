@@ -28,6 +28,8 @@ my_widget_script =
         **/
 
     mode: "edit",
+
+    dateToday: null,
     
     init: function (mode, json_data) {
         // jQuery for bootstrap
@@ -130,6 +132,7 @@ my_widget_script =
 
     myInit: function (mode, json_data) {
         this.mode = mode;
+        this.dateToday = luxon.DateTime.now().toISODate();
         //this method is called when the form is being constructed
         // parameters
         // mode = if it equals 'view' than it should not be editable
@@ -345,42 +348,42 @@ my_widget_script =
      * 
      * This function requires the parsedJson object.
      */
-    initDynamicContent: function (parsedJson) {
-        if(parsedJson.damGenerations){
-            this.damGenerations = parsedJson.damGenerations;
+    initDynamicContent: function (pj) {
+        if(pj.damGenerations){
+            this.damGenerations = pj.damGenerations;
         }
-        if(parsedJson.damGenerationNums){
-            for(genNum of parsedJson.damGenerationNums){
+        if(pj.damGenerationNums){
+            for(genNum of pj.damGenerationNums){
                 this.makeDamGenCard(genNum);
             }
-            this.damGenerationNums = parsedJson.damGenerationNums;
+            this.damGenerationNums = pj.damGenerationNums;
         }
 
-        if(parsedJson.sireGenerations){
-            this.sireGenerations = parsedJson.sireGenerations
+        if(pj.sireGenerations){
+            this.sireGenerations = pj.sireGenerations
         }
-        if(parsedJson.sireGenerationNums){
-            for(genNum of parsedJson.sireGenerationNums){
+        if(pj.sireGenerationNums){
+            for(genNum of pj.sireGenerationNums){
                 this.makeSireGenCard(genNum);
             }
-            this.sireGenerationNums = parsedJson.sireGenerationNums;
+            this.sireGenerationNums = pj.sireGenerationNums;
         }
 
-        if(parsedJson.sires){
-            this.sires = parsedJson.sires
+        if(pj.sires){
+            this.sires = pj.sires
         }
-        if(parsedJson.sireNums){
-            for(sireNum of parsedJson.sireNums){
+        if(pj.sireNums){
+            for(sireNum of pj.sireNums){
                 this.makeSireCard(sireNum);
             }
-            this.sireNums = parsedJson.sireNums
+            this.sireNums = pj.sireNums
         }
 
-        if(parsedJson.dams){
-            this.dams = parsedJson.dams
+        if(pj.dams){
+            this.dams = pj.dams
         }
-        if(parsedJson.damNums){
-            for(damNum of parsedJson.damNums){
+        if(pj.damNums){
+            for(damNum of pj.damNums){
                 this.makeDamCard(damNum);
 
                 var breedingNums = this.dams[damNum].breedingNums;
@@ -404,7 +407,7 @@ my_widget_script =
                     }
                 }
             }
-            this.damNums = parsedJson.damNums
+            this.damNums = pj.damNums
         }
 
     },
@@ -562,7 +565,8 @@ my_widget_script =
         });
 
         $('textarea.autoAdjust').each((i,e)=> { // i is the index for each match, textArea is the object
-            e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
+            this.updateTextarea(e);
+            // e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;');
         }).on('input', (e)=> {
             e.target.style.height = 'auto';
             e.target.style.height = (e.target.scrollHeight) + 'px';
@@ -578,8 +582,7 @@ my_widget_script =
 
         $('.toCSV').on("click", (e)=> {
             var tableID = $(e.currentTarget).data("table");
-            var dateToday = luxon.DateTime.now().toISODate(); // Luxon has to be added in HTML
-            var fileName = "table_"+tableID+"_"+dateToday;
+            var fileName = "table_"+tableID+"_"+this.dateToday;
             var $errorMsg = $("#errorMsg");
             
             this.toCSVFuncs(fileName, tableID, $errorMsg);
@@ -646,7 +649,45 @@ my_widget_script =
 
         $("#collapseDams").on("click", (e)=>{
             this.collapseAllDamCards();
-        })
+        });
+
+        $("#showLastBreeding").on("click", (e)=>{
+            this.showLatestBreeding();
+        });
+
+        $("#showBreeding").on("click", (e)=>{
+            $(".breedDiv").show().find("textarea.autoAdjust").each((i,e)=> {
+                this.updateTextarea(e);
+                // if(! $(e).is(":hidden")) {
+                //     e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+                // } 
+            });;
+            this.resize();
+        });
+
+        $("#hideBreeding").on("click", (e)=>{
+            $(".breedDiv").hide();
+            this.resize();
+        });
+
+        $("#showAllDams").on("click", (e)=>{
+            this.showDamCards(this.damNums);
+        });
+
+        $("#showPresentDams").on("click", (e)=>{
+            var dams = this.getPresentDams();
+            this.showDamCards(dams);
+        });
+
+        $("#showInProgDams").on("click", (e)=>{
+            var dams = this.getInProgDams();
+            this.showDamCards(dams);
+        });
+
+        var dams = this.getPresentDams();
+        this.showDamCards(dams);
+
+        this.showLatestBreeding();
 
         // Generic update when any part of the form has user input
         $("#the_form").on("input", (e)=>{
@@ -677,8 +718,7 @@ my_widget_script =
             }
         });
 
-        var dateToday = luxon.DateTime.now().toISODate()
-        $("#dueDate").val(dateToday).each((i,e)=>{
+        $("#dueDate").val(this.dateToday).each((i,e)=>{
             this.getDamsDue($(e).val());
         });
 
@@ -688,15 +728,15 @@ my_widget_script =
 
         $("#convertToTable").on("click", (e)=>{
             var tableText = $("#pasteField").val();
-            var makeFirstColHead = false, makeFirstRowHead = false;
+            var colH = false, rowH = false;
             if($("#makeColHead").is(":checked")){
-                makeFirstColHead = true
+                colH = true
             }
             if($("#makeRowHead").is(":checked")){
-                makeFirstRowHead = true
+                rowH = true
             }
             var $divForTable = $(".forTable")
-            this.rebuildTableFromStr(tableText, makeFirstRowHead, makeFirstColHead, $divForTable);
+            this.rebuildTableFromStr(tableText, rowH, colH, $divForTable);
         });
 
         $("#upload").on("click", (e)=>{
@@ -737,9 +777,9 @@ my_widget_script =
         this.resize();
     },
 
-    updateTextarea: function(textarea) {
-        if(! $(textarea).is(":hidden")) {
-            textarea.setAttribute('style', 'height:' + (textarea.scrollHeight) + 'px;overflow-y:hidden;');
+    updateTextarea: function(ta) {
+        if(! $(ta).is(":hidden")) {
+            ta.setAttribute('style', 'height:' + (ta.scrollHeight) + 'px;overflow-y:hidden;');
         } 
         this.resize();
     },
@@ -788,8 +828,8 @@ my_widget_script =
      * my_widget_script, you can do that directly in to_json
      */ 
     getDynamicContent: function () {
-        var dynamicContent = {};
-        return dynamicContent;
+        var dc = {};
+        return dc;
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
@@ -861,9 +901,9 @@ my_widget_script =
         );
     */
     runIfConfirmed: function(text, functionToCall, elForHeight = null){
-        var thisMessage = "Are you sure?";
+        var msg = "Are you sure?";
         if(text){
-            thisMessage = text;
+            msg = text;
         }
         var top = "auto";
         if(elForHeight){
@@ -871,7 +911,7 @@ my_widget_script =
             top = elForHeight.offsetTop + "px";
         }
         bootbox.confirm({
-            message: thisMessage,
+            message: msg,
             callback: (proceed)=>{
                 if(proceed){
                     functionToCall()
@@ -906,9 +946,9 @@ my_widget_script =
         );
         */
     dialogConfirm: function(text, functionToCall, elForHeight = null){
-        var thisMessage = "Do you want to proceed?";
+        var msg = "Do you want to proceed?";
         if(text){
-            thisMessage = text;
+            msg = text;
         }
         var top = "auto";
         if(elForHeight){
@@ -916,7 +956,7 @@ my_widget_script =
             top = elForHeight.offsetTop + "px";
         }
         bootbox.confirm({
-            message: thisMessage,
+            message: msg,
             callback: (result)=>{
                 functionToCall(result);
             }
@@ -1361,9 +1401,10 @@ my_widget_script =
         // console.log($cardHead.next());
         $cardHead.next().toggleClass("collapse");
         $cardHead.next().find("textarea.autoAdjust").each((i,e)=> {
-            if(! $(e).is(":hidden")) {
-                e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
-            } 
+            this.updateTextarea(e);
+            // if(! $(e).is(":hidden")) {
+            //     e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+            // } 
         });
         this.resize();
     },
@@ -1409,7 +1450,9 @@ my_widget_script =
                 damID: "",
                 damGeneration: "",
                 breedingNums: [],
-                breedings: {}
+                breedings: {},
+                damEuthanized: NaN,
+                damStopShowing: null
             };
 
             this.makeDamCard(damNum);
@@ -1487,7 +1530,20 @@ my_widget_script =
                             text: "[Select]"
                         }
                     ]
-                }, {
+                }, 
+                {
+                    label: "Euthanized",
+                    type: "date",
+                    className: "damEuthanized",
+                    addRowClass: "updateDamObj"
+                }, 
+                {
+                    label: "Stop showing",
+                    type: "checkbox",
+                    className: "damStopShowing",
+                    addRowClass: "updateDamObj"
+                }, 
+                {
                     label: "Add breeding:",
                     type: "button",
                     className: "addBreeding",
@@ -1525,8 +1581,14 @@ my_widget_script =
 
     updateObjFromVal: function($el, obj){
         var val = $el.val();
-        // Store only the text and no HTML elements.
-        valSafe = this.encodeHTML(val);
+        var elType = $el.attr("type");
+        var valSafe;
+        if(elType == "checkbox"){
+            valSafe = $el.is(":checked");
+        } else{
+            // Store only the text and no HTML elements.
+            valSafe = this.encodeHTML(val);
+        }
         var thisProp = $el.data("watch");
         if(thisProp){
             obj[thisProp] = valSafe;
@@ -2439,6 +2501,11 @@ my_widget_script =
                 sepFromMaleDate: NaN,
                 sepDamCageNum: NaN,
                 litterDOB: NaN,
+                litterSize: NaN,
+                pupsAdded: NaN,
+                pupsRemoved: NaN,
+                damUse: null,
+                damNotes: NaN,
                 stopTrackingDate: NaN
             };
 
@@ -2528,7 +2595,8 @@ my_widget_script =
             {
                 label: "Sep cage #:",
                 type: "number",
-                className: "sepDamCageNum"
+                className: "sepDamCageNum",
+                addRowClass: "updateDamBreedObj"
             },
             {
                 label: "Parturition date:",
@@ -2537,9 +2605,57 @@ my_widget_script =
                 addRowClass: "updateDamBreedObj"
             },
             {
+                label: "Litter size at birth:",
+                type: "number",
+                className: "litterSize",
+                addRowClass: "updateDamBreedObj"
+            },
+            {
+                label: "Pups added:",
+                type: "number",
+                className: "pupsAdded",
+                addRowClass: "updateDamBreedObj"
+            },
+            {
+                label: "Pups removed:",
+                type: "number",
+                className: "pupsRemoved",
+                addRowClass: "updateDamBreedObj"
+            },
+            {
                 label: "Stop tracking:",
                 type: "date",
                 className: "stopTrackingDate",
+                addRowClass: "updateDamBreedObj"
+            },
+            {
+                label: "Use:",
+                type: "select",
+                className: "damUse",
+                addRowClass: "updateDamBreedObj",
+                optionsObj: [
+                    {
+                        value: "",
+                        text: "[Select]"
+                    },
+                    {
+                        value: "generalCol",
+                        text: "general colony"
+                    },
+                    {
+                        value: "std",
+                        text: "STD"
+                    },
+                    {
+                        value: "",
+                        text: "LBN"
+                    }
+                ]
+            },
+            {
+                label: "Dam notes:",
+                type: "textarea",
+                className: "damNotes",
                 addRowClass: "updateDamBreedObj"
             },
             {
@@ -2953,28 +3069,28 @@ my_widget_script =
         // debugger;
         var bInfo = this.dams[damNum].breedings[breedingNum];
         // console.log(bInfo);
-        var initialMass = bInfo.initialMass;
-        var damSearch = this.damSearch(damNum);
-        var breedingSearch = this.breedingSearch(breedingNum);
+        var m1 = bInfo.initialMass;
+        var ds = this.damSearch(damNum);
+        var bs = this.breedingSearch(breedingNum);
 
         for(massNum of bInfo.massNums){
-            var massSearch = this.massSearch(massNum);
+            var ms = this.massSearch(massNum);
             var newMass = bInfo.masses[massNum].mass;
 
-            var massText = this.calcPercMass(newMass, initialMass);
-            $(".change"+damSearch+breedingSearch+massSearch).text(massText);
+            var text = this.calcPercMass(newMass, m1);
+            $(".change"+ds+bs+ms).text(text);
         }
     },
 
     calcPercMass: function (newMass, initMass) {
-        var newMassVal = parseFloat(newMass);
-        var initMassVal = parseFloat(initMass);
+        var newVal = parseFloat(newMass);
+        var m1 = parseFloat(initMass);
 
         var text;
-        if(newMassVal > 0 && initMassVal > 0) {        
-            var percChange = (newMassVal)/(initMassVal) * 100;
+        if(newVal > 0 && m1 > 0) {        
+            var percChange = (newVal)/(m1) * 100;
             text = percChange.toFixed(1)
-        } else if(! newMassVal > 0){
+        } else if(! newVal > 0){
             text = "Enter new mass";
         } else {
             text = "Enter initial mass";
@@ -3227,27 +3343,27 @@ my_widget_script =
         var $divForCopy = $("#forCopy");
         var $errorMsg = $("#errorMsg");
         this.copyStringToClipboard(tableString, $divForCopy, $errorMsg);
-    },  
+    },
 
-    getDamsDue: function(dueDate = luxon.DateTime.now().toISODate()){
+    getDamsDue: function(dueDate = this.dateToday){
         // debugger;
-        var damsForPlugChecksObj = this.getDamsForPlugChecks(dueDate);
-        var damsForPlugChecks = damsForPlugChecksObj.remaining;
-        var damsForSeparationObj = this.getDamsForSeparation(dueDate);
-        var damsForSeparation = damsForSeparationObj.due;
-        var damsForBirthObj = this.getDamsForBirth(dueDate);
-        var damsForBirth = damsForBirthObj.due;
+        var pObj = this.getDamsForPlugChecks(dueDate);
+        var dPlug = pObj.remaining;
+        var sepObj = this.getDamsForSeparation(dueDate);
+        var dSep = sepObj.due;
+        var bObj = this.getDamsForBirth(dueDate);
+        var dBirth = bObj.due;
 
-        var namesPlugChecks = this.getDamNamesArray(damsForPlugChecks);
-        var namesSeparation = this.getDamNamesArray(damsForSeparation);
-        var namesBirth = this.getDamNamesArray(damsForBirth);
+        var nPlug = this.getDamNamesArray(dPlug);
+        var nSep = this.getDamNamesArray(dSep);
+        var nBirth = this.getDamNamesArray(dBirth);
 
-        this.printDams(namesPlugChecks, $(".plugCheckList"));
-        this.printDams(namesSeparation, $(".sepMaleList"));
-        this.printDams(namesBirth, $(".checkBirthsList"));
+        this.printDams(nPlug, $(".plugCheckList"));
+        this.printDams(nSep, $(".sepMaleList"));
+        this.printDams(nBirth, $(".checkBirthsList"));
 
-        this.makeSeparationTable(damsForSeparationObj.remaining);
-        this.makeCheckForBirthsTable(damsForBirthObj.remaining);
+        this.makeSeparationTable(sepObj.remaining);
+        this.makeCheckForBirthsTable(bObj.remaining);
         this.makeEstDatesTable();
         this.makeDamsBreedingTable();
         this.resize();
@@ -3481,7 +3597,7 @@ my_widget_script =
             var text = $(e).text();
             if(this.isValidDate(text)){
                 // debugger;
-                if(text <= luxon.DateTime.now().toISODate()){
+                if(text <= this.dateToday){
                     $(e).addClass("isDue");
                 }
                 $(e).text(luxon.DateTime.fromISO(text).toLocaleString({weekday: "short", month: "short", day: "2-digit"}))
@@ -3775,9 +3891,12 @@ my_widget_script =
 
         var breedDate = bInfo.breedDate;
 
-        var earliestPotentialPlug, earliestLikelyPlug, earliestGoodPlug;
-        var sepBreeding, sepPotentialPlug, sepLikelyPlug, sepGoodPlug;
-        var birthBreeding, birthPotentialPlug, birthLikelyPlug, birthGoodPlug;
+        // earliest date; potential = p, likely = l, good = g
+        var pPlug1, lPlug1, gPlug1;
+        // start checking separation date
+        var sepBreeding, sepPPlug, sepLPlug, sepGPlug;
+        // start checking birth day
+        var birthBreeding, bPPlug, bLPlug, bGPlug;
 
         if(breedDate){
             for(plugCheckNum of plugCheckNums){
@@ -3788,16 +3907,16 @@ my_widget_script =
                 var plugDate = plugCheckInfo.plugDate;
                 
                 if(plugState > 0){
-                    if(! earliestPotentialPlug || plugDate < earliestPotentialPlug){
-                        earliestPotentialPlug = plugDate;
+                    if(! pPlug1 || plugDate < pPlug1){
+                        pPlug1 = plugDate;
                     }
                     if(plugState > 1){
-                        if(! earliestLikelyPlug || plugDate < earliestLikelyPlug){
-                            earliestLikelyPlug = plugDate;
+                        if(! lPlug1 || plugDate < lPlug1){
+                            lPlug1 = plugDate;
                         }
                         if(plugState > 2){
-                            if(! earliestGoodPlug || plugDate < earliestGoodPlug){
-                                earliestGoodPlug = plugDate;
+                            if(! gPlug1 || plugDate < gPlug1){
+                                gPlug1 = plugDate;
                             }
                         }
                     }
@@ -3807,36 +3926,36 @@ my_widget_script =
             sepBreeding = this.addDays(breedDate, 12);
             birthBreeding = this.addDays(breedDate, 19);
 
-            if(earliestPotentialPlug){
-                sepPotentialPlug = this.addDays(earliestPotentialPlug, 11);
-                birthPotentialPlug = this.addDays(earliestPotentialPlug, 18)
+            if(pPlug1){
+                sepPPlug = this.addDays(pPlug1, 11);
+                bPPlug = this.addDays(pPlug1, 18)
             }
-            if(earliestLikelyPlug){
-                sepLikelyPlug = this.addDays(earliestLikelyPlug, 11);
-                birthLikelyPlug = this.addDays(earliestLikelyPlug, 18)
+            if(lPlug1){
+                sepLPlug = this.addDays(lPlug1, 11);
+                bLPlug = this.addDays(lPlug1, 18)
             }
-            if(earliestGoodPlug){
-                sepGoodPlug = this.addDays(earliestGoodPlug, 11);
-                birthGoodPlug = this.addDays(earliestGoodPlug, 18)
+            if(gPlug1){
+                sepGPlug = this.addDays(gPlug1, 11);
+                bGPlug = this.addDays(gPlug1, 18)
             }
         }
 
-        bInfo["potentialPlugDate"] = earliestPotentialPlug;
-        bInfo["likelyPlugDate"] = earliestLikelyPlug;
-        bInfo["goodPlugDate"] = earliestGoodPlug;
+        bInfo["potentialPlugDate"] = pPlug1;
+        bInfo["likelyPlugDate"] = lPlug1;
+        bInfo["goodPlugDate"] = gPlug1;
 
         bInfo["sepBreedingDate"] = sepBreeding;
-        bInfo["sepPotentialPlugDate"] = sepPotentialPlug;
-        bInfo["sepLikelyPlugDate"] = sepLikelyPlug;
-        bInfo["sepGoodPlugDate"] = sepGoodPlug;
+        bInfo["sepPotentialPlugDate"] = sepPPlug;
+        bInfo["sepLikelyPlugDate"] = sepLPlug;
+        bInfo["sepGoodPlugDate"] = sepGPlug;
 
         bInfo["birthBreedingDate"] = birthBreeding;
-        bInfo["birthPotentialPlugDate"] = birthPotentialPlug;
-        bInfo["birthLikelyPlugDate"] = birthLikelyPlug;
-        bInfo["birthGoodPlugDate"] = birthGoodPlug;
+        bInfo["birthPotentialPlugDate"] = bPPlug;
+        bInfo["birthLikelyPlugDate"] = bLPlug;
+        bInfo["birthGoodPlugDate"] = bGPlug;
     },
 
-    getDamsForPlugChecks: function(dueDate = luxon.DateTime.now().toISODate()){
+    getDamsForPlugChecks: function(dueDate = this.dateToday){
         var damNums = this.damNums;
 
         const damsToCheck = [];
@@ -3869,7 +3988,7 @@ my_widget_script =
         });
     },
 
-    getDamsForSeparation: function(dueDate = luxon.DateTime.now().toISODate()){
+    getDamsForSeparation: function(dueDate = this.dateToday){
         var damNums = this.damNums;
 
         const damsToCheck = [];
@@ -3905,7 +4024,7 @@ my_widget_script =
         });
     },
 
-    getDamsForBirth: function(dueDate = luxon.DateTime.now().toISODate()){
+    getDamsForBirth: function(dueDate = this.dateToday){
         var damNums = this.damNums;
 
         const damsToCheck = [];
@@ -3940,7 +4059,7 @@ my_widget_script =
         });
     },
 
-    getDamsForImpDates: function(dueDate = luxon.DateTime.now().toISODate()){
+    getDamsForImpDates: function(dueDate = this.dateToday){
         var damNums = this.damNums;
 
         const damsForTable = [];
@@ -3965,7 +4084,27 @@ my_widget_script =
         return(damsForTable);
     },
 
-    getDamLatestBreeding: function(damInfo, dueDate = luxon.DateTime.now().toISODate()){
+    showLatestBreeding: function(){
+        var damNums = this.damNums;
+        for(damNum of damNums){
+            var damInfo = this.dams[damNum];
+            var breedingNum = this.getDamLatestBreeding(damInfo);
+            if(breedingNum){
+                var damSearch = this.damSearch(damNum);
+                var breedSearch = this.breedingSearch(breedingNum);
+                $(".breedDiv"+damSearch).hide();
+                $(".breedDiv"+breedSearch+damSearch).show().find("textarea.autoAdjust").each((i,e)=> {
+                    this.updateTextarea(e);
+                    // if(! $(e).is(":hidden")) {
+                    //     e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+                    // } 
+                });;
+            }   
+        }
+        this.resize();
+    },
+
+    getDamLatestBreeding: function(damInfo, dueDate = this.dateToday){
         var breedingNums = damInfo.breedingNums;
         var lastBreeding, lastBreedingNum;
 
@@ -3979,6 +4118,51 @@ my_widget_script =
             }
         }
         return(lastBreedingNum)
+    },
+
+    getPresentDams: function(){
+        var damNums = this.damNums;
+
+        const damsToShow = [];
+
+        for(damNum of damNums){
+            var damInfo = this.dams[damNum];
+            var euthDate = damInfo.damEuthanized;
+            if(!euthDate){
+                damsToShow.push(damNum);
+            }
+        }
+        return(damsToShow);
+    },
+
+    getInProgDams: function(){
+        var damNums = this.damNums;
+
+        const damsToShow = [];
+
+        for(damNum of damNums){
+            var damInfo = this.dams[damNum];
+            var stopShowing = damInfo.damStopShowing;
+            var euthDate = damInfo.damEuthanized;
+            if(!stopShowing && !euthDate){
+                damsToShow.push(damNum);
+            }
+        }
+        return(damsToShow);
+    },
+
+    showDamCards: function(damNums){
+        $(".damCard").hide();
+        for(damNum of damNums){
+            var damSearch = this.damSearch(damNum);
+            $(".damCard"+damSearch).show().find("textarea.autoAdjust").each((i,e)=> {
+                this.updateTextarea(e);
+                // if(! $(e).is(":hidden")) {
+                //     e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
+                // } 
+            });;
+        }
+        this.resize();
     }
 
 };
