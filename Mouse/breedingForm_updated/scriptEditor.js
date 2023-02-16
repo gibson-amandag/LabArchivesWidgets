@@ -684,7 +684,7 @@ my_widget_script =
             this.showDamCards(dams);
         });
 
-        var dams = this.getPresentDams();
+        var dams = this.getInProgDams();
         this.showDamCards(dams);
 
         this.showLatestBreeding();
