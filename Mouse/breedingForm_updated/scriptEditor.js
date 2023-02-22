@@ -615,7 +615,7 @@ my_widget_script =
         });
         
         $(".addSire").on("click", (e)=> {
-            var sireNum = this.getNextNum(this.sireNum);
+            var sireNum = this.getNextNum(this.sireNums);
             // if(this.sireNums.length > 0){
             //     var lastSire = this.sireNums[this.sireNums.length - 1];
             //     var sireNum = lastSire + 1;
