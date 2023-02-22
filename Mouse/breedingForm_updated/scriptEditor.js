@@ -908,7 +908,8 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            // top = elForHeight.offsetTop + "px";
+            top = $(elForHeight).offset().top + "px";
         }
         bootbox.confirm({
             message: msg,
@@ -953,7 +954,8 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            // top = elForHeight.offsetTop + "px";
+            top = $(elForHeight).offset().top + "px";
         }
         bootbox.confirm({
             message: msg,
@@ -995,7 +997,8 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            // top = elForHeight.offsetTop + "px";
+            top = $(elForHeight).offset().top + "px";
         }
         bootbox.prompt({
             title: thisTitle,
@@ -1558,7 +1561,7 @@ my_widget_script =
             }
 
             $body.find(".deleteDam").prop("value", "Delete Dam").on("click", (e)=>{
-                this.deleteDam(damNum);
+                this.deleteDam(damNum, e.currentTarget);
             });
 
             $body.find(".addBreeding").prop("value", "Add Breeding").on("click", (e)=>{
@@ -1756,7 +1759,7 @@ my_widget_script =
             }
 
             $body.find(".deleteSire").prop("value", "Delete Sire").on("click", (e)=>{
-                this.deleteSire(sireNum);
+                this.deleteSire(sireNum, e.currentTarget);
             });
 
             $body.find(".updateSireObj").on("change", (e)=>{
@@ -1964,7 +1967,7 @@ my_widget_script =
             }
 
             $body.find(".deleteDamGeneration").prop("value", "Delete Dam Gen").on("click", (e)=>{
-                this.deleteDamGen(damGenerationNum);
+                this.deleteDamGen(damGenerationNum, e.currentTarget);
             });
 
             $body.find(".updateDamGenerationObj").on("change", (e)=>{
@@ -2136,7 +2139,7 @@ my_widget_script =
             }
 
             $body.find(".deleteSireGeneration").prop("value", "Delete Sire Gen").on("click", (e)=>{
-                this.deleteSireGen(sireGenerationNum);
+                this.deleteSireGen(sireGenerationNum, e.currentTarget);
             });
 
             $body.find(".updateSireGenerationObj").on("change", (e)=>{
@@ -2263,7 +2266,7 @@ my_widget_script =
         return($row);
     },
 
-    deleteDam: function (damNum) {
+    deleteDam: function (damNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dam?", 
             ()=>{
@@ -2284,11 +2287,12 @@ my_widget_script =
                 $(damSearch).remove();
                 this.getDamsDue($("#dueDate").val());
             }
+            , el
         );
         this.resize();
     },
 
-    deleteSire: function (sireNum) {
+    deleteSire: function (sireNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this sire?", 
             ()=>{
@@ -2309,11 +2313,12 @@ my_widget_script =
                 $(sireSearch).remove();
                 this.getDamsDue($("#dueDate").val());
             }
+            , el
         );
         this.resize();
     },
 
-    deleteBreedingFuncs: function (damNum, breedingNum) {
+    deleteBreedingFuncs: function (damNum, breedingNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dam breeding?", 
             ()=>{
@@ -2338,13 +2343,14 @@ my_widget_script =
                 $(damSearch+breedingSearch).remove();
                 this.getDamsDue($("#dueDate").val());
             }
+            , el
         );
         this.resize();
     },
 
-    deletePlugFuncs: function (damNum, breedingNum, plugCheckNum) {
+    deletePlugFuncs: function (damNum, breedingNum, plugCheckNum, el) {
         this.runIfConfirmed(
-            "Are you sure that you wish to delete this dam breeding?", 
+            "Are you sure that you wish to delete this plug check?", 
             ()=>{
                 var thisDam = this.dams[damNum];
                 var damBreeding = thisDam.breedings[breedingNum];
@@ -2370,13 +2376,14 @@ my_widget_script =
                 $(damSearch+breedingSearch+plugSearch).remove();
                 this.getDamsDue($("#dueDate").val());
             }
+            , el
         );
         this.resize();
     },
 
-    deleteMassFuncs: function (damNum, breedingNum, massNum) {
+    deleteMassFuncs: function (damNum, breedingNum, massNum, el) {
         this.runIfConfirmed(
-            "Are you sure that you wish to delete this dam breeding?", 
+            "Are you sure that you wish to delete this mass entry?", 
             ()=>{
                 var thisDam = this.dams[damNum];
                 var damBreeding = thisDam.breedings[breedingNum];
@@ -2402,11 +2409,12 @@ my_widget_script =
                 $(damSearch+breedingSearch+massSearch).remove();
                 this.getDamsDue($("#dueDate").val());
             }
+            , el
         );
         this.resize();
     },
 
-    deleteDamGen: function (genNum) {
+    deleteDamGen: function (genNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this dam generation?", 
             ()=>{
@@ -2429,11 +2437,12 @@ my_widget_script =
                 $(damGenSearch).remove();
                 this.getDamsDue($("#dueDate").val());
             }
+            , el
         );
         this.resize();
     },
 
-    deleteSireGen: function (genNum) {
+    deleteSireGen: function (genNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this sire generation?", 
             ()=>{
@@ -2456,6 +2465,7 @@ my_widget_script =
                 $(sireGenSearch).remove();
                 this.getDamsDue($("#dueDate").val());
             }
+            , el
         );
         this.resize();
     },
@@ -2708,7 +2718,7 @@ my_widget_script =
         );
 
         $body.find(".deleteBreeding").prop("value", "Delete Breeding").on("click", (e)=>{
-            this.deleteBreedingFuncs(damNum, breedingNum);
+            this.deleteBreedingFuncs(damNum, breedingNum, e.currentTarget);
         });
 
         $body.find(".copyBreeding").prop("value", "Copy Breeding").on("click", (e)=>{
@@ -2902,7 +2912,7 @@ my_widget_script =
         }
 
         $card.find(".deletePlug").prop("value", "Delete").on("click", (e)=>{
-            this.deletePlugFuncs(damNum, breedingNum, plugNum);
+            this.deletePlugFuncs(damNum, breedingNum, plugNum, e.currentTarget);
         });
 
         $card.find(".plugRow").on("change", (e)=>{
@@ -3033,7 +3043,7 @@ my_widget_script =
         }
 
         $card.find(".deleteMass").prop("value", "Delete").on("click", (e)=>{
-            this.deleteMassFuncs(damNum, breedingNum, massNum);
+            this.deleteMassFuncs(damNum, breedingNum, massNum, e.currentTarget);
         });
 
         $card.find(".massRow").on("change", (e)=>{
