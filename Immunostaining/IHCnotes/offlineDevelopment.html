@@ -630,7 +630,7 @@ $(document).ready(function () {
             this.addTrtGroup(genNum);
         });
 
-        $("#collapseMice").on("click", (e)=>{
+        $(".collapseMice").on("click", (e)=>{
             this.collapseAllMiceCards();
         })
 
@@ -719,7 +719,15 @@ $(document).ready(function () {
         });
         this.resetMouseFilter();
 
-        $("#showPerfusion").on("click", (e)=>{
+        $(".showMice").on("click", (e)=>{
+            $(".mouseCard").show();
+        });
+
+        $(".filterMice").on("click", (e)=>{
+            this.filterMouseCards();
+        })
+
+        $(".showPerfusion").on("click", (e)=>{
             $(".perfusionInfo").show().find("textarea.autoAdjust").each((i,e)=> {
                 if(! $(e).is(":hidden")) {
                     e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
@@ -728,14 +736,14 @@ $(document).ready(function () {
             this.resize();
         });
 
-        $("#hidePerfusion").on("click", (e)=>{
+        $(".hidePerfusion").on("click", (e)=>{
             $(".perfusionInfo").hide();
             this.resize();
         });
 
         $(".perfusionInfo").hide();
 
-        $("#showRegions").on("click", (e)=>{
+        $(".showRegions").on("click", (e)=>{
             $(".regDiv").show().find("textarea.autoAdjust").each((i,e)=> {
                 if(! $(e).is(":hidden")) {
                     e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
@@ -744,7 +752,13 @@ $(document).ready(function () {
             this.resize();
         });
 
-        $("#hideRegions").on("click", (e)=>{
+        $(".watchTime").each((i,e)=> {
+            this.watchTimeNextEl($(e));
+        }).on("input", (e)=> {
+            this.watchTimeNextEl($(e.currentTarget));
+        });
+
+        $(".hideRegions").on("click", (e)=>{
             $(".regDiv").hide();
             this.resize();
         });
@@ -764,8 +778,19 @@ $(document).ready(function () {
                 , ()=>{
                     $(".sectionSize").val($("#defThickness").val());
                 }
+                , elForHeight = e.currentTarget
             )
-        })
+        });
+
+        $(".trtGroup").each((i,e)=>{
+            var trtGroup = $(e).val();
+            var mouseNum = $(e).data("mouse");
+            $(".mouseCard"+this.mouseSearch(mouseNum)).find(".card-header").data("trtgroup", trtGroup).attr("data-trtgroup", trtGroup);
+        });
+
+        for(trtGroupNum of this.trtGroupNums){
+            this.updateTrtGroupColor(trtGroupNum);
+        }
 
         this.resize();
     },
@@ -903,8 +928,10 @@ $(document).ready(function () {
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            // top = elForHeight.offsetTop + "px";
+            top = $(elForHeight).offset().top + "px";
         }
+        console.log(elForHeight, top);
         bootbox.confirm({
             message: thisMessage,
             callback: (proceed)=>{
@@ -1618,7 +1645,7 @@ $(document).ready(function () {
             }
 
             $body.find(".deleteMouse").prop("value", "Delete Mouse").on("click", (e)=>{
-                this.deleteMouse(mouseNum);
+                this.deleteMouse(mouseNum, e.currentTarget);
             });
 
             $body.find(".addRegionSeries").prop("value", "Add region series").on("click", (e)=>{
@@ -1644,7 +1671,25 @@ $(document).ready(function () {
                 this.makeMouseTable();
             });
 
+            $body.find(".trtGroup").on("change", (e)=>{
+                // $(".mouseCard"+this.mouseSearch(mouseNum)).find(".card-header").css("background-color", "blue");
+                var trtGroup = $(e.currentTarget).val();
+                $(".mouseCard"+this.mouseSearch(mouseNum)).find(".card-header").data("trtgroup", trtGroup).attr("data-trtgroup", trtGroup);
+                this.updateTrtGroupColor(trtGroup);
+            }).each((i,e)=>{
+                var trtGroup = $(e).val();
+                $(".mouseCard"+this.mouseSearch(mouseNum)).find(".card-header").data("trtgroup", trtGroup).attr("data-trtgroup", trtGroup);
+                this.updateTrtGroupColor(trtGroup);
+            });
+
         return $body
+    },
+
+    updateTrtGroupColor: function(trtGroupNum){
+        var trtGroupSearch = this.trtGroupSearch(trtGroupNum);
+        var groupColor = $(".trtColor"+trtGroupSearch).val();
+        $(".card-header" + trtGroupSearch).css("background-color", groupColor);
+        $(".filter.trtGroup").find("option" + trtGroupSearch).css("background-color", groupColor);
     },
 
     watchTimeNextEl: function ($elToWatch){
@@ -1855,7 +1900,7 @@ $(document).ready(function () {
             })
         )
         
-        var $sireDiv = $(".trtGroupCard"+this.trtGroupSearch(trtGroupNum));
+        var $trtGroupDiv = $(".trtGroupCard"+this.trtGroupSearch(trtGroupNum));
         
         var header = $("<div></div>", {
             "class": "trtGroupCalc",
@@ -1863,8 +1908,10 @@ $(document).ready(function () {
             "data-trtgroup": trtGroupNum
         }).append("Treatment group " + trtGroupNum);
         var $body = this.makeTrtGroupCardBody(trtGroupNum);
-        // console.log($sireDiv, header, $body);
-        this.makeCard($sireDiv, header, $body);
+        // console.log($trtGroupDiv, header, $body);
+        this.makeCard($trtGroupDiv, header, $body);
+
+        $trtGroupDiv.find(".card-header").data("trtgroup", trtGroupNum).attr("data-trtgroup", trtGroupNum);
 
         this.updateTrtGroupList(trtGroupNum);
     },
@@ -1929,6 +1976,7 @@ $(document).ready(function () {
         }
 
         $(".trtGroupCalc"+this.trtGroupSearch(trtGroupNum)).text(trtInfo);
+        this.updateTrtGroupColor(trtGroupNum);
     },
 
     makeTrtGroupCardBody: function(trtGroupNum){
@@ -1950,6 +1998,12 @@ $(document).ready(function () {
                     addRowClass: " updateTrtGroupObj"
                 },
                 {
+                    label: "Color:",
+                    type: "color",
+                    className: "trtColor",
+                    addRowClass: " updateTrtGroupObj"
+                },
+                {
                     label: "Delete:",
                     type: "button",
                     className: "deleteTrtGroup",
@@ -1965,12 +2019,14 @@ $(document).ready(function () {
             }
 
             $body.find(".deleteTrtGroup").prop("value", "Delete treatment group").on("click", (e)=>{
-                this.deleteTrtGroup(trtGroupNum);
+                this.deleteTrtGroup(trtGroupNum, e.currentTarget);
             });
 
             $body.find(".showTrtGroupRegions").prop("value", "Show trt group regions").on("click", (e)=>{
                 this.makeRegionsTable(trtGroupNum);
             });
+
+            $body.find(".trtColor").val("#f7f7f7");
 
             $body.find(".updateTrtGroupObj").on("change", (e)=>{
                 var $el = $(e.target); // not currentTarget, because the .updateTrtGroupObj gets put on the row
@@ -2089,7 +2145,7 @@ $(document).ready(function () {
         return($row);
     },
 
-    deleteRegFuncs: function (mouseNum, regNum) {
+    deleteRegFuncs: function (mouseNum, regNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this mouse reg?", 
             ()=>{
@@ -2114,11 +2170,12 @@ $(document).ready(function () {
                 $(mouseSearch+regSearch).remove();
                 // this.getMousesDue($("#dueDate").val());
             }
+            , elForHeight = el
         );
         this.resize();
     },
 
-    deleteMouse: function (genNum) {
+    deleteMouse: function (genNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this mouse?", 
             ()=>{
@@ -2139,11 +2196,12 @@ $(document).ready(function () {
                 // remove everything with this data attribute
                 $(mouseSearch).remove();
             }
+            , elForHeight = el
         );
         this.resize();
     },
 
-    deleteTrtGroup: function (genNum) {
+    deleteTrtGroup: function (genNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this treatment?", 
             ()=>{
@@ -2165,7 +2223,8 @@ $(document).ready(function () {
                 // remove everything with this data attribute
                 $(trtGroupSearch).remove();
                 // this.getDamsDue($("#dueDate").val());
-            }
+            },
+            el
         );
         this.resize();
     },
@@ -2258,7 +2317,7 @@ $(document).ready(function () {
         }
 
         $body.find(".deleteReg").prop("value", "Delete region/series").on("click", (e)=>{
-            this.deleteRegFuncs(mouseNum, regNum);
+            this.deleteRegFuncs(mouseNum, regNum, e.currentTarget);
         });
 
         $body.find(".copyReg").prop("value", "Copy region/series").on("click", (e)=>{
@@ -2336,11 +2395,31 @@ $(document).ready(function () {
             }
         }
 
-        console.log(tableData);
+        // console.log(tableData);
 
         $tableDiv = $(".mouseFilterTable");
 
         this.createTable(tableData, true, false, $tableDiv);
+
+        this.resize();
+    },
+
+    filterMouseCards: function(){
+        var mice = this.mice;
+        var mouseNums = this.mouseNums;
+
+        $(".mouseCard").hide();
+
+        for(mouseNum of mouseNums){
+            var mouseInfo = mice[mouseNum];
+            var info = this.getMouseInfo(mouseNum);
+
+            var proceed = this.filterMouseData(info, mouseInfo.trtGroup);
+
+            if(proceed){
+                $(".mouseCard"+this.mouseSearch(mouseNum)).show();
+            }
+        }
 
         this.resize();
     },
@@ -2451,7 +2530,7 @@ $(document).ready(function () {
             {
                 label: "Image notes",
                 type: "textarea",
-                className: "IHCNotes",
+                className: "imageNotes",
                 addRowClass: "updateRegObj"
             },
             {
@@ -2603,7 +2682,7 @@ $(document).ready(function () {
         "sacDate",
         "transportTime",
         "sacTime",
-        "uterineDescription",
+        "uterineDesc",
         "salineTime",
         "perfusionTime",
         "liverCleared",
@@ -2626,7 +2705,7 @@ $(document).ready(function () {
         $("#trtGroupFilter2").find("option").prop("selected", false);
         $("#sectionedFilter").val("either");
         $("#minAgeFilter").val("70");
-        $("#maxAgeFilter").val("180");
+        $("#maxAgeFilter").val("300");
     },
     
 
@@ -3182,6 +3261,73 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
     </div>
 </div>
 
+<div class="container mt-4">
+    <div class="row">
+        <h3 class="col">Filter Mice</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="col"><input type="button" value="Reset Filter" id="resetMouseFilter" class="fullWidth" name="resetmousefilter"/></div>
+    </div>
+    <div class="row mt-2 filterRow">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    MouseID:
+                </div>
+                <div class="col">
+                    <input type="text" id="mouseFilter2" class="filter fullWidth" name="mousefilter2" data-filter="mouse"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Min age:
+                </div>
+                <div class="col">
+                    <input type="number" id="minAgeFilter" class="filter fullWidth" name="minagefilter" value="70" data-filter="mouse"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Max age:
+                </div>
+                <div class="col">
+                    <input type="number" id="maxAgeFilter" class="filter fullWidth" name="maxagefilter" value="300" data-filter="mouse"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Treatment group:
+                </div>
+                <div class="col">
+                    <select name="trtgroupfilter2" id="trtGroupFilter2" class="filter fullWidth trtGroup" multiple="true" data-filter="mouse">
+                        &nbsp;
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Sectioned:
+                </div>
+                <div class="col">
+                    <select id="sectionedFilter" class="filter fullWidth" name="sectionedfilter" data-filter="mouse">
+                        <option value="either">Either</option>
+                        <option value="invalid">Not done</option>
+                        <option value="valid">Done</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container mt-2 card" id="miceDiv">
     <button type="button" class="row card-header htmlCardHeader">
         Mice
@@ -3200,23 +3346,28 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <div class="col"><input type="button" value="Add a mouse" id="addMouse1" name="addmouse1" class="addMouse fullWidth"></div>
         </div>
         <div class="row mt-2">
-            <div class="myLeftCol">Collapse all</div>
-            <div class="col">
-                <input type="button" value="Collapse all mice" name="collapsemice" id="collapseMice" class="fullWidth"/>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show all mice" name="showmice1" id="showMice1" class="fullWidth showMice"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Collapse all mice" name="collapsemice1" id="collapseMice1" class="fullWidth collapseMice"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Filter mice" name="filtermice1" id="filterMice1" class="fullWidth filterMice"/>
             </div>
         </div>
         <div class="row mt-2">
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <input type="button" value="Show perfusion" name="showperfusion" id="showPerfusion" class="fullWidth"/>
+                <input type="button" value="Show perfusion" name="showperfusion1" id="showPerfusion1" class="fullWidth showPerfusion"/>
             </div>
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <input type="button" value="Hide perfusion" name="hideperfusion" id="hidePerfusion" class="fullWidth"/>
+                <input type="button" value="Hide perfusion" name="hideperfusion1" id="hidePerfusion1" class="fullWidth hidePerfusion"/>
             </div>
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <input type="button" value="Show regions" name="showregions" id="showRegions" class="fullWidth"/>
+                <input type="button" value="Show regions" name="showregions1" id="showRegions1" class="fullWidth showRegions"/>
             </div>
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <input type="button" value="Hide regions" name="hideregions" id="hideRegions" class="fullWidth"/>
+                <input type="button" value="Hide regions" name="hideregions1" id="hideRegions1" class="fullWidth hideRegions"/>
             </div>
         </div>
         <div class="row mt-2" id="mouseCardDiv">
@@ -3227,6 +3378,32 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
             <div class="myLeftCol">Add a mouse</div>
             <div class="col">
                 <input type="button" value="Add a mouse" id="addMouse2" name="adddam2gen" class="addMouse fullWidth"/>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show all mice" name="showmice2" id="showMice2" class="fullWidth showMice"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Collapse all mice" name="collapsemice2" id="collapseMice2" class="fullWidth collapseMice"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Filter mice" name="filtermice2" id="filterMice2" class="fullWidth filterMice"/>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show perfusion" name="showperfusion2" id="showPerfusion2" class="fullWidth showPerfusion"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Hide perfusion" name="hideperfusion2" id="hidePerfusion2" class="fullWidth hidePerfusion"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show regions" name="showregions2" id="showRegions2" class="fullWidth showRegions"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Hide regions" name="hideregions2" id="hideRegions2" class="fullWidth hideRegions"/>
             </div>
         </div>
 
@@ -3244,7 +3421,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
 
 <div class="container mt-2 card">
     <button type="button" class="row card-header htmlCardHeader">
-        Filter Mice
+        Mice as table
     </button>
     <div class="card-body container collapse">
         <div class="row mt-2">
@@ -3256,69 +3433,7 @@ parent_form_script.wiget_version_info ={"version":20,"created":"2020-12-29T22:00
                 <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="mouseFilterTable"/>
                 <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="mouseFilterTable" />
             </div>
-        </div>
-        <div class="row mt-2">
-            <div class="col"><input type="button" value="Reset Filter" id="resetMouseFilter" class="fullWidth" name="resetmousefilter"/></div>
-        </div>
-
-        <div class="row mt-2 filterRow">
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        MouseID:
-                    </div>
-                    <div class="col">
-                        <input type="text" id="mouseFilter2" class="filter fullWidth" name="mousefilter2" data-filter="mouse"/>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        Min age:
-                    </div>
-                    <div class="col">
-                        <input type="number" id="minAgeFilter" class="filter fullWidth" name="minagefilter" value="70" data-filter="mouse"/>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        Max age:
-                    </div>
-                    <div class="col">
-                        <input type="number" id="maxAgeFilter" class="filter fullWidth" name="maxagefilter" value="180" data-filter="mouse"/>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        Treatment group:
-                    </div>
-                    <div class="col">
-                        <select name="trtgroupfilter2" id="trtGroupFilter2" class="filter fullWidth trtGroup" multiple="true" data-filter="mouse">
-                            &nbsp;
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        Sectioned:
-                    </div>
-                    <div class="col">
-                        <select id="sectionedFilter" class="filter fullWidth" name="sectionedfilter" data-filter="mouse">
-                            <option value="either">Either</option>
-                            <option value="invalid">Not done</option>
-                            <option value="valid">Done</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </div>       
 
         <div class="table-responsive xsTableDiv mouseFilterTable mt-3">
             &nbsp;

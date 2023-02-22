@@ -570,7 +570,7 @@ my_widget_script =
             this.addTrtGroup(genNum);
         });
 
-        $("#collapseMice").on("click", (e)=>{
+        $(".collapseMice").on("click", (e)=>{
             this.collapseAllMiceCards();
         })
 
@@ -659,7 +659,15 @@ my_widget_script =
         });
         this.resetMouseFilter();
 
-        $("#showPerfusion").on("click", (e)=>{
+        $(".showMice").on("click", (e)=>{
+            $(".mouseCard").show();
+        });
+
+        $(".filterMice").on("click", (e)=>{
+            this.filterMouseCards();
+        })
+
+        $(".showPerfusion").on("click", (e)=>{
             $(".perfusionInfo").show().find("textarea.autoAdjust").each((i,e)=> {
                 if(! $(e).is(":hidden")) {
                     e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
@@ -668,14 +676,14 @@ my_widget_script =
             this.resize();
         });
 
-        $("#hidePerfusion").on("click", (e)=>{
+        $(".hidePerfusion").on("click", (e)=>{
             $(".perfusionInfo").hide();
             this.resize();
         });
 
         $(".perfusionInfo").hide();
 
-        $("#showRegions").on("click", (e)=>{
+        $(".showRegions").on("click", (e)=>{
             $(".regDiv").show().find("textarea.autoAdjust").each((i,e)=> {
                 if(! $(e).is(":hidden")) {
                     e.setAttribute('style', 'height:' + (e.scrollHeight) + 'px;overflow-y:hidden;'); //add "display:inline-block"; if not working for ifOther textboxes in cards
@@ -684,7 +692,13 @@ my_widget_script =
             this.resize();
         });
 
-        $("#hideRegions").on("click", (e)=>{
+        $(".watchTime").each((i,e)=> {
+            this.watchTimeNextEl($(e));
+        }).on("input", (e)=> {
+            this.watchTimeNextEl($(e.currentTarget));
+        });
+
+        $(".hideRegions").on("click", (e)=>{
             $(".regDiv").hide();
             this.resize();
         });
@@ -704,8 +718,19 @@ my_widget_script =
                 , ()=>{
                     $(".sectionSize").val($("#defThickness").val());
                 }
+                , elForHeight = e.currentTarget
             )
-        })
+        });
+
+        $(".trtGroup").each((i,e)=>{
+            var trtGroup = $(e).val();
+            var mouseNum = $(e).data("mouse");
+            $(".mouseCard"+this.mouseSearch(mouseNum)).find(".card-header").data("trtgroup", trtGroup).attr("data-trtgroup", trtGroup);
+        });
+
+        for(trtGroupNum of this.trtGroupNums){
+            this.updateTrtGroupColor(trtGroupNum);
+        }
 
         this.resize();
     },
@@ -843,8 +868,10 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            // top = elForHeight.offsetTop + "px";
+            top = $(elForHeight).offset().top + "px";
         }
+        console.log(elForHeight, top);
         bootbox.confirm({
             message: thisMessage,
             callback: (proceed)=>{
@@ -1558,7 +1585,7 @@ my_widget_script =
             }
 
             $body.find(".deleteMouse").prop("value", "Delete Mouse").on("click", (e)=>{
-                this.deleteMouse(mouseNum);
+                this.deleteMouse(mouseNum, e.currentTarget);
             });
 
             $body.find(".addRegionSeries").prop("value", "Add region series").on("click", (e)=>{
@@ -1584,7 +1611,25 @@ my_widget_script =
                 this.makeMouseTable();
             });
 
+            $body.find(".trtGroup").on("change", (e)=>{
+                // $(".mouseCard"+this.mouseSearch(mouseNum)).find(".card-header").css("background-color", "blue");
+                var trtGroup = $(e.currentTarget).val();
+                $(".mouseCard"+this.mouseSearch(mouseNum)).find(".card-header").data("trtgroup", trtGroup).attr("data-trtgroup", trtGroup);
+                this.updateTrtGroupColor(trtGroup);
+            }).each((i,e)=>{
+                var trtGroup = $(e).val();
+                $(".mouseCard"+this.mouseSearch(mouseNum)).find(".card-header").data("trtgroup", trtGroup).attr("data-trtgroup", trtGroup);
+                this.updateTrtGroupColor(trtGroup);
+            });
+
         return $body
+    },
+
+    updateTrtGroupColor: function(trtGroupNum){
+        var trtGroupSearch = this.trtGroupSearch(trtGroupNum);
+        var groupColor = $(".trtColor"+trtGroupSearch).val();
+        $(".card-header" + trtGroupSearch).css("background-color", groupColor);
+        $(".filter.trtGroup").find("option" + trtGroupSearch).css("background-color", groupColor);
     },
 
     watchTimeNextEl: function ($elToWatch){
@@ -1795,7 +1840,7 @@ my_widget_script =
             })
         )
         
-        var $sireDiv = $(".trtGroupCard"+this.trtGroupSearch(trtGroupNum));
+        var $trtGroupDiv = $(".trtGroupCard"+this.trtGroupSearch(trtGroupNum));
         
         var header = $("<div></div>", {
             "class": "trtGroupCalc",
@@ -1803,8 +1848,10 @@ my_widget_script =
             "data-trtgroup": trtGroupNum
         }).append("Treatment group " + trtGroupNum);
         var $body = this.makeTrtGroupCardBody(trtGroupNum);
-        // console.log($sireDiv, header, $body);
-        this.makeCard($sireDiv, header, $body);
+        // console.log($trtGroupDiv, header, $body);
+        this.makeCard($trtGroupDiv, header, $body);
+
+        $trtGroupDiv.find(".card-header").data("trtgroup", trtGroupNum).attr("data-trtgroup", trtGroupNum);
 
         this.updateTrtGroupList(trtGroupNum);
     },
@@ -1869,6 +1916,7 @@ my_widget_script =
         }
 
         $(".trtGroupCalc"+this.trtGroupSearch(trtGroupNum)).text(trtInfo);
+        this.updateTrtGroupColor(trtGroupNum);
     },
 
     makeTrtGroupCardBody: function(trtGroupNum){
@@ -1890,6 +1938,12 @@ my_widget_script =
                     addRowClass: " updateTrtGroupObj"
                 },
                 {
+                    label: "Color:",
+                    type: "color",
+                    className: "trtColor",
+                    addRowClass: " updateTrtGroupObj"
+                },
+                {
                     label: "Delete:",
                     type: "button",
                     className: "deleteTrtGroup",
@@ -1905,12 +1959,14 @@ my_widget_script =
             }
 
             $body.find(".deleteTrtGroup").prop("value", "Delete treatment group").on("click", (e)=>{
-                this.deleteTrtGroup(trtGroupNum);
+                this.deleteTrtGroup(trtGroupNum, e.currentTarget);
             });
 
             $body.find(".showTrtGroupRegions").prop("value", "Show trt group regions").on("click", (e)=>{
                 this.makeRegionsTable(trtGroupNum);
             });
+
+            $body.find(".trtColor").val("#f7f7f7");
 
             $body.find(".updateTrtGroupObj").on("change", (e)=>{
                 var $el = $(e.target); // not currentTarget, because the .updateTrtGroupObj gets put on the row
@@ -2029,7 +2085,7 @@ my_widget_script =
         return($row);
     },
 
-    deleteRegFuncs: function (mouseNum, regNum) {
+    deleteRegFuncs: function (mouseNum, regNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this mouse reg?", 
             ()=>{
@@ -2054,11 +2110,12 @@ my_widget_script =
                 $(mouseSearch+regSearch).remove();
                 // this.getMousesDue($("#dueDate").val());
             }
+            , elForHeight = el
         );
         this.resize();
     },
 
-    deleteMouse: function (genNum) {
+    deleteMouse: function (genNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this mouse?", 
             ()=>{
@@ -2079,11 +2136,12 @@ my_widget_script =
                 // remove everything with this data attribute
                 $(mouseSearch).remove();
             }
+            , elForHeight = el
         );
         this.resize();
     },
 
-    deleteTrtGroup: function (genNum) {
+    deleteTrtGroup: function (genNum, el) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this treatment?", 
             ()=>{
@@ -2105,7 +2163,8 @@ my_widget_script =
                 // remove everything with this data attribute
                 $(trtGroupSearch).remove();
                 // this.getDamsDue($("#dueDate").val());
-            }
+            },
+            el
         );
         this.resize();
     },
@@ -2198,7 +2257,7 @@ my_widget_script =
         }
 
         $body.find(".deleteReg").prop("value", "Delete region/series").on("click", (e)=>{
-            this.deleteRegFuncs(mouseNum, regNum);
+            this.deleteRegFuncs(mouseNum, regNum, e.currentTarget);
         });
 
         $body.find(".copyReg").prop("value", "Copy region/series").on("click", (e)=>{
@@ -2276,11 +2335,31 @@ my_widget_script =
             }
         }
 
-        console.log(tableData);
+        // console.log(tableData);
 
         $tableDiv = $(".mouseFilterTable");
 
         this.createTable(tableData, true, false, $tableDiv);
+
+        this.resize();
+    },
+
+    filterMouseCards: function(){
+        var mice = this.mice;
+        var mouseNums = this.mouseNums;
+
+        $(".mouseCard").hide();
+
+        for(mouseNum of mouseNums){
+            var mouseInfo = mice[mouseNum];
+            var info = this.getMouseInfo(mouseNum);
+
+            var proceed = this.filterMouseData(info, mouseInfo.trtGroup);
+
+            if(proceed){
+                $(".mouseCard"+this.mouseSearch(mouseNum)).show();
+            }
+        }
 
         this.resize();
     },
@@ -2391,7 +2470,7 @@ my_widget_script =
             {
                 label: "Image notes",
                 type: "textarea",
-                className: "IHCNotes",
+                className: "imageNotes",
                 addRowClass: "updateRegObj"
             },
             {
@@ -2543,7 +2622,7 @@ my_widget_script =
         "sacDate",
         "transportTime",
         "sacTime",
-        "uterineDescription",
+        "uterineDesc",
         "salineTime",
         "perfusionTime",
         "liverCleared",
@@ -2566,7 +2645,7 @@ my_widget_script =
         $("#trtGroupFilter2").find("option").prop("selected", false);
         $("#sectionedFilter").val("either");
         $("#minAgeFilter").val("70");
-        $("#maxAgeFilter").val("180");
+        $("#maxAgeFilter").val("300");
     },
     
 

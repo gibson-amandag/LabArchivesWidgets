@@ -83,6 +83,73 @@
     </div>
 </div>
 
+<div class="container mt-4">
+    <div class="row">
+        <h3 class="col">Filter Mice</h3>
+    </div>
+    <div class="row mt-2">
+        <div class="col"><input type="button" value="Reset Filter" id="resetMouseFilter" class="fullWidth" name="resetmousefilter"/></div>
+    </div>
+    <div class="row mt-2 filterRow">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    MouseID:
+                </div>
+                <div class="col">
+                    <input type="text" id="mouseFilter2" class="filter fullWidth" name="mousefilter2" data-filter="mouse"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Min age:
+                </div>
+                <div class="col">
+                    <input type="number" id="minAgeFilter" class="filter fullWidth" name="minagefilter" value="70" data-filter="mouse"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Max age:
+                </div>
+                <div class="col">
+                    <input type="number" id="maxAgeFilter" class="filter fullWidth" name="maxagefilter" value="300" data-filter="mouse"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Treatment group:
+                </div>
+                <div class="col">
+                    <select name="trtgroupfilter2" id="trtGroupFilter2" class="filter fullWidth trtGroup" multiple="true" data-filter="mouse">
+                        &nbsp;
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="row">
+                <div class="col-12">
+                    Sectioned:
+                </div>
+                <div class="col">
+                    <select id="sectionedFilter" class="filter fullWidth" name="sectionedfilter" data-filter="mouse">
+                        <option value="either">Either</option>
+                        <option value="invalid">Not done</option>
+                        <option value="valid">Done</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container mt-2 card" id="miceDiv">
     <button type="button" class="row card-header htmlCardHeader">
         Mice
@@ -101,23 +168,28 @@
             <div class="col"><input type="button" value="Add a mouse" id="addMouse1" name="addmouse1" class="addMouse fullWidth"></div>
         </div>
         <div class="row mt-2">
-            <div class="myLeftCol">Collapse all</div>
-            <div class="col">
-                <input type="button" value="Collapse all mice" name="collapsemice" id="collapseMice" class="fullWidth"/>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show all mice" name="showmice1" id="showMice1" class="fullWidth showMice"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Collapse all mice" name="collapsemice1" id="collapseMice1" class="fullWidth collapseMice"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Filter mice" name="filtermice1" id="filterMice1" class="fullWidth filterMice"/>
             </div>
         </div>
         <div class="row mt-2">
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <input type="button" value="Show perfusion" name="showperfusion" id="showPerfusion" class="fullWidth"/>
+                <input type="button" value="Show perfusion" name="showperfusion1" id="showPerfusion1" class="fullWidth showPerfusion"/>
             </div>
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <input type="button" value="Hide perfusion" name="hideperfusion" id="hidePerfusion" class="fullWidth"/>
+                <input type="button" value="Hide perfusion" name="hideperfusion1" id="hidePerfusion1" class="fullWidth hidePerfusion"/>
             </div>
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <input type="button" value="Show regions" name="showregions" id="showRegions" class="fullWidth"/>
+                <input type="button" value="Show regions" name="showregions1" id="showRegions1" class="fullWidth showRegions"/>
             </div>
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <input type="button" value="Hide regions" name="hideregions" id="hideRegions" class="fullWidth"/>
+                <input type="button" value="Hide regions" name="hideregions1" id="hideRegions1" class="fullWidth hideRegions"/>
             </div>
         </div>
         <div class="row mt-2" id="mouseCardDiv">
@@ -128,6 +200,32 @@
             <div class="myLeftCol">Add a mouse</div>
             <div class="col">
                 <input type="button" value="Add a mouse" id="addMouse2" name="adddam2gen" class="addMouse fullWidth"/>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show all mice" name="showmice2" id="showMice2" class="fullWidth showMice"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Collapse all mice" name="collapsemice2" id="collapseMice2" class="fullWidth collapseMice"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Filter mice" name="filtermice2" id="filterMice2" class="fullWidth filterMice"/>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show perfusion" name="showperfusion2" id="showPerfusion2" class="fullWidth showPerfusion"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Hide perfusion" name="hideperfusion2" id="hidePerfusion2" class="fullWidth hidePerfusion"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Show regions" name="showregions2" id="showRegions2" class="fullWidth showRegions"/>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <input type="button" value="Hide regions" name="hideregions2" id="hideRegions2" class="fullWidth hideRegions"/>
             </div>
         </div>
 
@@ -145,7 +243,7 @@
 
 <div class="container mt-2 card">
     <button type="button" class="row card-header htmlCardHeader">
-        Filter Mice
+        Mice as table
     </button>
     <div class="card-body container collapse">
         <div class="row mt-2">
@@ -157,69 +255,7 @@
                 <br />Copy Table Head? <input id="copyHead1" name="copyhead1" type="checkbox" class="copyHead" data-table="mouseFilterTable"/>
                 <br />Transpose Table? <input id="transpose1" name="transpose1" type="checkbox" class="transpose" data-table="mouseFilterTable" />
             </div>
-        </div>
-        <div class="row mt-2">
-            <div class="col"><input type="button" value="Reset Filter" id="resetMouseFilter" class="fullWidth" name="resetmousefilter"/></div>
-        </div>
-
-        <div class="row mt-2 filterRow">
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        MouseID:
-                    </div>
-                    <div class="col">
-                        <input type="text" id="mouseFilter2" class="filter fullWidth" name="mousefilter2" data-filter="mouse"/>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        Min age:
-                    </div>
-                    <div class="col">
-                        <input type="number" id="minAgeFilter" class="filter fullWidth" name="minagefilter" value="70" data-filter="mouse"/>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        Max age:
-                    </div>
-                    <div class="col">
-                        <input type="number" id="maxAgeFilter" class="filter fullWidth" name="maxagefilter" value="180" data-filter="mouse"/>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        Treatment group:
-                    </div>
-                    <div class="col">
-                        <select name="trtgroupfilter2" id="trtGroupFilter2" class="filter fullWidth trtGroup" multiple="true" data-filter="mouse">
-                            &nbsp;
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="row">
-                    <div class="col-12">
-                        Sectioned:
-                    </div>
-                    <div class="col">
-                        <select id="sectionedFilter" class="filter fullWidth" name="sectionedfilter" data-filter="mouse">
-                            <option value="either">Either</option>
-                            <option value="invalid">Not done</option>
-                            <option value="valid">Done</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </div>       
 
         <div class="table-responsive xsTableDiv mouseFilterTable mt-3">
             &nbsp;
