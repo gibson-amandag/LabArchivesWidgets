@@ -2772,17 +2772,26 @@ my_widget_script =
             )
         )
 
+        if(this.mode == "view"){
+            var delIdx = labels.indexOf("Delete");
+            if(delIdx > -1){
+                labels.splice(delIdx, 1);
+            }
+        }
+
         var numLabels = labels.length;
         var colText = "col-" + Math.floor(12/numLabels);
         
         for(label of labels){
-            $cardDiv.find(".labelRow").append(
-                $("<div></div>", {
-                    "class": "font-weight-bold " + colText
-                }).append(
-                    label
-                )
-            );
+            // if(!(this.mode == "view" && label == "Delete")){
+                $cardDiv.find(".labelRow").append(
+                    $("<div></div>", {
+                        "class": "font-weight-bold " + colText
+                    }).append(
+                        label
+                    )
+                );
+            // }
         }
 
         return $cardDiv
@@ -2839,11 +2848,13 @@ my_widget_script =
         );
 
         for(label of this.plugLabels){
-            $card.find(".labelRow").append(
-                $("<div></div>", {
-                    "class": "col-12 font-weight-bold"
-                }).append(label)
-            );
+            if(!(this.mode == "view" && label == "Delete")){
+                $card.find(".labelRow").append(
+                    $("<div></div>", {
+                        "class": "col-12 font-weight-bold"
+                    }).append(label)
+                );
+            }
         }
 
         var inputCols = [
@@ -2883,11 +2894,15 @@ my_widget_script =
             }, {
                 "type": "textarea",
                 "className": "plugComments"
-            }, {
-                "type": "button",
-                "className": "deletePlug"
             }
         ]
+        
+        if(this.mode !== "view"){
+            inputCols.push({
+                "type": "button",
+                "className": "deletePlug"
+            })
+        }
 
         for(colObj of inputCols){
             $card.find(".plugRow").append(
@@ -2981,11 +2996,13 @@ my_widget_script =
         );
 
         for(label of this.massLabels){
-            $card.find(".labelRow").append(
-                $("<div></div>", {
-                    "class": "col-12 font-weight-bold"
-                }).append(label)
-            );
+            if(!(this.mode == "view" && label == "Delete")){
+                $card.find(".labelRow").append(
+                    $("<div></div>", {
+                        "class": "col-12 font-weight-bold"
+                    }).append(label)
+                );
+            }
         }
 
         var inputCols = [
@@ -2999,12 +3016,15 @@ my_widget_script =
             }, 
             {
                 "type": "noEntry",
-            },
-            {
-                "type": "button",
-                "className": "deleteMass"
             }
         ]
+
+        if(this.mode !== "view"){
+            inputCols.push({
+                "type": "button",
+                "className": "deleteMass"
+            })
+        }
 
         for(colObj of inputCols){
             if(colObj.type === "noEntry"){
