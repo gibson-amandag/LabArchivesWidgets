@@ -36,7 +36,7 @@ my_widget_script =
     },
     // ********************** END CUSTOM TO_JSON METHODS **********************
 
-        makeRow: function(label, $input, addRowClass = ""){
+    makeRow: function(label, $input, addRowClass = ""){
         var myLeftCol = "col-12 col-lg-6";
         if(addRowClass){
             addRowClass = " " + addRowClass

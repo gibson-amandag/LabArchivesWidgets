@@ -15,6 +15,8 @@ my_widget_script = {
             element = element.offsetParent;
             // console.log("offsetTop", offsetTop)
         }
+        // 2023-02-22: Other possibility that seems to work is
+        // $("selector").offset().top; Seems like for initial tests, this is also working when offsetTop isn't
         return offsetTop
     },
 
