@@ -114,13 +114,17 @@ my_widget_script =
         //uncomment to inspect and view code while developing
         // debugger;
         
-        
-        //Get the parsed JSON data
-        var parsedJson = this.parseInitJson(json_data);
-        
-        // Put this before parseInitJson, and it fills everything in w/ test data
+        // Want this to be before the parseInitJson so that any user-changed data persists in the widget
+        // Note that this means that when viewing in development mode, there's going to be all sorts of
+        // gibberish test data - just press "update entries" to fix this
+
         this.makePlates();
         this.makeWellEntries();
+        
+        //Get the parsed JSON data
+        // console.log(json_data);
+        var parsedJson = this.parseInitJson(json_data);
+        
         
 
         //Uncomment to print parsedJson to console
@@ -524,12 +528,13 @@ my_widget_script =
         });
 
         $("#downloadCSV").on("click", (e)=>{
-            var date = $("#date").val();
-            // var exp = $("#experiment").val(); // this can get messy
-            var fileName = "cortPlate_"
-            // +exp+"_"
-            +date;
+            var fileName = "cortPlate_" + this.buildFileName(); 
+
             this.exportAllTablesToCSV(fileName);
+        });
+
+        $("#downloadMetaCSV").on("click", (e)=>{
+            this.exportMetaDataCSV();
         });
 
         $(".copyMouseIDs").on("click", (e)=>{
@@ -575,11 +580,11 @@ my_widget_script =
             this.checkAndUpdateWells();
         });
         
-        this.calcNumAssignedWells();
-        this.checkAndUpdateWells();
+        // this.calcNumAssignedWells();
+        // this.checkAndUpdateWells();
         
         $(".type").each((i,e)=>{
-            this.fillByType($(e));
+            this.adjustViewByType($(e));
         }).on("change", (e)=>{
             this.fillByType($(e.currentTarget));
         });
@@ -1033,37 +1038,45 @@ my_widget_script =
      * @param {string} table the id of the table that will be exported
      */
     exportTableToCSV: function (filename, table) {
-        var csv = [];
-        var datatable = document.getElementById(table);
-        var rows = datatable.querySelectorAll("tr");
-
-        for (var i = 0; i < rows.length; i++) {
-            var row = [], cols = rows[i].querySelectorAll("td, th");
-
-            for (var j = 0; j < cols.length; j++) {
-                var cellText = '"' + cols[j].innerText + '"'; //add to protect from commas within cell
-                row.push(cellText);
-            };
-
-            csv.push(row.join(","));
-        }
+        var tableArray = this.getTableArray($("."+ table).find("table"), copyHead = true, transpose = false);
+        var tableString = this.convertRowArrayToString(tableArray, ",", "\n");
 
         // Download CSV file
-        this.downloadCSV(csv.join("\n"), filename);
+        this.downloadCSV(tableString, filename);
     },
 
-    createCSV: function($table){
-        var csv = [];
-        $table.find("tr").each((i,e)=>{
-            var row = [];
-            $(e).find("td, th").each((i,e)=>{
-                var cellText = '"' + e.innerText + '"';
-                row.push(cellText)
-            })
-            csv.push(row.join(","));
-        });
-        csv = csv.join("\n");
-        return(csv);
+    buildPlateID: function(){
+        var date = $("#date").val();
+        if(!date){
+            date = luxon.DateTime.now().toISODate();
+        }
+        var plateNum = parseInt($("#plateNumber").val());
+        var plateLetter = "a";
+        if(plateNum > 0){
+            plateLetter = String.fromCharCode(plateNum - 1 + "a".charCodeAt(0));
+        }
+        var plateID = date + plateLetter;
+        return(plateID)
+    },
+
+    buildFileName: function(){
+        var fileName = this.buildPlateID();
+        
+        var initials = $("#initials").val();
+        var kitLot = $("#kitLot").val();
+        var cortLot = $("#cortLot").val();
+
+        if(initials){
+            fileName += "_by" + initials;
+        }
+        if(kitLot){
+            fileName += "_kit" + kitLot
+        }
+        if(cortLot){
+            fileName += "_cort" + cortLot
+        }
+
+        return(fileName);
     },
 
     exportAllTablesToCSV: function(filename){
@@ -1072,9 +1085,12 @@ my_widget_script =
         for(var i = 0; i < this.plateTypes.length; i++){
             var plateType = this.plateTypes[i];
 
-            var $plate = $(".plateImg"+this.plateSearch(plateType))
+            var $plate = $(".plateImg"+this.plateSearch(plateType));
 
-            csv.push(this.createCSV($plate));
+            var tableArray = this.getTableArray($plate, copyHead = true, transpose = false);
+            var tableString = this.convertRowArrayToString(tableArray, ",", "\n");
+
+            csv.push(tableString);
             // console.log(csv);
         }
 
@@ -1098,23 +1114,12 @@ my_widget_script =
     //  , $transpose
      ){
         var data_valid = this.data_valid_form($errorMsg); // update data_valid_form to print to specific error field
-        // var copyHead = false
         var transpose = false;
-
-        // //only copy the heading when the input box is checked
-        // if ($copyHead.is(":checked")) {
-        //     copyHead = true;
-        // }
-
-        // if ($transpose.is(":checked")) {
-        //     transpose = true;
-        // }
 
         if (data_valid) { //if data is valid
             $tableDiv.show(); //show the table
             this.resize(); //resize
-            this.copyTable($tableToCopy, copyHead, $divForCopy, transpose); //copy table
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            this.copyTable($tableToCopy, copyHead, $divForCopy, $errorMsg, transpose); //copy table
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
@@ -1140,11 +1145,27 @@ my_widget_script =
      * @param {*} $table - jQuery object for the table that will be copied
      * @param {*} copyHead - true/false for whether or not the table head should be copied
      * @param {*} $divForCopy - where the temp textarea should be added
+     * @param {*} $errorMsg - where to update the user
      * @param {*} transpose - true if table should be transposed
      */
      
-     copyTable: function ($table, copyHead, $divForCopy, transpose) {
-        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+     copyTable: function ($table, copyHead, $divForCopy, $errorMsg, transpose) {
+        var tableArray = this.getTableArray($table, copyHead, transpose);
+        var tableString = this.convertRowArrayToString(tableArray, "\t", "\n");
+        this.copyStringToClipboard(tableString, $divForCopy, $errorMsg);
+    },
+
+    /**
+     * Get the items from an HTML table into an array
+     * 
+     * If the table has form inputs, then you would need to adjust the $(e).text() to reflect .val() instead
+     * 
+     * @param {*} $table The table element that is to be read
+     * @param {*} copyHead Whether or not to include the head of the table
+     * @param {*} transpose Whether or not to tanspose the table
+     * @returns the table as an array, with the each row being and element, and each row as an array where each cell is an element
+     */
+     getTableArray: function ($table, copyHead, transpose) {
         var rows = [];
         var rowNum = 0;
         // If you copying the head of the table
@@ -1183,23 +1204,81 @@ my_widget_script =
             // If table is not being transposed, add one to the row number for each row
             if(!transpose){rowNum++;}
         });
+        return(rows);
+    },
 
-        // For each row, join together all of the elements of the array with a \t to separate them (tab)
-        for(var i = 0; i < rows.length; i++){
-            rows[i] = rows[i].join("\t");
+    /**
+     * Take an array from a table and convert it to a string for export to clipboard or saving to csv
+     * @param {*} rowArray An array where each row is an element, and each row is also an array containing each cell as an element
+     * @param {*} cellSepString The string that should be used to separate each cell (column)
+     * @param {*} newRowString The string that should be used to separate each row
+     * @returns A single string of the table
+     */
+     convertRowArrayToString: function(rowArray, cellSepString = "\t", newRowString = "\n"){
+        var rowString = [];
+        rowArray.forEach((row)=>{
+            if(row.length){
+                row.forEach((cell, i)=>{
+                    if(cell.includes(cellSepString) || cell.includes(newRowString)){
+                        row[i] = '"' + cell + '"'; // protect if includes separator
+                    }
+                });
+                rowString.push(row.join(cellSepString));
+            }
+        });
+        var tableString = rowString.join(newRowString);
+        return(tableString)
+    },
+
+    /**
+     * This function will copy a string to the clipboard. If the string is blank, changes it to a single space
+     * otherwise nothing is copied
+     * 
+     * The temporary <textarea> is appended to the HTML form and selected.
+     * After the <textarea> is copied, it is then removed from the page.
+     * 
+     * @param {*} textStr The string that is to be copied to the clipboard
+     * @param {*} $divForCopy The div on the page that should be used to create the temporary textarea
+     * @param {*} $errorMsg Where messages to the user should be printed regarding status of the copy
+     */
+     copyStringToClipboard: function(textStr, $divForCopy, $errorMsg){
+        var $temp = $("<text" + "area style='opacity:0;'></text" + "area>");
+
+        if(textStr){
+            errorStr = "Copy attempted";
+            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copy attempted</span>");
+        } else {
+            textStr = " ";
+            $errorMsg.html("<span style='color:red; font-size:24px;'>Nothing to copy</span>");
         }
+        $temp.text(textStr);
 
-        // Add each row to the temporary text area using \n (new line) to separate them
-        $temp.append(rows.join("\n"));
-        // Append the textarea to the div for copy, then select it
         $temp.appendTo($divForCopy).select();
-        // Copy the "selected" text
         document.execCommand("copy");
-        $temp.remove(); //remove temp
+        $temp.remove();
+        this.resize();
+        
         // Doesn't work within LA b/c of permissions, but would be easier way to copy w/o appending to page
         // navigator.clipboard.writeText(rows.join("\n")); 
     },
     //#endregion copy tables
+
+    exportMetaDataCSV: function(){
+        // debugger;
+        var headers = ["plateID", "date", "initials", "kitLot", "cortLot", "experiment", "description"];
+        var date = $("#date").val();
+        if(!date){
+            date = luxon.DateTime.now().toISODate();
+        }
+        var vals = [this.buildPlateID(), date, $("#initials").val(), $("#kitLot").val(), $("#cortLot").val(), $("#experiment").val(), $("#description").val()]
+        
+        var tableArray = [headers, vals];
+
+        var tableString = this.convertRowArrayToString(tableArray, ",", "\n");
+
+        var fileName = "cortInfo_" + this.buildFileName();
+        this.downloadCSV(tableString, fileName);
+    },
 
     //#region cards
     toggleCard: function ($cardHead) {
@@ -1306,7 +1385,7 @@ my_widget_script =
         },
         "QC": {
             label: "quality control",
-            plateID: "C_2",
+            plateID: "C_3",
             mouseID: "",
             time:"",
             stdPgPerWell:"",
@@ -1604,7 +1683,49 @@ my_widget_script =
         this.resize();
     },
 
+    adjustViewByType: function($sampleType){
+        var type = $sampleType.val();
+        var infoObj = this.sampleTypes[type];
+        var wellGroup = $sampleType.data("group");
+        var groupSearch = this.groupSearch(wellGroup);
+
+        var wellIDs = this.getWellIDsFromGroupNum(wellGroup);
+
+        $(groupSearch + "[data-entry]").show();
+
+        for( info in infoObj ){
+            if(info !== "label"){
+                var watchSearch = this.watchSearch(info);
+                var entrySearch = this.dataSearch("entry", info);
+                var val = infoObj[info];
+
+                // if(val === "STD"){
+                //     var currentVal = $(watchSearch + groupSearch).val();
+                //     if(currentVal.startsWith("STD")){
+                //         val = currentVal;
+                //     }
+                // }
+
+                // // Update the entry values
+                // $(watchSearch + groupSearch).val(val);
+
+                // if(info === "plateID"){
+                //     $(groupSearch+this.calcSearch("plateID")).text(val);
+                // }
+
+                // // // Update the table
+                // this.fillWells(info, wellIDs, val);
+
+                // Hide if a blank value specified
+                if(!val){
+                    $(groupSearch + entrySearch).hide();
+                }
+            }
+        }
+        this.resize();
+    },
     fillByType: function($sampleType){
+        // debugger;
         var type = $sampleType.val();
         var infoObj = this.sampleTypes[type];
         var wellGroup = $sampleType.data("group");
@@ -1667,6 +1788,7 @@ my_widget_script =
     },
 
     checkAndUpdateWells: function(){
+        // debugger;
         var numNSB = $("#numNSB").val();
         var numSTD = $("#numSTD").val();
         var numBuffer = $("#numBuffer").val();

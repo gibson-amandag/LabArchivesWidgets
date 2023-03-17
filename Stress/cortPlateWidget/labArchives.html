@@ -63,6 +63,31 @@
         </div>
     </div>
     <div class="row mt-2">
+        <div class="myLeftCol"><h3>Plate # on date: </h3></div>
+        <div class="col">
+            <input type="number" name="platenumber" id="plateNumber" class="fullWidth">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol"><h3>Initials: </h3></div>
+        <div class="col">
+            <input type="text" name="initials" id="initials" class="fullWidth">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol"><h3>Kit lot: </h3></div>
+        <div class="col">
+            <input type="text" name="kitlot" id="kitLot" class="fullWidth">
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="myLeftCol"><h3>Cort standard lot: </h3></div>
+        <div class="col">
+            <input type="text" name="cortlot" id="cortLot" class="fullWidth">
+        </div>
+    </div>
+
+    <div class="row mt-2">
         <div class="myLeftCol"><h3>Description: </h3></div>
         <div class="col">
             <textarea name="description" id="description" row="1" class="fullWidth autoAdjust"></textarea>
@@ -208,6 +233,10 @@
 <div class="container mt-3">
     <div class="row">
         <div class="col"><input type="button" value="Download All Tables As CSV for R" id="downloadCSV" name="downloadcsv" class="fullWidth"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col"><input type="button" value="Download Plate Info As CSV for R" id="downloadMetaCSV" name="downloadmetacsv" class="fullWidth"/>
         </div>
     </div>
 </div>
