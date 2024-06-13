@@ -95,6 +95,86 @@ my_widget_script =
     },
 
     init: function (mode, json_data) {
+        // jQuery for bootstrap
+        this.include(
+            "https://code.jquery.com/jquery-3.5.1.min.js",
+            "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=",
+            "anonymous",
+            ()=>{
+                $(document).ready(
+                    ()=>{
+                        // console.log("After load", $.fn.jquery);
+                        
+                        // Load bootstrap
+                        this.include(
+                            "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js",
+                            "sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl",
+                            "anonymous",
+                            ()=>{
+                                $(document).ready(
+                                    ()=>{
+                                        // Load Luxon
+                                        this.include(
+                                            "https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js",
+                                            "sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=",
+                                            "anonymous",
+                                            ()=>{
+                                                $(document).ready(
+                                                    ()=>{
+                                                        // Load bootbox - need the bootstrap JS to be here first, with appropriate jQuery
+                                                        this.include(
+                                                            "https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js",
+                                                            "sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==",
+                                                            "anonymous",
+                                                            // referrerpolicy="no-referrer"
+                                                            ()=>{
+                                                                $(document).ready(
+                                                                    ()=>{
+                                                                        $jq351 = jQuery.noConflict(true);
+                                                                        // console.log("After no conflict", $.fn.jquery);
+                                                                        // console.log("bootstrap jquery", $jq351.fn.jquery);
+                                                                        this.myInit(mode, json_data);
+                                                                    }
+                                                                )
+                                                            }
+                                                        );
+                                                    }
+                                                )
+                                            }
+                                        );
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+    },
+
+    //https://stackoverflow.com/questions/8139794/load-jquery-in-another-js-file
+    include: function(src, integrity, crossorigin, onload) {
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.setAttribute("integrity", integrity);
+        script.setAttribute("crossorigin", crossorigin);
+        script.src = src;
+        script.type = 'text/javascript';
+        script.onload = script.onreadystatechange = function() {
+            if (script.readyState) {
+                if (script.readyState === 'complete' || script.readyState === 'loaded') {
+                    script.onreadystatechange = null;                                                  
+                    onload();
+                }
+            } 
+            else {
+                onload();          
+            }
+        };
+        head.appendChild(script);
+    },
+
+    myInit: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
         // mode = if it equals 'view' than it should not be editable
@@ -108,7 +188,6 @@ my_widget_script =
 
         //uncomment to inspect and view code while developing
         // debugger;
-
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
 
@@ -163,6 +242,7 @@ my_widget_script =
         //console.log("to JSON", JSON.stringify(output));
 
         // return stringified output
+        // console.log(JSON.stringify(this.cells));
         return JSON.stringify(output);
     },
 
@@ -607,6 +687,14 @@ my_widget_script =
         this.changeSectionList($("#region").val());
         this.changeSectionDisplay();
 
+        $("#preview").on("click", (e)=>{
+            this.preview();
+        });
+
+        $("#upload").on("click", (e)=>{
+            this.upload();
+        });
+
         this.resize();
     },
 
@@ -783,7 +871,7 @@ my_widget_script =
                         "id": "addImgPath"+cellNum,
                         "name": "addimgpath"+cellNum
                     }).on("click", (e)=> {
-                        this.addImgPath($(e.currentTarget).data("cell"));
+                        this.addImgPath($(e.currentTarget).data("cell"), e.currentTarget);
                     })
                 )
             ).append(
@@ -798,7 +886,7 @@ my_widget_script =
                         "id": "deleteCell"+cellNum,
                         "name": "deletecell"+cellNum
                     }).on("click", (e)=> {
-                        this.deleteCellFuncs($(e.currentTarget).data("cell"));
+                        this.deleteCellFuncs($(e.currentTarget).data("cell"), e.currentTarget);
                     })
                 )
             )
@@ -818,7 +906,7 @@ my_widget_script =
         this.resize();
     },
 
-    deleteCellFuncs: function (cellNum) {
+    deleteCellFuncs: function (cellNum, elForHeight = null) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this cell?",
             () => {
@@ -833,9 +921,10 @@ my_widget_script =
         
                 var cellSearch = this.cellSearch(cellNum);
                 $(cellSearch).remove();
+                this.resize();
             }
+            , elForHeight = elForHeight
         );
-        this.resize();
     },
 
     makeClickFunc: function(cellNum, region, section){
@@ -926,7 +1015,7 @@ my_widget_script =
     },
 
     // https://drive.google.com/file/d/13mIH15JSXzCan_vVcd1z8Zdm_w75wmcl/view?usp=sharing
-    addImgPath: function(cellNum){
+    addImgPath: function(cellNum, elForHeight = null){
         var cellSearch = this.cellSearch(cellNum);
         var $path = $(".imgPath"+cellSearch);
         var currentPath = $path.text();
@@ -939,7 +1028,7 @@ my_widget_script =
                 $(".imgPath"+this.dataSearch("cell", cellNum)).text(path);
                 this.cells[cellNum].imgPath = path;
             },
-            undefined,
+            elForHeight = elForHeight,
             currentPath
         );
     },
@@ -1029,6 +1118,25 @@ my_widget_script =
     },
 
     //#region dialog boxes
+    // Need this because there is positioning for some elements within the form, and it gives the offset relative to that
+    // parent element with positioning, rather than to the top of the form
+    getOffsetTop: function(element){
+        var offsetTop = 0;
+        var lastElement = 0;
+        while(element && !lastElement){
+            // console.log("the element", element);
+            var formChild = $(element).children("#the_form");
+            if(formChild.length>0){
+                // console.log("found the child");
+                lastElement = 1;
+            }
+            offsetTop += element.offsetTop;
+            element = element.offsetParent;
+            // console.log("offsetTop", offsetTop)
+        }
+        return offsetTop
+    },
+
     /**
      * Run the supplied function if user presses OK
      * 
@@ -1060,9 +1168,9 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
-        bootbox.confirm({
+        bootbox.confirm ({
             message: thisMessage,
             callback: (proceed)=>{
                 if(proceed){
@@ -1086,7 +1194,7 @@ my_widget_script =
      * If elForHeight is left blank, height is auto
      * 
      * Example:
-     * this.dialogConfirm(
+     * this.dialogConfirmx(
             "Make a choice:", 
             (result)=>{ // arrow function, "this" still in context of button
                 if(result){
@@ -1097,7 +1205,7 @@ my_widget_script =
             }
         );
         */
-    dialogConfirm: function(text, functionToCall, elForHeight = null){
+    dialogConfirmx: function(text, functionToCall, elForHeight = null){
         var thisMessage = "Do you want to proceed?";
         if(text){
             thisMessage = text;
@@ -1105,9 +1213,9 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
-        bootbox.confirm({
+        bootbox.confirm ({
             message: thisMessage,
             callback: (result)=>{
                 functionToCall(result);
@@ -1147,9 +1255,9 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
-        console.log("defValue", defValue);
+        // console.log("defValue", defValue);
         bootbox.prompt({
             title: thisTitle,
             callback: (result)=>{
