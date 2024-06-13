@@ -1649,7 +1649,7 @@ my_widget_script =
             startTimeSplit = this.getHoursMin(startTime);
             addTimeSplit = this.getHoursMin(addTime);
             // set start time
-            time.setHours(startTimeSplit.hours, startTimeSplit.mins, 00, 000);
+            time.setHours(startTimeSplit.hours, startTimeSplit.mins, 0, 0);
             time.setHours(time.getHours() + addTimeSplit.hours);
             time.setMinutes(time.getMinutes() + addTimeSplit.mins);
             // console.log(time);
