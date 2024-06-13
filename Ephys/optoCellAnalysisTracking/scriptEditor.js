@@ -26,49 +26,10 @@ my_widget_script =
                                         $jq351 = jQuery.noConflict(true);
                                         // console.log("After no conflict", $.fn.jquery);
                                         // console.log("bootstrap jquery", $jq351.fn.jquery);
+                                        
 
-                                        //this method is called when the form is being constructed
-                                        // parameters
-                                        // mode = if it equals 'view' than it should not be editable
-                                        //        if it equals 'edit' then it will be used for entry
-                                        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
-                                        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
-                                
-                                        // json_data will contain the data to populate the form with, it will be in the form of the data
-                                        // returned from a call to to_json or empty if this is a new form.
-                                        //By default it calls the parent_class's init.
-                                
-                                        //uncomment to inspect and view code while developing
-                                        //debugger;
-                                
-                                        //Get the parsed JSON data
-                                        var parsedJson = this.parseInitJson(json_data);
-                                
-                                        //Uncomment to print parsedJson to consol
-                                        // console.log("init", parsedJson);
-                                
-                                        //check parsedJson for info not contained in form inputs and reinitialize
-                                        this.initDynamicContent(parsedJson);
-                                
-                                        //resize the content box when the window size changes
-                                        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
-                                
-                                        //Define behavior when buttons are clicked or checkboxes/selctions change
-                                        this.addEventListeners();
-                                
-                                        // Initialize the form with the stored widgetData using the parent_class.init() function
-                                        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
-
-                                        // Add * and # to mark required field indicators
-                                        this.addRequiredFieldIndicators();
-                                
-                                        // Set up the form based on previously entered form input
-                                        this.setUpInitialState();
-                                
-                                        //adjust form design and buttons based on mode
-                                        this.adjustForMode(mode);
-                                
-                                        this.resetFilter();
+                                        this.myInit(mode, json_data);
+                                        
                                     }
                                 )
                             }
@@ -77,6 +38,51 @@ my_widget_script =
                 )
             }
         )
+    },
+
+    myInit: function(mode, json_data){
+        //this method is called when the form is being constructed
+        // parameters
+        // mode = if it equals 'view' than it should not be editable
+        //        if it equals 'edit' then it will be used for entry
+        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
+        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
+
+        // json_data will contain the data to populate the form with, it will be in the form of the data
+        // returned from a call to to_json or empty if this is a new form.
+        //By default it calls the parent_class's init.
+
+        //uncomment to inspect and view code while developing
+        //debugger;
+
+        //Get the parsed JSON data
+        var parsedJson = this.parseInitJson(json_data);
+
+        //Uncomment to print parsedJson to consol
+        // console.log("init", parsedJson);
+
+        //check parsedJson for info not contained in form inputs and reinitialize
+        this.initDynamicContent(parsedJson);
+
+        //resize the content box when the window size changes
+        window.onresize = ()=> this.resize(); // need the arrow func, or "this" within resize becomes associated with event
+
+        //Define behavior when buttons are clicked or checkboxes/selctions change
+        this.addEventListeners();
+
+        // Initialize the form with the stored widgetData using the parent_class.init() function
+        this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
+
+        // Add * and # to mark required field indicators
+        this.addRequiredFieldIndicators();
+
+        // Set up the form based on previously entered form input
+        this.setUpInitialState();
+
+        //adjust form design and buttons based on mode
+        this.adjustForMode(mode);
+
+        this.resetFilter();
     },
     
 
@@ -632,7 +638,7 @@ my_widget_script =
             startTimeSplit = this.getHoursMin(startTime);
             addTimeSplit = this.getHoursMin(addTime);
             // set start time
-            time.setHours(startTimeSplit.hours, startTimeSplit.mins, 00, 000);
+            time.setHours(startTimeSplit.hours, startTimeSplit.mins, 0, 0);
             time.setHours(time.getHours() + addTimeSplit.hours);
             time.setMinutes(time.getMinutes() + addTimeSplit.mins);
             // console.log(time);
@@ -931,7 +937,7 @@ my_widget_script =
                                     name: "deletecell"+cellNum,
                                     "class": "deleteCell fullWidth",
                                 }).on("click", (e)=> {
-                                    this.deleteCellFuncs($(e.currentTarget).data("cell"));
+                                    this.deleteCellFuncs($(e.currentTarget).data("cell"), elForHeight = e.currentTarget);
                                 })
                             )
                         )
@@ -1248,23 +1254,26 @@ my_widget_script =
         return $cell
     },
 
-    deleteCellFuncs: function (cellNum) {
-        var proceed = confirm("Are you sure that you wish to delete this cell?");
-        if(proceed){
-            // Remove it from the cellNums
-            var index = this.cellNums.indexOf(cellNum);
-            if(index > -1){
-                this.cellNums.splice(index, 1);
+    deleteCellFuncs: function (cellNum, elForHeight = null) {
+        this.runIfConfirmed(
+            "Are you sure that you wish to delete this cell?"
+            , () =>{
+                // Remove it from the cellNums
+                var index = this.cellNums.indexOf(cellNum);
+                if(index > -1){
+                    this.cellNums.splice(index, 1);
+                }
+        
+                //Remove it from cells
+                delete this.cells[cellNum];
+        
+                var cellSearch = this.cellSearch(cellNum);
+                $(cellSearch).remove();
+
+                this.resize();
             }
-
-            //Remove it from cells
-            delete this.cells[cellNum];
-    
-            var cellSearch = this.cellSearch(cellNum);
-            $(cellSearch).remove();
-        }
-
-        this.resize();
+            , elForHeight = elForHeight
+        )
     },
 
     resetFilter: function(){
@@ -1643,4 +1652,155 @@ my_widget_script =
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
     },
+
+    //#region dialog boxes
+    // Need this because there is positioning for some elements within the form, and it gives the offset relative to that
+    // parent element with positioning, rather than to the top of the form
+    getOffsetTop: function(element){
+        var offsetTop = 0;
+        var lastElement = 0;
+        while(element && !lastElement){
+            // console.log("the element", element);
+            var formChild = $(element).children("#the_form");
+            if(formChild.length>0){
+                // console.log("found the child");
+                lastElement = 1;
+            }
+            offsetTop += element.offsetTop;
+            element = element.offsetParent;
+            // console.log("offsetTop", offsetTop)
+        }
+        return offsetTop
+    },
+
+    /**
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+        );
+    */
+    runIfConfirmed: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.confirm ({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.dialogConfirmx(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
+            }
+        );
+        */
+    dialogConfirmx: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.confirm ({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     *  
+     * Example:
+     * this.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
+            }
+        );
+        */ 
+    runBasedOnInput: function(prompt, functionToCall, elForHeight = null){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+    //#endregion dialog boxes
+
 };
