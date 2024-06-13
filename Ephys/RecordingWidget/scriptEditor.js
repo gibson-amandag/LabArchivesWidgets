@@ -1,6 +1,86 @@
 my_widget_script =
-{  
+{
     init: function (mode, json_data) {
+        // jQuery for bootstrap
+        this.include(
+            "https://code.jquery.com/jquery-3.5.1.min.js",
+            "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=",
+            "anonymous",
+            ()=>{
+                $(document).ready(
+                    ()=>{
+                        // console.log("After load", $.fn.jquery);
+                        
+                        // Load bootstrap
+                        this.include(
+                            "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js",
+                            "sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl",
+                            "anonymous",
+                            ()=>{
+                                $(document).ready(
+                                    ()=>{
+                                        // Load Luxon
+                                        this.include(
+                                            "https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js",
+                                            "sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=",
+                                            "anonymous",
+                                            ()=>{
+                                                $(document).ready(
+                                                    ()=>{
+                                                        // Load bootbox - need the bootstrap JS to be here first, with appropriate jQuery
+                                                        this.include(
+                                                            "https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js",
+                                                            "sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==",
+                                                            "anonymous",
+                                                            // referrerpolicy="no-referrer"
+                                                            ()=>{
+                                                                $(document).ready(
+                                                                    ()=>{
+                                                                        $jq351 = jQuery.noConflict(true);
+                                                                        // console.log("After no conflict", $.fn.jquery);
+                                                                        // console.log("bootstrap jquery", $jq351.fn.jquery);
+                                                                        this.myInit(mode, json_data);
+                                                                    }
+                                                                )
+                                                            }
+                                                        );
+                                                    }
+                                                )
+                                            }
+                                        );
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+    },
+
+    //https://stackoverflow.com/questions/8139794/load-jquery-in-another-js-file
+    include: function(src, integrity, crossorigin, onload) {
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.setAttribute("integrity", integrity);
+        script.setAttribute("crossorigin", crossorigin);
+        script.src = src;
+        script.type = 'text/javascript';
+        script.onload = script.onreadystatechange = function() {
+            if (script.readyState) {
+                if (script.readyState === 'complete' || script.readyState === 'loaded') {
+                    script.onreadystatechange = null;                                                  
+                    onload();
+                }
+            } 
+            else {
+                onload();          
+            }
+        };
+        head.appendChild(script);
+    },
+
+    myInit: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
         // mode = if it equals 'view' than it should not be editable
@@ -13,7 +93,7 @@ my_widget_script =
         //By default it calls the parent_class's init.
 
         //uncomment to inspect and view code while developing
-        //debugger;
+        // debugger;
 
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
@@ -173,7 +253,7 @@ my_widget_script =
         });
 
         if (fail) { //if fail is true (meaning a required element didn't have a value)
-            return alert(fail_log); //return the fail log as an alert
+            return bootbox.alert (fail_log); //return the fail log as an alert
         } else {
             var noErrors = [];
             return noErrors;
@@ -226,7 +306,6 @@ my_widget_script =
         if (mode !== "edit" && mode !== "edit_dev") {
             //disable when not editing
             $(".disableOnView").prop("disabled", true);
-            $(".infoContainer").hide();
         }
     },
 
@@ -242,10 +321,10 @@ my_widget_script =
             $("#errorMsg").text("");
         });
 
-        $("#removeRow").on("click", function () {
+        $("#removeRow").on("click", (e)=> {
             var $table = $("#dataTable");
-            my_widget_script.deleteRow($table);
-            my_widget_script.calcSpontLength();
+            this.deleteRow($table, e.currentTarget);
+            this.calcSpontLength();
             $("#errorMsg").text("");
         });
 
@@ -316,22 +395,12 @@ my_widget_script =
             $(this).html("<span style='color:blue'>#</span>" + $(this).html()); //add # before
         });
 
-        // $('.needForTable').each(function () { //find element with class "needForForm"
-        //     //alert($(this).val());
-        //     $(this).after("<span style='color:blue'>#</span>"); //add # after
-        // });
-
         $('.requiredLab').each(function () { //find element with class "requiredLab"
             //alert($(this).val());
             $(this).html("<span style='color:red'>*</span>" + $(this).html()); //add # before
         });
 
         // //source: https://stackoverflow.com/questions/18495310/checking-if-an-input-field-is-required-using-jquery
-        // $('#the_form').find('select, textarea, input').each(function () { //find each select field, textarea, and input
-        //     if ($(this).prop('required')) { //if has the attribute "required"
-        //         $(this).after("<span style='color:red'>*</span>"); //add asterisk after
-        //     }
-        // });
     },
 
     isValidTime: function (timeString) {
@@ -480,14 +549,14 @@ my_widget_script =
         //var fail_log = ''; //begin with an empty fail log
         //var name; //create a name variable
 
-        //search the_form for all elements that are of class "needForForm"
-        $('.needForTable').each(function () {
-            if (!$(this).val()) { //if there is not a value for this input
-                valid = false; //change valid to false
-                //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
-                //fail_log += name + " is required \n"; //add to the fail log that this name is required
-            }
-        });
+        // //search the_form for all elements that are of class "needForForm"
+        // $('.needForTable').each(function () {
+        //     if (!$(this).val()) { //if there is not a value for this input
+        //         valid = false; //change valid to false
+        //         //name = $(this).attr('id'); //replace the name variable with the id attribute of this element
+        //         //fail_log += name + " is required \n"; //add to the fail log that this name is required
+        //     }
+        // });
 
         if (!valid) {
             $("#errorMsg").html("<span style='color:red; font-size:36px;'>Please fill out all elements marked by a</span><span style='color:blue; font-size:36px;'> blue #</span>");
@@ -800,14 +869,171 @@ my_widget_script =
         my_widget_script.resize();
     },
 
-    deleteRow: function (tableName) {
-        var proceed = confirm("Are you sure you want to remove the row?");
-        if(proceed){
-            var lastRow = $(tableName).find("tbody tr").last();
-            $(lastRow).remove();
-    
-            //resize the container
-            my_widget_script.resize();
+    deleteRow: function (tableName, elForHeight = null) {
+        this.runIfConfirmed(
+            "Are you sure you want to remove the row?"
+            , ()=>{
+                var lastRow = $(tableName).find("tbody tr").last();
+                $(lastRow).remove();
+        
+                //resize the container
+                this.resize();
+            }
+            , elForHeight = elForHeight
+        );
+    },
+
+        //#region dialog boxes
+    // Need this because there is positioning for some elements within the form, and it gives the offset relative to that
+    // parent element with positioning, rather than to the top of the form
+    getOffsetTop: function(element){
+        var offsetTop = 0;
+        var lastElement = 0;
+        while(element && !lastElement){
+            // console.log("the element", element);
+            var formChild = $(element).children("#the_form");
+            if(formChild.length>0){
+                // console.log("found the child");
+                lastElement = 1;
+            }
+            offsetTop += element.offsetTop;
+            element = element.offsetParent;
+            // console.log("offsetTop", offsetTop)
         }
-    }
+        return offsetTop
+    },
+
+    /**
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+        );
+    */
+    runIfConfirmed: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.confirm ({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.dialogConfirmx(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
+            }
+        );
+        */
+    dialogConfirmx: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.confirm ({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     *  
+     * Example:
+     * this.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
+            }
+        );
+        */ 
+    runBasedOnInput: function(prompt, functionToCall, elForHeight = null, defValue = null){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        // console.log("defValue", defValue);
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            },
+            value: defValue
+        });
+        $(".modal-dialog").css("top", top);
+    },
+    //#endregion dialog boxes
+
+
 };
