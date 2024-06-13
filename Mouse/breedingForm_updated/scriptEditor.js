@@ -877,6 +877,25 @@ my_widget_script =
     },
 
     //#region dialog boxes
+    // Need this because there is positioning for some elements within the form, and it gives the offset relative to that
+    // parent element with positioning, rather than to the top of the form
+    getOffsetTop: function(element){
+        var offsetTop = 0;
+        var lastElement = 0;
+        while(element && !lastElement){
+            // console.log("the element", element);
+            var formChild = $(element).children("#the_form");
+            if(formChild.length>0){
+                // console.log("found the child");
+                lastElement = 1;
+            }
+            offsetTop += element.offsetTop;
+            element = element.offsetParent;
+            // console.log("offsetTop", offsetTop)
+        }
+        return offsetTop
+    },
+
     /**
      * Run the supplied function if user presses OK
      * 
@@ -901,18 +920,17 @@ my_widget_script =
         );
     */
     runIfConfirmed: function(text, functionToCall, elForHeight = null){
-        var msg = "Are you sure?";
+        var thisMessage = "Are you sure?";
         if(text){
-            msg = text;
+            thisMessage = text;
         }
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            // top = elForHeight.offsetTop + "px";
-            top = $(elForHeight).offset().top + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
-        bootbox.confirm({
-            message: msg,
+        bootbox.confirm ({
+            message: thisMessage,
             callback: (proceed)=>{
                 if(proceed){
                     functionToCall()
@@ -935,7 +953,7 @@ my_widget_script =
      * If elForHeight is left blank, height is auto
      * 
      * Example:
-     * this.dialogConfirm(
+     * this.dialogConfirmx(
             "Make a choice:", 
             (result)=>{ // arrow function, "this" still in context of button
                 if(result){
@@ -946,19 +964,18 @@ my_widget_script =
             }
         );
         */
-    dialogConfirm: function(text, functionToCall, elForHeight = null){
-        var msg = "Do you want to proceed?";
+    dialogConfirmx: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Do you want to proceed?";
         if(text){
-            msg = text;
+            thisMessage = text;
         }
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            // top = elForHeight.offsetTop + "px";
-            top = $(elForHeight).offset().top + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
-        bootbox.confirm({
-            message: msg,
+        bootbox.confirm ({
+            message: thisMessage,
             callback: (result)=>{
                 functionToCall(result);
             }
@@ -997,8 +1014,7 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            // top = elForHeight.offsetTop + "px";
-            top = $(elForHeight).offset().top + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
         bootbox.prompt({
             title: thisTitle,
@@ -1009,7 +1025,7 @@ my_widget_script =
         $(".modal-dialog").css("top", top);
     },
     //#endregion dialog boxes
-
+    
     checkInArray: function (searchVal, array){
         var proceed = $.inArray(searchVal, array) !== -1;
         return proceed
@@ -1261,7 +1277,7 @@ my_widget_script =
             $tableDiv.show(); //show the table
             this.resize(); //resize
             this.copyTable($tableToCopy, copyHead, $divForCopy, $errorMsg, transpose); //copy table
-            $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
+            // $errorMsg.html("<span style='color:grey; font-size:24px;'>Copied successfully</span>") //update error message
         } else {
             $errorMsg.append("<br/><span style='color:grey; font-size:24px;'>Nothing was copied</span>"); //add to error message
         }
