@@ -1,8 +1,99 @@
 my_widget_script =
 {
     init: function (mode, json_data) {
+        // jQuery for bootstrap
+        this.include(
+            "https://code.jquery.com/jquery-3.5.1.min.js",
+            "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=",
+            "anonymous",
+            ()=>{
+                $(document).ready(
+                    ()=>{
+                        // console.log("After load", $.fn.jquery);
+                        
+                        // Load bootstrap
+                        this.include(
+                            "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js",
+                            "sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl",
+                            "anonymous",
+                            ()=>{
+                                $(document).ready(
+                                    ()=>{
+                                        // Load Luxon
+                                        this.include(
+                                            "https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js",
+                                            "sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=",
+                                            "anonymous",
+                                            ()=>{
+                                                $(document).ready(
+                                                    ()=>{
+                                                        // Load bootbox - need the bootstrap JS to be here first, with appropriate jQuery
+                                                        this.include(
+                                                            "https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js",
+                                                            "sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==",
+                                                            "anonymous",
+                                                            // referrerpolicy="no-referrer"
+                                                            ()=>{
+                                                                $(document).ready(
+                                                                    ()=>{
+                                                                        $jq351 = jQuery.noConflict(true);
+                                                                        // console.log("After no conflict", $.fn.jquery);
+                                                                        // console.log("bootstrap jquery", $jq351.fn.jquery);
+                                                                        this.myInit(mode, json_data);
+                                                                    }
+                                                                )
+                                                            }
+                                                        );
+                                                    }
+                                                )
+                                            }
+                                        );
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+    },
+
+    //https://stackoverflow.com/questions/8139794/load-jquery-in-another-js-file
+    include: function(src, integrity, crossorigin, onload) {
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.setAttribute("integrity", integrity);
+        script.setAttribute("crossorigin", crossorigin);
+        script.src = src;
+        script.type = 'text/javascript';
+        script.onload = script.onreadystatechange = function() {
+            if (script.readyState) {
+                if (script.readyState === 'complete' || script.readyState === 'loaded') {
+                    script.onreadystatechange = null;                                                  
+                    onload();
+                }
+            } 
+            else {
+                onload();          
+            }
+        };
+        head.appendChild(script);
+    },
+
+    myInit: function (mode, json_data) {
+        //this method is called when the form is being constructed
+        // parameters
+        // mode = if it equals 'view' than it should not be editable
+        //        if it equals 'edit' then it will be used for entry
+        //        if it equals 'view_dev' same as view,  does some additional checks that may slow things down in production
+        //        if it equals 'edit_dev' same as edit,   does some additional checks that may slow things down in production
+
+        // json_data will contain the data to populate the form with, it will be in the form of the data
+        // returned from a call to to_json or empty if this is a new form.
+        //By default it calls the parent_class's init.
+
         //uncomment to inspect and view code while developing
-        //debugger;
+        // debugger;
 
         //Make HTML for five animals
         this.makeHTMLforMice(5);
@@ -257,6 +348,13 @@ my_widget_script =
             this.adjustifOther();
             $(".tableDiv").show();
             $("input[type='date']").removeClass(".hasDatePicker");
+            $(".tableDiv").show();
+            if($("#cycleMice").is(":checked")){
+                $(".cycleDates").hide();
+                $(".cycleEdits").hide();
+            } else {
+                $(".cycleDiv").hide();
+            }
         } else {
             if($("#DOB").val()) {
                 $("#entryDiv").insertAfter("#titleDiv");
@@ -539,6 +637,38 @@ my_widget_script =
             this.showWithCheck($(e.currentTarget), $("#datesList"));
         });
 
+        $("#cycleMice").each(function () {
+            my_widget_script.showWithCheck($(this), $(".ifCycle"));
+            if(!$(this).is(":checked")){
+                $("#cycleDatesCheck").prop("checked", false);
+                my_widget_script.showWithCheck($("#cycleDatesCheck"), $(".cycleDates"));
+            } 
+        }).on("change", function () {
+            my_widget_script.showWithCheck($(this), $(".ifCycle"));
+            if(!$(this).is(":checked")){
+                $("#cycleDatesCheck").prop("checked", false);
+                my_widget_script.showWithCheck($("#cycleDatesCheck"), $(".cycleDates"));
+            } 
+        });
+
+        $("#cycleStart").each(function () {
+            my_widget_script.startCycleFuncs();
+        }).on("input", function (){
+            my_widget_script.startCycleFuncs();
+        });
+
+        $("#cycleEnd").each(function () {
+            my_widget_script.endCycleFuncs();
+        }).on("input", function (){
+            my_widget_script.endCycleFuncs();
+        });
+
+        $("#cycleDatesCheck").each(function () {
+            my_widget_script.showWithCheck($(this), $(".cycleDates"));
+        }).on("change", function () {
+            my_widget_script.showWithCheck($(this), $(".cycleDates"));
+        });
+
         // Output table calculations
         $(".simpleCalc").each((i,e)=> {
             var elementID = e.id;
@@ -561,7 +691,7 @@ my_widget_script =
                     this.createMaturationRow_1E($dateVal, mouseNum);
                 }
             } else {
-                alert("Enter a Date");
+                bootbox.alert("Enter a Date");
             }
         });
 
@@ -849,7 +979,7 @@ my_widget_script =
      * If elForHeight is left blank, height is auto
      * 
      * Example:
-     * this.dialogConfirm(
+     * this.dialogConfirmx(
             "Make a choice:", 
             (result)=>{ // arrow function, "this" still in context of button
                 if(result){
@@ -860,7 +990,7 @@ my_widget_script =
             }
         );
         */
-    dialogConfirm: function(text, functionToCall, elForHeight = null){
+    dialogConfirmx: function(text, functionToCall, elForHeight = null){
         var thisMessage = "Do you want to proceed?";
         if(text){
             thisMessage = text;
@@ -1065,11 +1195,15 @@ my_widget_script =
     },
 
     updateCycleStatus: function (PND_today){
+        var cycleStartDay = $("#cycleStart").val();
+        var cycleEndDay = $("#cycleEnd").val();
+        if(!cycleStartDay){cycleStartDay = 70}
+        if(!cycleEndDay){cycleEndDay = 90}
         var $cycling_status = $(".cycling_status");
-        if(PND_today >= 70 && PND_today <= 91){
+        if(PND_today >= cycleStartDay && PND_today <= cycleEndDay){
             $cycling_status.css("background-color", "yellow");
         } else {
-            $cycling_status.css("background-color", "none");
+            $cycling_status.css("background-color", "");
         }
     },
 
@@ -2049,5 +2183,27 @@ my_widget_script =
                 '<td class="cageNum_calc"></td>'
                 )
         }
+    },
+
+    startCycleFuncs: function () {
+        var dateClass = "pnd" + $("#cycleStart").val();
+        var allClasses = "pnd " + "startCycle " + dateClass;
+        $(".startCycle").removeClass().addClass(allClasses);
+        if($("#DOB").val()){
+            this.addDays($("#DOB").val(), $("."+dateClass), parseInt($("#cycleStart").val()));
+        }
+        this.getPND_today();
+        this.resize();
+    },
+
+    endCycleFuncs: function () {
+        var dateClass = "pnd" + $("#cycleEnd").val();
+        var allClasses = "pnd " + "endCycle " + dateClass;
+        $(".endCycle").removeClass().addClass(allClasses);
+        if($("#DOB").val()){
+            this.addDays($("#DOB").val(), $("."+dateClass), parseInt($("#cycleEnd").val()));
+        }
+        this.getPND_today();
+        this.resize();
     }
 };
