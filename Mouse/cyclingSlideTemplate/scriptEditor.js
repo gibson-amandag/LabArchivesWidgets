@@ -4,6 +4,86 @@ my_widget_script =
     slideNums: [],
 
     init: function (mode, json_data) {
+        // jQuery for bootstrap
+        this.include(
+            "https://code.jquery.com/jquery-3.5.1.min.js",
+            "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=",
+            "anonymous",
+            ()=>{
+                $(document).ready(
+                    ()=>{
+                        // console.log("After load", $.fn.jquery);
+                        
+                        // Load bootstrap
+                        this.include(
+                            "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js",
+                            "sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl",
+                            "anonymous",
+                            ()=>{
+                                $(document).ready(
+                                    ()=>{
+                                        // Load Luxon
+                                        this.include(
+                                            "https://cdn.jsdelivr.net/npm/luxon@1.26.0/build/global/luxon.min.js",
+                                            "sha256-4sbTzmCCW9LGrIh5OsN8V5Pfdad1F1MwhLAOyXKnsE0=",
+                                            "anonymous",
+                                            ()=>{
+                                                $(document).ready(
+                                                    ()=>{
+                                                        // Load bootbox - need the bootstrap JS to be here first, with appropriate jQuery
+                                                        this.include(
+                                                            "https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js",
+                                                            "sha512-RdSPYh1WA6BF0RhpisYJVYkOyTzK4HwofJ3Q7ivt/jkpW6Vc8AurL1R+4AUcvn9IwEKAPm/fk7qFZW3OuiUDeg==",
+                                                            "anonymous",
+                                                            // referrerpolicy="no-referrer"
+                                                            ()=>{
+                                                                $(document).ready(
+                                                                    ()=>{
+                                                                        $jq351 = jQuery.noConflict(true);
+                                                                        // console.log("After no conflict", $.fn.jquery);
+                                                                        // console.log("bootstrap jquery", $jq351.fn.jquery);
+                                                                        this.myInit(mode, json_data);
+                                                                    }
+                                                                )
+                                                            }
+                                                        );
+                                                    }
+                                                )
+                                            }
+                                        );
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+    },
+
+    //https://stackoverflow.com/questions/8139794/load-jquery-in-another-js-file
+    include: function(src, integrity, crossorigin, onload) {
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.setAttribute("integrity", integrity);
+        script.setAttribute("crossorigin", crossorigin);
+        script.src = src;
+        script.type = 'text/javascript';
+        script.onload = script.onreadystatechange = function() {
+            if (script.readyState) {
+                if (script.readyState === 'complete' || script.readyState === 'loaded') {
+                    script.onreadystatechange = null;                                                  
+                    onload();
+                }
+            } 
+            else {
+                onload();          
+            }
+        };
+        head.appendChild(script);
+    },
+
+    myInit: function (mode, json_data) {
         //this method is called when the form is being constructed
         // parameters
         // mode = if it equals 'view' than it should not be editable
@@ -16,7 +96,7 @@ my_widget_script =
         //By default it calls the parent_class's init.
 
         //uncomment to inspect and view code while developing
-        //debugger;
+        // debugger;
 
         //Get the parsed JSON data
         var parsedJson = this.parseInitJson(json_data);
@@ -34,12 +114,14 @@ my_widget_script =
         this.parent_class.init(mode, () => JSON.stringify(parsedJson.widgetData));
         
         this.fillRowsColsOrientation(parsedJson);
-        
+
         // Add * and # to mark required field indicators
         this.addRequiredFieldIndicators();
 
         // Set up the form based on previously entered form input
         this.setUpInitialState();
+
+        $("#idSelect").val(parsedJson.selectedMice);
 
         //adjust form design and buttons based on mode
         this.adjustForMode(mode);
@@ -62,7 +144,8 @@ my_widget_script =
             widgetData: JSON.parse(widgetJsonString),
             slideDivNums: dynamicContent.slideDivNums,
             slideNums: dynamicContent.slideNums,
-            slideInfo: dynamicContent.slideInfo
+            slideInfo: dynamicContent.slideInfo,
+            selectedMice: dynamicContent.selectedMice
         };
 
         //uncomment to check stringified output
@@ -180,8 +263,30 @@ my_widget_script =
             }
         });
 
+        $("input[type='date']").each(function () {
+            var date = $(this).val();
+            if(date){
+                var validDate = my_widget_script.isValidDate(date);
+                if(!validDate){
+                    fail = true;
+                    fail_log += "Please enter valid date in form 'YYYY-MM-DD'";
+                }
+            }
+        });
+
+        $("input[type='time']").each(function () {
+            var time = $(this).val();
+            if(time){
+                var validtime = my_widget_script.isValidTime(time);
+                if(!validtime){
+                    fail = true;
+                    fail_log += "Please enter valid time in form 'hh:mm' - 24 hr time";
+                }
+            }
+        });
+
         if (fail) { //if fail is true (meaning a required element didn't have a value)
-            return alert(fail_log); //return the fail log as an alert
+            return bootbox.alert (fail_log); //return the fail log as an alert
         } else {
             var noErrors = [];
             return noErrors;
@@ -317,12 +422,100 @@ my_widget_script =
         });
     },
 
+    isValidTime: function (timeString) {
+        var regEx = "^(((([0-1][0-9])|(2[0-3])):[0-5][0-9]))$";
+        if(!timeString.match(regEx)){
+            return false;
+        } else {
+            return true;
+        }
+    },
+
+    isTimeSupported: function () {
+        // Check if browser has support for input type=time
+        var input = document.createElement('input');
+        input.setAttribute('type', 'time');
+        var supported = true;
+        if(input.type !== "time"){
+            supported = false;
+        }
+        my_widget_script.timeSupported = supported;
+        return (supported);
+    },
+
+    timeSupported: true,
+
+    checkTimeFormat: function ($timeInput) {
+        if(!my_widget_script.timeSupported){ // if not supported
+            $timeInput.next(".timeWarning").remove();
+            var time = $timeInput.val();
+            var isValid = my_widget_script.isValidTime(time);
+            if(!isValid){
+                $timeInput.after('<div class="text-danger timeWarning">Enter time as "hh:mm" in 24-hr format</div>');
+            }
+        }
+    },
+
+    isValidDate: function (dateString) {
+        // https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery/18759013
+        var regEx = /^\d{4}-\d{2}-\d{2}$/;
+        if(!dateString.match(regEx)) return false;  // Invalid format
+        var d = new Date(dateString);
+        var dNum = d.getTime();
+        if(!dNum && dNum !== 0) return false; // NaN value, Invalid date
+        return d.toISOString().slice(0,10) === dateString;
+    },
+
+    isDateSupported: function () {
+        // https://gomakethings.com/how-to-check-if-a-browser-supports-native-input-date-pickers/
+        // Check if browser has support for input type=date
+        var input = document.createElement('input');
+        // var value = 'a';
+        input.setAttribute('type', 'date');
+        var supported = true;
+        if(input.type !== "date"){
+            supported = false;
+        }
+        my_widget_script.dateSupported = supported;
+        return (supported);
+    },
+
+    dateSupported: true,
+
+    checkDateFormat: function ($dateInput) {
+        if(!my_widget_script.dateSupported){ // if not supported
+            $dateInput.next(".dateWarning").remove();
+            var date = $dateInput.val();
+            var isValid = my_widget_script.isValidDate(date);
+            if(!isValid){
+                $dateInput.after('<div class="text-danger dateWarning">Enter date as "YYYY-MM-DD"</div>');
+            }
+            $dateInput.datepicker({dateFormat: "yy-mm-dd"})
+            console.log($dateInput.val());
+        }
+    },
+
     /**
      * TO DO: edit this function to define how the form should be initilized based 
      * on the existing form values. This is particularly important for when the 
      * widget already has data entered, such as when saved to a page.
      */
     setUpInitialState: function () {
+        my_widget_script.isDateSupported();
+        my_widget_script.isTimeSupported();
+        
+        $("input[type='date']").prop("placeholder", "YYYY-MM-DD").on("change", function () {
+            my_widget_script.checkDateFormat($(this));
+        }).each(function () {
+            my_widget_script.checkDateFormat($(this));
+        });
+        
+        $("input[type='time']").prop("placeholder", "hh:mm").on("change", function () {
+            my_widget_script.checkTimeFormat($(this));
+        }).each(function () {
+            my_widget_script.checkTimeFormat($(this));
+        });
+
         //Add classes to add bootstrap styles for left column in form
         $('.myLeftCol').addClass("col-12 col-sm-6 col-md-4 col-lg-3 text-left text-sm-right");
 
@@ -411,33 +604,30 @@ my_widget_script =
             my_widget_script.resize();
         });
 
-        $("#fillIDs").on("click", function () {
-            var output = my_widget_script.getSelectedIDs();
+        $("#fillIDs").on("click", (e)=> {
+            var output = this.getSelectedIDs();
             var slide = $("#fillSlide").val();
             var cell = $("#fillCell").val();
-            var proceed = true;
             if(slide){
                 slide = parseInt(slide);
             } else {
-                alert("Enter slide number");
-                proceed = false;
+                bootbox.alert ("Enter slide number");
+                return;
             } 
             if(cell){
                 cell = parseInt(cell);
             } else {
-                alert("Enter cell number");
-                proceed = false;
+                bootbox.alert ("Enter cell number");
+                return;
             }
-            if(proceed){
-                my_widget_script.printIDsOnSlide(output.selectedIDs, slide, cell);
-            }
+            this.printIDsOnSlide(output.selectedIDs, slide, cell);
             // console.log(output);
         })
 
         // Formatting gets weird if this is done with css
         $(".forFixing").hide(); 
 
-        my_widget_script.resize();
+        this.resize();
     },
 
     getSelectedIDs: function () {
@@ -459,15 +649,29 @@ my_widget_script =
     },
 
     printIDsOnSlide: function (IDs, startSlide, startCell) {
+        var foundFilled = this.checkIfPrevFilled(IDs, startSlide, startCell);
+        if (foundFilled) {
+            this.runIfConfirmed(
+                "This will replace a previously filled cell. Are you sure you wish to continue?"
+                , () =>{
+                    this.fillSlide(IDs, startSlide, startCell);
+                }
+            )
+        } else {
+            this.fillSlide(IDs, startSlide, startCell);
+        }
+    },
+
+    checkIfPrevFilled: function(IDs, startSlide, startCell){
         var slide = startSlide;
         
         // Will check to see if div for slide exists, if not, will make one
-        my_widget_script.makeSlideDiv(slide);
-        var $div = $(".slideDiv"+my_widget_script.slideSearch(slide));
+        this.makeSlideDiv(slide);
+        var $div = $(".slideDiv"+this.slideSearch(slide));
         
         // If there's not a "forSlide" div, then make one
         if (!$div.find(".forSlide").html()){
-            my_widget_script.makeSlide(slide);
+            this.makeSlide(slide);
         }
         
         // Get the number of cells on the slide
@@ -476,20 +680,68 @@ my_widget_script =
         // console.log(numCells, cell);
 
         if(IDs){
-            var checkBeforeReplacing = true;
-            var proceed = true;
             for(var i = 0; i < IDs.length; i++ ){
                 // If the cell number is larger than the number of cells on this slide
                 if(cell > numCells){
                     // Move to the next slide
                     slide++;
                     // Check if div exists
-                    my_widget_script.makeSlideDiv(slide);
-                    $div = $(".slideDiv"+my_widget_script.slideSearch(slide));
+                    this.makeSlideDiv(slide);
+                    $div = $(".slideDiv"+this.slideSearch(slide));
                     
                     // If slide doesn't exist, make it
                     if (!$div.find(".forSlide").html()){
-                        my_widget_script.makeSlide(slide);
+                        this.makeSlide(slide);
+                    }
+
+                    // Get the new number of cells
+                    numCells = $div.find(".slideCell").length;
+
+                    // Start back at cell 1
+                    cell = 1;
+                }
+
+                var cellSearch = this.cellSearch(cell);
+                var $cell = $div.find(cellSearch);
+                // Check once if replacing a previously filled cell
+                if($cell.hasClass("filled")){
+                    return true
+                }
+            }
+        }
+        return false
+    },
+    
+    fillSlide: function(IDs, startSlide, startCell){
+        var slide = startSlide;
+        
+        // Will check to see if div for slide exists, if not, will make one
+        this.makeSlideDiv(slide);
+        var $div = $(".slideDiv"+this.slideSearch(slide));
+        
+        // If there's not a "forSlide" div, then make one
+        if (!$div.find(".forSlide").html()){
+            this.makeSlide(slide);
+        }
+        
+        // Get the number of cells on the slide
+        var numCells = $div.find(".slideCell").length;
+        var cell = startCell;
+        // console.log(numCells, cell);
+
+        if(IDs){
+            for(var i = 0; i < IDs.length; i++ ){
+                // If the cell number is larger than the number of cells on this slide
+                if(cell > numCells){
+                    // Move to the next slide
+                    slide++;
+                    // Check if div exists
+                    this.makeSlideDiv(slide);
+                    $div = $(".slideDiv"+this.slideSearch(slide));
+                    
+                    // If slide doesn't exist, make it
+                    if (!$div.find(".forSlide").html()){
+                        this.makeSlide(slide);
                     }
 
                     // Get the new number of cells
@@ -499,27 +751,21 @@ my_widget_script =
                     cell = 1;
                 }
                 var id = IDs[i];
-                var cellSearch = my_widget_script.cellSearch(cell);
+                var cellSearch = this.cellSearch(cell);
                 var $cell = $div.find(cellSearch);
-                // Check once if replacing a previously filled cell
-                if($cell.hasClass("filled") && checkBeforeReplacing){
-                    proceed = confirm("This will replace a previously filled cell. Are you sure you wish to continue?");
-                    checkBeforeReplacing = false;
-                }
-                if(proceed){
-                    $cell.text(id).addClass("filled");
-                    cell++
-                } else {
-                    return;
-                }
+                
+                $cell.text(id).addClass("filled");
+                cell++
             }
+
             if(cell > numCells){
                 cell = 1;
                 slide++;
             }
+
             $("#fillSlide").val(slide);
             $("#fillCell").val(cell);
-            my_widget_script.resize();
+            this.resize();
         }
     },
 
@@ -572,10 +818,13 @@ my_widget_script =
 
         }
 
+        var selectedMice = $("#idSelect").val();
+
         var dynamicContent = {
             slideDivNums: my_widget_script.slideDivNums,
             slideNums: my_widget_script.slideNums,
-            slideInfo: slideInfo
+            slideInfo: slideInfo,
+            selectedMice: selectedMice
         };
         return dynamicContent;
     },
@@ -645,31 +894,32 @@ my_widget_script =
     },
 
     makeSlide: function (slide) {
-        var slideSearch = my_widget_script.slideSearch(slide);
+        var slideSearch = this.slideSearch(slide);
         var cols = $(".numCols"+slideSearch).val();
         var rows = $(".numRows"+slideSearch).val();
-        var proceed = true;
 
         if(cols && rows){
             cols = parseInt(cols);
             rows = parseInt(rows);
             var orientation = $(".orientation"+slideSearch).val();
         } else {
-            alert("Select both number of columns and rows");
-            proceed = false;
+            bootbox.alert("Select both number of columns and rows");
+            return;
         }
 
-        if(proceed && my_widget_script.checkInArray(slide, my_widget_script.slideNums)){
-            proceed = confirm("Are you sure that you wish to replace the existing slide?");
+        if(this.checkInArray(slide, this.slideNums)){
+            this.runIfConfirmed(
+                "Are you sure that you wish to replace the existing slide?"
+                , ()=>{
+                    this.slideNums[this.slideNums.length] = slide;
+                    this.buildForSlideDiv(slide, rows, cols, orientation);
+                }
+            )
         } else {
-            my_widget_script.slideNums[my_widget_script.slideNums.length] = slide;
+            this.slideNums[this.slideNums.length] = slide;
+            this.buildForSlideDiv(slide, rows, cols, orientation);
         }
-
         // console.log(my_widget_script.slideNums);
-
-        if(proceed){
-            my_widget_script.buildForSlideDiv(slide, rows, cols, orientation);
-        }
     },
 
     buildForSlideDiv: function (slide, rows, cols, orientation){
@@ -793,7 +1043,12 @@ my_widget_script =
                                     name: "startdate"+slide,
                                     id: "startDate"+slide,
                                     "class": "startDate",
-                                    "data-slide": slide
+                                    "data-slide": slide,
+                                    "placeholder": "YYYY-MM-DD"
+                                }).each(function () {
+                                    my_widget_script.checkDateFormat($(this));
+                                }).on("change", function () {
+                                    my_widget_script.checkDateFormat($(this));
                                 })
                             )
                         )
@@ -813,7 +1068,12 @@ my_widget_script =
                                     name: "enddate"+slide,
                                     id: "endDate"+slide,
                                     "class": "endDate",
-                                    "data-slide": slide
+                                    "data-slide": slide,
+                                    "placeholder": "YYYY-MM-DD"
+                                }).each(function () {
+                                    my_widget_script.checkDateFormat($(this));
+                                }).on("change", function () {
+                                    my_widget_script.checkDateFormat($(this));
                                 })
                             )
                         )
@@ -929,5 +1189,158 @@ my_widget_script =
                 my_widget_script.resize();
             }
         }
-    }
+    },
+
+            //#region dialog boxes
+    // Need this because there is positioning for some elements within the form, and it gives the offset relative to that
+    // parent element with positioning, rather than to the top of the form
+    getOffsetTop: function(element){
+        var offsetTop = 0;
+        var lastElement = 0;
+        while(element && !lastElement){
+            // console.log("the element", element);
+            var formChild = $(element).children("#the_form");
+            if(formChild.length>0){
+                // console.log("found the child");
+                lastElement = 1;
+            }
+            offsetTop += element.offsetTop;
+            element = element.offsetParent;
+            // console.log("offsetTop", offsetTop)
+        }
+        return offsetTop
+    },
+
+    /**
+     * Run the supplied function if user presses OK
+     * 
+     * @param text The message to be displayed to the user. 
+     * @param functionToCall Function to run if user pressed OK
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Are you sure?" is used
+     * Can supply a function with no parameters and no () after the name,
+     * or an anonymous function using function(){} or ()=>{}
+     * 
+     * Nothing happens if cancel or "X" is pressed
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.runIfConfirmed(
+            "Do you want to run the function?", 
+            ()=>{
+                console.log("pretend delete function");
+            }
+        );
+    */
+    runIfConfirmed: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Are you sure?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.confirm ({
+            message: thisMessage,
+            callback: (proceed)=>{
+                if(proceed){
+                    functionToCall()
+                }
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Confirm with user
+     * 
+     * @param text The message to display to user
+     * @param functionToCall Function to run, with the result (true/false) as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Do you wish to proceed?" is the default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     * 
+     * Example:
+     * this.dialogConfirmx(
+            "Make a choice:", 
+            (result)=>{ // arrow function, "this" still in context of button
+                if(result){
+                    console.log("You chose OK");
+                } else {
+                    console.log("You canceled or closed the dialog");
+                }
+            }
+        );
+        */
+    dialogConfirmx: function(text, functionToCall, elForHeight = null){
+        var thisMessage = "Do you want to proceed?";
+        if(text){
+            thisMessage = text;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        bootbox.confirm ({
+            message: thisMessage,
+            callback: (result)=>{
+                functionToCall(result);
+            }
+        });
+        $(".modal-dialog").css("top", top);
+    },
+
+    /**
+     * Get user input for a function
+     * 
+     * @param prompt Text to provide to the user
+     * @param functionToCall Function to run, with the user input as a parameter
+     * @param elForHeight Element to based the height of the dialog box on
+     * 
+     * If no text is provided, "Enter value:" is used as default
+     * Use an anonymous function, function(result){} or (result)=>{}. Then the function can use the result to decide what to do
+     * 
+     * If elForHeight is left blank, height is auto
+     *  
+     * Example:
+     * this.runBasedOnInput(
+            "Enter a number from 0-10", (result)=>{
+                if(result <= 10 && result >= 0){
+                    console.log("You entered: " + result);
+                } else {
+                    console.log("You did not enter an appropriate value");
+                }
+            }
+        );
+        */ 
+    runBasedOnInput: function(prompt, functionToCall, elForHeight = null, defValue = null){
+        var thisTitle = "Enter value:"
+        if(prompt){
+            thisTitle = prompt;
+        }
+        var top = "auto";
+        if(elForHeight){
+            // Used to change the position of the modal dialog box
+            top = this.getOffsetTop(elForHeight) + "px";
+        }
+        // console.log("defValue", defValue);
+        bootbox.prompt({
+            title: thisTitle,
+            callback: (result)=>{
+                functionToCall(result);
+            },
+            value: defValue
+        });
+        $(".modal-dialog").css("top", top);
+    },
+    //#endregion dialog boxes
+
 };
