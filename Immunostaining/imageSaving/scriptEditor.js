@@ -214,7 +214,7 @@ my_widget_script =
         var output = { 
             widgetData: testData,
             numChannels: 1,
-            imageNums: [1],
+            imageNums: [1, 2],
             images: {1:{
                 addImages: [1]
             }} 
@@ -331,6 +331,8 @@ my_widget_script =
      * This function requires the parsedJson object.
      */
     initDynamicContent: function (parsedJson) {
+
+        // debugger
         // for (var i = 0; i < parsedJson.addedRows; i++) {
         // };
         var numChannels = 3;
@@ -567,6 +569,9 @@ my_widget_script =
         $("input, select, textarea").each((i,e)=>{
             if($(e).attr("type")!= "button"){
                 if($(e).data("watch")){
+                    // if($(e).hasClass("fileName")){
+                    //     debugger
+                    // }
                     this.watchValue($(e));
                 } else {
                     // This will update any field with a "data-calc" attribute that
@@ -605,7 +610,11 @@ my_widget_script =
 
         $("#useCRHcFos").on("click", (e)=>{
             this.CRHcFosOpticalConfigs();
-        })
+        });
+        
+        $("#useCRHcFosNoDAPI").on("click", (e)=>{
+            this.CRHcFosOpticalConfigsNoDAPI();
+        });
 
         this.resize();
     },
@@ -695,6 +704,25 @@ my_widget_script =
     },
 
     //#region dialog boxes
+    // Need this because there is positioning for some elements within the form, and it gives the offset relative to that
+    // parent element with positioning, rather than to the top of the form
+    getOffsetTop: function(element){
+        var offsetTop = 0;
+        var lastElement = 0;
+        while(element && !lastElement){
+            // console.log("the element", element);
+            var formChild = $(element).children("#the_form");
+            if(formChild.length>0){
+                // console.log("found the child");
+                lastElement = 1;
+            }
+            offsetTop += element.offsetTop;
+            element = element.offsetParent;
+            // console.log("offsetTop", offsetTop)
+        }
+        return offsetTop
+    },
+
     /**
      * Run the supplied function if user presses OK
      * 
@@ -725,9 +753,8 @@ my_widget_script =
         }
         var top = "auto";
         if(elForHeight){
-            console.log(elForHeight);
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
         bootbox.confirm({
             message: thisMessage,
@@ -773,7 +800,7 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
         bootbox.confirm({
             message: thisMessage,
@@ -815,7 +842,7 @@ my_widget_script =
         var top = "auto";
         if(elForHeight){
             // Used to change the position of the modal dialog box
-            top = elForHeight.offsetTop + "px";
+            top = this.getOffsetTop(elForHeight) + "px";
         }
         bootbox.prompt({
             title: thisTitle,
@@ -922,10 +949,16 @@ my_widget_script =
             calcSearch += this.imageSearch(imgNum);
         }
         if(watch == "imgNum"){
-            // if(!val){
-            //     val = "Mouse " + mouseNum;
-            // }
             val = "Image " + ("000" + val).slice(-3);
+        }
+        if(watch == "fileName"){
+            if(!val){
+                var realImgNum = $(".imgNum" + this.imageSearch(imgNum)).val();
+                if(!realImgNum){
+                    realImgNum = imgNum
+                }
+                val = "Image " + ("000" + realImgNum).slice(-3)
+            }
         }
         if(watch == "fluor"){
             if(!val){
@@ -1488,7 +1521,7 @@ my_widget_script =
                     "data-image": imgNum,
                     "value": "Delete image"
                 }).on("click", (e)=>{
-                    this.deleteImageFuncs(imgNum);
+                    this.deleteImageFuncs(imgNum, e.currentTarget);
                 }),
                 "hideView"
             )
@@ -1650,7 +1683,7 @@ my_widget_script =
                         "data-analysis": addImageNum,
                         "value": "Delete additional image"
                     }).on("click", (e)=>{
-                        this.deleteAddImageFuncs(imgNum, addImageNum);
+                        this.deleteAddImageFuncs(imgNum, addImageNum, e.currentTarget);
                     }),
                     "hideView"
                 )
@@ -1811,7 +1844,9 @@ my_widget_script =
                 if(realNumber){
                     nameString += "_" + realNumber
                 }
-                nameString += ".nd2"
+                var fileExtension = $("#fileExtension").val()
+                if(!fileExtension){fileExtension = ".nd2"}
+                nameString += fileExtension
             }
             $(".fileName"+imageSearch).val(nameString);
         }
@@ -1875,7 +1910,7 @@ my_widget_script =
         }
     },
 
-    deleteImageFuncs: function (imageNum) {
+    deleteImageFuncs: function (imageNum, elForHeight = null) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this image?",
             ()=>{
@@ -1892,10 +1927,11 @@ my_widget_script =
                 $(imageSearch).remove();
                 this.resize();
             }
+            , elForHeight
         )
     },
 
-    deleteAddImageFuncs: function (imageNum, addImageNum) {
+    deleteAddImageFuncs: function (imageNum, addImageNum, elForHeight = null) {
         this.runIfConfirmed(
             "Are you sure that you wish to delete this image?",
             ()=>{
@@ -1910,6 +1946,7 @@ my_widget_script =
                 $(imageSearch+addImageSearch).remove();
                 this.resize();
             }
+            , elForHeight
         )
     },
 
@@ -1949,6 +1986,36 @@ my_widget_script =
                 $(".defExposure"+channelSearch).val(exposure);
             }
         }
-    }
+    },
+    
+    CRHcFosOpticalConfigsNoDAPI: function(){
+        $("#numChannels").val(2);
+        this.updateChannels(2);
+        for(var i = 0; i < 2; i++){
+            var channelSearch = this.channelSearch(i);
+            var fluor = "", intensity, channelName, exposure
+            switch (i) {
+                case 0:
+                    fluor = "488-GFP";
+                    channelName = "AF488";
+                    break;
+
+                case 1:
+                    fluor = "594-cFos";
+                    channelName = "AF594"
+                    break;
+            
+                default:
+                    break;
+            }
+            $(".fluor"+channelSearch).val(fluor);
+            $(".channelName"+channelSearch).val(channelName);
+            if(exposure){
+                $(".defExposure"+channelSearch).val(exposure);
+            }
+        }
+    },
+
+
 
 };
