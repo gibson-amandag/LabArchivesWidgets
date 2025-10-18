@@ -1,0 +1,10 @@
+{
+  "id": "estrous-cycle-plugin-v2",
+  "name": "Estrous Cycle v2 (minimal single-file)",
+  "version": "0.0.1",
+  "min_obsidian": "0.12.0",
+  "description": "Single-file plugin to test frontmatter read/write for estrous widgets",
+  "author": "Automated Test",
+  "isDesktopOnly": false,
+  "main": "main.js"
+}
