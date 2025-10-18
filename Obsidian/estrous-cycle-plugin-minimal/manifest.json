@@ -1,0 +1,10 @@
+{
+  "id": "estrous-cycle-plugin-minimal",
+  "name": "Estrous Cycle Minimal",
+  "version": "0.0.1",
+  "min_obsidian": "0.12.0",
+  "description": "Minimal test plugin to validate Obsidian plugin loading",
+  "author": "Automated Test",
+  "isDesktopOnly": false,
+  "main": "main.js"
+}

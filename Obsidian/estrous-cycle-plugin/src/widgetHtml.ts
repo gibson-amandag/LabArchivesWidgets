@@ -1,0 +1,171 @@
+export const widgetHtml = `
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet" />
+<style type="text/css">
+    /* TO DO Place css styling code here */
+
+    /* responsive table doesn't work with xs screen sizes for some reason, so apply a specific width for these */
+    @media (max-width: 576px) {
+        .xsTableDiv {
+            width: 300px !important;
+            overflow-x: scroll;
+        }
+    }
+
+    table {
+        border: 2px solid black;
+    }
+
+    th {
+        padding: 5px;
+        border: 2px solid black;
+    }
+
+    td {
+        padding: 5px;
+        border: 1px solid black;
+    }
+
+    .fullWidth {
+        width: 100%
+    }
+
+    button.card-header{
+        border: none;
+    }
+</style>
+
+<!-- TO DO Begin typing your HTML code here -->
+<div class="container" id = "addMouseDiv">
+    <div class="row mt-2 align-items-center">
+        <h3 class="myLeftCol">Mouse Info:</h3>
+        <div class="col hideView">
+            <input type="button" value="Add new mouse" id="addMouse" name="addmouse" class="fullWidth"/>
+        </div>
+    </div>
+    <div class="row mouseInfo">
+        &nbsp;
+    </div>
+</div>
+
+<div class="container mt-2">
+    <div class="row">
+        <div class="col-12 col-md font-weight-bold">Sort:</div>
+        <div class="col-12 col-md">
+            <input type="button" value="By Date" id="sortByDate" name="sortbydate" class="sortButton fullWidth" data-sort="date" />
+            </div>
+        <div class="col-12 col-md">
+            <input type="button" value="By Mouse" id="sortByMouse" name="sortbymouse" class="sortButton fullWidth" data-sort="mouse" />
+        </div>
+        <div class="col-12 col-md">
+            <input type="button" value="By Day" id="sortByDay" name="sortbyday" class="sortButton fullWidth" data-sort="day" />
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
+            <input type="button" value="Show only scoring" id="scoringButton" name="scoringbutton" class="toggleSpec fullWidth"/>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4 cardContainer">
+    <div class="madeCards">
+        &nbsp;
+    </div>
+</div>
+
+<div class="container mt-2" id="copyDiv">
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6"><input id="toggleTable2" name="toggletable2" type="button"
+                value="Show/Hide Table" class="fullWidth toggleTable" data-table="mouseTable"/>
+        </div>
+        
+        <div class="col-12 col-sm-6"><input id="toCSV2" name="tocsv2" type="button" value="Save CSV"
+                class="fullWidth toCSV" data-table="mouseTable" /></div>
+    </div>
+    <div class="row">
+        <h4 class="col">Copy options:</h4>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6">Copy all days, mice as row, without head</div>
+        <div class="col">
+            <input type="button" id="copyDataButton" name="copydatabutton" value="Copy all" class="fullWidth copyData" data-table="mouseTable" data-copy="simple">
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col">Use the buttons below to copy with different orientations, with or without the heading. 
+            Enter the start day and end day below before pressing the desired copy button. If it doesn't work the first time, try it again.</div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6">
+            <div class="row">
+                <div class="col-12">
+                    Start day for copy (#):
+                </div>
+                <div class="col">
+                    <input type="number" id="startDayCopy" name="startdaycopy" value="1" class="editOnView fullWidth"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6">
+            <div class="row">
+                <div class="col-12">
+                    End day for copy (#):
+                </div>
+                <div class="col">
+                    <input type="number" id="endDayCopy" name="enddaycopy" value="21" class="editOnView fullWidth"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton2" name="copydatabutton2" type="button" value="Mice as rows, no head" class="fullWidth copyData" data-table="mouseTable" data-copy="options" data-head="false" data-transpose="false"/>
+        </div>
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton3" name="copydatabutton3" type="button" value="Mice as cols, no head" class="fullWidth copyData" data-table="mouseTable" data-copy="options" data-head="false" data-transpose="true"/>
+        </div>
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton4" name="copydatabutton4" type="button" value="Mice as rows, heading" class="fullWidth copyData" data-table="mouseTable" data-copy="options" data-head="true" data-transpose="false"/>
+        </div>
+        <div class="col-12 col-sm-6">
+            <input id="copyDataButton5" name="copydatabutton5" type="button" value="Mice as cols, heading" class="fullWidth copyData" data-table="mouseTable" data-copy="options" data-head="true" data-transpose="true"/>
+        </div>
+    </div>
+
+    <div id="forCopy">&nbsp;</div>
+    <!-- Error Message Div -->
+    <div class="container" id="errorMsg">&nbsp;</div>
+
+</div>
+    
+<!-- Example Table Container that is responsive to window width, including for xs -->
+<div class="container mt-2 tableOuterDiv">
+    <div class="table-responsive xsTableDiv">
+        <table class="table" id="mouseTable">
+            <thead>
+                <tr>
+                    <th class="mouse">mouseID</th>
+                    <th class="cycleNum">cycleID</th>
+                    <th class="startDate">cycleStartDate</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+    </div>
+</div>
+
+
+<div class="container">
+    <div class="row">
+        <div class="col"><input type="button" value="Update Charts" id="makeCharts" name="makecharts"></div>
+    </div>
+</div>
+<div class="container" id="chartDiv">&nbsp;
+</div>
+
+<div class="container">&nbsp;</div>
+`;

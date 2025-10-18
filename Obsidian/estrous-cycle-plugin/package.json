@@ -1,0 +1,19 @@
+{
+  "name": "estrous-cycle-plugin",
+  "version": "0.1.0",
+  "description": "Obsidian plugin to edit Estrous Cycle widgets stored in note frontmatter",
+  "main": "main.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . -w"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5",
+    "@types/node": "^18.11.18",
+    "@types/js-yaml": "^4.0.5"
+  }
+  ,
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

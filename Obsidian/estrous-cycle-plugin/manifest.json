@@ -1,0 +1,11 @@
+{
+  "id": "estrous-cycle-plugin",
+  "name": "Estrous Cycle (LabArchives → Obsidian)",
+  "main": "dist/main.js",
+  "version": "0.1.0",
+  "min_obsidian": "0.12.0",
+  "description": "Scaffold plugin to edit estrous cycle widgets saved in note YAML frontmatter. Stores widget instances as an array of objects with mouseNums, mice, dates (keeps original naming).",
+  "author": "Amanda Gibson",
+  "authorUrl": "https://github.com/gibson-amandag",
+  "isDesktopOnly": false
+}
