@@ -9,6 +9,7 @@ ui <- fluidPage(
   titlePanel("LabArchives Widgets - Shiny Example"),
   sidebarLayout(
     sidebarPanel(
+      selectInput('widget_choice', 'Widget', choices = c('Minimal' = 'widget.html', 'Estrous Cycle Scoring' = 'estrousCycleScoring.html'), selected = 'widget.html'),
       textInput("state_name", "Save name", value = "example_state"),
       actionButton("save_btn", "Save JSON"),
       actionButton("load_btn", "Load JSON"),
@@ -83,6 +84,12 @@ server <- function(input, output, session) {
   output$current_json <- renderText({
     if (is.null(rv$widget_json)) return("(no state received yet)")
     jsonlite::toJSON(rv$widget_json, pretty = TRUE, auto_unbox = TRUE)
+  })
+
+  # When widget selection changes, update iframe src via JS from server
+  observeEvent(input$widget_choice, {
+    # send custom message to client to change iframe src
+    session$sendCustomMessage(type = 'setWidgetSrc', message = list(src = input$widget_choice))
   })
 
   # Provide a handler for the JS bridge to request the initial path (not used currently)

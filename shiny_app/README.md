@@ -23,5 +23,10 @@ R -e "shiny::runApp('.')"
 Debugging tip:
 - Open your browser developer tools (Console). When you click the widget's "Send state to parent" button you should see logs from both the widget (iframe) and the parent bridge, e.g. `[widget] emitState ...` in the iframe console and `[Bridge parent] received postMessage ...` in the parent console. If you don't see these logs, open the console for the iframe or the parent page and try again.
 
+Estrous widget notes:
+- The estrous widget is large and dynamically loads dependencies. When you select "Estrous Cycle Scoring" in the widget dropdown, the iframe will attempt to initialize the widget. Look for the log `[estrous wrapper] initializing widget` in the iframe console; the widget will then attempt to load jQuery/bootstrap/Luxon/bootbox and initialize. If you don't see the UI become interactive, check the iframe console for any network or script errors and wait a few seconds for the dynamic loader to finish.
+
+- If the widget expects a `parent_class` (normally provided by LabArchives), the iframe now provides a minimal `parent_class` stub so the widget can initialize standalone. If `test_data()` is not available the wrapper falls back to a small empty init JSON. Check for `[parent_class stub] init called` and `[estrous wrapper] test_data failed` logs if initialization used the fallback.
+
 Notes:
 - This is a minimal proof-of-concept. For production, add validation, user isolation, and stronger file handling.

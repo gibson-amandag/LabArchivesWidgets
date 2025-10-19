@@ -38,6 +38,13 @@
         if (!iframe) return;
         iframe.contentWindow.postMessage({type: 'loadWidgetState', json: message.json}, '*');
       });
+      // allow server to set iframe src (switch widget)
+      Shiny.addCustomMessageHandler('setWidgetSrc', function(message){
+        var iframe = document.getElementById('widget_iframe');
+        if (!iframe) return;
+        console.log('[Bridge parent] setting iframe src to', message.src);
+        iframe.src = message.src;
+      });
     }
   }
 })();
