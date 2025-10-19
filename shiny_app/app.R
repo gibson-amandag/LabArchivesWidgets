@@ -14,6 +14,10 @@ ui <- fluidPage(
       actionButton("save_btn", "Save JSON"),
       actionButton("load_btn", "Load JSON"),
       tags$hr(),
+      selectInput('saved_file', 'Saved states', choices = list.files(data_dir, pattern = "\\.json$", full.names = FALSE), selected = NULL),
+      actionButton('refresh_files', 'Refresh list'),
+      actionButton('load_saved', 'Load selected'),
+      tags$hr(),
       verbatimTextOutput("status")
     ),
     mainPanel(
@@ -34,29 +38,53 @@ server <- function(input, output, session) {
   # helper: full path for a given state name
   state_path <- function(name) file.path(data_dir, paste0(name, ".json"))
 
-  # track last-received JSON from widget
-  rv <- reactiveValues(widget_json = NULL, status = "Ready")
+  # track last-received JSON from widget and save-request flag
+  rv <- reactiveValues(widget_json = NULL, status = "Ready", save_requested = NULL)
 
   # Receive JSON push from the widget via Shiny.onInputChange (bridge will use input$widget_state)
   observeEvent(input$widget_state, {
     rv$widget_json <- input$widget_state
     rv$status <- paste0("Received JSON (", nchar(toJSON(rv$widget_json, auto_unbox=TRUE)), " bytes)")
+    # If a save was recently requested, persist this JSON
+    if (!is.null(rv$save_requested) && difftime(Sys.time(), rv$save_requested, units = 'secs') < 10) {
+      name <- input$state_name
+      path <- state_path(name)
+      tryCatch({
+        write(jsonlite::toJSON(rv$widget_json, pretty = TRUE, auto_unbox = TRUE), path)
+        rv$status <- paste0("Saved to ", path)
+        files <- list.files(data_dir, pattern = "\\.json$", full.names = FALSE)
+        updateSelectInput(session, 'saved_file', choices = files, selected = basename(path))
+      }, error = function(e) {
+        rv$status <- paste0("Save failed: ", e$message)
+      })
+      rv$save_requested <- NULL
+    }
   })
 
-  # Save button: write the last-known widget JSON to file
+  # When Save is clicked, request the widget to post its JSON to the parent.
   observeEvent(input$save_btn, {
-    name <- input$state_name
-    if (is.null(rv$widget_json)) {
-      rv$status <- "No widget JSON to save yet"
-      return()
-    }
-    path <- state_path(name)
-    tryCatch({
-      write(jsonlite::toJSON(rv$widget_json, pretty = TRUE, auto_unbox = TRUE), path)
-      rv$status <- paste0("Saved to ", path)
-    }, error = function(e) {
-      rv$status <- paste0("Save failed: ", e$message)
-    })
+    rv$status <- "Requesting widget JSON from iframe..."
+    session$sendCustomMessage(type = 'requestWidgetJson', message = list())
+    rv$save_requested <- Sys.time()
+  })
+
+  # Refresh saved-file list
+  observeEvent(input$refresh_files, {
+    files <- list.files(data_dir, pattern = "\\.json$", full.names = FALSE)
+    updateSelectInput(session, 'saved_file', choices = files)
+    rv$status <- "Refreshed saved file list"
+  })
+
+  # Load selected saved file
+  observeEvent(input$load_saved, {
+    sel <- input$saved_file
+    if (is.null(sel) || sel == "") { rv$status <- "No saved file selected"; return() }
+    path <- file.path(data_dir, sel)
+    if (!file.exists(path)) { rv$status <- paste0("File not found: ", path); return() }
+    parsed <- tryCatch(jsonlite::fromJSON(paste(readLines(path), collapse = "\n")), error = function(e) NULL)
+    if (is.null(parsed)) { rv$status <- "Invalid JSON on disk"; return() }
+    session$sendCustomMessage(type = 'loadWidgetState', message = list(json = parsed))
+    rv$status <- paste0("Loaded ", sel, " into widget")
   })
 
   # Load button: read file and send to widget via session$sendCustomMessage

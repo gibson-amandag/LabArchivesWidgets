@@ -123,9 +123,7 @@ my_widget_script =
         //By default it calls the parent_class's init.
 
         //uncomment to inspect and view code while developing
-        // debugger;
-        
-        // console.time("init");
+        debugger;
 
         this.myFunctions();
 
@@ -161,8 +159,6 @@ my_widget_script =
         this.checkForNames();
 
         this.makeCharts();
-
-        // console.timeEnd("init");
     },
     
     to_json: function () {

@@ -45,6 +45,13 @@
         console.log('[Bridge parent] setting iframe src to', message.src);
         iframe.src = message.src;
       });
+      // allow server to request the iframe to return its JSON (parent will forward to Shiny)
+      Shiny.addCustomMessageHandler('requestWidgetJson', function(message){
+        var iframe = document.getElementById('widget_iframe');
+        if (!iframe) return;
+        console.log('[Bridge parent] requesting widget JSON from iframe');
+        iframe.contentWindow.postMessage({type: 'requestWidgetJson'}, '*');
+      });
     }
   }
 })();

@@ -60,6 +60,7 @@
   <div style="position:fixed; right:8px; bottom:8px; background: rgba(255,255,255,0.95); border:1px solid #ccc; padding:8px; z-index:9999">
     <div><button id="estrous_send_state" class="btn btn-sm btn-primary">Send state to parent</button></div>
     <div style="margin-top:8px"><button id="estrous_request_init" class="btn btn-sm btn-secondary">Request init test data</button></div>
+    <div id="estrous_status" style="margin-top:8px">Status: <span id="estrous_ready">Not ready</span></div>
   </div>
 
   <!-- include jQuery early so the widget script can use $ immediately -->
@@ -73,27 +74,195 @@
     // Provide a minimal parent_class stub expected by the widget (prevents errors in standalone mode)
     if (!window.parent_class) {
       window.parent_class = {
+        // mode: 'edit'|'view' etc. json_fn: either a string or a function returning a stringified JSON
         init: function(mode, json_fn){
-          // no-op stub; widget will call parent_class.init
           console.log('[parent_class stub] init called', mode);
+          try{
+            var jsonStr = null;
+            if (typeof json_fn === 'function') {
+              try{ jsonStr = json_fn(); } catch(e){ console.warn('[parent_class stub] json_fn threw', e); }
+            } else if (typeof json_fn === 'string') {
+              jsonStr = json_fn;
+            }
+            if (jsonStr) {
+              // delegate to from_json to populate fields
+              this.from_json(jsonStr);
+            }
+          }catch(e){ console.warn('[parent_class stub] init error', e); }
         },
-        to_json: function(){ return JSON.stringify({}); },
-        from_json: function(s){ /* no-op */ },
+        // Robust to_json that serializes form elements by `name` (preferred) and handles
+        // radio groups, checkbox groups, and multi-selects. Returns a JSON string.
+        to_json: function(){
+          try{
+            var obj = {};
+            // prefer to serialize all elements with a name attribute
+            var $els = $('input[name], select[name], textarea[name]');
+            $els.each(function(i, el){
+              var $el = $(el);
+              var name = $el.attr('name') || $el.attr('id');
+              if (!name) return;
+
+              // Skip buttons
+              var type = ($el.attr('type') || '').toLowerCase();
+              if (type === 'button' || type === 'submit' || type === 'reset') return;
+
+              // If we already serialized this name (e.g., radio group), skip here and handle by group
+              if (obj.hasOwnProperty(name)) return;
+
+              // Handle radio groups
+              if ($('input[name="' + name + '"][type=radio]').length > 0) {
+                var $checked = $('input[name="' + name + '"][type=radio]:checked');
+                obj[name] = $checked.length ? $checked.val() : null;
+                return;
+              }
+
+              // Handle checkbox groups (multiple checkboxes with same name) or single checkbox
+              var $checkboxes = $('input[name="' + name + '"][type=checkbox]');
+              if ($checkboxes.length > 0) {
+                if ($checkboxes.length === 1) {
+                  obj[name] = $checkboxes.is(':checked');
+                } else {
+                  var vals = [];
+                  $checkboxes.filter(':checked').each(function(i, c){ vals.push($(c).val()); });
+                  obj[name] = vals;
+                }
+                return;
+              }
+
+              // Handle select[multiple]
+              if ($el.is('select')){
+                if ($el.prop('multiple')){
+                  var sel = [];
+                  $el.find('option:selected').each(function(i,o){ sel.push($(o).val()); });
+                  obj[name] = sel;
+                } else {
+                  obj[name] = $el.val();
+                }
+                return;
+              }
+
+              // Default: single value input/textarea
+              obj[name] = $el.val();
+            });
+            return JSON.stringify(obj);
+          }catch(e){ console.warn('[parent_class stub] to_json error', e); return JSON.stringify({}); }
+        },
+
+        // Robust from_json that maps keys to inputs by name (preferred) or id, handling
+        // radio groups, checkbox groups and multi-selects.
+        from_json: function(s){
+          try{
+            var parsed = (typeof s === 'string') ? JSON.parse(s) : s;
+            if (!parsed) return;
+            // If parsed appears to be wrapped (i.e., widgetData present), unwrap
+            if (parsed.widgetData) parsed = parsed.widgetData;
+
+            for (var k in parsed){
+              if (!parsed.hasOwnProperty(k)) continue;
+              var v = parsed[k];
+
+              // Prefer by name
+              var $els = $('[name="' + k + '"]');
+              if ($els.length === 0) {
+                // fallback to id
+                var $byId = $('#' + k);
+                if ($byId.length) $els = $byId;
+              }
+              if ($els.length === 0) {
+                // nothing to map to on the page
+                continue;
+              }
+
+              // If radio group
+              if ($els.is('input[type=radio]') || $els.filter('input[type=radio]').length > 0) {
+                $els.filter('[value="' + v + '"]').prop('checked', true);
+                continue;
+              }
+
+              // If checkbox group
+              if ($els.is('input[type=checkbox]') || $els.filter('input[type=checkbox]').length > 0) {
+                var $checks = $els.filter('input[type=checkbox]');
+                if ($checks.length === 1) {
+                  // single checkbox expects boolean
+                  $checks.prop('checked', !!v);
+                } else {
+                  // array of values
+                  $checks.prop('checked', false);
+                  if (Array.isArray(v)){
+                    v.forEach(function(val){
+                      $checks.filter('[value="' + val + '"]').prop('checked', true);
+                    });
+                  } else if (v !== null && v !== undefined){
+                    $checks.filter('[value="' + v + '"]').prop('checked', true);
+                  }
+                }
+                continue;
+              }
+
+              // If select (multiple or single)
+              if ($els.is('select')){
+                var $sel = $els.first();
+                if ($sel.prop('multiple')){
+                  $sel.find('option').prop('selected', false);
+                  if (Array.isArray(v)){
+                    v.forEach(function(val){ $sel.find('option[value="' + val + '"]').prop('selected', true); });
+                  }
+                } else {
+                  $sel.val(v);
+                }
+                continue;
+              }
+
+              // Default: set value on first matched element
+              try{ $els.first().val(v); } catch(e){ console.warn('[parent_class stub] setting field', k, e); }
+            }
+          }catch(e){ console.warn('[parent_class stub] from_json error', e); }
+        },
         test_data: function(){ return JSON.stringify({widgetData:{}}); },
         resize_container: function(){ /* no-op */ }
       };
     }
 
-    // Poll for my_widget_script to be ready and then initialize it with test data (use fallback if test_data fails)
+    // Poll for my_widget_script to be ready, wrap init/myInit for tracing and handshake, then initialize
     (function waitForWidget(){
       if(window.my_widget_script && typeof my_widget_script.init === 'function'){
-        console.log('[estrous wrapper] initializing widget');
+        console.log('[estrous wrapper] initializing widget (waitForWidget)');
         try{
           // Ensure the widget has a parent_class reference to the stub we provided
           try{
             my_widget_script.parent_class = window.parent_class;
             console.log('[estrous wrapper] assigned parent_class to my_widget_script');
           } catch(e){ console.warn('[estrous wrapper] could not assign parent_class', e); }
+
+          // Wrap myInit (if present) to add a trace entry so we can confirm it runs
+          if (typeof my_widget_script.myInit === 'function' && !my_widget_script._wrapped_myInit) {
+            my_widget_script._wrapped_myInit = true;
+            const origMyInit = my_widget_script.myInit;
+            my_widget_script.myInit = function(mode, json_data){
+              try{ console.log('[estrous wrapper] my_widget_script.myInit (wrapped) starting'); } catch(e){}
+              try{ console.time && console.time('init'); } catch(e){}
+              try{ const res = origMyInit.call(my_widget_script, mode, json_data); return res; } catch(e){ console.warn('[estrous wrapper] myInit error', e); }
+            };
+          }
+
+          // Wrap init so we can post a ready handshake immediately after init returns (regardless of internal async work)
+          if (typeof my_widget_script.init === 'function' && !my_widget_script._wrapped_init) {
+            my_widget_script._wrapped_init = true;
+            const origInit = my_widget_script.init.bind(my_widget_script);
+            my_widget_script.init = function(mode, json_data){
+              console.log('[estrous wrapper] calling orig init');
+              try{
+                origInit(mode, json_data);
+              }catch(e){ console.warn('[estrous wrapper] orig init threw', e); }
+              // Post a handshake - note: the widget may still be doing async loading; the widget itself will
+              // post a widgetReady when its internal init completes. This handshake is a helpful signal.
+              try{
+                console.log('[estrous wrapper] init wrapper posting ready handshake');
+                document.getElementById('estrous_ready').innerText = 'Init called';
+                window.parent.postMessage({type: 'widgetInitCalled', json: {widget: 'estrousCycleScoring'}}, '*');
+              } catch(e){ /* ignore */ }
+            };
+          }
 
           var initArg;
           try {
@@ -102,6 +271,8 @@
             console.warn('[estrous wrapper] test_data failed, using fallback init JSON', e);
             initArg = JSON.stringify({widgetData: {}, mouseNums: [], mice: {}});
           }
+
+          // Now call init (our wrapper will ensure traces/handshake)
           my_widget_script.init('edit', initArg);
         }catch(e){console.warn('[estrous wrapper] init error', e)}
       } else {
@@ -148,6 +319,27 @@
         }
       }catch(e){console.warn(e)}
     });
+
+    // Listen for parent requests for the widget JSON
+    window.addEventListener('message', function(ev){
+      try{
+        var d = ev.data;
+        if (d && d.type === 'requestWidgetJson'){
+          console.log('[estrous widget] parent requested JSON');
+          if (window.my_widget_script && typeof my_widget_script.to_json === 'function'){
+            var jsonStr = my_widget_script.to_json();
+            var parsed = JSON.parse(jsonStr);
+            window.parent.postMessage({type: 'widgetState', json: parsed}, '*');
+          } else {
+            console.warn('[estrous widget] to_json not available');
+            window.parent.postMessage({type: 'widgetState', json: {error: 'to_json not available'}}, '*');
+          }
+        }
+      }catch(e){console.warn(e)}
+    }, false);
+
+    // (previous addReadyHandshake removed; handshake is handled by the wrapped init above and
+    // the widget itself may post 'widgetReady' when its internal async initialization completes)
   </script>
 </body>
 </html>
