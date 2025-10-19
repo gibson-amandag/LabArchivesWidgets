@@ -27,15 +27,6 @@
             console.warn('[Bridge parent] Shiny not available to receive widget_state');
           }
         }
-        // Forward lifecycle or status messages from the iframe to Shiny so server can react
-        else if (d && (d.type === 'widgetInitCalled' || d.type === 'widgetReady' || d.type === 'widgetModeChanged')){
-          if (window.Shiny && Shiny.setInputValue){
-            console.log('[Bridge parent] forwarding iframe event to Shiny:', d.type);
-            // include a timestamp to ensure Shiny sees a change each time
-            var payload = Object.assign({}, d, {__ts: (new Date()).toISOString()});
-            Shiny.setInputValue('iframe_event', payload, {priority: 'event'});
-          }
-        }
       }catch(e){ console.warn(e) }
     }, false);
 
@@ -53,6 +44,22 @@
         if (!iframe) return;
         console.log('[Bridge parent] setting iframe src to', message.src);
         iframe.src = message.src;
+      });
+      // set iframe src and store the provided JSON/state on the iframe element (dataset)
+      // The iframe's wrapper will read this dataset and use it during its initial init to avoid
+      // running a test_data init followed by a load (which caused duplicate dynamic content).
+      Shiny.addCustomMessageHandler('setWidgetSrcAndState', function(message){
+        // message: {src: 'estrousCycleScoring.html', json: {...}, mode: 'edit' }
+        var iframe = document.getElementById('widget_iframe');
+        if (!iframe) return;
+        console.log('[Bridge parent] setWidgetSrcAndState: src=', message.src);
+        try{
+          iframe.dataset.initialState = JSON.stringify(message.json);
+          if (message.mode) iframe.dataset.initialMode = message.mode;
+        }catch(e){ console.warn('[Bridge parent] could not set dataset.initialState', e); }
+        // Force a fresh load to ensure a clean DOM (add cache-busting param)
+        var src = message.src + (message.src.indexOf('?') === -1 ? '?' : '&') + '_ts=' + Date.now();
+        iframe.src = src;
       });
       // allow server to request the iframe to return its JSON (parent will forward to Shiny)
       Shiny.addCustomMessageHandler('requestWidgetJson', function(message){

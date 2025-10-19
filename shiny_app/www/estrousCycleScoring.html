@@ -329,14 +329,43 @@
 
           var initArg;
           try {
-            initArg = my_widget_script.test_data();
+            // Prefer state set by parent via iframe.dataset.initialState (set by setWidgetSrcAndState)
+            var iframeEl = window.frameElement || null;
+            if (iframeEl && iframeEl.dataset && iframeEl.dataset.initialState) {
+              try{
+                initArg = iframeEl.dataset.initialState;
+                console.log('[estrous wrapper] using initialState from iframe dataset');
+              }catch(e){ console.warn('[estrous wrapper] error reading dataset.initialState', e); initArg = null }
+            }
+            if (!initArg) {
+              try{ initArg = my_widget_script.test_data(); } catch(e){ initArg = JSON.stringify({widgetData: {}, mouseNums: [], mice: {}}); }
+            }
           } catch(e){
             console.warn('[estrous wrapper] test_data failed, using fallback init JSON', e);
             initArg = JSON.stringify({widgetData: {}, mouseNums: [], mice: {}});
           }
 
+          // Determine mode (may be provided by parent via iframe.dataset.initialMode)
+          var initialMode = 'edit';
+          try{ if (iframeEl && iframeEl.dataset && iframeEl.dataset.initialMode) initialMode = iframeEl.dataset.initialMode; } catch(e){}
+
+          // Clear dynamic containers / state before initializing to avoid duplicates when reloading
+          try{
+            my_widget_script.mouseNums = [];
+            my_widget_script.mice = {};
+            my_widget_script.dates = {};
+            // clear any generated cards and table rows
+            var $made = $('.madeCards'); if ($made.length) $made.html('');
+            $('#mouseTable tbody').html('');
+          } catch(e){ /* ignore if not present yet */ }
+
           // Now call init (our wrapper will ensure traces/handshake)
-          my_widget_script.init('edit', initArg);
+          my_widget_script.init(initialMode, initArg);
+          // mark the widget as initialized and clear dataset to avoid double-apply later
+          try{
+            my_widget_script._initialized = true;
+            if (iframeEl && iframeEl.dataset){ delete iframeEl.dataset.initialState; delete iframeEl.dataset.initialMode; }
+          } catch(e){}
         }catch(e){console.warn('[estrous wrapper] init error', e)}
       } else {
         setTimeout(waitForWidget, 200);
@@ -357,16 +386,41 @@
       }catch(e){ console.warn(e) }
     });
 
-    // Allow parent to send a JSON state to this widget
+    // Allow parent to send a JSON state to this widget. For a fresh load we will try to
+    // reinitialize the widget with the provided JSON and mode so dynamic content is built
+    // according to the saved state.
     window.addEventListener('message', function(ev){
       try{
         var d = ev.data;
         if (d && d.type === 'loadWidgetState' && d.json){
-          // my_widget_script.from_json expects a string
-          if (window.my_widget_script && typeof my_widget_script.from_json === 'function'){
-            my_widget_script.from_json(JSON.stringify(d.json));
-            console.log('[estrous widget] applied loaded state');
+          var mode = d.mode || 'edit';
+          var jsonStr = JSON.stringify(d.json);
+          // If widget is already initialized, prefer to use from_json to avoid re-running dynamic constructors
+          if (window.my_widget_script && my_widget_script._initialized && typeof my_widget_script.from_json === 'function'){
+            try{
+              console.log('[estrous widget] applying loaded state via from_json');
+              my_widget_script.from_json(jsonStr);
+            }catch(e){ console.warn('[estrous widget] from_json apply failed', e); }
+            return;
           }
+
+          // Otherwise, try to call init immediately, or poll until init is available
+          var tryInit = function(){
+            if (window.my_widget_script && typeof my_widget_script.init === 'function'){
+              try{
+                // Clear dynamic containers/state before re-init
+                try{ my_widget_script.mouseNums = []; my_widget_script.mice = {}; my_widget_script.dates = {}; $('.madeCards').html(''); $('#mouseTable tbody').html(''); }catch(e){}
+                console.log('[estrous widget] initializing from loaded state (init), mode=', mode);
+                my_widget_script.init(mode, jsonStr);
+                my_widget_script._initialized = true;
+                console.log('[estrous widget] init called with loaded state');
+              }catch(e){ console.warn('[estrous widget] init with loaded state failed', e); }
+            } else {
+              // widget not ready yet; try again shortly
+              setTimeout(tryInit, 200);
+            }
+          };
+          tryInit();
         }
       }catch(e){ console.warn(e) }
     }, false);

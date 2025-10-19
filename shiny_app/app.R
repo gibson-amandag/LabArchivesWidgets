@@ -84,8 +84,10 @@ server <- function(input, output, session) {
     if (!file.exists(path)) { rv$status <- paste0("File not found: ", path); return() }
     parsed <- tryCatch(jsonlite::fromJSON(paste(readLines(path), collapse = "\n")), error = function(e) NULL)
     if (is.null(parsed)) { rv$status <- "Invalid JSON on disk"; return() }
-    session$sendCustomMessage(type = 'loadWidgetState', message = list(json = parsed))
-    rv$status <- paste0("Loaded ", sel, " into widget")
+    # ask parent to reload the current widget src and then post the saved JSON into the fresh iframe
+    current_src <- input$widget_choice
+    session$sendCustomMessage(type = 'setWidgetSrcAndState', message = list(src = current_src, json = parsed, mode = input$widget_mode))
+    rv$status <- paste0("Loaded ", sel, " into fresh widget iframe")
   })
 
   # Load button: read file and send to widget via session$sendCustomMessage
