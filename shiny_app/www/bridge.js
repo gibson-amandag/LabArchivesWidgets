@@ -27,6 +27,15 @@
             console.warn('[Bridge parent] Shiny not available to receive widget_state');
           }
         }
+        // Forward lifecycle or status messages from the iframe to Shiny so server can react
+        else if (d && (d.type === 'widgetInitCalled' || d.type === 'widgetReady' || d.type === 'widgetModeChanged')){
+          if (window.Shiny && Shiny.setInputValue){
+            console.log('[Bridge parent] forwarding iframe event to Shiny:', d.type);
+            // include a timestamp to ensure Shiny sees a change each time
+            var payload = Object.assign({}, d, {__ts: (new Date()).toISOString()});
+            Shiny.setInputValue('iframe_event', payload, {priority: 'event'});
+          }
+        }
       }catch(e){ console.warn(e) }
     }, false);
 
@@ -51,6 +60,13 @@
         if (!iframe) return;
         console.log('[Bridge parent] requesting widget JSON from iframe');
         iframe.contentWindow.postMessage({type: 'requestWidgetJson'}, '*');
+      });
+      // allow server to change widget mode (edit/view)
+      Shiny.addCustomMessageHandler('setWidgetMode', function(message){
+        var iframe = document.getElementById('widget_iframe');
+        if (!iframe) return;
+        console.log('[Bridge parent] setting widget mode to', message.mode);
+        iframe.contentWindow.postMessage({type: 'setWidgetMode', mode: message.mode}, '*');
       });
     }
   }

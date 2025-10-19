@@ -10,7 +10,8 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput('widget_choice', 'Widget', choices = c('Minimal' = 'widget.html', 'Estrous Cycle Scoring' = 'estrousCycleScoring.html'), selected = 'widget.html'),
-      textInput("state_name", "Save name", value = "example_state"),
+  textInput("state_name", "Save name", value = "example_state"),
+  selectInput('widget_mode', 'Mode', choices = c('Edit' = 'edit', 'View' = 'view'), selected = 'edit'),
       actionButton("save_btn", "Save JSON"),
       actionButton("load_btn", "Load JSON"),
       tags$hr(),
@@ -118,6 +119,12 @@ server <- function(input, output, session) {
   observeEvent(input$widget_choice, {
     # send custom message to client to change iframe src
     session$sendCustomMessage(type = 'setWidgetSrc', message = list(src = input$widget_choice))
+  })
+
+  # When widget mode changes, tell the iframe to switch mode
+  observeEvent(input$widget_mode, {
+    session$sendCustomMessage(type = 'setWidgetMode', message = list(mode = input$widget_mode))
+    rv$status <- paste0('Requested widget mode: ', input$widget_mode)
   })
 
   # Provide a handler for the JS bridge to request the initial path (not used currently)
