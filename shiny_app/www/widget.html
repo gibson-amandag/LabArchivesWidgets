@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Widget - Minimal</title>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <style> body{ font-family: Arial, Helvetica, sans-serif; padding: 10px } .fullWidth{ width:100% }</style>
+</head>
+<body>
+  <h3>Minimal LabArchives Widget</h3>
+  <div>
+    <label>Date: <input type="date" id="testDate" /></label>
+  </div>
+  <div>
+    <label>Time: <input type="time" id="testTime" /></label>
+  </div>
+  <div>
+    <label>Notes:<br/><textarea id="testText" rows="4" cols="40"></textarea></label>
+  </div>
+  <div style="margin-top:8px">
+    <button id="emitState">Send state to parent</button>
+  </div>
+
+  <script src="bridge.js"></script>
+  <script>
+    // Build state object from inputs
+    function gatherState(){
+      return {
+        date: document.getElementById('testDate').value || null,
+        time: document.getElementById('testTime').value || null,
+        text: document.getElementById('testText').value || null,
+        updated: new Date().toISOString()
+      };
+    }
+
+    document.getElementById('emitState').addEventListener('click', function(){
+      var s = gatherState();
+      console.log('[widget] emitState', s);
+      // bridge will forward to Shiny parent
+      if (window.LabBridge && window.LabBridge.postState) {
+        console.log('[widget] using LabBridge.postState');
+        window.LabBridge.postState(s);
+      } else {
+        console.log('[widget] falling back to parent.postMessage');
+        window.parent.postMessage({type: 'widgetState', json: s}, '*');
+      }
+    });
+
+    // Allow parent to set state via postMessage
+    function applyState(obj){
+      if (!obj) return;
+      if (obj.date) document.getElementById('testDate').value = obj.date;
+      if (obj.time) document.getElementById('testTime').value = obj.time;
+      if (obj.text) document.getElementById('testText').value = obj.text;
+    }
+
+    // listen for parent's postMessage
+    window.addEventListener('message', function(ev){
+      try{
+        var d = ev.data;
+        if (d && d.type === 'loadWidgetState' && d.json) {
+          applyState(d.json);
+        }
+      }catch(e){console.warn(e)}
+    }, false);
+  </script>
+</body>
+</html>
